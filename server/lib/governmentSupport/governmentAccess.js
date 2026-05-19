@@ -5,6 +5,7 @@
 
 import { createAttachPlatformContext, isPlatformSuperAdmin } from '../platformRbac.js'
 import { GOVERNMENT_INDUSTRY_CODE } from './constants.js'
+import { isGovernmentUserManager } from './governmentAdminUsers.js'
 
 /**
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
@@ -244,5 +245,28 @@ export function createGovernmentSupportGuards(pool, deps) {
     },
   ]
 
-  return { requireGovernmentMember, requireGovernmentIndustryAdmin, attach }
+  const requireGovernmentUserManager = [
+    requireAuth,
+    attach,
+    (req, res, next) => {
+      try {
+        const ctx = /** @type {import('express').Request & { platformContext?: object }} */ (req)
+          .platformContext
+        if (!ctx || !isGovernmentUserManager(ctx)) {
+          res.status(403).json({ message: '사용자 관리 권한이 없습니다.' })
+          return
+        }
+        next()
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  ]
+
+  return {
+    requireGovernmentMember,
+    requireGovernmentIndustryAdmin,
+    requireGovernmentUserManager,
+    attach,
+  }
 }

@@ -33,6 +33,13 @@ export function canAccessGovernmentAdmin(state: GovernmentAccessState): boolean 
   return state === 'super_admin' || state === 'industry_admin'
 }
 
+/** 사용자 관리 — 업종 관리자·super·대행사 관리자 */
+export function canManageGovernmentUsers(summary: GovernmentAccessSummary | null): boolean {
+  if (!summary) return false
+  if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return true
+  return (summary.governmentAgencyAdminTenantIds?.length ?? 0) > 0
+}
+
 export function canAccessGovernmentWorkspace(state: GovernmentAccessState): boolean {
   return state !== 'denied' && state !== 'loading'
 }

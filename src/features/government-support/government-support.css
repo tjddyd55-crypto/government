@@ -331,3 +331,76 @@
 .government-page--mobile .government-admin-layout__sidebar {
   display: none;
 }
+
+.government-admin-users-page__filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.government-admin-users-page__table {
+  display: block;
+}
+
+.government-admin-users-page__cards {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.government-admin-users-page__card {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.government-admin-users-page__card-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+.government-admin-users-page__card-label {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.government-admin-users-page__actions,
+.government-admin-users-page__card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.government-admin-users-page__card-actions {
+  margin-top: 0.75rem;
+}
+
+.government-admin-users-page__dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.government-admin-users-page__username {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+}
+
+.government-page--mobile .government-admin-users-page__table {
+  display: none;
+}
+
+.government-page--mobile .government-admin-users-page__cards {
+  display: flex;
+}
+
+.government-page--pc .government-admin-users-page__cards {
+  display: none;
+}

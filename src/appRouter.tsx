@@ -169,7 +169,6 @@ export const appRouter = createBrowserRouter([
               { path: 'government/admin', element: <GovernmentAdminDashboardPage /> },
               { path: 'government/admin/agencies', element: <GovernmentAdminAgenciesPage /> },
               { path: 'government/admin/profiles', element: <GovernmentAdminProfilesPage /> },
-              { path: 'government/admin/users', element: <GovernmentAdminUsersPage /> },
               {
                 path: 'government/admin/memberships',
                 element: (
@@ -211,6 +210,15 @@ export const appRouter = createBrowserRouter([
                 ),
               },
             ],
+          },
+        ],
+      },
+      {
+        element: <GovernmentProtectedRoute requireUserManager />,
+        children: [
+          {
+            element: <GovernmentAdminLayout />,
+            children: [{ path: 'government/admin/users', element: <GovernmentAdminUsersPage /> }],
           },
         ],
       },

@@ -1,16 +1,21 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider'
-import { resolveGovernmentAccessState } from '../lib/governmentAccess'
+import { canManageGovernmentUsers, resolveGovernmentAccessState } from '../lib/governmentAccess'
 import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
 
 type GovernmentProtectedRouteProps = {
   requireAdmin?: boolean
+  /** 업종 관리자·super·대행사 관리자(사용자 관리 전용) */
+  requireUserManager?: boolean
 }
 
 /**
  * government-support 인증·멤버십 게이트 (플랫폼 /admin/platform 과 분리).
  */
-export default function GovernmentProtectedRoute({ requireAdmin = false }: GovernmentProtectedRouteProps) {
+export default function GovernmentProtectedRoute({
+  requireAdmin = false,
+  requireUserManager = false,
+}: GovernmentProtectedRouteProps) {
   const { token, isAuthenticated } = useAuth()
   const { loading, summary } = useGovernmentAccess(token)
   const state = resolveGovernmentAccessState(summary, loading, Boolean(isAuthenticated && token))
@@ -40,6 +45,9 @@ export default function GovernmentProtectedRoute({ requireAdmin = false }: Gover
     )
   }
   if (requireAdmin && !summary?.isGovernmentIndustryAdmin && !summary?.isSuperAdmin) {
+    return <Navigate to="/government/workspace" replace />
+  }
+  if (requireUserManager && !canManageGovernmentUsers(summary)) {
     return <Navigate to="/government/workspace" replace />
   }
   return <Outlet />
