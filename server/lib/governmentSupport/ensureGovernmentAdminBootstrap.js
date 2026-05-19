@@ -1,5 +1,6 @@
 /**
  * 정부지원 CRM 최초 관리자 — ENV 기반 idempotent bootstrap.
+ * 로그인 식별자는 users.username (아이디). email 컬럼은 사용하지 않는다.
  * 비밀번호는 bcrypt 저장만 하며 로그·DB에 평문을 남기지 않는다.
  */
 import bcrypt from 'bcryptjs'
@@ -13,14 +14,21 @@ function isBootstrapEnabled() {
 }
 
 function readBootstrapCredentials() {
-  const email = String(process.env.GOVERNMENT_ADMIN_EMAIL ?? '').trim()
+  const loginId = String(process.env.GOVERNMENT_ADMIN_LOGIN_ID ?? '').trim()
+  const legacyEmail = String(process.env.GOVERNMENT_ADMIN_EMAIL ?? '').trim()
+  if (!loginId && legacyEmail) {
+    console.warn(
+      `${LOG_PREFIX} GOVERNMENT_ADMIN_EMAIL 은 더 이상 사용하지 않습니다. GOVERNMENT_ADMIN_LOGIN_ID 로 설정하세요.`,
+    )
+  }
+  const resolvedLoginId = loginId || ''
   const password = String(
     process.env.GOVERNMENT_ADMIN_PASSWORD ??
       process.env.INSURANCE_ADMIN_BOOTSTRAP_PASSWORD ??
       '',
   ).trim()
   const displayName = String(process.env.GOVERNMENT_ADMIN_NAME ?? '정부지원 CRM 관리자').trim()
-  return { email, password, displayName }
+  return { loginId: resolvedLoginId, password, displayName }
 }
 
 /**
@@ -109,10 +117,10 @@ export async function ensureGovernmentAdminBootstrap(pool) {
     return
   }
 
-  const { email, password, displayName } = readBootstrapCredentials()
-  if (!email) {
+  const { loginId, password, displayName } = readBootstrapCredentials()
+  if (!loginId) {
     console.warn(
-      `${LOG_PREFIX} GOVERNMENT_ADMIN_BOOTSTRAP_ENABLED=true 이지만 GOVERNMENT_ADMIN_EMAIL 이 없어 건너뜁니다.`,
+      `${LOG_PREFIX} GOVERNMENT_ADMIN_BOOTSTRAP_ENABLED=true 이지만 GOVERNMENT_ADMIN_LOGIN_ID 가 없어 건너뜁니다.`,
     )
     return
   }
@@ -125,7 +133,7 @@ export async function ensureGovernmentAdminBootstrap(pool) {
 
   const industryId = await resolveGovernmentIndustryIdForBootstrap(pool)
   const gaId = await resolveGovernmentBootstrapGaId(pool)
-  const username = email
+  const username = loginId
   const existing = await pool.query(
     `SELECT id, username FROM users WHERE username = $1 AND COALESCE(is_deleted, false) IS NOT TRUE LIMIT 1`,
     [username],
@@ -143,11 +151,11 @@ export async function ensureGovernmentAdminBootstrap(pool) {
       [userId, username, hash, gaId, displayName],
     )
     console.log(
-      `${LOG_PREFIX} user created: username=${username} role=USER membership=government_industry_admin`,
+      `${LOG_PREFIX} user created: loginId=${username} role=USER membership=government_industry_admin`,
     )
   } else {
     userId = String(existing.rows[0].id)
-    console.log(`${LOG_PREFIX} user already exists: username=${username} — password unchanged`)
+    console.log(`${LOG_PREFIX} user already exists: loginId=${username} — password unchanged`)
     const dn = await pool.query(`SELECT display_name FROM users WHERE id = $1`, [userId])
     if (!String(dn.rows[0]?.display_name ?? '').trim() && displayName) {
       await pool.query(`UPDATE users SET display_name = $1 WHERE id = $2`, [displayName, userId])

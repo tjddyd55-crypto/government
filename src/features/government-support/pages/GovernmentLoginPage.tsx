@@ -41,7 +41,13 @@ export default function GovernmentLoginPage() {
       <h1 className="government-page__title">정부지원 CRM 로그인</h1>
       <p className="government-page__muted">government-support 전용 진입점입니다.</p>
       <form onSubmit={onSubmit} style={{ marginTop: '1.5rem', display: 'grid', gap: '0.75rem' }}>
-        <FormInput label="아이디" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
+        <FormInput
+          label="아이디"
+          placeholder="아이디 입력"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="username"
+        />
         <FormInput
           label="비밀번호"
           type="password"
