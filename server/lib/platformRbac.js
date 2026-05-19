@@ -125,6 +125,12 @@ export function buildEffectivePlatformContext({ user, memberships }) {
   const staffTenants = new Set()
   /** @type {Set<string>} */
   const userTenants = new Set()
+  /** @type {Set<string>} */
+  const governmentIndustryAdmin = new Set()
+  /** @type {Set<string>} */
+  const governmentAgencyAdmin = new Set()
+  /** @type {Set<string>} */
+  const governmentStaff = new Set()
 
   let membershipSuperAdmin = false
 
