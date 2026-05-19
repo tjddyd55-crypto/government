@@ -1,12 +1,15 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { FormButton, FormInput } from '../../../components/form'
+import { GOVERNMENT_LOGIN_DOCUMENT_TITLE } from '../../../config/governmentAppMeta'
+import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { ApiError } from '../../../lib/apiClient'
 import { login as loginApi } from '../../auth/authApi'
 import { useAuth } from '../../auth/AuthProvider'
 import '../government-support.css'
 
 export default function GovernmentLoginPage() {
+  useDocumentTitle(GOVERNMENT_LOGIN_DOCUMENT_TITLE)
   const navigate = useNavigate()
   const { isAuthenticated, login } = useAuth()
   const [username, setUsername] = useState('')

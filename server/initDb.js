@@ -2449,6 +2449,10 @@ export async function initDb() {
   await maybeDebugResetAllUsers()
   await ensureBootstrapAdminUser()
   await seedCrmPlatformUserMemberships(pool)
+  const { ensureGovernmentAdminBootstrap } = await import(
+    './lib/governmentSupport/ensureGovernmentAdminBootstrap.js'
+  )
+  await ensureGovernmentAdminBootstrap(pool)
   await seedConsentTemplatesIfNeeded()
 
   await pool.query(`

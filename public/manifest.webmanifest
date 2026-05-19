@@ -1,11 +1,12 @@
 {
-  "name": "보험 고객앱",
-  "short_name": "고객앱",
-  "start_url": "/customer-app",
+  "name": "정부지원 CRM",
+  "short_name": "정부지원",
+  "description": "정부지원 CRM 관리 시스템",
+  "start_url": "/government/login",
   "scope": "/",
   "display": "standalone",
   "theme_color": "#2563eb",
-  "background_color": "#0f172a",
+  "background_color": "#0b111a",
   "icons": [
     {
       "src": "/favicon.png",

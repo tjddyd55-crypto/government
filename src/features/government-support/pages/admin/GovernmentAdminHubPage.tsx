@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom'
+import { GOVERNMENT_APP_TITLE } from '../../../../config/governmentAppMeta'
+import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
 import '../../government-support.css'
 
 export default function GovernmentAdminHubPage() {
+  useDocumentTitle(`${GOVERNMENT_APP_TITLE} · 관리`)
   return (
     <main className="page government-page" style={{ padding: '1.5rem' }}>
       <h1 className="government-page__title">정부지원 업종 관리</h1>

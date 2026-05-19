@@ -1,7 +1,9 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import FormButton from '../../../components/form/FormButton'
+import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
 import useIsMobile from '../../../hooks/useIsMobile'
+import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { useAuth } from '../../auth/AuthProvider'
 import { GOVERNMENT_APPLICATION_STATUSES } from '../constants/governmentApplicationStatuses'
 import { GOVERNMENT_EDOC_TEMPLATES } from '../adapters/governmentContractAdapter'
@@ -44,6 +46,7 @@ function Field({
 }
 
 export default function GovernmentWorkspacePage() {
+  useDocumentTitle(GOVERNMENT_APP_TITLE)
   const { token, logout } = useAuth()
   const { summary } = useGovernmentAccess(token)
   const isMobile = useIsMobile()
