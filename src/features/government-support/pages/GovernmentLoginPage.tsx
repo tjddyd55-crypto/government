@@ -64,7 +64,7 @@ export default function GovernmentLoginPage() {
           autoComplete="current-password"
         />
         {error ? <p style={{ color: '#ef4444', margin: 0 }}>{error}</p> : null}
-        <FormButton type="submit" disabled={submitting}>
+        <FormButton htmlType="submit" variant="primary" disabled={submitting}>
           로그인
         </FormButton>
       </form>
