@@ -13,6 +13,12 @@ function isBootstrapEnabled() {
   return String(process.env.GOVERNMENT_ADMIN_BOOTSTRAP_ENABLED ?? '').trim() === 'true'
 }
 
+function isResetPasswordOnBootstrap() {
+  return (
+    String(process.env.GOVERNMENT_ADMIN_RESET_PASSWORD_ON_BOOTSTRAP ?? '').trim() === 'true'
+  )
+}
+
 function readBootstrapCredentials() {
   const loginId = String(process.env.GOVERNMENT_ADMIN_LOGIN_ID ?? '').trim()
   const legacyEmail = String(process.env.GOVERNMENT_ADMIN_EMAIL ?? '').trim()
@@ -157,10 +163,17 @@ export async function ensureGovernmentAdminBootstrap(pool) {
     )
   } else {
     userId = String(existing.rows[0].id)
-    console.log(`${LOG_PREFIX} user already exists: loginId=${username} — password unchanged`)
+    console.log(`${LOG_PREFIX} existing user found: loginId=${username}`)
     const dn = await pool.query(`SELECT display_name FROM users WHERE id = $1`, [userId])
     if (!String(dn.rows[0]?.display_name ?? '').trim() && displayName) {
       await pool.query(`UPDATE users SET display_name = $1 WHERE id = $2`, [displayName, userId])
+    }
+    if (isResetPasswordOnBootstrap()) {
+      const hash = await bcrypt.hash(password, 10)
+      await pool.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [hash, userId])
+      console.log(`${LOG_PREFIX} password reset applied: loginId=${username}`)
+    } else {
+      console.log(`${LOG_PREFIX} password unchanged: loginId=${username}`)
     }
   }
 

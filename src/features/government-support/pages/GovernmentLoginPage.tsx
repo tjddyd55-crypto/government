@@ -21,12 +21,16 @@ export default function GovernmentLoginPage() {
     return <Navigate to="/government/workspace" replace />
   }
 
-  const onSubmit = async (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSubmitting(true)
     setError('')
+    const form = e.currentTarget
+    const fd = new FormData(form)
+    const submittedUsername = String(fd.get('username') ?? username).trim()
+    const submittedPassword = String(fd.get('password') ?? password)
     try {
-      const res = await loginApi(username.trim(), password)
+      const res = await loginApi(submittedUsername, submittedPassword)
       login(res.token, res.user)
       navigate('/government/workspace', { replace: true })
     } catch (err) {
@@ -42,17 +46,21 @@ export default function GovernmentLoginPage() {
       <p className="government-page__muted">government-support 전용 진입점입니다.</p>
       <form onSubmit={onSubmit} style={{ marginTop: '1.5rem', display: 'grid', gap: '0.75rem' }}>
         <FormInput
+          name="username"
           label="아이디"
           placeholder="아이디 입력"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          onInput={(e) => setUsername(e.currentTarget.value)}
           autoComplete="username"
         />
         <FormInput
+          name="password"
           label="비밀번호"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onInput={(e) => setPassword(e.currentTarget.value)}
           autoComplete="current-password"
         />
         {error ? <p style={{ color: '#ef4444', margin: 0 }}>{error}</p> : null}

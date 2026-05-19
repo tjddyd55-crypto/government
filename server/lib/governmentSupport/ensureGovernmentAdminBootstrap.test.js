@@ -1,5 +1,6 @@
 import { describe, it, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
+import bcrypt from 'bcryptjs'
 import { ensureGovernmentAdminBootstrap } from './ensureGovernmentAdminBootstrap.js'
 
 describe('ensureGovernmentAdminBootstrap', () => {
@@ -13,6 +14,7 @@ describe('ensureGovernmentAdminBootstrap', () => {
     delete process.env.GOVERNMENT_ADMIN_EMAIL
     delete process.env.GOVERNMENT_ADMIN_PASSWORD
     delete process.env.GOVERNMENT_ADMIN_NAME
+    delete process.env.GOVERNMENT_ADMIN_RESET_PASSWORD_ON_BOOTSTRAP
   })
 
   afterEach(() => {
@@ -98,5 +100,81 @@ describe('ensureGovernmentAdminBootstrap', () => {
     assert.equal(userInsert.params[1], 'govadmin')
     assert.equal(userInsert.params[4], '테스트 관리자')
     assert.match(String(userInsert.params[2]), /^\$2[aby]\$/)
+  })
+
+  it('기존 유저 + RESET_PASSWORD_ON_BOOTSTRAP=false: password_hash UPDATE 없음', async () => {
+    process.env.GOVERNMENT_ADMIN_BOOTSTRAP_ENABLED = 'true'
+    process.env.GOVERNMENT_ADMIN_LOGIN_ID = 'govadmin'
+    process.env.GOVERNMENT_ADMIN_PASSWORD = 'new-bootstrap-pass'
+    process.env.GOVERNMENT_ADMIN_RESET_PASSWORD_ON_BOOTSTRAP = 'false'
+
+    const oldHash = await bcrypt.hash('old-pass', 10)
+    const calls = []
+    const pool = {
+      query: async (sql, params) => {
+        calls.push({ sql: String(sql), params })
+        if (String(sql).includes('INSERT INTO ga_companies')) {
+          return { rows: [{ id: 99 }], rowCount: 1 }
+        }
+        if (String(sql).includes('FROM industries')) {
+          return { rows: [{ id: 7 }], rowCount: 1 }
+        }
+        if (String(sql).includes('FROM users WHERE username')) {
+          return { rows: [{ id: 'user-1', username: 'govadmin' }], rowCount: 1 }
+        }
+        if (String(sql).includes('SELECT display_name FROM users')) {
+          return { rows: [{ display_name: '기존' }], rowCount: 1 }
+        }
+        if (String(sql).includes('user_memberships')) {
+          return { rows: [{ id: 1 }], rowCount: 1 }
+        }
+        return { rows: [], rowCount: 0 }
+      },
+    }
+
+    await ensureGovernmentAdminBootstrap(pool)
+    const passwordUpdate = calls.find(
+      (c) => String(c.sql).includes('UPDATE users SET password_hash'),
+    )
+    assert.equal(passwordUpdate, undefined)
+  })
+
+  it('기존 유저 + RESET_PASSWORD_ON_BOOTSTRAP=true: password_hash UPDATE 및 bcrypt compare 성공', async () => {
+    process.env.GOVERNMENT_ADMIN_BOOTSTRAP_ENABLED = 'true'
+    process.env.GOVERNMENT_ADMIN_LOGIN_ID = 'govadmin'
+    process.env.GOVERNMENT_ADMIN_PASSWORD = 'reset-bootstrap-pass'
+    process.env.GOVERNMENT_ADMIN_RESET_PASSWORD_ON_BOOTSTRAP = 'true'
+
+    const calls = []
+    const pool = {
+      query: async (sql, params) => {
+        calls.push({ sql: String(sql), params })
+        if (String(sql).includes('INSERT INTO ga_companies')) {
+          return { rows: [{ id: 99 }], rowCount: 1 }
+        }
+        if (String(sql).includes('FROM industries')) {
+          return { rows: [{ id: 7 }], rowCount: 1 }
+        }
+        if (String(sql).includes('FROM users WHERE username')) {
+          return { rows: [{ id: 'user-1', username: 'govadmin' }], rowCount: 1 }
+        }
+        if (String(sql).includes('SELECT display_name FROM users')) {
+          return { rows: [{ display_name: '기존' }], rowCount: 1 }
+        }
+        if (String(sql).includes('user_memberships')) {
+          return { rows: [{ id: 1 }], rowCount: 1 }
+        }
+        return { rows: [], rowCount: 0 }
+      },
+    }
+
+    await ensureGovernmentAdminBootstrap(pool)
+    const passwordUpdate = calls.find(
+      (c) => String(c.sql).includes('UPDATE users SET password_hash'),
+    )
+    assert.ok(passwordUpdate, 'expected password_hash update')
+    assert.equal(passwordUpdate.params[1], 'user-1')
+    const ok = await bcrypt.compare('reset-bootstrap-pass', passwordUpdate.params[0])
+    assert.equal(ok, true)
   })
 })
