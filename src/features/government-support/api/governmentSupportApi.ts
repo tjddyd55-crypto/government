@@ -8,6 +8,9 @@ export type GovernmentAccessSummary = {
   governmentIndustryAdminIndustryIds: string[]
   governmentAgencyAdminTenantIds: string[]
   governmentStaffTenantIds: string[]
+  /** 기관 코드 가입 프로그램 이용자 tenant */
+  governmentProgramUserTenantIds: string[]
+  isGovernmentProgramUser: boolean
   /** 워크스페이스·프로필 생성에 사용 가능한 tenant id 목록 */
   workspaceTenantIds: string[]
   defaultWorkspaceTenantId: string | null
@@ -36,6 +39,10 @@ function unwrapAccessPayload(raw: unknown): GovernmentAccessSummary | null {
     governmentStaffTenantIds: Array.isArray(row.governmentStaffTenantIds)
       ? row.governmentStaffTenantIds.map(String)
       : [],
+    governmentProgramUserTenantIds: Array.isArray(row.governmentProgramUserTenantIds)
+      ? row.governmentProgramUserTenantIds.map(String)
+      : [],
+    isGovernmentProgramUser: row.isGovernmentProgramUser === true,
     workspaceTenantIds: Array.isArray(row.workspaceTenantIds)
       ? row.workspaceTenantIds.map(String)
       : [],

@@ -31,6 +31,7 @@ describe('governmentAdminUsers helpers', () => {
 
   it('parseGovernmentMembershipRole', () => {
     assert.equal(parseGovernmentMembershipRole('government_staff'), 'government_staff')
+    assert.equal(parseGovernmentMembershipRole('government_user'), 'government_user')
     assert.equal(parseGovernmentMembershipRole('invalid'), null)
   })
 

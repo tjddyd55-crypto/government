@@ -64,10 +64,15 @@ export function RegisterPage({ signupIndustry = 'insurance' }: { signupIndustry?
   const [debugCodeHint, setDebugCodeHint] = useState('')
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard', { replace: true })
+    if (!isAuthenticated) {
+      return
     }
-  }, [isAuthenticated, navigate])
+    if (signupIndustry === 'government') {
+      navigate('/government/workspace', { replace: true })
+      return
+    }
+    navigate('/dashboard', { replace: true })
+  }, [isAuthenticated, navigate, signupIndustry])
 
   useEffect(() => {
     const ga = searchParams.get('ga')?.trim()
@@ -428,6 +433,11 @@ export function RegisterPage({ signupIndustry = 'insurance' }: { signupIndustry?
           signupPhoneProof: signupPhoneProof ?? undefined,
         })
       }
+      if (signupIndustry === 'government') {
+        setInfoMessage('회원가입이 완료되었습니다. 로그인해 주세요.')
+        navigate('/government/login', { replace: true })
+        return
+      }
       const session = await loginApi(userTrim, password)
       login(session)
       navigate('/dashboard', { replace: true })
@@ -470,7 +480,7 @@ export function RegisterPage({ signupIndustry = 'insurance' }: { signupIndustry?
           {tenantCodeMode ?
             signupIndustry === 'gym' ?
               '회원가입 · 체육관'
-            : '회원가입 · 공공기관'
+            : '회원가입 · 정부지원'
           : '회원가입'}
         </h1>
 
@@ -480,8 +490,14 @@ export function RegisterPage({ signupIndustry = 'insurance' }: { signupIndustry?
           <FormInput type="hidden" name="invite_ts" value={inviteTs} aria-hidden />
           {tenantCodeMode ?
             <label className="field">
-              <span className="field__label">가입 코드</span>
-              <p className="text-xs text-gray-400 mb-2">테넌트에서 발급한 코드입니다. 업종별 화면에 맞는 코드만 입력하세요.</p>
+              <span className="field__label">
+                {signupIndustry === 'government' ? '대행사 코드' : '가입 코드'}
+              </span>
+              <p className="text-xs text-gray-400 mb-2">
+                {signupIndustry === 'government'
+                  ? '소속 대행사에서 안내받은 코드를 입력하세요.'
+                  : '테넌트에서 발급한 코드입니다. 업종별 화면에 맞는 코드만 입력하세요.'}
+              </p>
               <FormInput
                 value={registrationCode}
                 onChange={(e) => {
@@ -490,7 +506,7 @@ export function RegisterPage({ signupIndustry = 'insurance' }: { signupIndustry?
                   setSignupPhoneProof(null)
                 }}
                 autoComplete="off"
-                placeholder="가입 코드"
+                placeholder={signupIndustry === 'government' ? '대행사 코드' : '가입 코드'}
                 required
               />
               {gaInfo ? <div className="ga-success">{`사업장: ${gaInfo}`}</div> : null}
@@ -664,7 +680,10 @@ export function RegisterPage({ signupIndustry = 'insurance' }: { signupIndustry?
 
         <div className="switch-text">
           이미 계정이 있나요?
-          <Link to="/login" className="switch-text__action">
+          <Link
+            to={signupIndustry === 'government' ? '/government/login' : '/login'}
+            className="switch-text__action"
+          >
             로그인
           </Link>
         </div>

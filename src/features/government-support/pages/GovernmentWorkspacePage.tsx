@@ -11,6 +11,7 @@ import {
   GOVERNMENT_DOCUMENT_TYPES,
   GOVERNMENT_SCHEDULE_TYPES,
 } from '../constants/governmentDocumentTypes'
+import { canManageGovernmentUsers, isGovernmentProgramUser } from '../lib/governmentAccess'
 import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
 import { useGovernmentWorkspaceState, type GovernmentWorkspaceTab } from '../hooks/useGovernmentWorkspaceState'
 import '../government-support.css'
@@ -51,12 +52,19 @@ export default function GovernmentWorkspacePage() {
   const { summary, reload: reloadAccess } = useGovernmentAccess(token)
   const isMobile = useIsMobile()
   const isIndustryAdmin = Boolean(summary?.isGovernmentIndustryAdmin || summary?.isSuperAdmin)
+  const programUser = isGovernmentProgramUser(summary)
+  const showAdminLink = Boolean(
+    summary && (isIndustryAdmin || canManageGovernmentUsers(summary)),
+  )
   const defaultTenantId = useMemo(() => {
     if (!summary) return null
     if (summary.defaultWorkspaceTenantId) return summary.defaultWorkspaceTenantId
     if (summary.workspaceTenantIds.length > 0) return summary.workspaceTenantIds[0]
     return (
-      summary.governmentAgencyAdminTenantIds[0] ?? summary.governmentStaffTenantIds[0] ?? null
+      summary.governmentProgramUserTenantIds[0] ??
+      summary.governmentAgencyAdminTenantIds[0] ??
+      summary.governmentStaffTenantIds[0] ??
+      null
     )
   }, [summary])
 
@@ -65,9 +73,11 @@ export default function GovernmentWorkspacePage() {
     Boolean(defaultTenantId) ||
     (summary?.workspaceTenantIds.length ?? 0) > 0
 
-  const emptyListHint = isIndustryAdmin
-    ? '아직 등록된 고객/사업장이 없습니다. 상단 「+ 고객/사업장」으로 추가하세요.'
-    : '배정된 고객/사업장이 없습니다. 관리자에게 문의하세요.'
+  const emptyListHint = programUser
+    ? '등록된 사업장/고객이 없습니다. 상단 「+ 고객/사업장」으로 추가하세요.'
+    : isIndustryAdmin
+      ? '아직 등록된 고객/사업장이 없습니다. 상단 「+ 고객/사업장」으로 추가하세요.'
+      : '배정된 고객/사업장이 없습니다. 관리자에게 문의하세요.'
 
   const ws = useGovernmentWorkspaceState(token, defaultTenantId, {
     canCreateProfile,
@@ -85,7 +95,7 @@ export default function GovernmentWorkspacePage() {
       <header className="government-workspace__header">
         <div>
           <strong style={{ color: '#f8fafc' }}>정부지원 CRM</strong>
-          {summary?.isGovernmentIndustryAdmin ? (
+          {showAdminLink ? (
             <Link to="/government/admin" style={{ marginLeft: '0.75rem', color: '#60a5fa' }}>
               관리
             </Link>

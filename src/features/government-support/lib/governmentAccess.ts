@@ -36,8 +36,14 @@ export function canAccessGovernmentAdmin(state: GovernmentAccessState): boolean 
 /** 사용자 관리 — 업종 관리자·super·대행사 관리자 */
 export function canManageGovernmentUsers(summary: GovernmentAccessSummary | null): boolean {
   if (!summary) return false
+  if (summary.isGovernmentProgramUser) return false
   if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return true
   return (summary.governmentAgencyAdminTenantIds?.length ?? 0) > 0
+}
+
+/** 기관 코드 가입 프로그램 이용자 */
+export function isGovernmentProgramUser(summary: GovernmentAccessSummary | null): boolean {
+  return summary?.isGovernmentProgramUser === true
 }
 
 export function canAccessGovernmentWorkspace(state: GovernmentAccessState): boolean {

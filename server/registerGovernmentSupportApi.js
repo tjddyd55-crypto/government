@@ -2,13 +2,16 @@
  * government-support CRM API (보험 CRM / 플랫폼 관리와 분리).
  */
 import {
+  canAccessGovernmentProfile,
   canAccessGovernmentTenant,
   createGovernmentSupportGuards,
   isGovernmentIndustryAdmin,
+  isGovernmentProgramUser,
   isGovernmentSuperAdmin,
   isGovernmentTenantMember,
   resolveGovernmentCrmGaId,
   resolveGovernmentIndustryId,
+  resolveGovernmentProfileQueryScope,
   resolveGovernmentTenantScopeForQuery,
   resolveTenantIdForProfileCreate,
 } from './lib/governmentSupport/governmentAccess.js'
@@ -55,9 +58,11 @@ export function registerGovernmentSupportApi(router, deps) {
           isSuperAdmin: isGovernmentSuperAdmin(ctx),
           isGovernmentIndustryAdmin: isGovernmentIndustryAdmin(ctx),
           isGovernmentTenantMember: isGovernmentTenantMember(ctx),
+          isGovernmentProgramUser: isGovernmentProgramUser(ctx),
           governmentIndustryAdminIndustryIds: [...(ctx.governmentIndustryAdminIndustryIds ?? [])],
           governmentAgencyAdminTenantIds: [...(ctx.governmentAgencyAdminTenantIds ?? [])],
           governmentStaffTenantIds: [...(ctx.governmentStaffTenantIds ?? [])],
+          governmentProgramUserTenantIds: [...(ctx.governmentProgramUserTenantIds ?? [])],
           workspaceTenantIds,
           defaultWorkspaceTenantId: workspaceTenantIds[0] ?? null,
         },
@@ -142,7 +147,7 @@ export function registerGovernmentSupportApi(router, deps) {
           code, tenant_id, industry_code, default_membership_type, default_customer_access,
           default_role, status
         )
-        VALUES ($1, $2::bigint, $3, 'staff', 'tenant', 'government_staff', 'active')
+        VALUES ($1, $2::bigint, $3, 'user', 'own', 'user', 'active')
         ON CONFLICT DO NOTHING
         `,
         [agencyCode, tenant.id, GOVERNMENT_INDUSTRY_CODE],
@@ -255,7 +260,7 @@ export function registerGovernmentSupportApi(router, deps) {
   router.get('/government-support/profiles', ...requireGovernmentMember, async (req, res) => {
     try {
       const ctx = req.platformContext
-      const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
+      const scope = await resolveGovernmentProfileQueryScope(pool, ctx)
       if (!scope.ok) {
         res.status(scope.status).json({ message: scope.message })
         return
@@ -268,9 +273,10 @@ export function registerGovernmentSupportApi(router, deps) {
         `
         SELECT * FROM gov_support_profiles
         WHERE tenant_id = ANY($1::bigint[])
+          AND ($2::text IS NULL OR owner_user_id = $2::text)
         ORDER BY updated_at DESC, id DESC
         `,
-        [scope.tenantIds],
+        [scope.tenantIds, scope.ownerUserId],
       )
       res.json({ success: true, data: r.rows.map(mapGovSupportProfileRow) })
     } catch (e) {
@@ -292,6 +298,10 @@ export function registerGovernmentSupportApi(router, deps) {
       const pairs = profilePatchFromBody(body)
       const cols = ['tenant_id', ...pairs.map((p) => p[0])]
       const vals = [tenantId, ...pairs.map((p) => p[1])]
+      if (isGovernmentProgramUser(ctx)) {
+        cols.push('owner_user_id')
+        vals.push(ctx.userId)
+      }
       const placeholders = vals.map((_, i) => `$${i + 1}`)
       const r = await pool.query(
         `INSERT INTO gov_support_profiles (${cols.join(', ')}) VALUES (${placeholders.join(', ')}) RETURNING *`,
@@ -313,8 +323,8 @@ export function registerGovernmentSupportApi(router, deps) {
         return
       }
       const row = r.rows[0]
-      if (!canAccessGovernmentTenant(ctx, row.tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, row)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       res.json({ success: true, data: mapGovSupportProfileRow(row) })
@@ -327,13 +337,16 @@ export function registerGovernmentSupportApi(router, deps) {
     try {
       const ctx = req.platformContext
       const id = String(req.params.profileId ?? '').trim()
-      const existing = await pool.query(`SELECT tenant_id FROM gov_support_profiles WHERE id = $1::bigint`, [id])
+      const existing = await pool.query(
+        `SELECT tenant_id, owner_user_id FROM gov_support_profiles WHERE id = $1::bigint`,
+        [id],
+      )
       if ((existing.rowCount ?? 0) === 0) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentTenant(ctx, existing.rows[0].tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, existing.rows[0])) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       const pairs = profilePatchFromBody(req.body ?? {})
@@ -357,13 +370,13 @@ export function registerGovernmentSupportApi(router, deps) {
     try {
       const ctx = req.platformContext
       const profileId = String(req.params.profileId ?? '').trim()
-      const pr = await pool.query(`SELECT tenant_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
+      const pr = await pool.query(`SELECT tenant_id, owner_user_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
       if ((pr.rowCount ?? 0) === 0) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentTenant(ctx, pr.rows[0].tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, pr.rows[0])) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       const r = await pool.query(
@@ -394,7 +407,7 @@ export function registerGovernmentSupportApi(router, deps) {
       const ctx = req.platformContext
       const profileId = String(req.params.profileId ?? '').trim()
       const b = req.body ?? {}
-      const pr = await pool.query(`SELECT tenant_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
+      const pr = await pool.query(`SELECT tenant_id, owner_user_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
       if ((pr.rowCount ?? 0) === 0) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
@@ -503,13 +516,13 @@ export function registerGovernmentSupportApi(router, deps) {
     try {
       const ctx = req.platformContext
       const profileId = String(req.params.profileId ?? '').trim()
-      const pr = await pool.query(`SELECT tenant_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
+      const pr = await pool.query(`SELECT tenant_id, owner_user_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
       if ((pr.rowCount ?? 0) === 0) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentTenant(ctx, pr.rows[0].tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, pr.rows[0])) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       const r = await pool.query(
@@ -544,7 +557,7 @@ export function registerGovernmentSupportApi(router, deps) {
       const ctx = req.platformContext
       const profileId = String(req.params.profileId ?? '').trim()
       const b = req.body ?? {}
-      const pr = await pool.query(`SELECT tenant_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
+      const pr = await pool.query(`SELECT tenant_id, owner_user_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
       if ((pr.rowCount ?? 0) === 0) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
@@ -636,13 +649,13 @@ export function registerGovernmentSupportApi(router, deps) {
     try {
       const ctx = req.platformContext
       const profileId = String(req.params.profileId ?? '').trim()
-      const pr = await pool.query(`SELECT tenant_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
+      const pr = await pool.query(`SELECT tenant_id, owner_user_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
       if ((pr.rowCount ?? 0) === 0) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentTenant(ctx, pr.rows[0].tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, pr.rows[0])) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       const r = await pool.query(
@@ -671,7 +684,7 @@ export function registerGovernmentSupportApi(router, deps) {
       const ctx = req.platformContext
       const profileId = String(req.params.profileId ?? '').trim()
       const b = req.body ?? {}
-      const pr = await pool.query(`SELECT tenant_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
+      const pr = await pool.query(`SELECT tenant_id, owner_user_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
       if ((pr.rowCount ?? 0) === 0) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
@@ -721,13 +734,13 @@ export function registerGovernmentSupportApi(router, deps) {
     try {
       const ctx = req.platformContext
       const profileId = String(req.params.profileId ?? '').trim()
-      const pr = await pool.query(`SELECT tenant_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
+      const pr = await pool.query(`SELECT tenant_id, owner_user_id FROM gov_support_profiles WHERE id = $1::bigint`, [profileId])
       if ((pr.rowCount ?? 0) === 0) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentTenant(ctx, pr.rows[0].tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, pr.rows[0])) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       let r = await pool.query(
@@ -804,8 +817,8 @@ export function registerGovernmentSupportApi(router, deps) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentTenant(ctx, pr.rows[0].tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, pr.rows[0])) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       let caseRow = null

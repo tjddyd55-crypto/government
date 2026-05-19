@@ -13,7 +13,9 @@ import { fetchGovAgencies } from '../../api/governmentProfilesApi'
 import {
   GOVERNMENT_MEMBERSHIP_ROLES,
   GOVERNMENT_ROLE_LABELS,
+  GOVERNMENT_STAFF_MANAGEABLE_ROLES,
   type GovernmentMembershipRole,
+  type GovernmentStaffManageableRole,
 } from '../../constants/governmentRoles'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
@@ -46,11 +48,18 @@ function tenantLabel(row: GovernmentAdminUserRow): string {
   return '—'
 }
 
-function roleOptionsForManager(isFullAccess: boolean): { value: GovernmentMembershipRole; label: string }[] {
+function roleOptionsForManager(isFullAccess: boolean): { value: GovernmentStaffManageableRole; label: string }[] {
   const roles = isFullAccess
-    ? GOVERNMENT_MEMBERSHIP_ROLES
+    ? GOVERNMENT_STAFF_MANAGEABLE_ROLES
     : (['government_agency_admin', 'government_staff'] as const)
   return roles.map((r) => ({ value: r, label: GOVERNMENT_ROLE_LABELS[r] }))
+}
+
+function roleFilterOptions(): { value: string; label: string }[] {
+  return [
+    { value: '', label: '역할 전체' },
+    ...GOVERNMENT_MEMBERSHIP_ROLES.map((r) => ({ value: r, label: GOVERNMENT_ROLE_LABELS[r] })),
+  ]
 }
 
 export default function GovernmentAdminUsersPage() {
@@ -59,7 +68,8 @@ export default function GovernmentAdminUsersPage() {
   const { confirm, confirmDialog } = useConfirmDialog()
 
   const isFullAccess = Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
-  const roleOptions = useMemo(() => roleOptionsForManager(isFullAccess), [isFullAccess])
+  const staffRoleOptions = useMemo(() => roleOptionsForManager(isFullAccess), [isFullAccess])
+  const filterRoleOptions = useMemo(() => roleFilterOptions(), [])
 
   const [agencies, setAgencies] = useState<GovAgencyRow[]>([])
   const [rows, setRows] = useState<GovernmentAdminUserRow[]>([])
@@ -76,14 +86,14 @@ export default function GovernmentAdminUsersPage() {
   const [createUsername, setCreateUsername] = useState('')
   const [createDisplayName, setCreateDisplayName] = useState('')
   const [createPassword, setCreatePassword] = useState('')
-  const [createRole, setCreateRole] = useState<GovernmentMembershipRole>('government_staff')
+  const [createRole, setCreateRole] = useState<GovernmentStaffManageableRole>('government_staff')
   const [createTenantId, setCreateTenantId] = useState('')
   const [createError, setCreateError] = useState<string | null>(null)
   const [createSaving, setCreateSaving] = useState(false)
 
   const [editing, setEditing] = useState<GovernmentAdminUserRow | null>(null)
   const [editDisplayName, setEditDisplayName] = useState('')
-  const [editRole, setEditRole] = useState<GovernmentMembershipRole>('government_staff')
+  const [editRole, setEditRole] = useState<GovernmentStaffManageableRole>('government_staff')
   const [editTenantId, setEditTenantId] = useState('')
   const [editStatus, setEditStatus] = useState<GovernmentUserEntityStatus>('active')
   const [editError, setEditError] = useState<string | null>(null)
@@ -186,10 +196,17 @@ export default function GovernmentAdminUsersPage() {
     setEditError(null)
     setEditing(row)
     setEditDisplayName(row.displayName)
-    setEditRole(row.role)
+    setEditRole(
+      row.role === 'government_user'
+        ? 'government_staff'
+        : (row.role as GovernmentStaffManageableRole),
+    )
     setEditTenantId(row.tenantId ?? '')
     setEditStatus(row.status)
   }
+
+  const editingIsProgramUser = editing?.role === 'government_user'
+  const editRoleLocked = editingIsProgramUser && !isFullAccess
 
   const submitEdit = async () => {
     if (!token || !editing) return
@@ -198,10 +215,14 @@ export default function GovernmentAdminUsersPage() {
     try {
       const updated = await patchGovernmentAdminUser(token, editing.id, {
         displayName: editDisplayName.trim(),
-        role: editRole,
         status: editStatus,
-        ...(editRole !== 'government_industry_admin' && editTenantId
-          ? { tenantId: editTenantId }
+        ...(!editRoleLocked
+          ? {
+              role: editRole,
+              ...(editRole !== 'government_industry_admin' && editTenantId
+                ? { tenantId: editTenantId }
+                : {}),
+            }
           : {}),
       })
       setRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
@@ -247,11 +268,15 @@ export default function GovernmentAdminUsersPage() {
   return (
     <div className="government-admin-page government-admin-users-page">
       <div className="government-admin-page__toolbar">
-        <h1 className="government-page__title">사용자 관리</h1>
+        <h1 className="government-page__title">직원·이용자</h1>
         <FormButton htmlType="button" variant="primary" onClick={openCreate}>
-          사용자 추가
+          직원 추가
         </FormButton>
       </div>
+      <p className="government-page__muted government-admin-users-page__hint">
+        이용자(프로그램 사용자)는 대행사 코드로 회원가입합니다. 이 화면에서는 직원·관리자 계정만 직접
+        추가할 수 있습니다.
+      </p>
 
       <section className="government-admin-users-page__filters">
         <FieldWrapper label="검색">
@@ -261,7 +286,7 @@ export default function GovernmentAdminUsersPage() {
           <FormSelect
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            options={[{ value: '', label: '권한 전체' }, ...roleOptions]}
+            options={filterRoleOptions}
           />
         </FieldWrapper>
         <FieldWrapper label="소속">
@@ -310,7 +335,7 @@ export default function GovernmentAdminUsersPage() {
           createTenantId={createTenantId}
           setCreateTenantId={setCreateTenantId}
           createNeedsTenant={createNeedsTenant}
-          roleOptions={roleOptions}
+          roleOptions={staffRoleOptions}
           agencySelectOptions={agencySelectOptions}
         />
         <DialogActions
@@ -341,7 +366,8 @@ export default function GovernmentAdminUsersPage() {
             editStatus={editStatus}
             setEditStatus={setEditStatus}
             editNeedsTenant={editNeedsTenant}
-            roleOptions={roleOptions}
+            roleOptions={staffRoleOptions}
+            roleSelectDisabled={editRoleLocked}
             agencySelectOptions={agencySelectOptions}
           />
           <DialogActions
@@ -417,12 +443,12 @@ function UsersCreateForm(props: {
   setCreateDisplayName: (v: string) => void
   createPassword: string
   setCreatePassword: (v: string) => void
-  createRole: GovernmentMembershipRole
-  setCreateRole: (v: GovernmentMembershipRole) => void
+  createRole: GovernmentStaffManageableRole
+  setCreateRole: (v: GovernmentStaffManageableRole) => void
   createTenantId: string
   setCreateTenantId: (v: string) => void
   createNeedsTenant: boolean
-  roleOptions: { value: GovernmentMembershipRole; label: string }[]
+  roleOptions: { value: GovernmentStaffManageableRole; label: string }[]
   agencySelectOptions: { value: string; label: string }[]
 }) {
   return (
@@ -439,7 +465,7 @@ function UsersCreateForm(props: {
       <FieldWrapper label="권한">
         <FormSelect
           value={props.createRole}
-          onChange={(e) => props.setCreateRole(e.target.value as GovernmentMembershipRole)}
+          onChange={(e) => props.setCreateRole(e.target.value as GovernmentStaffManageableRole)}
           options={props.roleOptions}
         />
       </FieldWrapper>
@@ -460,14 +486,15 @@ function UsersCreateForm(props: {
 function UsersEditForm(props: {
   editDisplayName: string
   setEditDisplayName: (v: string) => void
-  editRole: GovernmentMembershipRole
-  setEditRole: (v: GovernmentMembershipRole) => void
+  editRole: GovernmentStaffManageableRole
+  setEditRole: (v: GovernmentStaffManageableRole) => void
   editTenantId: string
   setEditTenantId: (v: string) => void
   editStatus: GovernmentUserEntityStatus
   setEditStatus: (v: GovernmentUserEntityStatus) => void
   editNeedsTenant: boolean
-  roleOptions: { value: GovernmentMembershipRole; label: string }[]
+  roleSelectDisabled?: boolean
+  roleOptions: { value: GovernmentStaffManageableRole; label: string }[]
   agencySelectOptions: { value: string; label: string }[]
 }) {
   return (
@@ -476,9 +503,15 @@ function UsersEditForm(props: {
       <FieldWrapper label="권한">
         <FormSelect
           value={props.editRole}
-          onChange={(e) => props.setEditRole(e.target.value as GovernmentMembershipRole)}
+          onChange={(e) => props.setEditRole(e.target.value as GovernmentStaffManageableRole)}
           options={props.roleOptions}
+          disabled={props.roleSelectDisabled}
         />
+        {props.roleSelectDisabled ? (
+          <p className="government-page__muted" style={{ marginTop: '0.35rem' }}>
+            이용자 권한은 기관 코드 가입으로만 부여됩니다.
+          </p>
+        ) : null}
       </FieldWrapper>
       {props.editNeedsTenant && props.agencySelectOptions.length > 0 ? (
         <FieldWrapper label="소속">

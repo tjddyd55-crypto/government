@@ -42,6 +42,27 @@ describe('resolveTenantIdForProfileCreate', () => {
     assert.ok(insert)
   })
 
+  it('program user: 소속 tenant 사용', async () => {
+    const pool = {
+      query: async (sql) => {
+        if (String(sql).includes('FROM tenants t') && String(sql).includes('industries')) {
+          return { rows: [], rowCount: 0 }
+        }
+        return { rows: [], rowCount: 0 }
+      },
+    }
+    const ctx = {
+      userId: 'u3',
+      governmentIndustryAdminIndustryIds: [],
+      governmentAgencyAdminTenantIds: [],
+      governmentStaffTenantIds: [],
+      governmentProgramUserTenantIds: ['15'],
+    }
+    const r = await resolveTenantIdForProfileCreate(pool, ctx, null)
+    assert.equal(r.ok, true)
+    assert.equal(r.tenantId, '15')
+  })
+
   it('staff 멤버: scope 첫 tenant 사용', async () => {
     const pool = {
       query: async (sql) => {

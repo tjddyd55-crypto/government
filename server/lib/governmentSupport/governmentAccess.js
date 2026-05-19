@@ -27,13 +27,18 @@ export function isGovernmentIndustryAdmin(ctx) {
 /**
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
  */
+export function isGovernmentProgramUser(ctx) {
+  return (ctx.governmentProgramUserTenantIds?.length ?? 0) > 0
+}
+
 export function isGovernmentTenantMember(ctx) {
   if (isGovernmentIndustryAdmin(ctx)) {
     return true
   }
   return (
     (ctx.governmentAgencyAdminTenantIds?.length ?? 0) > 0 ||
-    (ctx.governmentStaffTenantIds?.length ?? 0) > 0
+    (ctx.governmentStaffTenantIds?.length ?? 0) > 0 ||
+    isGovernmentProgramUser(ctx)
   )
 }
 
@@ -51,7 +56,29 @@ export function canAccessGovernmentTenant(ctx, tenantId) {
   }
   const admin = ctx.governmentAgencyAdminTenantIds ?? []
   const staff = ctx.governmentStaffTenantIds ?? []
-  return admin.includes(tid) || staff.includes(tid)
+  const programUsers = ctx.governmentProgramUserTenantIds ?? []
+  return admin.includes(tid) || staff.includes(tid) || programUsers.includes(tid)
+}
+
+/**
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ * @param {{ owner_user_id?: string|null, ownerUserId?: string|null }} profileRow
+ */
+export function canAccessGovernmentProfile(ctx, profileRow) {
+  const tenantId =
+    profileRow?.tenant_id != null
+      ? String(profileRow.tenant_id)
+      : profileRow?.tenantId != null
+        ? String(profileRow.tenantId)
+        : ''
+  if (!tenantId || !canAccessGovernmentTenant(ctx, tenantId)) {
+    return false
+  }
+  if (!isGovernmentProgramUser(ctx)) {
+    return true
+  }
+  const ownerId = profileRow?.owner_user_id ?? profileRow?.ownerUserId ?? null
+  return ownerId != null && String(ownerId) === String(ctx.userId)
 }
 
 /**
@@ -194,11 +221,29 @@ export async function resolveGovernmentTenantScopeForQuery(pool, ctx) {
   const ids = new Set([
     ...(ctx.governmentAgencyAdminTenantIds ?? []),
     ...(ctx.governmentStaffTenantIds ?? []),
+    ...(ctx.governmentProgramUserTenantIds ?? []),
   ])
   if (ids.size === 0) {
     return { ok: false, status: 403, message: 'government-support 접근 권한이 없습니다.' }
   }
   return { ok: true, tenantIds: [...ids] }
+}
+
+/**
+ * 프로필 목록/단건 조회용 스코프 (이용자는 본인 owner_user_id 만).
+ * @param {import('pg').Pool} pool
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ */
+export async function resolveGovernmentProfileQueryScope(pool, ctx) {
+  const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
+  if (!scope.ok) {
+    return scope
+  }
+  return {
+    ok: true,
+    tenantIds: scope.tenantIds,
+    ownerUserId: isGovernmentProgramUser(ctx) ? String(ctx.userId) : null,
+  }
 }
 
 /**

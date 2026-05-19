@@ -14,15 +14,20 @@ import {
 import {
   GOVERNMENT_INDUSTRY_CODE,
   GOVERNMENT_MEMBERSHIP_ROLE_SET,
+  GOVERNMENT_STAFF_MANAGEABLE_ROLES,
 } from './constants.js'
+import { GOVERNMENT_PROGRAM_USER_ROLE } from './governmentSignup.js'
 
-export const GOVERNMENT_ENTITY_STATUSES = Object.freeze(['active', 'blocked', 'inactive'])
-
-const MANAGEABLE_ROLES_INDUSTRY = Object.freeze([
+const LISTABLE_GOVERNMENT_ROLES_SQL = `(
   'government_industry_admin',
   'government_agency_admin',
   'government_staff',
-])
+  '${GOVERNMENT_PROGRAM_USER_ROLE}'
+)`
+
+export const GOVERNMENT_ENTITY_STATUSES = Object.freeze(['active', 'blocked', 'inactive'])
+
+const MANAGEABLE_ROLES_INDUSTRY = GOVERNMENT_STAFF_MANAGEABLE_ROLES
 
 const MANAGEABLE_ROLES_AGENCY = Object.freeze(['government_agency_admin', 'government_staff'])
 
@@ -137,12 +142,13 @@ export async function loadGovernmentUserMembership(pool, userId) {
     INNER JOIN industries i ON i.id = m.industry_id AND LOWER(TRIM(i.code)) = $2
     LEFT JOIN tenants t ON t.id = m.tenant_id
     WHERE m.user_id = $1
-      AND m.role IN ('government_industry_admin', 'government_agency_admin', 'government_staff')
+      AND m.role IN ${LISTABLE_GOVERNMENT_ROLES_SQL}
     ORDER BY
       CASE m.role
         WHEN 'government_industry_admin' THEN 1
         WHEN 'government_agency_admin' THEN 2
-        ELSE 3
+        WHEN 'government_staff' THEN 3
+        ELSE 4
       END,
       m.id ASC
     LIMIT 1
@@ -212,6 +218,17 @@ export function membershipInsertParams(role, tenantId, industryId) {
       customer_access: 'tenant',
     }
   }
+  if (role === GOVERNMENT_PROGRAM_USER_ROLE) {
+    return {
+      role,
+      scope_type: 'tenant',
+      scope_id: tid,
+      tenant_id: tid,
+      industry_id: industryId,
+      membership_type: 'user',
+      customer_access: 'own',
+    }
+  }
   return {
     role,
     scope_type: 'tenant',
@@ -232,7 +249,7 @@ export async function listGovernmentAdminUsers(pool, scope, filters = {}) {
   const params = [GOVERNMENT_INDUSTRY_CODE]
   const where = [
     `COALESCE(u.is_deleted, false) IS NOT TRUE`,
-    `m.role IN ('government_industry_admin', 'government_agency_admin', 'government_staff')`,
+    `m.role IN ${LISTABLE_GOVERNMENT_ROLES_SQL}`,
     `LOWER(TRIM(i.code)) = $1`,
   ]
   let n = 2
@@ -296,7 +313,8 @@ export async function listGovernmentAdminUsers(pool, scope, filters = {}) {
         CASE m.role
           WHEN 'government_industry_admin' THEN 1
           WHEN 'government_agency_admin' THEN 2
-          ELSE 3
+          WHEN 'government_staff' THEN 3
+          ELSE 4
         END,
         m.id ASC
     ) ranked
@@ -330,7 +348,7 @@ export async function replaceGovernmentMembership(db, userId, industryId, spec) 
     `
     DELETE FROM user_memberships
     WHERE user_id = $1
-      AND role IN ('government_industry_admin', 'government_agency_admin', 'government_staff')
+      AND role IN ${LISTABLE_GOVERNMENT_ROLES_SQL}
     `,
     [userId],
   )
@@ -413,6 +431,13 @@ export async function createGovernmentAdminUser(pool, scope, body) {
   }
   if (!role || !scope.allowedRoles.includes(role)) {
     return { ok: false, status: 400, message: '권한(role)이 올바르지 않습니다.' }
+  }
+  if (role === GOVERNMENT_PROGRAM_USER_ROLE) {
+    return {
+      ok: false,
+      status: 400,
+      message: '이용자 계정은 기관 코드 회원가입으로만 생성할 수 있습니다.',
+    }
   }
   if (role !== 'government_industry_admin' && !tenantId) {
     return { ok: false, status: 400, message: '소속 수행기관/대행사(tenantId)가 필요합니다.' }
@@ -516,14 +541,40 @@ export async function patchGovernmentAdminUser(pool, scope, userId, body) {
     }
   }
 
-  let nextRole = access.membership ? String(access.membership.role) : null
+  const currentRole = access.membership ? String(access.membership.role) : ''
+  let nextRole = currentRole || null
   if (hasRole) {
     const parsed = parseGovernmentMembershipRole(body.role)
     if (!parsed || !scope.allowedRoles.includes(parsed)) {
+      if (parsed === GOVERNMENT_PROGRAM_USER_ROLE) {
+        return {
+          ok: false,
+          status: 400,
+          message: '이용자 권한은 기관 코드 가입으로만 부여됩니다.',
+        }
+      }
       return { ok: false, status: 400, message: '권한(role)이 올바르지 않습니다.' }
     }
     if (parsed === 'government_industry_admin' && !scope.fullAccess) {
       return { ok: false, status: 403, message: '업종 관리자 권한은 변경할 수 없습니다.' }
+    }
+    if (
+      currentRole === GOVERNMENT_PROGRAM_USER_ROLE &&
+      parsed !== GOVERNMENT_PROGRAM_USER_ROLE &&
+      !scope.fullAccess
+    ) {
+      return {
+        ok: false,
+        status: 403,
+        message: '이용자를 직원으로 승격할 수 없습니다. 전체 관리자만 권한 변경이 가능합니다.',
+      }
+    }
+    if (parsed === GOVERNMENT_PROGRAM_USER_ROLE && currentRole !== GOVERNMENT_PROGRAM_USER_ROLE) {
+      return {
+        ok: false,
+        status: 403,
+        message: '직원·관리자 계정을 이용자로 변경할 수 없습니다.',
+      }
     }
     nextRole = parsed
   }

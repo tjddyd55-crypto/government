@@ -18,6 +18,7 @@ const CANONICAL_PLATFORM_ROLES = Object.freeze([
   'government_industry_admin',
   'government_agency_admin',
   'government_staff',
+  'government_user',
 ])
 
 const CANONICAL_SET = new Set(CANONICAL_PLATFORM_ROLES)
@@ -54,6 +55,7 @@ const CANONICAL_SET = new Set(CANONICAL_PLATFORM_ROLES)
  * @property {readonly string[]} governmentIndustryAdminIndustryIds
  * @property {readonly string[]} governmentAgencyAdminTenantIds
  * @property {readonly string[]} governmentStaffTenantIds
+ * @property {readonly string[]} governmentProgramUserTenantIds
  */
 
 /**
@@ -131,6 +133,8 @@ export function buildEffectivePlatformContext({ user, memberships }) {
   const governmentAgencyAdmin = new Set()
   /** @type {Set<string>} */
   const governmentStaff = new Set()
+  /** @type {Set<string>} */
+  const governmentProgramUsers = new Set()
 
   let membershipSuperAdmin = false
 
@@ -211,6 +215,16 @@ export function buildEffectivePlatformContext({ user, memberships }) {
       if (tid !== null) {
         governmentStaff.add(tid)
       }
+      continue
+    }
+
+    if (pr === 'government_user' && scopeType === 'tenant') {
+      const tid =
+        normalizeIdKey(m.tenant_id) ??
+        normalizeIdKey(m.scope_id)
+      if (tid !== null) {
+        governmentProgramUsers.add(tid)
+      }
     }
   }
 
@@ -229,6 +243,7 @@ export function buildEffectivePlatformContext({ user, memberships }) {
     governmentIndustryAdminIndustryIds: Object.freeze([...governmentIndustryAdmin].sort()),
     governmentAgencyAdminTenantIds: Object.freeze([...governmentAgencyAdmin].sort()),
     governmentStaffTenantIds: Object.freeze([...governmentStaff].sort()),
+    governmentProgramUserTenantIds: Object.freeze([...governmentProgramUsers].sort()),
   })
 
   return context

@@ -431,12 +431,18 @@ export function registerUserProfileApi(apiRouter, ctx) {
         }
         gaId = ev.gaId
         tenantPkForProof = ev.tenantDbId
-        const dtCheck = String(ev.row.default_membership_type ?? 'agent').trim().toLowerCase()
-        const daCheck = String(ev.row.default_customer_access ?? 'own').trim().toLowerCase()
-        const drCheck = String(ev.row.default_role ?? 'user').trim().toLowerCase()
-        if (dtCheck !== 'agent' || daCheck !== 'own' || drCheck !== 'user') {
-          res.status(400).json({ message: '이 경로에서는 일반 agent(본인 고객) 가입만 허용됩니다.' })
-          return
+        const isGovSignup =
+          String(industryNorm ?? '')
+            .trim()
+            .toLowerCase() === 'government'
+        if (!isGovSignup) {
+          const dtCheck = String(ev.row.default_membership_type ?? 'agent').trim().toLowerCase()
+          const daCheck = String(ev.row.default_customer_access ?? 'own').trim().toLowerCase()
+          const drCheck = String(ev.row.default_role ?? 'user').trim().toLowerCase()
+          if (dtCheck !== 'agent' || daCheck !== 'own' || drCheck !== 'user') {
+            res.status(400).json({ message: '이 경로에서는 일반 agent(본인 고객) 가입만 허용됩니다.' })
+            return
+          }
         }
       } else {
         const gaCheck = await systemQuery(

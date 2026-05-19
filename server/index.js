@@ -31,6 +31,10 @@ import {
   normalizeIndustryCodeParam,
   normalizeTenantRegistrationCodeRaw,
 } from './lib/tenantRegistrationCodes.js'
+import {
+  attachGovernmentProgramUserMembership,
+  isGovernmentIndustrySignup,
+} from './lib/governmentSupport/governmentSignup.js'
 import { signInviteSignup, verifyInviteSignupSignature } from './lib/inviteSignupSignature.js'
 import { purgeExpiredSmsVerificationCodes } from './services/purgeExpiredSmsCodes.js'
 import { normalizeKrMobile, validateKrMobileDigits } from './lib/phoneNormalize.js'
@@ -1947,12 +1951,14 @@ async function handleRegister(req, res) {
         res.status(400).json({ message: '가입 코드와 소속 정보가 일치하지 않습니다.' })
         return
       }
-      const drCheck = String(ev.row.default_role ?? 'user').trim().toLowerCase()
-      const dtCheck = String(ev.row.default_membership_type ?? 'agent').trim().toLowerCase()
-      const daCheck = String(ev.row.default_customer_access ?? 'own').trim().toLowerCase()
-      if (!(drCheck === 'user' && dtCheck === 'agent' && daCheck === 'own')) {
-        res.status(400).json({ message: '이 경로에서는 일반 agent(본인 고객) 가입만 허용됩니다.' })
-        return
+      if (!isGovernmentIndustrySignup(industrySignup)) {
+        const drCheck = String(ev.row.default_role ?? 'user').trim().toLowerCase()
+        const dtCheck = String(ev.row.default_membership_type ?? 'agent').trim().toLowerCase()
+        const daCheck = String(ev.row.default_customer_access ?? 'own').trim().toLowerCase()
+        if (!(drCheck === 'user' && dtCheck === 'agent' && daCheck === 'own')) {
+          res.status(400).json({ message: '이 경로에서는 일반 agent(본인 고객) 가입만 허용됩니다.' })
+          return
+        }
       }
     } else {
       gaLegacyInviteCodeNormalized = normalizeInviteCode(inviteRaw ?? inviteAlt ?? '')
@@ -2130,15 +2136,23 @@ async function handleRegister(req, res) {
           res.status(400).json({ message: '가입 코드를 사용할 수 없습니다. 새 코드를 받아 주세요.' })
           return
         }
-        await attachTenantMembershipSignup(client, {
-          userId: id,
-          gaId,
-          tenantDbId: tenantRegMeta.tenantPk,
-          industryId: tenantRegMeta.industryPk,
-          rbacRole: 'user',
-          membershipType: 'agent',
-          customerAccess: 'own',
-        })
+        if (isGovernmentIndustrySignup(industrySignup)) {
+          await attachGovernmentProgramUserMembership(client, {
+            userId: id,
+            tenantDbId: tenantRegMeta.tenantPk,
+            industryId: tenantRegMeta.industryPk,
+          })
+        } else {
+          await attachTenantMembershipSignup(client, {
+            userId: id,
+            gaId,
+            tenantDbId: tenantRegMeta.tenantPk,
+            industryId: tenantRegMeta.industryPk,
+            rbacRole: 'user',
+            membershipType: 'agent',
+            customerAccess: 'own',
+          })
+        }
       } else {
         await attachTenantMembershipSignup(client, {
           userId: id,
