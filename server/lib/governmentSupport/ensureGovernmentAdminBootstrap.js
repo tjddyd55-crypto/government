@@ -147,8 +147,8 @@ export async function ensureGovernmentAdminBootstrap(pool) {
     const hash = await bcrypt.hash(password, 10)
     await pool.query(
       `
-      INSERT INTO users (id, username, password_hash, role, ga_id, display_name)
-      VALUES ($1, $2, $3, 'USER', $4, $5)
+      INSERT INTO users (id, username, password_hash, role, ga_id, display_name, invited_by_user_id)
+      VALUES ($1, $2, $3, 'USER', $4, $5, $1)
       `,
       [userId, username, hash, gaId, displayName],
     )

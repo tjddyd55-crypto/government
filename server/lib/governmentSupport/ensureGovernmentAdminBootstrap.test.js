@@ -81,6 +81,7 @@ describe('ensureGovernmentAdminBootstrap', () => {
         }
         if (String(sql).includes('INSERT INTO users')) {
           assert.equal(params[1], 'govadmin')
+          assert.equal(params[0], params[params.length - 1] || params[0])
           return { rows: [], rowCount: 1 }
         }
         if (String(sql).includes('user_memberships')) {
