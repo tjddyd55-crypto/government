@@ -4,11 +4,9 @@ import FormButton from '../../../components/form/FormButton'
 import useIsMobile from '../../../hooks/useIsMobile'
 import { useAuth } from '../../auth/AuthProvider'
 import { GOVERNMENT_APPLICATION_STATUSES } from '../constants/governmentApplicationStatuses'
-import { GOVERNMENT_EDOC_TEMPLATES } from '../adapters/governmentContractAdapter'
-import {
-  GOVERNMENT_DOCUMENT_TYPES,
-  GOVERNMENT_SCHEDULE_TYPES,
-} from '../constants/governmentDocumentTypes'
+import { GOVERNMENT_SCHEDULE_TYPES } from '../constants/governmentDocumentTypes'
+import GovernmentDocumentsTab from '../components/GovernmentDocumentsTab'
+import GovernmentEdocTab from '../components/GovernmentEdocTab'
 import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
 import { useGovernmentWorkspaceState, type GovernmentWorkspaceTab } from '../hooks/useGovernmentWorkspaceState'
 import '../government-support.css'
@@ -265,39 +263,29 @@ export default function GovernmentWorkspacePage() {
               </div>
             ) : null}
 
-            {ws.tab === 'edoc' ? (
-              <div>
-                <p className="government-page__muted">기존 전자문서 모듈 연동 — 발송 이력은 API로 확장됩니다.</p>
-                <ul>
-                  {GOVERNMENT_EDOC_TEMPLATES.map((name) => (
-                    <li key={name} style={{ marginBottom: '0.35rem' }}>
-                      {name}
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/contracts/signatures/send" style={{ color: '#60a5fa' }}>
-                  전자문서 발송 화면 열기 (기존 모듈)
-                </Link>
-              </div>
+            {ws.tab === 'edoc' && token && ws.selectedId ? (
+              <GovernmentEdocTab
+                token={token}
+                profileId={ws.selectedId}
+                links={ws.edocLinks}
+                onReload={ws.reloadDetail}
+                onFeedback={ws.setFeedback}
+              />
             ) : null}
 
-            {ws.tab === 'documents' ? (
-              <div>
-                <p className="government-page__muted">
-                  서류관리 — 프로필 조회 시 체크리스트가 자동 생성됩니다. 파일 업로드는 기존 R2 구조와 연동 예정.
-                </p>
-                <ul style={{ marginTop: '0.75rem', color: '#e5e7eb' }}>
-                  {GOVERNMENT_DOCUMENT_TYPES.map((name) => (
-                    <li key={name}>{name}</li>
-                  ))}
-                </ul>
-              </div>
+            {ws.tab === 'documents' && token ? (
+              <GovernmentDocumentsTab
+                token={token}
+                documents={ws.documents}
+                onReload={ws.reloadDetail}
+                onFeedback={ws.setFeedback}
+              />
             ) : null}
 
             {ws.tab === 'schedule' ? (
               <div>
                 <p className="government-page__muted">
-                  일정관리 — 기존 <Link to="/todos">할일/일정</Link> 모듈과 연동 예정 (tenant·신청건 기준).
+                  일정관리 — 정부지원 전용 일정 API는 추후 추가합니다. (보험 `/todos`와 분리 운영)
                 </p>
                 <ul style={{ marginTop: '0.75rem', color: '#e5e7eb' }}>
                   {GOVERNMENT_SCHEDULE_TYPES.map((name) => (

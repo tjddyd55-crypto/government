@@ -6,12 +6,20 @@ import {
   patchGovPriorLoan,
   deleteGovPriorLoan,
   fetchGovApplicationCases,
+  fetchGovDocuments,
+  fetchGovEdocLinks,
   fetchGovPriorLoans,
   fetchGovProfiles,
   patchGovApplicationCase,
   patchGovProfile,
 } from '../api/governmentProfilesApi'
-import type { GovApplicationCase, GovPriorLoan, GovSupportProfile } from '../types/governmentProfile.types'
+import type {
+  GovApplicationCase,
+  GovDocumentItem,
+  GovEdocLinkRow,
+  GovPriorLoan,
+  GovSupportProfile,
+} from '../types/governmentProfile.types'
 
 export type GovernmentWorkspaceTab =
   | 'reception'
@@ -53,14 +61,20 @@ export function useGovernmentWorkspaceState(token: string | null, defaultTenantI
     if (!token || !selectedId) {
       setPriorLoans([])
       setCases([])
+      setDocuments([])
+      setEdocLinks([])
       return
     }
-    const [loans, appCases] = await Promise.all([
+    const [loans, appCases, docs, edocs] = await Promise.all([
       fetchGovPriorLoans(token, selectedId),
       fetchGovApplicationCases(token, selectedId),
+      fetchGovDocuments(token, selectedId),
+      fetchGovEdocLinks(token, selectedId),
     ])
     setPriorLoans(loans)
     setCases(appCases)
+    setDocuments(docs)
+    setEdocLinks(edocs)
   }, [token, selectedId])
 
   useEffect(() => {
@@ -165,6 +179,9 @@ export function useGovernmentWorkspaceState(token: string | null, defaultTenantI
     setTab,
     priorLoans,
     cases,
+    documents,
+    edocLinks,
+    reloadDetail,
     feedback,
     setFeedback,
     saveProfile,

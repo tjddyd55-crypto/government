@@ -60,6 +60,23 @@ export type GovPriorLoan = {
   memo: string
 }
 
+export type GovDocumentItem = {
+  id: string
+  docType: string
+  status: string
+  storageKey: string | null
+}
+
+export type GovEdocLinkRow = {
+  id: string
+  documentName: string
+  sentAt: string | null
+  recipient: string
+  signStatus: string
+  completedAt: string | null
+  applicationCaseId: string | null
+}
+
 export type GovApplicationCase = {
   id: string
   profileId: string
