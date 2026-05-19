@@ -117,6 +117,8 @@ export async function ensureGovernmentAdminBootstrap(pool) {
     return
   }
 
+  console.log(`${LOG_PREFIX} bootstrap enabled — checking credentials`)
+
   const { loginId, password, displayName } = readBootstrapCredentials()
   if (!loginId) {
     console.warn(

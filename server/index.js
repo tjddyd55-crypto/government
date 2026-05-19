@@ -7107,6 +7107,10 @@ async function runInitDbOnStartup() {
   const t0 = Date.now()
   console.log('[server] initDb 시작…')
   await initDb()
+  const { ensureGovernmentAdminBootstrap } = await import(
+    './lib/governmentSupport/ensureGovernmentAdminBootstrap.js'
+  )
+  await ensureGovernmentAdminBootstrap(pool)
   console.log(`[server] initDb 완료 (${Date.now() - t0}ms)`)
 }
 
