@@ -31,7 +31,7 @@ export default function GovernmentLoginPage() {
     const submittedPassword = String(fd.get('password') ?? password)
     try {
       const res = await loginApi(submittedUsername, submittedPassword)
-      login(res.token, res.user)
+      login({ token: res.token, user: res.user })
       navigate('/government/workspace', { replace: true })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '로그인에 실패했습니다.')
