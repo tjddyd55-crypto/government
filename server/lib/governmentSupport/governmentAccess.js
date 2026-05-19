@@ -94,6 +94,89 @@ export async function isGovernmentSupportTenant(pool, tenantId) {
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
  * @returns {Promise<{ ok: true, tenantIds: string[] } | { ok: false, status: number, message: string }>}
  */
+/**
+ * @param {import('pg').Pool | { query: Function }} pool
+ * @returns {Promise<number|null>}
+ */
+export async function resolveGovernmentCrmGaId(pool) {
+  const r = await pool.query(
+    `SELECT id FROM ga_companies WHERE LOWER(TRIM(code)) = 'government_crm' LIMIT 1`,
+  )
+  const id = r.rows[0]?.id
+  return id != null && Number(id) > 0 ? Number(id) : null
+}
+
+/**
+ * 업종 관리자가 고객/사업장을 만들 때 사용할 기본 tenant (수행기관 0건일 때 1회 생성).
+ * @param {import('pg').Pool | { query: Function }} pool
+ * @returns {Promise<string>}
+ */
+export async function ensureDefaultGovernmentWorkspaceTenant(pool) {
+  const industryId = await resolveGovernmentIndustryId(pool)
+  if (!industryId) {
+    throw new Error('government 업종이 설정되지 않았습니다.')
+  }
+  const gaId = await resolveGovernmentCrmGaId(pool)
+  const platformCode = 'GOVERNMENT_PLATFORM'
+  const existing = await pool.query(
+    `
+    SELECT id::text AS id
+    FROM tenants
+    WHERE industry_id = $1::bigint AND LOWER(TRIM(code)) = $2
+    LIMIT 1
+    `,
+    [industryId, platformCode],
+  )
+  if (existing.rows[0]?.id) {
+    return String(existing.rows[0].id)
+  }
+  const ins = await pool.query(
+    `
+    INSERT INTO tenants (industry_id, code, name, status, legacy_ga_id, config)
+    VALUES ($1::bigint, $2, $3, 'active', $4, '{}'::jsonb)
+    RETURNING id::text AS id
+    `,
+    [industryId, platformCode, '정부지원 플랫폼', gaId],
+  )
+  const id = ins.rows[0]?.id
+  if (!id) {
+    throw new Error('기본 수행 tenant 생성에 실패했습니다.')
+  }
+  return String(id)
+}
+
+/**
+ * 워크스페이스에서 프로필 생성 시 사용할 tenant id (요청 tenant 없으면 scope 첫 항목·플랫폼 tenant).
+ * @param {import('pg').Pool} pool
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ * @param {string|null|undefined} requestedTenantId
+ */
+export async function resolveTenantIdForProfileCreate(pool, ctx, requestedTenantId) {
+  const tid = requestedTenantId != null ? String(requestedTenantId).trim() : ''
+  if (tid && canAccessGovernmentTenant(ctx, tid)) {
+    const ok = await isGovernmentSupportTenant(pool, tid)
+    if (ok) {
+      return { ok: true, tenantId: tid }
+    }
+  }
+  const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
+  if (!scope.ok) {
+    return { ok: false, status: scope.status, message: scope.message }
+  }
+  if (scope.tenantIds.length > 0) {
+    return { ok: true, tenantId: scope.tenantIds[0] }
+  }
+  if (isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)) {
+    const created = await ensureDefaultGovernmentWorkspaceTenant(pool)
+    return { ok: true, tenantId: created }
+  }
+  return {
+    ok: false,
+    status: 400,
+    message: '소속 수행기관이 없습니다. 관리자에게 문의하세요.',
+  }
+}
+
 export async function resolveGovernmentTenantScopeForQuery(pool, ctx) {
   if (isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)) {
     const r = await pool.query(

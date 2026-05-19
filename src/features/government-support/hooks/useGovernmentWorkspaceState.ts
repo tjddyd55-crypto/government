@@ -25,7 +25,13 @@ export type GovernmentWorkspaceTab =
   | 'schedule'
   | 'memo'
 
-export function useGovernmentWorkspaceState(token: string | null, defaultTenantId: string | null) {
+export function useGovernmentWorkspaceState(
+  token: string | null,
+  defaultTenantId: string | null,
+  options?: { canCreateProfile?: boolean; onProfilesChanged?: () => void },
+) {
+  const canCreateProfile = options?.canCreateProfile ?? true
+  const onProfilesChanged = options?.onProfilesChanged
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [profiles, setProfiles] = useState<GovSupportProfile[]>([])
@@ -90,15 +96,24 @@ export function useGovernmentWorkspaceState(token: string | null, defaultTenantI
   )
 
   const addProfile = useCallback(async () => {
-    if (!token || !defaultTenantId) {
-      setError('tenant를 선택할 수 없습니다. 멤버십을 확인하세요.')
+    if (!token) {
       return
     }
-    const row = await createGovProfile(token, defaultTenantId)
-    setProfiles((prev) => [row, ...prev])
-    setSelectedId(row.id)
-    setFeedback('고객/사업장 카드를 생성했습니다.')
-  }, [token, defaultTenantId])
+    if (!canCreateProfile) {
+      setError('고객/사업장을 등록할 권한이 없습니다.')
+      return
+    }
+    setError(null)
+    try {
+      const row = await createGovProfile(token, defaultTenantId)
+      setProfiles((prev) => [row, ...prev])
+      setSelectedId(row.id)
+      setFeedback('고객/사업장 카드를 생성했습니다.')
+      onProfilesChanged?.()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '고객/사업장 등록에 실패했습니다.')
+    }
+  }, [token, defaultTenantId, canCreateProfile, onProfilesChanged])
 
   const addPriorLoan = useCallback(async () => {
     if (!token || !selectedId) return

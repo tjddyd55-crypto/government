@@ -20,6 +20,7 @@ export function AppLayout() {
   const hideAppExitConfirm = isCustomerCreateMode(location.pathname, location.search ?? '')
   const hideMobileLoginTopChrome = !isAuthenticated && isMobile && location.pathname === '/login'
   const hidePublicIntroChrome = isIntroductionRoute
+  const isGovernmentRoute = location.pathname.startsWith('/government')
 
   const rootClass = ['app-root', isAuthenticated ? 'app-root--authenticated' : ''].filter(Boolean).join(' ')
 
@@ -31,7 +32,9 @@ export function AppLayout() {
        * (`ElectronTitleBar` 내부의 GA 테넌트·뒤로가기 로직은 이미 비인증을 고려한다)
        */}
       {isElectronApp() && !hidePublicIntroChrome ? <ElectronTitleBar /> : null}
-      {!isElectronApp() && isAuthenticated && !hidePublicIntroChrome ? <WebProgramTopBar /> : null}
+      {!isElectronApp() && isAuthenticated && !hidePublicIntroChrome && !isGovernmentRoute ? (
+        <WebProgramTopBar />
+      ) : null}
       {!hideMobileLoginTopChrome && !hidePublicIntroChrome ? <OperationalMessageBanner /> : null}
       {isAuthenticated ? <GlobalBackHandlerHost /> : null}
       {hideAppExitConfirm ? null : <AppExitConfirm />}

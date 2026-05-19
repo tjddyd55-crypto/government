@@ -122,8 +122,11 @@ import GovernmentLoginPage from './features/government-support/pages/GovernmentL
 import GovernmentSignupPage from './features/government-support/pages/GovernmentSignupPage'
 import GovernmentJoinPage from './features/government-support/pages/GovernmentJoinPage'
 import GovernmentWorkspacePage from './features/government-support/pages/GovernmentWorkspacePage'
-import GovernmentAdminHubPage from './features/government-support/pages/admin/GovernmentAdminHubPage'
+import GovernmentAdminLayout from './features/government-support/layouts/GovernmentAdminLayout'
+import GovernmentAdminDashboardPage from './features/government-support/pages/admin/GovernmentAdminDashboardPage'
 import GovernmentAdminAgenciesPage from './features/government-support/pages/admin/GovernmentAdminAgenciesPage'
+import GovernmentAdminProfilesPage from './features/government-support/pages/admin/GovernmentAdminProfilesPage'
+import GovernmentAdminUsersPage from './features/government-support/pages/admin/GovernmentAdminUsersPage'
 import GovernmentPlaceholderPage from './features/government-support/components/GovernmentPlaceholderPage'
 import GovernmentProtectedRoute from './features/government-support/routes/GovernmentProtectedRoute'
 
@@ -160,27 +163,54 @@ export const appRouter = createBrowserRouter([
       {
         element: <GovernmentProtectedRoute requireAdmin />,
         children: [
-          { path: 'government/admin', element: <GovernmentAdminHubPage /> },
-          { path: 'government/admin/agencies', element: <GovernmentAdminAgenciesPage /> },
           {
-            path: 'government/admin/templates',
-            element: (
-              <GovernmentPlaceholderPage
-                title="고객관리 템플릿"
-                description="government-support는 코드형 CRM입니다. 동적 빌더 템플릿은 보험 플랫폼과 별도입니다."
-                backTo="/government/admin"
-              />
-            ),
-          },
-          {
-            path: 'government/admin/pdf-templates',
-            element: (
-              <GovernmentPlaceholderPage
-                title="PDF 좌표 템플릿"
-                description="기존 PDF 엔진 템플릿을 government 필드 매핑과 함께 사용합니다."
-                backTo="/government/admin"
-              />
-            ),
+            element: <GovernmentAdminLayout />,
+            children: [
+              { path: 'government/admin', element: <GovernmentAdminDashboardPage /> },
+              { path: 'government/admin/agencies', element: <GovernmentAdminAgenciesPage /> },
+              { path: 'government/admin/profiles', element: <GovernmentAdminProfilesPage /> },
+              { path: 'government/admin/users', element: <GovernmentAdminUsersPage /> },
+              {
+                path: 'government/admin/memberships',
+                element: (
+                  <GovernmentPlaceholderPage
+                    title="권한/멤버십"
+                    description="플랫폼 멤버십 관리는 준비 중입니다. 현재는 가입 코드로 staff를 등록합니다."
+                    backTo="/government/admin"
+                  />
+                ),
+              },
+              {
+                path: 'government/admin/settings',
+                element: (
+                  <GovernmentPlaceholderPage
+                    title="설정"
+                    description="정부지원 CRM 설정 (준비 중)"
+                    backTo="/government/admin"
+                  />
+                ),
+              },
+              {
+                path: 'government/admin/templates',
+                element: (
+                  <GovernmentPlaceholderPage
+                    title="고객관리 템플릿"
+                    description="government-support는 코드형 CRM입니다. 동적 빌더 템플릿은 보험 플랫폼과 별도입니다."
+                    backTo="/government/admin"
+                  />
+                ),
+              },
+              {
+                path: 'government/admin/pdf-templates',
+                element: (
+                  <GovernmentPlaceholderPage
+                    title="PDF 좌표 템플릿"
+                    description="기존 PDF 엔진 템플릿을 government 필드 매핑과 함께 사용합니다."
+                    backTo="/government/admin"
+                  />
+                ),
+              },
+            ],
           },
         ],
       },

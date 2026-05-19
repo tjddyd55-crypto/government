@@ -7,8 +7,10 @@ import {
   isGovernmentIndustryAdmin,
   isGovernmentSuperAdmin,
   isGovernmentTenantMember,
+  resolveGovernmentCrmGaId,
   resolveGovernmentIndustryId,
   resolveGovernmentTenantScopeForQuery,
+  resolveTenantIdForProfileCreate,
 } from './lib/governmentSupport/governmentAccess.js'
 import { GOVERNMENT_INDUSTRY_CODE } from './lib/governmentSupport/constants.js'
 import { mapGovSupportProfileRow, profilePatchFromBody } from './lib/governmentSupport/profileMapper.js'
@@ -25,13 +27,15 @@ export function registerGovernmentSupportApi(router, deps) {
     handleDbError,
   })
 
-  router.get('/government-support/me/access', requireAuth, attach, (req, res) => {
+  router.get('/government-support/me/access', requireAuth, attach, async (req, res) => {
     try {
       const ctx = req.platformContext
       if (!ctx) {
         res.status(500).json({ message: 'platformContext missing' })
         return
       }
+      const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
+      const workspaceTenantIds = scope.ok ? scope.tenantIds : []
       res.json({
         success: true,
         data: {
@@ -42,6 +46,8 @@ export function registerGovernmentSupportApi(router, deps) {
           governmentIndustryAdminIndustryIds: [...(ctx.governmentIndustryAdminIndustryIds ?? [])],
           governmentAgencyAdminTenantIds: [...(ctx.governmentAgencyAdminTenantIds ?? [])],
           governmentStaffTenantIds: [...(ctx.governmentStaffTenantIds ?? [])],
+          workspaceTenantIds,
+          defaultWorkspaceTenantId: workspaceTenantIds[0] ?? null,
         },
       })
     } catch (e) {
@@ -101,13 +107,14 @@ export function registerGovernmentSupportApi(router, deps) {
         res.status(409).json({ message: '이미 사용 중인 agencyCode 입니다.' })
         return
       }
+      const legacyGaId = await resolveGovernmentCrmGaId(pool)
       const ins = await pool.query(
         `
-        INSERT INTO tenants (industry_id, code, name, status, config)
-        VALUES ($1::bigint, $2, $3, $4, '{}'::jsonb)
+        INSERT INTO tenants (industry_id, code, name, status, legacy_ga_id, config)
+        VALUES ($1::bigint, $2, $3, $4, $5, '{}'::jsonb)
         RETURNING id::text AS id, code, name, status
         `,
-        [industryId, agencyCode, name, status],
+        [industryId, agencyCode, name, status, legacyGaId],
       )
       const tenant = ins.rows[0]
       await pool.query(
@@ -165,11 +172,13 @@ export function registerGovernmentSupportApi(router, deps) {
     try {
       const ctx = req.platformContext
       const body = req.body ?? {}
-      const tenantId = String(body.tenantId ?? body.tenant_id ?? '').trim()
-      if (!tenantId || !canAccessGovernmentTenant(ctx, tenantId)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      const requestedTenantId = body.tenantId ?? body.tenant_id ?? null
+      const resolved = await resolveTenantIdForProfileCreate(pool, ctx, requestedTenantId)
+      if (!resolved.ok) {
+        res.status(resolved.status).json({ message: resolved.message })
         return
       }
+      const tenantId = resolved.tenantId
       const pairs = profilePatchFromBody(body)
       const cols = ['tenant_id', ...pairs.map((p) => p[0])]
       const vals = [tenantId, ...pairs.map((p) => p[1])]

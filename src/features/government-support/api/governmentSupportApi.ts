@@ -8,6 +8,9 @@ export type GovernmentAccessSummary = {
   governmentIndustryAdminIndustryIds: string[]
   governmentAgencyAdminTenantIds: string[]
   governmentStaffTenantIds: string[]
+  /** 워크스페이스·프로필 생성에 사용 가능한 tenant id 목록 */
+  workspaceTenantIds: string[]
+  defaultWorkspaceTenantId: string | null
 }
 
 function unwrapAccessPayload(raw: unknown): GovernmentAccessSummary | null {
@@ -33,6 +36,13 @@ function unwrapAccessPayload(raw: unknown): GovernmentAccessSummary | null {
     governmentStaffTenantIds: Array.isArray(row.governmentStaffTenantIds)
       ? row.governmentStaffTenantIds.map(String)
       : [],
+    workspaceTenantIds: Array.isArray(row.workspaceTenantIds)
+      ? row.workspaceTenantIds.map(String)
+      : [],
+    defaultWorkspaceTenantId:
+      row.defaultWorkspaceTenantId != null && String(row.defaultWorkspaceTenantId).trim()
+        ? String(row.defaultWorkspaceTenantId).trim()
+        : null,
   }
 }
 

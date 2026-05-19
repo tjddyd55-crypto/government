@@ -38,11 +38,19 @@ export async function fetchGovProfiles(token: string): Promise<GovSupportProfile
   return unwrapList<GovSupportProfile>(raw)
 }
 
-export async function createGovProfile(token: string, tenantId: string, partial?: Partial<GovSupportProfile>) {
+export async function createGovProfile(
+  token: string,
+  tenantId: string | null | undefined,
+  partial?: Partial<GovSupportProfile>,
+) {
   const raw = await apiRequest<unknown>('/api/government-support/profiles', {
     method: 'POST',
     token,
-    body: JSON.stringify({ tenantId, customerName: '신규 고객', ...partial }),
+    body: JSON.stringify({
+      ...(tenantId ? { tenantId } : {}),
+      customerName: '신규 고객',
+      ...partial,
+    }),
   })
   const row = unwrapData<GovSupportProfile>(raw)
   if (!row) throw new Error('고객 생성에 실패했습니다.')

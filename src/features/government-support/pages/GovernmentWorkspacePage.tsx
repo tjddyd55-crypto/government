@@ -48,18 +48,31 @@ function Field({
 export default function GovernmentWorkspacePage() {
   useDocumentTitle(GOVERNMENT_APP_TITLE)
   const { token, logout } = useAuth()
-  const { summary } = useGovernmentAccess(token)
+  const { summary, reload: reloadAccess } = useGovernmentAccess(token)
   const isMobile = useIsMobile()
+  const isIndustryAdmin = Boolean(summary?.isGovernmentIndustryAdmin || summary?.isSuperAdmin)
   const defaultTenantId = useMemo(() => {
     if (!summary) return null
-    const tid =
-      summary.governmentAgencyAdminTenantIds[0] ??
-      summary.governmentStaffTenantIds[0] ??
-      null
-    return tid
+    if (summary.defaultWorkspaceTenantId) return summary.defaultWorkspaceTenantId
+    if (summary.workspaceTenantIds.length > 0) return summary.workspaceTenantIds[0]
+    return (
+      summary.governmentAgencyAdminTenantIds[0] ?? summary.governmentStaffTenantIds[0] ?? null
+    )
   }, [summary])
 
-  const ws = useGovernmentWorkspaceState(token, defaultTenantId)
+  const canCreateProfile =
+    isIndustryAdmin ||
+    Boolean(defaultTenantId) ||
+    (summary?.workspaceTenantIds.length ?? 0) > 0
+
+  const emptyListHint = isIndustryAdmin
+    ? '아직 등록된 고객/사업장이 없습니다. 상단 「+ 고객/사업장」으로 추가하세요.'
+    : '배정된 고객/사업장이 없습니다. 관리자에게 문의하세요.'
+
+  const ws = useGovernmentWorkspaceState(token, defaultTenantId, {
+    canCreateProfile,
+    onProfilesChanged: () => void reloadAccess(),
+  })
   const p = ws.selected
 
   const showList = !isMobile || !ws.selectedId
@@ -79,10 +92,12 @@ export default function GovernmentWorkspacePage() {
           ) : null}
         </div>
         <div>
-          <FormButton type="button" variant="secondary" onClick={() => void ws.addProfile()}>
-            + 고객/사업장
-          </FormButton>
-          <FormButton type="button" variant="secondary" onClick={() => logout()} style={{ marginLeft: '0.5rem' }}>
+          {canCreateProfile ? (
+            <FormButton htmlType="button" variant="secondary" onClick={() => void ws.addProfile()}>
+              + 고객/사업장
+            </FormButton>
+          ) : null}
+          <FormButton htmlType="button" variant="secondary" onClick={() => logout()} style={{ marginLeft: '0.5rem' }}>
             로그아웃
           </FormButton>
         </div>
@@ -98,6 +113,8 @@ export default function GovernmentWorkspacePage() {
               <p className="government-page__muted" style={{ padding: '1rem' }}>
                 불러오는 중…
               </p>
+            ) : ws.profiles.length === 0 ? (
+              <p className="government-workspace__empty">{emptyListHint}</p>
             ) : (
               ws.profiles.map((row) => (
                 <button
@@ -316,7 +333,7 @@ export default function GovernmentWorkspacePage() {
           </section>
         ) : (
           <section className="government-workspace__detail">
-            <p className="government-page__muted">좌측에서 고객/사업장을 선택하거나 새로 추가하세요.</p>
+            <p className="government-workspace__empty">{emptyListHint}</p>
           </section>
         )}
       </div>
