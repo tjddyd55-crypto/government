@@ -211,15 +211,15 @@ async function assertCustomerForUserSend(client, profileId, req) {
     return { error: '로그인이 필요합니다.', status: 401 }
   }
   if (ownerUserId == null) {
-    return { error: 'GA 컨텍스트가 없습니다.', status: 400 }
+    return { error: '프로그램 이용자 권한이 필요합니다.', status: 403 }
   }
   const r = await client.query(
     `
-    SELECT id, phone, owner_user_id, user_id
+    SELECT id, phone, owner_user_id
     FROM gov_support_profiles
-    WHERE id = $1 AND deleted_at IS NULL AND owner_user_id = $2 AND user_id = $3
+    WHERE id = $1 AND owner_user_id = $2
     `,
-    [profileId, ownerUserId, uid],
+    [profileId, ownerUserId],
   )
   if (r.rowCount === 0) {
     return { error: '고객을 찾을 수 없습니다.', status: 404 }
@@ -368,8 +368,20 @@ function mapSendSessionListRow(row) {
  * }} ctx
  */
 export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
-  const { pool, requireAuth, requireGovernmentProgramUserSignature, attachGovernmentSignatureContext, handleDbError } = ctx
-  const chain = [requireAuth, requireGovernmentProgramUserSignature, attachGovernmentSignatureContext]
+  const {
+    pool,
+    requireAuth,
+    attachPlatformContext,
+    requireGovernmentProgramUserSignature,
+    attachGovernmentSignatureContext,
+    handleDbError,
+  } = ctx
+  const chain = [
+    requireAuth,
+    attachPlatformContext,
+    requireGovernmentProgramUserSignature,
+    attachGovernmentSignatureContext,
+  ]
 
   apiRouter.get('/government-support/signatures/send/templates', ...chain, async (req, res) => {
     try {
@@ -1084,16 +1096,16 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100)
       const offset = Math.max(Number(req.query.offset) || 0, 0)
 
-      const baseParams = [uid, ownerUserId]
+      const baseParams = [uid]
       let searchClause = ''
       if (qSearch) {
         const pattern = `%${escapeIlikePattern(qSearch)}%`
         baseParams.push(pattern)
-        const pPat = 3
+        const pPat = 2
         searchClause = `
           AND (
-            c.name ILIKE $${pPat} ESCAPE '\\'
-            OR (c.customer_code IS NOT NULL AND c.customer_code ILIKE $${pPat} ESCAPE '\\')
+            p.customer_name ILIKE $${pPat} ESCAPE '\\'
+            OR p.business_name ILIKE $${pPat} ESCAPE '\\'
             OR p.phone ILIKE $${pPat} ESCAPE '\\'
             OR EXISTS (
               SELECT 1 FROM gov_signature_document_instances cdi2
@@ -1128,7 +1140,6 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         INNER JOIN gov_support_profiles p ON p.id = s.profile_id
         WHERE s.sent_by_user_id = $1
           AND p.owner_user_id = $1
-          AND p.tenant_id = $2
           ${whereRest}
       `
       const countR = await pool.query(countSql, baseParams)
@@ -1149,8 +1160,8 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           s.opened_at,
           s.completed_at,
           s.expired_at,
-          c.name AS profile_display_name,
-          c.customer_code,
+          COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name) AS profile_display_name,
+          NULL::text AS customer_code,
           ivs.status AS identity_session_status,
           ivs.otp_verified_at AS identity_verified_at,
           COALESCE(doc_agg.document_count, 0)::int AS document_count,
@@ -1188,7 +1199,6 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         ) evpfx ON true
         WHERE s.sent_by_user_id = $1
           AND p.owner_user_id = $1
-          AND p.tenant_id = $2
           ${whereRest}
         ORDER BY ${orderSql}
         LIMIT $${li} OFFSET $${oi}
@@ -1233,11 +1243,10 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         WHERE s.id = $1
           AND s.sent_by_user_id = $2
           AND p.owner_user_id = $2
-          AND p.tenant_id = $3
         FOR UPDATE OF s
         LIMIT 1
         `,
-        [sid, uid, ownerUserId],
+        [sid, uid],
       )
       if (lock.rowCount === 0) {
         await client.query('ROLLBACK')
@@ -1332,8 +1341,8 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         `
         SELECT
           s.*,
-          c.name AS profile_display_name,
-          c.customer_code,
+          COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name) AS profile_display_name,
+          NULL::text AS customer_code,
           ivs.status AS ivs_status,
           ivs.otp_verified_at AS ivs_otp_verified_at
         FROM gov_signature_send_sessions s
@@ -1342,10 +1351,9 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         WHERE s.id = $1
           AND s.sent_by_user_id = $2
           AND p.owner_user_id = $2
-          AND p.tenant_id = $3
         LIMIT 1
         `,
-        [req.params.id, uid, ownerUserId],
+        [req.params.id, uid],
       )
       if (r.rowCount === 0) {
         res.status(404).json({ ok: false, message: '발송 세션을 찾을 수 없습니다.' })
@@ -1441,10 +1449,9 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           WHERE s.id = $1
             AND s.sent_by_user_id = $2
             AND p.owner_user_id = $2
-            AND p.tenant_id = $3
           LIMIT 1
           `,
-          [sid, uid, ownerUserId],
+          [sid, uid],
         )
         if (r.rowCount === 0) {
           res.status(404).json({ ok: false, message: '발송 세션을 찾을 수 없습니다.' })
@@ -1456,7 +1463,7 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
             cdi.status,
             cdi.signed_pdf_file_id,
             cdi.title_snapshot,
-            c.name AS profile_display_name
+            COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name) AS profile_display_name
           FROM gov_signature_document_instances cdi
           INNER JOIN gov_signature_send_sessions s2 ON s2.id = cdi.send_session_id
           INNER JOIN gov_support_profiles p ON p.id = s2.profile_id
@@ -1529,10 +1536,9 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         WHERE s.id = $1
           AND s.sent_by_user_id = $2
           AND p.owner_user_id = $2
-          AND p.tenant_id = $3
         LIMIT 1
         `,
-        [sid, uid, ownerUserId],
+        [sid, uid],
       )
       if (own.rowCount === 0) {
         res.status(404).json({ ok: false, message: '발송 세션을 찾을 수 없습니다.' })

@@ -938,12 +938,11 @@ async function loadSendSessionRow(pool, signToken) {
     `
     SELECT
       css.*,
-      c.name AS profile_display_name,
+      COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name) AS profile_display_name,
       p.phone AS profile_phone_raw,
       p.owner_user_id AS customer_user_id,
-      p.tenant_id AS customer_owner_user_id,
-      c.birth_date AS customer_birth_date,
-      c.address AS customer_address
+      p.owner_user_id AS customer_owner_user_id,
+      p.home_address AS customer_address
     FROM gov_signature_send_sessions css
     INNER JOIN gov_support_profiles p ON p.id = css.profile_id
     WHERE css.sign_token = $1
@@ -963,7 +962,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.post('/government-support/public/signatures/:token/documents/:documentInstanceId/complete', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const docId = String(req.params.documentInstanceId ?? '').trim()
       const base = await resolveMutationBase(pool, signToken, docId, 'complete')
       if (base.error) {
@@ -1566,7 +1565,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/public/signatures/:token/documents/:documentInstanceId/confirmation-signature', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const docId = String(req.params.documentInstanceId ?? '').trim()
       const row = await loadSendSessionRow(pool, signToken)
       if (!row) {
@@ -1619,7 +1618,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.post('/government-support/public/signatures/:token/documents/:documentInstanceId/sign', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const docId = String(req.params.documentInstanceId ?? '').trim()
       const base = await resolveMutationBase(pool, signToken, docId, 'sign')
       if (base.error) {
@@ -1959,7 +1958,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
       logPublicSignFailure(
         {
           route: 'contract public sign',
-          signTokenPrefix: String(req.params.signToken ?? '').trim().slice(0, 8),
+          signTokenPrefix: String(req.params.token ?? '').trim().slice(0, 8),
           documentInstanceId: String(req.params.documentInstanceId ?? '').trim(),
         },
         e,
@@ -1974,7 +1973,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.post('/government-support/public/signatures/:token/documents/:documentInstanceId/values', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const docId = String(req.params.documentInstanceId ?? '').trim()
       const base = await resolveMutationBase(pool, signToken, docId, 'values')
       if (base.error) {
@@ -2309,7 +2308,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/public/signatures/:token/documents/:documentInstanceId/pdf', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const docId = String(req.params.documentInstanceId ?? '').trim()
       const row = await loadSendSessionRow(pool, signToken)
       if (!row) {
@@ -2361,7 +2360,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/public/signatures/:token/documents/:documentInstanceId/rendered-pdf', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const docId = String(req.params.documentInstanceId ?? '').trim()
       const row = await loadSendSessionRow(pool, signToken)
       if (!row) {
@@ -2429,7 +2428,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/public/signatures/:token/documents/:documentInstanceId/signed-pdf', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const docId = String(req.params.documentInstanceId ?? '').trim()
       const row = await loadSendSessionRow(pool, signToken)
       if (!row) {
@@ -2486,7 +2485,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/public/signatures/:token/attachments/:attachmentId/view', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const attachmentId = String(req.params.attachmentId ?? '').trim()
       const row = await loadSendSessionRow(pool, signToken)
       if (!row) {
@@ -2512,7 +2511,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.post('/government-support/public/signatures/:token/attachments/:attachmentId/confirm', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const attachmentId = String(req.params.attachmentId ?? '').trim()
       const row = await loadSendSessionRow(pool, signToken)
       if (!row) {
@@ -2560,7 +2559,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/public/signatures/:token/documents/:documentInstanceId', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const docId = String(req.params.documentInstanceId ?? '').trim()
       const row = await loadSendSessionRow(pool, signToken)
       if (!row) {
@@ -2805,7 +2804,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/public/signatures/:token/documents', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const row = await loadSendSessionRow(pool, signToken)
       if (!row) {
         res.status(404).json({ success: false, message: '유효하지 않은 링크입니다.' })
@@ -2845,7 +2844,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.post('/government-support/public/signatures/:token/open', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const row = await loadSendSessionRow(pool, signToken)
       if (!row) {
         res.status(404).json({ success: false, message: '유효하지 않은 링크입니다.' })
@@ -2881,7 +2880,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/public/signatures/:token', async (req, res) => {
     try {
-      const signToken = String(req.params.signToken ?? '').trim()
+      const signToken = String(req.params.token ?? '').trim()
       const row = await loadSendSessionRow(pool, signToken)
       if (!row) {
         res.status(404).json({ success: false, message: '유효하지 않은 링크입니다.' })

@@ -3,7 +3,6 @@
  * @module governmentSignatures/access
  */
 
-import { createAttachPlatformContext } from '../platformRbac.js'
 import { isGovernmentProgramUser } from '../governmentSupport/governmentAccess.js'
 
 /**
@@ -94,8 +93,10 @@ export function requireGovernmentProgramUserSignature(req, res, next) {
     res.status(401).json({ ok: false, message: '로그인이 필요합니다.' })
     return
   }
-  const ctx = createAttachPlatformContext(req)
-  if (!isGovernmentProgramUser(ctx)) {
+  const ctx = /** @type {import('express').Request & { platformContext?: import('../platformRbac.js').EffectivePlatformContext }} */ (
+    req
+  ).platformContext
+  if (!ctx || !isGovernmentProgramUser(ctx)) {
     res.status(403).json({ ok: false, message: '프로그램 이용자만 전자서명 기능을 사용할 수 있습니다.' })
     return
   }

@@ -6,6 +6,7 @@ import { registerGovernmentSignatureUserApi } from './apis/governmentSignatureUs
 import { registerGovernmentSignaturePublicApi } from './apis/governmentSignaturePublicApi.js'
 import { registerGovernmentSignaturePublicOtpApi } from './apis/governmentSignaturePublicOtpApi.js'
 import { registerGovernmentSignaturePdfTemplateApi } from './apis/governmentSignaturePdfTemplateApi.js'
+import { createAttachPlatformContext } from './lib/platformRbac.js'
 import {
   attachGovernmentSignatureContext,
   requireGovernmentProgramUserSignature,
@@ -17,12 +18,19 @@ import {
  */
 export function registerGovernmentSignatureApi(apiRouter, ctx) {
   const { pool, requireAuth, handleDbError } = ctx
-  const chain = [requireAuth, requireGovernmentProgramUserSignature, attachGovernmentSignatureContext]
+  const attachPlatformContext = createAttachPlatformContext(pool)
+  const chain = [
+    requireAuth,
+    attachPlatformContext,
+    requireGovernmentProgramUserSignature,
+    attachGovernmentSignatureContext,
+  ]
 
   registerGovernmentSignaturePdfTemplateApi(apiRouter, { pool, requireAuth, chain, handleDbError })
   registerGovernmentSignatureTemplateApi(apiRouter, {
     pool,
     requireAuth,
+    attachPlatformContext,
     requireGovernmentProgramUserSignature,
     attachGovernmentSignatureContext,
     handleDbError,
@@ -30,6 +38,7 @@ export function registerGovernmentSignatureApi(apiRouter, ctx) {
   registerGovernmentSignatureUserApi(apiRouter, {
     pool,
     requireAuth,
+    attachPlatformContext,
     requireGovernmentProgramUserSignature,
     attachGovernmentSignatureContext,
     handleDbError,
