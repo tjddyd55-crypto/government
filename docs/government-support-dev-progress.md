@@ -1,5 +1,6 @@
 # Government-support CRM 개발 진행 기록
 
+> **아키텍처·운영 SSOT:** [`docs/architecture/government-crm-architecture.md`](architecture/government-crm-architecture.md)  
 > 계획 문서(로컬, Git 미추적): `dev/government_support_crm_composer25_step_plan.md`  
 > 브랜치: `develop`  
 > push 정책: 단계별 **commit만**, push는 별도 지시 시
