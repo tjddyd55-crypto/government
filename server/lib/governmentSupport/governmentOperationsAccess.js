@@ -154,35 +154,38 @@ export function canReadOperationalRecord(ctx, row, opts = {}) {
  * @param {{ managerView?: boolean, status?: string|null, category?: string|null, q?: string|null, tenantId?: string|null }} filters
  * @param {'notice'|'resource'} kind
  */
-export function buildOperationalListQuery(ctx, filters = {}, kind = 'notice') {
+export function buildOperationalListQuery(ctx, filters = {}, kind = 'notice', alias = 'n') {
   const managerView = Boolean(filters.managerView)
   const params = []
   const where = []
-  const bodyCol = kind === 'notice' ? 'content' : 'description'
+  const col = (name) => `${alias}.${name}`
+  const bodyCol = kind === 'notice' ? col('content') : col('description')
 
   if (managerView && canManageGovernmentOperations(ctx)) {
     if (!canCreateGlobalScope(ctx)) {
       const ids = getOperationalTenantIds(ctx) ?? []
       params.push(ids)
-      where.push(`(scope_type = '${GOVERNMENT_SCOPE_GLOBAL}' OR tenant_id::text = ANY($${params.length}::text[]))`)
+      where.push(
+        `(${col('scope_type')} = '${GOVERNMENT_SCOPE_GLOBAL}' OR ${col('tenant_id')}::text = ANY($${params.length}::text[]))`,
+      )
     } else if (filters.tenantId) {
       params.push(String(filters.tenantId))
       where.push(
-        `(scope_type = '${GOVERNMENT_SCOPE_GLOBAL}' OR tenant_id = $${params.length}::bigint)`,
+        `(${col('scope_type')} = '${GOVERNMENT_SCOPE_GLOBAL}' OR ${col('tenant_id')} = $${params.length}::bigint)`,
       )
     }
     if (filters.status) {
       params.push(String(filters.status))
-      where.push(`status = $${params.length}`)
+      where.push(`${col('status')} = $${params.length}`)
     }
   } else {
     params.push('published')
-    where.push(`status = $${params.length}`)
+    where.push(`${col('status')} = $${params.length}`)
     if (isGovernmentProgramUser(ctx)) {
       const ids = getProgramUserTenantIds(ctx)
       params.push(ids)
       where.push(
-        `(scope_type = '${GOVERNMENT_SCOPE_GLOBAL}' OR tenant_id::text = ANY($${params.length}::text[]))`,
+        `(${col('scope_type')} = '${GOVERNMENT_SCOPE_GLOBAL}' OR ${col('tenant_id')}::text = ANY($${params.length}::text[]))`,
       )
     } else {
       return { ok: false, status: 403, message: '조회 권한이 없습니다.' }
@@ -191,11 +194,11 @@ export function buildOperationalListQuery(ctx, filters = {}, kind = 'notice') {
 
   if (filters.category) {
     params.push(String(filters.category))
-    where.push(`category = $${params.length}`)
+    where.push(`${col('category')} = $${params.length}`)
   }
   if (filters.q) {
     params.push(`%${String(filters.q).trim()}%`)
-    where.push(`(title ILIKE $${params.length} OR ${bodyCol} ILIKE $${params.length})`)
+    where.push(`(${col('title')} ILIKE $${params.length} OR ${bodyCol} ILIKE $${params.length})`)
   }
 
   return {

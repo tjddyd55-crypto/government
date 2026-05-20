@@ -61,6 +61,7 @@ export async function listGovernmentResources(pool, ctx, query = {}) {
       tenantId: query.tenantId ? String(query.tenantId) : null,
     },
     'resource',
+    'r',
   )
   if (!built.ok) {
     return built

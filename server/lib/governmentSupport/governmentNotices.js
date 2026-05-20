@@ -58,6 +58,7 @@ export async function listGovernmentNotices(pool, ctx, query = {}) {
       tenantId: query.tenantId ? String(query.tenantId) : null,
     },
     'notice',
+    'n',
   )
   if (!built.ok) {
     return built
