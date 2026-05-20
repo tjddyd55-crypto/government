@@ -59,6 +59,25 @@ export function registerGovernmentSupportApi(router, deps) {
       }
       const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
       const workspaceTenantIds = scope.ok ? scope.tenantIds : []
+
+      let programUserTenantName = null
+      const programTenantIds = ctx.governmentProgramUserTenantIds ?? []
+      if (isGovernmentProgramUser(ctx) && programTenantIds.length > 0) {
+        const tenantRes = await pool.query(`SELECT name FROM tenants WHERE id::text = $1 LIMIT 1`, [
+          String(programTenantIds[0]),
+        ])
+        programUserTenantName =
+          tenantRes.rows[0]?.name != null ? String(tenantRes.rows[0].name).trim() : null
+      }
+
+      let accountCreatedAt = null
+      if (ctx.userId) {
+        const userRes = await pool.query(`SELECT created_at FROM users WHERE id::text = $1 LIMIT 1`, [
+          String(ctx.userId),
+        ])
+        accountCreatedAt = userRes.rows[0]?.created_at ?? null
+      }
+
       res.json({
         success: true,
         data: {
@@ -73,6 +92,8 @@ export function registerGovernmentSupportApi(router, deps) {
           governmentProgramUserTenantIds: [...(ctx.governmentProgramUserTenantIds ?? [])],
           workspaceTenantIds,
           defaultWorkspaceTenantId: workspaceTenantIds[0] ?? null,
+          programUserTenantName,
+          accountCreatedAt,
         },
       })
     } catch (e) {

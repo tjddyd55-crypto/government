@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { EmptyState, LoadingState, StatusMessage } from '../../../components/feedback'
-import { FieldWrapper, FormButton, FormInput, FormSelect } from '../../../components/form'
+import { FieldWrapper, FormInput, FormSelect } from '../../../components/form'
+import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { useAuth } from '../../auth/AuthProvider'
 import { fetchGovernmentNotices, type GovernmentNoticeRow } from '../api/governmentOperationsApi'
 import {
@@ -12,7 +12,8 @@ import {
 import '../government-support.css'
 
 export default function GovernmentUserNoticesPage() {
-  const { token, logout } = useAuth()
+  useDocumentTitle('정부지원 CRM · 공지사항')
+  const { token } = useAuth()
   const [rows, setRows] = useState<GovernmentNoticeRow[]>([])
   const [selected, setSelected] = useState<GovernmentNoticeRow | null>(null)
   const [loading, setLoading] = useState(true)
@@ -46,21 +47,9 @@ export default function GovernmentUserNoticesPage() {
   const normal = rows.filter((r) => !r.isPinned)
 
   return (
-    <main className="page government-page government-user-notices-page">
-      <header className="government-workspace__header">
-        <div>
-          <strong style={{ color: '#f8fafc' }}>공지사항</strong>
-          <Link to="/government/workspace" className="government-admin-layout__workspace-link" style={{ marginLeft: '0.75rem' }}>
-            내 사업장
-          </Link>
-          <Link to="/government/resources" className="government-admin-layout__workspace-link" style={{ marginLeft: '0.75rem' }}>
-            자료실
-          </Link>
-        </div>
-        <FormButton htmlType="button" variant="secondary" onClick={() => logout()}>
-          로그아웃
-        </FormButton>
-      </header>
+    <section className="government-user-section government-user-notices-page">
+      <h1 className="government-page__title">공지사항</h1>
+      <p className="government-page__muted">소속 대행사 및 전체 공지를 확인할 수 있습니다.</p>
 
       <section className="government-admin-users-page__filters">
         <FieldWrapper label="검색">
@@ -100,7 +89,7 @@ export default function GovernmentUserNoticesPage() {
           </aside>
           {selected ? (
             <article className="government-user-ops-detail">
-              <h1 className="government-page__title">{selected.title}</h1>
+              <h2 className="government-page__title">{selected.title}</h2>
               <p className="government-page__muted">
                 {labelForNoticeCategory(selected.category)} · {formatOpsDate(selected.publishedAt ?? selected.createdAt)}
               </p>
@@ -109,6 +98,6 @@ export default function GovernmentUserNoticesPage() {
           ) : null}
         </div>
       ) : null}
-    </main>
+    </section>
   )
 }

@@ -1,25 +1,18 @@
 import { useMemo } from 'react'
-import { Link, Navigate } from 'react-router-dom'
-import FormButton from '../../../components/form/FormButton'
-import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
-import useIsMobile from '../../../hooks/useIsMobile'
-import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
-import { useAuth } from '../../auth/AuthProvider'
-import { GOVERNMENT_APPLICATION_STATUSES } from '../constants/governmentApplicationStatuses'
-import { GOVERNMENT_EDOC_TEMPLATES } from '../adapters/governmentContractAdapter'
+import { Link } from 'react-router-dom'
+import FormButton from '../../../../components/form/FormButton'
+import useIsMobile from '../../../../hooks/useIsMobile'
+import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
+import { useAuth } from '../../../auth/AuthProvider'
+import { GOVERNMENT_APPLICATION_STATUSES } from '../../constants/governmentApplicationStatuses'
+import { GOVERNMENT_EDOC_TEMPLATES } from '../../adapters/governmentContractAdapter'
 import {
   GOVERNMENT_DOCUMENT_TYPES,
   GOVERNMENT_SCHEDULE_TYPES,
-} from '../constants/governmentDocumentTypes'
-import { isGovernmentProgramUser } from '../lib/governmentAccess'
-import {
-  canAccessUserOwnedWorkspace,
-  isGovernmentOperationalAccount,
-  resolveGovernmentHomePath,
-} from '../lib/governmentHome'
-import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
-import { useGovernmentWorkspaceState, type GovernmentWorkspaceTab } from '../hooks/useGovernmentWorkspaceState'
-import '../government-support.css'
+} from '../../constants/governmentDocumentTypes'
+import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
+import { useGovernmentWorkspaceState, type GovernmentWorkspaceTab } from '../../hooks/useGovernmentWorkspaceState'
+import '../../government-support.css'
 
 const TABS: { id: GovernmentWorkspaceTab; label: string }[] = [
   { id: 'reception', label: '접수정보' },
@@ -33,6 +26,8 @@ const TABS: { id: GovernmentWorkspaceTab; label: string }[] = [
   { id: 'schedule', label: '일정관리' },
   { id: 'memo', label: '메모/특이' },
 ]
+
+const EMPTY_LIST_HINT = '등록된 사업장이 없습니다. 사업장을 먼저 등록해 주세요.'
 
 function Field({
   label,
@@ -51,34 +46,21 @@ function Field({
   )
 }
 
-export default function GovernmentWorkspacePage() {
-  useDocumentTitle(GOVERNMENT_APP_TITLE)
-  const { token, logout } = useAuth()
+export default function GovernmentUserBusinessesPage() {
+  useDocumentTitle('정부지원 CRM · 내 사업장')
+  const { token } = useAuth()
   const { summary, reload: reloadAccess } = useGovernmentAccess(token)
   const isMobile = useIsMobile()
-  const programUser = isGovernmentProgramUser(summary)
-  const showAdminLink = isGovernmentOperationalAccount(summary)
 
   const defaultTenantId = useMemo(() => {
     if (!summary) return null
     if (summary.defaultWorkspaceTenantId) return summary.defaultWorkspaceTenantId
     if (summary.workspaceTenantIds.length > 0) return summary.workspaceTenantIds[0]
-    return (
-      summary.governmentProgramUserTenantIds[0] ??
-      summary.governmentAgencyAdminTenantIds[0] ??
-      summary.governmentStaffTenantIds[0] ??
-      null
-    )
+    return summary.governmentProgramUserTenantIds[0] ?? null
   }, [summary])
 
-  const canCreateProfile = programUser
-
-  const emptyListHint = programUser
-    ? '내 사업장/고객이 없습니다. 상단 「+ 내 사업장」으로 추가하세요.'
-    : '배정된 사업장/고객이 없습니다. 담당 배정 후 이 화면에서 확인할 수 있습니다.'
-
   const ws = useGovernmentWorkspaceState(token, defaultTenantId, {
-    canCreateProfile,
+    canCreateProfile: true,
     onProfilesChanged: () => void reloadAccess(),
   })
   const p = ws.selected
@@ -86,43 +68,20 @@ export default function GovernmentWorkspacePage() {
   const showList = !isMobile || !ws.selectedId
   const showDetail = !isMobile || Boolean(ws.selectedId)
 
-  if (summary && !canAccessUserOwnedWorkspace(summary)) {
-    return <Navigate to={resolveGovernmentHomePath(summary)} replace />
-  }
-
   return (
-    <main
-      className={`page government-page government-workspace ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
-    >
-      <header className="government-workspace__header">
+    <section className="government-user-section government-workspace">
+      <div className="government-user-section__toolbar">
         <div>
-          <strong style={{ color: '#f8fafc' }}>정부지원 CRM</strong>
-          <Link to="/government/notices" style={{ marginLeft: '0.75rem', color: '#60a5fa' }}>
-            공지사항
-          </Link>
-          <Link to="/government/resources" style={{ marginLeft: '0.75rem', color: '#60a5fa' }}>
-            자료실
-          </Link>
-          {showAdminLink ? (
-            <Link to="/government/admin" style={{ marginLeft: '0.75rem', color: '#60a5fa' }}>
-              관리
-            </Link>
-          ) : null}
+          <h1 className="government-page__title">내 사업장</h1>
+          <p className="government-page__muted">본인 명의로 등록한 사업장만 표시됩니다.</p>
         </div>
-        <div>
-          {canCreateProfile ? (
-            <FormButton htmlType="button" variant="secondary" onClick={() => void ws.addProfile()}>
-              + 내 사업장
-            </FormButton>
-          ) : null}
-          <FormButton htmlType="button" variant="secondary" onClick={() => logout()} style={{ marginLeft: '0.5rem' }}>
-            로그아웃
-          </FormButton>
-        </div>
-      </header>
+        <FormButton htmlType="button" variant="secondary" onClick={() => void ws.addProfile()}>
+          + 사업장 추가
+        </FormButton>
+      </div>
 
-      {ws.error ? <p style={{ color: '#ef4444', padding: '0.75rem 1rem' }}>{ws.error}</p> : null}
-      {ws.feedback ? <p style={{ color: '#60a5fa', padding: '0 1rem' }}>{ws.feedback}</p> : null}
+      {ws.error ? <p className="government-user-section__error">{ws.error}</p> : null}
+      {ws.feedback ? <p className="government-user-section__feedback">{ws.feedback}</p> : null}
 
       <div className="government-workspace__body">
         {showList ? (
@@ -132,7 +91,7 @@ export default function GovernmentWorkspacePage() {
                 불러오는 중…
               </p>
             ) : ws.profiles.length === 0 ? (
-              <p className="government-workspace__empty">{emptyListHint}</p>
+              <p className="government-workspace__empty">{EMPTY_LIST_HINT}</p>
             ) : (
               ws.profiles.map((row) => (
                 <button
@@ -141,13 +100,12 @@ export default function GovernmentWorkspacePage() {
                   className={`government-list-item ${row.id === ws.selectedId ? 'government-list-item--active' : ''}`}
                   onClick={() => ws.setSelectedId(row.id)}
                 >
-                  <div className="government-list-item__title">{row.customerName || '이름 없음'}</div>
+                  <div className="government-list-item__title">{row.businessName || row.customerName || '이름 없음'}</div>
                   <div className="government-list-item__meta">
-                    {row.phone} · {row.businessName || '사업장 미입력'}
+                    {row.customerName ? `${row.customerName} · ` : null}
+                    {row.phone || '연락처 없음'}
                     <br />
                     {row.progressStatus} · {row.productName || '접수상품 없음'}
-                    <br />
-                    전자문서: {row.edocStatus || '-'} · 서류: {row.docStatus || '-'}
                   </div>
                 </button>
               ))
@@ -163,9 +121,10 @@ export default function GovernmentWorkspacePage() {
               </button>
             ) : null}
             <h2 className="government-page__title" style={{ marginBottom: '0.5rem' }}>
-              {p.customerName} · {p.businessName}
+              {p.businessName || p.customerName || '사업장'}
             </h2>
             <p className="government-page__muted" style={{ marginBottom: '1rem' }}>
+              {p.customerName ? `${p.customerName} · ` : null}
               {p.phone} · {p.progressStatus} · {p.region}
             </p>
 
@@ -305,7 +264,7 @@ export default function GovernmentWorkspacePage() {
 
             {ws.tab === 'edoc' ? (
               <div>
-                <p className="government-page__muted">기존 전자문서 모듈 연동 — 발송 이력은 API로 확장됩니다.</p>
+                <p className="government-page__muted">전자문서 발송 이력은 API로 확장됩니다.</p>
                 <ul>
                   {GOVERNMENT_EDOC_TEMPLATES.map((name) => (
                     <li key={name} style={{ marginBottom: '0.35rem' }}>
@@ -313,8 +272,8 @@ export default function GovernmentWorkspacePage() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/contracts/signatures/send" style={{ color: '#60a5fa' }}>
-                  전자문서 발송 화면 열기 (기존 모듈)
+                <Link to="/contracts/signatures/send" className="dark-link">
+                  전자문서 발송 화면 열기
                 </Link>
               </div>
             ) : null}
@@ -322,7 +281,7 @@ export default function GovernmentWorkspacePage() {
             {ws.tab === 'documents' ? (
               <div>
                 <p className="government-page__muted">
-                  서류관리 — 프로필 조회 시 체크리스트가 자동 생성됩니다. 파일 업로드는 기존 R2 구조와 연동 예정.
+                  서류관리 — 프로필 조회 시 체크리스트가 자동 생성됩니다. 파일 업로드는 R2 구조와 연동 예정.
                 </p>
                 <ul style={{ marginTop: '0.75rem', color: '#e5e7eb' }}>
                   {GOVERNMENT_DOCUMENT_TYPES.map((name) => (
@@ -335,7 +294,7 @@ export default function GovernmentWorkspacePage() {
             {ws.tab === 'schedule' ? (
               <div>
                 <p className="government-page__muted">
-                  일정관리 — 기존 <Link to="/todos">할일/일정</Link> 모듈과 연동 예정 (tenant·신청건 기준).
+                  일정관리 — <Link to="/todos">할일/일정</Link> 모듈과 연동 예정 (tenant·신청건 기준).
                 </p>
                 <ul style={{ marginTop: '0.75rem', color: '#e5e7eb' }}>
                   {GOVERNMENT_SCHEDULE_TYPES.map((name) => (
@@ -350,11 +309,13 @@ export default function GovernmentWorkspacePage() {
             ) : null}
           </section>
         ) : (
-          <section className="government-workspace__detail">
-            <p className="government-workspace__empty">{emptyListHint}</p>
-          </section>
+          !isMobile ? (
+            <section className="government-workspace__detail">
+              <p className="government-workspace__empty">목록에서 사업장을 선택하세요.</p>
+            </section>
+          ) : null
         )}
       </div>
-    </main>
+    </section>
   )
 }

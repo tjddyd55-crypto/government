@@ -121,7 +121,11 @@ import ContractSignatureHistoryPage from './features/contracts/userHistory/Contr
 import GovernmentLoginPage from './features/government-support/pages/GovernmentLoginPage'
 import GovernmentSignupPage from './features/government-support/pages/GovernmentSignupPage'
 import GovernmentJoinPage from './features/government-support/pages/GovernmentJoinPage'
-import GovernmentWorkspacePage from './features/government-support/pages/GovernmentWorkspacePage'
+import GovernmentUserLayout from './features/government-support/layouts/GovernmentUserLayout'
+import GovernmentUserHomePage from './features/government-support/pages/user/GovernmentUserHomePage'
+import GovernmentUserBusinessesPage from './features/government-support/pages/user/GovernmentUserBusinessesPage'
+import GovernmentUserApplicationsPage from './features/government-support/pages/user/GovernmentUserApplicationsPage'
+import GovernmentUserMePage from './features/government-support/pages/user/GovernmentUserMePage'
 import GovernmentAdminLayout from './features/government-support/layouts/GovernmentAdminLayout'
 import GovernmentAdminDashboardPage from './features/government-support/pages/admin/GovernmentAdminDashboardPage'
 import GovernmentAdminAgenciesPage from './features/government-support/pages/admin/GovernmentAdminAgenciesPage'
@@ -155,16 +159,19 @@ export const appRouter = createBrowserRouter([
       {
         element: <GovernmentProtectedRoute requireProgramUserWorkspace />,
         children: [
-          { path: 'government/workspace', element: <GovernmentWorkspacePage /> },
-          { path: 'government/notices', element: <GovernmentUserNoticesPage /> },
-          { path: 'government/resources', element: <GovernmentUserResourcesPage /> },
-          { path: 'government/customers', element: <Navigate to="/government/workspace" replace /> },
           {
-            path: 'government/settings',
-            element: (
-              <GovernmentPlaceholderPage title="설정" description="정부지원 CRM 설정 (준비 중)" />
-            ),
+            element: <GovernmentUserLayout />,
+            children: [
+              { path: 'government/workspace', element: <GovernmentUserHomePage /> },
+              { path: 'government/my-businesses', element: <GovernmentUserBusinessesPage /> },
+              { path: 'government/my-applications', element: <GovernmentUserApplicationsPage /> },
+              { path: 'government/notices', element: <GovernmentUserNoticesPage /> },
+              { path: 'government/resources', element: <GovernmentUserResourcesPage /> },
+              { path: 'government/me', element: <GovernmentUserMePage /> },
+            ],
           },
+          { path: 'government/customers', element: <Navigate to="/government/my-applications" replace /> },
+          { path: 'government/settings', element: <Navigate to="/government/me" replace /> },
         ],
       },
       {

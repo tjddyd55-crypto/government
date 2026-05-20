@@ -108,7 +108,7 @@ export function useGovernmentWorkspaceState(
       const row = await createGovProfile(token, defaultTenantId)
       setProfiles((prev) => [row, ...prev])
       setSelectedId(row.id)
-      setFeedback('고객/사업장 카드를 생성했습니다.')
+      setFeedback('사업장을 등록했습니다.')
       onProfilesChanged?.()
     } catch (e) {
       setError(e instanceof Error ? e.message : '고객/사업장 등록에 실패했습니다.')

@@ -24,7 +24,7 @@ export function canAccessUserOwnedWorkspace(summary: GovernmentAccessSummary | n
 export function resolveGovernmentHomePath(summary: GovernmentAccessSummary | null): string {
   if (!summary) return '/government/login'
   if (isGovernmentProgramUser(summary)) return '/government/workspace'
-  if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return '/government/admin'
+  if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return '/government/admin/agencies'
   if (canManageGovernmentUsers(summary)) return '/government/admin/users'
   if ((summary.governmentStaffTenantIds?.length ?? 0) > 0) return '/government/admin/notices'
   return '/government/admin/notices'

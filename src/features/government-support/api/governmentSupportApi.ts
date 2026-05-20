@@ -14,6 +14,10 @@ export type GovernmentAccessSummary = {
   /** 워크스페이스·프로필 생성에 사용 가능한 tenant id 목록 */
   workspaceTenantIds: string[]
   defaultWorkspaceTenantId: string | null
+  /** 프로그램 이용자 소속 대행사명 (me/access) */
+  programUserTenantName: string | null
+  /** 계정 가입일 ISO (me/access) */
+  accountCreatedAt: string | null
 }
 
 function unwrapAccessPayload(raw: unknown): GovernmentAccessSummary | null {
@@ -49,6 +53,14 @@ function unwrapAccessPayload(raw: unknown): GovernmentAccessSummary | null {
     defaultWorkspaceTenantId:
       row.defaultWorkspaceTenantId != null && String(row.defaultWorkspaceTenantId).trim()
         ? String(row.defaultWorkspaceTenantId).trim()
+        : null,
+    programUserTenantName:
+      row.programUserTenantName != null && String(row.programUserTenantName).trim()
+        ? String(row.programUserTenantName).trim()
+        : null,
+    accountCreatedAt:
+      row.accountCreatedAt != null && String(row.accountCreatedAt).trim()
+        ? String(row.accountCreatedAt).trim()
         : null,
   }
 }

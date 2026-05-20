@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { EmptyState, LoadingState, StatusMessage } from '../../../components/feedback'
 import { FieldWrapper, FormButton, FormInput, FormSelect } from '../../../components/form'
+import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { useAuth } from '../../auth/AuthProvider'
 import {
   downloadGovernmentResource,
@@ -17,7 +17,8 @@ import {
 import '../government-support.css'
 
 export default function GovernmentUserResourcesPage() {
-  const { token, logout } = useAuth()
+  useDocumentTitle('정부지원 CRM · 자료실')
+  const { token } = useAuth()
   const [rows, setRows] = useState<GovernmentResourceRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -60,21 +61,9 @@ export default function GovernmentUserResourcesPage() {
   }
 
   return (
-    <main className="page government-page government-user-resources-page">
-      <header className="government-workspace__header">
-        <div>
-          <strong style={{ color: '#f8fafc' }}>자료실/서식함</strong>
-          <Link to="/government/workspace" className="government-admin-layout__workspace-link" style={{ marginLeft: '0.75rem' }}>
-            내 사업장
-          </Link>
-          <Link to="/government/notices" className="government-admin-layout__workspace-link" style={{ marginLeft: '0.75rem' }}>
-            공지사항
-          </Link>
-        </div>
-        <FormButton htmlType="button" variant="secondary" onClick={() => logout()}>
-          로그아웃
-        </FormButton>
-      </header>
+    <section className="government-user-section government-user-resources-page">
+      <h1 className="government-page__title">자료실/서식함</h1>
+      <p className="government-page__muted">소속 대행사 및 전체 자료를 다운로드할 수 있습니다.</p>
 
       <section className="government-admin-users-page__filters">
         <FieldWrapper label="검색">
@@ -134,6 +123,6 @@ export default function GovernmentUserResourcesPage() {
           ))}
         </div>
       ) : null}
-    </main>
+    </section>
   )
 }
