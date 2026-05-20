@@ -29,7 +29,7 @@
 |------|------|
 | **역할** | 사업장·고객·신청 데이터 **소유자** |
 | **가입** | 대행사 **기관 코드**로 회원가입 (`/government/join`, `RegisterPage` + `government_user` 멤버십) |
-| **화면** | `/government/workspace`, `/government/notices`, `/government/resources`, `/government/settings` |
+| **화면** | `/government/workspace`(홈), `/government/my-businesses`, `/government/my-applications`, `/government/notices`, `/government/resources`, `/government/me` |
 | **금지** | `/government/admin/*`, 운영 API CRUD, 타 대행사 데이터 |
 
 ### 1.2 `government_staff` (대행사 직원)
@@ -300,7 +300,8 @@ develop URL: `https://app-develop-9663.up.railway.app`
 
 - 로그인 식별: `users.username` (아이디 기반).
 - bootstrap/reset 로그는 **정상 기동 시 출력되지 않아야** 한다.
-- develop E2E 등으로 admin 비밀번호를 임시 변경한 경우, **운영 절차에 따라 DB/ENV 원복**한다.
+- develop E2E 등으로 admin 비밀번호를 임시 변경한 경우, **운영 절차에 따라 DB/API 원복**한다.  
+  → [government-support-admin-password-ops.md](../government-support-admin-password-ops.md)
 
 ### 7.5 헬스·기동 확인
 
@@ -316,8 +317,10 @@ develop URL: `https://app-develop-9663.up.railway.app`
 |------|--------|------|
 | `/government/login` | 공개 | 로그인 |
 | `/government/join` | 공개 | 기관 코드 가입 |
-| `/government/workspace` | `requireProgramUserWorkspace` | 이용자 워크스pace |
-| `/government/notices`, `/resources` | 동일 | 이용자 공지·자료 |
+| `/government/workspace` | `requireProgramUserWorkspace` | 이용자 홈 |
+| `/government/my-businesses` | 동일 | 내 사업장 |
+| `/government/my-applications` | 동일 | 내 고객/신청 |
+| `/government/notices`, `/resources`, `/me` | 동일 | 공지·자료·내 정보 |
 | `/government/admin/*` | `requireAdmin` / `requireOperational` / `requireUserManager` | 관리·운영 |
 
 `government_user`에게 **`/government/admin/*` 메뉴·API 모두 차단**.
@@ -330,9 +333,13 @@ develop URL: `https://app-develop-9663.up.railway.app`
 |------|------|
 | `npm test` | 서버 단위 테스트 (`governmentOperationsAccess.test.js` 등) |
 | `npm run build` | 프론트 프로덕션 빌드 |
-| `node server/scripts/e2eGovernmentOperationsHttp.mjs` | develop HTTP E2E (선택, develop 전용) |
+| `npm run e2e:government:operations` | develop HTTP E2E — 공지·자료 (DB 불필요) |
+| `npm run e2e:government:user-workspace` | develop HTTP E2E — 이용자 workspace·사업장·A/B 격리 |
 
-**develop E2E 기준 (2026-05):** 25 pass / 0 fail — 공지·자료 CRUD, R2 presign/PUT, tenant/global 격리, staff 삭제 규칙, user read-only 403.
+상세·ENV·안전장치: [government-support-e2e.md](../government-support-e2e.md)  
+admin 비밀번호 운영: [government-support-admin-password-ops.md](../government-support-admin-password-ops.md)
+
+**develop E2E 기준 (2026-05):** 공지·자료 25 pass / 이용자 workspace 37 pass (0 fail).
 
 ---
 
@@ -341,8 +348,6 @@ develop URL: `https://app-develop-9663.up.railway.app`
 | 항목 | 설명 |
 |------|------|
 | E2E 테스트 계정 정리 | develop DB의 `e2e_*` 계정·시드 데이터 유지/삭제 정책 결정 |
-| admin 비밀번호 운영 절차 | ENV 삭제 후 비밀번호 reset·감사 절차 문서화 (값은 ENV/DB만) |
-| 이용자 전용 네비게이션 | 현재 워크스페이스 헤더 링크 수준 → 사이드바/앱형 nav 고도화 |
 | 공지 읽음 확인 | read receipt / unread 배지 미구현 |
 | 자료 다운로드 이력 | audit log·다운로드 카운트 미구현 |
 | assignment 기반 제한 접근 | staff가 특정 이용자만 담당하는 **assignment** 모델 후속 (현재는 tenant 단위 운영만) |
