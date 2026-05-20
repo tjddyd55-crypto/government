@@ -61,8 +61,24 @@ export function canAccessGovernmentTenant(ctx, tenantId) {
 }
 
 /**
+ * 사업장/고객 목록 API — 프로그램 이용자 본인만.
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
- * @param {{ owner_user_id?: string|null, ownerUserId?: string|null }} profileRow
+ */
+export function canListGovernmentProfiles(ctx) {
+  return isGovernmentProgramUser(ctx)
+}
+
+/**
+ * 사업장/고객 생성 — 프로그램 이용자만.
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ */
+export function canCreateGovernmentProfile(ctx) {
+  return isGovernmentProgramUser(ctx)
+}
+
+/**
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ * @param {{ owner_user_id?: string|null, ownerUserId?: string|null, tenant_id?: string|number|null, tenantId?: string|number|null }} profileRow
  */
 export function canAccessGovernmentProfile(ctx, profileRow) {
   const tenantId =
@@ -74,11 +90,15 @@ export function canAccessGovernmentProfile(ctx, profileRow) {
   if (!tenantId || !canAccessGovernmentTenant(ctx, tenantId)) {
     return false
   }
-  if (!isGovernmentProgramUser(ctx)) {
-    return true
-  }
   const ownerId = profileRow?.owner_user_id ?? profileRow?.ownerUserId ?? null
-  return ownerId != null && String(ownerId) === String(ctx.userId)
+  if (ownerId == null || String(ownerId).trim() === '') {
+    return false
+  }
+  if (isGovernmentProgramUser(ctx)) {
+    return String(ownerId) === String(ctx.userId)
+  }
+  // assignment 테이블 도입 전: staff·관리자는 사업장/고객 원본 데이터 접근 불가
+  return false
 }
 
 /**
@@ -180,6 +200,13 @@ export async function ensureDefaultGovernmentWorkspaceTenant(pool) {
  * @param {string|null|undefined} requestedTenantId
  */
 export async function resolveTenantIdForProfileCreate(pool, ctx, requestedTenantId) {
+  if (!canCreateGovernmentProfile(ctx)) {
+    return {
+      ok: false,
+      status: 403,
+      message: '사업장/고객은 기관 코드로 가입한 이용자만 등록할 수 있습니다.',
+    }
+  }
   const tid = requestedTenantId != null ? String(requestedTenantId).trim() : ''
   if (tid && canAccessGovernmentTenant(ctx, tid)) {
     const ok = await isGovernmentSupportTenant(pool, tid)
@@ -191,12 +218,9 @@ export async function resolveTenantIdForProfileCreate(pool, ctx, requestedTenant
   if (!scope.ok) {
     return { ok: false, status: scope.status, message: scope.message }
   }
-  if (scope.tenantIds.length > 0) {
-    return { ok: true, tenantId: scope.tenantIds[0] }
-  }
-  if (isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)) {
-    const created = await ensureDefaultGovernmentWorkspaceTenant(pool)
-    return { ok: true, tenantId: created }
+  const programTenants = ctx.governmentProgramUserTenantIds ?? []
+  if (programTenants.length > 0) {
+    return { ok: true, tenantId: programTenants[0] }
   }
   return {
     ok: false,
@@ -235,14 +259,19 @@ export async function resolveGovernmentTenantScopeForQuery(pool, ctx) {
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
  */
 export async function resolveGovernmentProfileQueryScope(pool, ctx) {
+  if (!canListGovernmentProfiles(ctx)) {
+    return { ok: true, tenantIds: [], ownerUserId: null }
+  }
   const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
   if (!scope.ok) {
     return scope
   }
+  const programTenants = (ctx.governmentProgramUserTenantIds ?? []).map(String)
+  const tenantIds = scope.tenantIds.filter((id) => programTenants.includes(String(id)))
   return {
     ok: true,
-    tenantIds: scope.tenantIds,
-    ownerUserId: isGovernmentProgramUser(ctx) ? String(ctx.userId) : null,
+    tenantIds,
+    ownerUserId: String(ctx.userId),
   }
 }
 

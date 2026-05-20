@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { FormDialog, useConfirmDialog } from '../../../../components/dialog'
 import { EmptyState, LoadingState, StatusMessage } from '../../../../components/feedback'
 import { FieldWrapper, FormButton, FormInput, FormSelect } from '../../../../components/form'
@@ -58,7 +59,10 @@ function roleOptionsForManager(isFullAccess: boolean): { value: GovernmentStaffM
 function roleFilterOptions(): { value: string; label: string }[] {
   return [
     { value: '', label: '역할 전체' },
-    ...GOVERNMENT_MEMBERSHIP_ROLES.map((r) => ({ value: r, label: GOVERNMENT_ROLE_LABELS[r] })),
+    ...GOVERNMENT_MEMBERSHIP_ROLES.filter((r) => r !== 'government_user').map((r) => ({
+      value: r,
+      label: GOVERNMENT_ROLE_LABELS[r],
+    })),
   ]
 }
 
@@ -135,14 +139,16 @@ export default function GovernmentAdminUsersPage() {
     setLoading(true)
     setLoadError(null)
     try {
-      setRows(
-        await fetchGovernmentAdminUsers(token, {
-          role: filterRole || undefined,
-          tenantId: filterTenant || undefined,
-          status: filterStatus || undefined,
-          q: filterQ.trim() || undefined,
-        }),
-      )
+      let list = await fetchGovernmentAdminUsers(token, {
+        role: filterRole || undefined,
+        tenantId: filterTenant || undefined,
+        status: filterStatus || undefined,
+        q: filterQ.trim() || undefined,
+      })
+      if (!filterRole) {
+        list = list.filter((r) => r.role !== 'government_user')
+      }
+      setRows(list)
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : '사용자 목록을 불러오지 못했습니다.')
     } finally {
@@ -268,14 +274,17 @@ export default function GovernmentAdminUsersPage() {
   return (
     <div className="government-admin-page government-admin-users-page">
       <div className="government-admin-page__toolbar">
-        <h1 className="government-page__title">직원·이용자</h1>
+        <h1 className="government-page__title">직원 관리</h1>
         <FormButton htmlType="button" variant="primary" onClick={openCreate}>
           직원 추가
         </FormButton>
       </div>
       <p className="government-page__muted government-admin-users-page__hint">
-        이용자(프로그램 사용자)는 대행사 코드로 회원가입합니다. 이 화면에서는 직원·관리자 계정만 직접
-        추가할 수 있습니다.
+        대행사 직원·관리자 계정만 이 화면에서 추가합니다. 프로그램 이용자는{' '}
+        <Link to="/government/admin/program-users" className="dark-link">
+          이용자 관리
+        </Link>
+        에서 확인하세요.
       </p>
 
       <section className="government-admin-users-page__filters">

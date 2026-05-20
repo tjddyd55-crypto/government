@@ -125,8 +125,9 @@ import GovernmentWorkspacePage from './features/government-support/pages/Governm
 import GovernmentAdminLayout from './features/government-support/layouts/GovernmentAdminLayout'
 import GovernmentAdminDashboardPage from './features/government-support/pages/admin/GovernmentAdminDashboardPage'
 import GovernmentAdminAgenciesPage from './features/government-support/pages/admin/GovernmentAdminAgenciesPage'
-import GovernmentAdminProfilesPage from './features/government-support/pages/admin/GovernmentAdminProfilesPage'
 import GovernmentAdminUsersPage from './features/government-support/pages/admin/GovernmentAdminUsersPage'
+import GovernmentAdminProgramUsersPage from './features/government-support/pages/admin/GovernmentAdminProgramUsersPage'
+import GovernmentAdminProgramUserDetailPage from './features/government-support/pages/admin/GovernmentAdminProgramUserDetailPage'
 import GovernmentPlaceholderPage from './features/government-support/components/GovernmentPlaceholderPage'
 import GovernmentProtectedRoute from './features/government-support/routes/GovernmentProtectedRoute'
 
@@ -168,16 +169,13 @@ export const appRouter = createBrowserRouter([
             children: [
               { path: 'government/admin', element: <GovernmentAdminDashboardPage /> },
               { path: 'government/admin/agencies', element: <GovernmentAdminAgenciesPage /> },
-              { path: 'government/admin/profiles', element: <GovernmentAdminProfilesPage /> },
+              {
+                path: 'government/admin/profiles',
+                element: <Navigate to="/government/admin/program-users" replace />,
+              },
               {
                 path: 'government/admin/memberships',
-                element: (
-                  <GovernmentPlaceholderPage
-                    title="권한/멤버십"
-                    description="플랫폼 멤버십 관리는 준비 중입니다. 현재는 가입 코드로 staff를 등록합니다."
-                    backTo="/government/admin"
-                  />
-                ),
+                element: <Navigate to="/government/admin" replace />,
               },
               {
                 path: 'government/admin/settings',
@@ -218,7 +216,14 @@ export const appRouter = createBrowserRouter([
         children: [
           {
             element: <GovernmentAdminLayout />,
-            children: [{ path: 'government/admin/users', element: <GovernmentAdminUsersPage /> }],
+            children: [
+              { path: 'government/admin/users', element: <GovernmentAdminUsersPage /> },
+              { path: 'government/admin/program-users', element: <GovernmentAdminProgramUsersPage /> },
+              {
+                path: 'government/admin/program-users/:userId',
+                element: <GovernmentAdminProgramUserDetailPage />,
+              },
+            ],
           },
         ],
       },

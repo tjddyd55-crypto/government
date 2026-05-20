@@ -11,10 +11,17 @@ import {
   isGovernmentTenantMember,
   resolveGovernmentCrmGaId,
   resolveGovernmentIndustryId,
+  canCreateGovernmentProfile,
   resolveGovernmentProfileQueryScope,
   resolveGovernmentTenantScopeForQuery,
   resolveTenantIdForProfileCreate,
 } from './lib/governmentSupport/governmentAccess.js'
+import { getProgramUserDetailForManager } from './lib/governmentSupport/governmentProgramUsers.js'
+import {
+  loadProfileAccessRowByApplicationCaseId,
+  loadProfileAccessRowByDocumentId,
+  loadProfileAccessRowByPriorLoanId,
+} from './lib/governmentSupport/governmentProfileAccessHelpers.js'
 import { GOVERNMENT_INDUSTRY_CODE } from './lib/governmentSupport/constants.js'
 import {
   createGovernmentAdminUser,
@@ -319,9 +326,45 @@ export function registerGovernmentSupportApi(router, deps) {
     }
   })
 
+  router.get('/government-support/admin/program-users/:userId', ...requireGovernmentUserManager, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      const userId = String(req.params.userId ?? '').trim()
+      const result = await getProgramUserDetailForManager(pool, ctx, userId)
+      if (!result.ok) {
+        res.status(result.status).json({ message: result.message })
+        return
+      }
+      res.json({ success: true, data: result.data })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.get(
+    '/government-support/admin/program-users/:userId/profiles',
+    ...requireGovernmentUserManager,
+    async (req, res) => {
+      try {
+        res.status(403).json({
+          message:
+            '사업장/고객 상세 목록은 담당 배정 후에만 열람할 수 있습니다. (assignment 테이블 예정)',
+        })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
   router.post('/government-support/profiles', ...requireGovernmentMember, async (req, res) => {
     try {
       const ctx = req.platformContext
+      if (!canCreateGovernmentProfile(ctx)) {
+        res.status(403).json({
+          message: '사업장/고객은 기관 코드로 가입한 이용자만 등록할 수 있습니다.',
+        })
+        return
+      }
       const body = req.body ?? {}
       const requestedTenantId = body.tenantId ?? body.tenant_id ?? null
       const resolved = await resolveTenantIdForProfileCreate(pool, ctx, requestedTenantId)
@@ -447,11 +490,11 @@ export function registerGovernmentSupportApi(router, deps) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
-      const tenantId = pr.rows[0].tenant_id
-      if (!canAccessGovernmentTenant(ctx, tenantId)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, pr.rows[0])) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
+      const tenantId = pr.rows[0].tenant_id
       const r = await pool.query(
         `
         INSERT INTO gov_support_prior_loans (
@@ -481,13 +524,13 @@ export function registerGovernmentSupportApi(router, deps) {
       const ctx = req.platformContext
       const loanId = String(req.params.loanId ?? '').trim()
       const b = req.body ?? {}
-      const ex = await pool.query(`SELECT tenant_id FROM gov_support_prior_loans WHERE id = $1::bigint`, [loanId])
-      if ((ex.rowCount ?? 0) === 0) {
+      const accessRow = await loadProfileAccessRowByPriorLoanId(pool, loanId)
+      if (!accessRow) {
         res.status(404).json({ message: '기대출 항목을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentTenant(ctx, ex.rows[0].tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, accessRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       const r = await pool.query(
@@ -531,13 +574,13 @@ export function registerGovernmentSupportApi(router, deps) {
     try {
       const ctx = req.platformContext
       const loanId = String(req.params.loanId ?? '').trim()
-      const ex = await pool.query(`SELECT tenant_id FROM gov_support_prior_loans WHERE id = $1::bigint`, [loanId])
-      if ((ex.rowCount ?? 0) === 0) {
+      const accessRow = await loadProfileAccessRowByPriorLoanId(pool, loanId)
+      if (!accessRow) {
         res.status(404).json({ message: '기대출 항목을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentTenant(ctx, ex.rows[0].tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, accessRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       await pool.query(`DELETE FROM gov_support_prior_loans WHERE id = $1::bigint`, [loanId])
@@ -597,11 +640,11 @@ export function registerGovernmentSupportApi(router, deps) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
-      const tenantId = pr.rows[0].tenant_id
-      if (!canAccessGovernmentTenant(ctx, tenantId)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, pr.rows[0])) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
+      const tenantId = pr.rows[0].tenant_id
       const r = await pool.query(
         `
         INSERT INTO gov_support_application_cases (
@@ -636,13 +679,13 @@ export function registerGovernmentSupportApi(router, deps) {
       const ctx = req.platformContext
       const caseId = String(req.params.caseId ?? '').trim()
       const b = req.body ?? {}
-      const ex = await pool.query(`SELECT tenant_id FROM gov_support_application_cases WHERE id = $1::bigint`, [caseId])
-      if ((ex.rowCount ?? 0) === 0) {
+      const accessRow = await loadProfileAccessRowByApplicationCaseId(pool, caseId)
+      if (!accessRow) {
         res.status(404).json({ message: '신청/청약 건을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentTenant(ctx, ex.rows[0].tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, accessRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       const r = await pool.query(
@@ -823,13 +866,13 @@ export function registerGovernmentSupportApi(router, deps) {
       const ctx = req.platformContext
       const docId = String(req.params.docId ?? '').trim()
       const b = req.body ?? {}
-      const ex = await pool.query(`SELECT tenant_id FROM gov_support_document_items WHERE id = $1::bigint`, [docId])
-      if ((ex.rowCount ?? 0) === 0) {
+      const accessRow = await loadProfileAccessRowByDocumentId(pool, docId)
+      if (!accessRow) {
         res.status(404).json({ message: '서류 항목을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentTenant(ctx, ex.rows[0].tenant_id)) {
-        res.status(403).json({ message: 'tenant 접근 권한이 없습니다.' })
+      if (!canAccessGovernmentProfile(ctx, accessRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
       const r = await pool.query(

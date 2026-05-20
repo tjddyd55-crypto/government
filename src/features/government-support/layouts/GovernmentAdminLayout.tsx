@@ -1,16 +1,23 @@
+import { useMemo } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import useIsMobile from '../../../hooks/useIsMobile'
 import { useAuth } from '../../auth/AuthProvider'
 import FormButton from '../../../components/form/FormButton'
-import { GOVERNMENT_ADMIN_NAV } from '../config/governmentAdminNav'
+import {
+  GOVERNMENT_INDUSTRY_ADMIN_NAV,
+  GOVERNMENT_USER_MANAGER_NAV,
+  type GovernmentAdminNavItem,
+} from '../config/governmentAdminNav'
+import { canManageGovernmentUsers } from '../lib/governmentAccess'
+import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
 import '../government-support.css'
 
-function AdminNav({ className }: { className?: string }) {
+function AdminNav({ items, className }: { items: GovernmentAdminNavItem[]; className?: string }) {
   return (
     <nav className={className} aria-label="관리 메뉴">
-      {GOVERNMENT_ADMIN_NAV.map((item) => (
+      {items.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
@@ -28,15 +35,38 @@ function AdminNav({ className }: { className?: string }) {
 
 export default function GovernmentAdminLayout() {
   useDocumentTitle(`${GOVERNMENT_APP_TITLE} · 관리`)
-  const { logout } = useAuth()
+  const { token, logout } = useAuth()
+  const { summary } = useGovernmentAccess(token)
   const isMobile = useIsMobile()
+
+  const navItems = useMemo(() => {
+    const items: GovernmentAdminNavItem[] = []
+    const isIndustry =
+      Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
+    if (isIndustry) {
+      items.push(...GOVERNMENT_INDUSTRY_ADMIN_NAV)
+    }
+    if (canManageGovernmentUsers(summary)) {
+      for (const item of GOVERNMENT_USER_MANAGER_NAV) {
+        if (!items.some((x) => x.to === item.to)) {
+          items.push(item)
+        }
+      }
+    }
+    return items
+  }, [summary])
 
   return (
     <main
       className={`page government-page government-admin-layout ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
     >
       <header className="government-admin-layout__header">
-        <motionHeaderBrand />
+        <div>
+          <strong className="government-admin-layout__brand">정부지원 CRM · 관리</strong>
+          <Link to="/government/workspace" className="government-admin-layout__workspace-link">
+            워크스페이스
+          </Link>
+        </div>
         <FormButton htmlType="button" variant="secondary" onClick={() => logout()}>
           로그아웃
         </FormButton>
@@ -44,7 +74,7 @@ export default function GovernmentAdminLayout() {
 
       {isMobile ? (
         <div className="government-admin-layout__mobile">
-          <AdminNav className="government-admin-layout__nav government-admin-layout__nav--mobile" />
+          <AdminNav items={navItems} className="government-admin-layout__nav government-admin-layout__nav--mobile" />
           <div className="government-admin-layout__content">
             <Outlet />
           </div>
@@ -52,7 +82,7 @@ export default function GovernmentAdminLayout() {
       ) : (
         <div className="government-admin-layout__body">
           <aside className="government-admin-layout__sidebar">
-            <AdminNav className="government-admin-layout__nav" />
+            <AdminNav items={navItems} className="government-admin-layout__nav" />
           </aside>
           <div className="government-admin-layout__content">
             <Outlet />
@@ -60,16 +90,5 @@ export default function GovernmentAdminLayout() {
         </div>
       )}
     </main>
-  )
-}
-
-function motionHeaderBrand() {
-  return (
-    <div>
-      <strong className="government-admin-layout__brand">정부지원 CRM · 관리</strong>
-      <Link to="/government/workspace" className="government-admin-layout__workspace-link">
-        워크스페이스
-      </Link>
-    </div>
   )
 }

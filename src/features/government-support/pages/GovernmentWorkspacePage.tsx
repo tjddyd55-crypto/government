@@ -51,7 +51,6 @@ export default function GovernmentWorkspacePage() {
   const { token, logout } = useAuth()
   const { summary, reload: reloadAccess } = useGovernmentAccess(token)
   const isMobile = useIsMobile()
-  const isIndustryAdmin = Boolean(summary?.isGovernmentIndustryAdmin || summary?.isSuperAdmin)
   const programUser = isGovernmentProgramUser(summary)
   const showAdminLink = Boolean(
     summary && (isIndustryAdmin || canManageGovernmentUsers(summary)),
@@ -68,16 +67,11 @@ export default function GovernmentWorkspacePage() {
     )
   }, [summary])
 
-  const canCreateProfile =
-    isIndustryAdmin ||
-    Boolean(defaultTenantId) ||
-    (summary?.workspaceTenantIds.length ?? 0) > 0
+  const canCreateProfile = programUser
 
   const emptyListHint = programUser
-    ? '등록된 사업장/고객이 없습니다. 상단 「+ 고객/사업장」으로 추가하세요.'
-    : isIndustryAdmin
-      ? '아직 등록된 고객/사업장이 없습니다. 상단 「+ 고객/사업장」으로 추가하세요.'
-      : '배정된 고객/사업장이 없습니다. 관리자에게 문의하세요.'
+    ? '내 사업장/고객이 없습니다. 상단 「+ 내 사업장」으로 추가하세요.'
+    : '배정된 사업장/고객이 없습니다. 담당 배정 후 이 화면에서 확인할 수 있습니다.'
 
   const ws = useGovernmentWorkspaceState(token, defaultTenantId, {
     canCreateProfile,
@@ -104,7 +98,7 @@ export default function GovernmentWorkspacePage() {
         <div>
           {canCreateProfile ? (
             <FormButton htmlType="button" variant="secondary" onClick={() => void ws.addProfile()}>
-              + 고객/사업장
+              + 내 사업장
             </FormButton>
           ) : null}
           <FormButton htmlType="button" variant="secondary" onClick={() => logout()} style={{ marginLeft: '0.5rem' }}>

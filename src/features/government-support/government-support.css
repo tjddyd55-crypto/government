@@ -404,3 +404,54 @@
 .government-page--pc .government-admin-users-page__cards {
   display: none;
 }
+
+.government-admin-users-page__table-wrap {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.government-admin-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.government-admin-users-table th,
+.government-admin-users-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #1e293b;
+  text-align: left;
+  color: #e5e7eb;
+}
+
+.government-admin-users-table th {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.government-admin-program-user-detail__card {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+}
+
+.government-admin-program-user-detail__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  font-size: 0.9rem;
+}
+
+.government-admin-program-user-detail__label {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.government-admin-program-user-detail__section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #f8fafc;
+}

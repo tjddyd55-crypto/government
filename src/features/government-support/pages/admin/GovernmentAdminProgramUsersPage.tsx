@@ -1,0 +1,159 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { EmptyState, LoadingState } from '../../../../components/feedback'
+import { FieldWrapper, FormInput, FormSelect } from '../../../../components/form'
+import { useAuth } from '../../../auth/AuthProvider'
+import { fetchGovernmentAdminUsers } from '../../api/governmentAdminUsersApi'
+import { fetchGovAgencies } from '../../api/governmentProfilesApi'
+import { GOVERNMENT_ROLE_LABELS } from '../../constants/governmentRoles'
+import type { GovAgencyRow } from '../../types/governmentProfile.types'
+import type { GovernmentAdminUserRow } from '../../types/governmentAdminUser.types'
+import '../../government-support.css'
+
+const STATUS_FILTER_OPTIONS = [
+  { value: '', label: '상태 전체' },
+  { value: 'active', label: '정상' },
+  { value: 'blocked', label: '접근금지' },
+  { value: 'inactive', label: '비활성' },
+]
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('ko-KR')
+}
+
+function tenantLabel(row: GovernmentAdminUserRow): string {
+  if (row.tenantName) return row.tenantName
+  if (row.agencyCode) return row.agencyCode
+  return '—'
+}
+
+export default function GovernmentAdminProgramUsersPage() {
+  const { token } = useAuth()
+  const [agencies, setAgencies] = useState<GovAgencyRow[]>([])
+  const [rows, setRows] = useState<GovernmentAdminUserRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [filterTenant, setFilterTenant] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+  const [filterQ, setFilterQ] = useState('')
+
+  const tenantFilterOptions = useMemo(
+    () => [
+      { value: '', label: '소속 전체' },
+      ...agencies.map((a) => ({ value: a.id, label: `${a.name} (${a.agencyCode})` })),
+    ],
+    [agencies],
+  )
+
+  const loadAgencies = useCallback(async () => {
+    if (!token) return
+    try {
+      const list = await fetchGovAgencies(token)
+      setAgencies(list)
+    } catch {
+      setAgencies([])
+    }
+  }, [token])
+
+  const loadUsers = useCallback(async () => {
+    if (!token) return
+    setLoading(true)
+    setLoadError(null)
+    try {
+      const list = await fetchGovernmentAdminUsers(token, {
+        role: 'government_user',
+        tenantId: filterTenant || undefined,
+        status: filterStatus || undefined,
+        q: filterQ.trim() || undefined,
+      })
+      setRows(list)
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : '이용자 목록을 불러오지 못했습니다.')
+      setRows([])
+    } finally {
+      setLoading(false)
+    }
+  }, [token, filterTenant, filterStatus, filterQ])
+
+  useEffect(() => {
+    void loadAgencies()
+  }, [loadAgencies])
+
+  useEffect(() => {
+    void loadUsers()
+  }, [loadUsers])
+
+  return (
+    <div className="government-admin-page government-admin-users-page">
+      <h1 className="government-page__title">이용자 관리</h1>
+      <p className="government-page__muted government-admin-users-page__hint">
+        기관 코드로 가입한 프로그램 이용자 목록입니다. 사업장/고객 원본 데이터는 이용자 상세에서 요약만
+        확인할 수 있으며, 담당 배정 후 상세 열람이 가능해집니다.
+      </p>
+
+      <section className="government-admin-users-page__filters">
+        <FieldWrapper label="검색">
+          <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="아이디·이름" />
+        </FieldWrapper>
+        <FieldWrapper label="소속 대행사">
+          <FormSelect
+            value={filterTenant}
+            onChange={(e) => setFilterTenant(e.target.value)}
+            options={tenantFilterOptions}
+          />
+        </FieldWrapper>
+        <FieldWrapper label="상태">
+          <FormSelect
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            options={STATUS_FILTER_OPTIONS}
+          />
+        </FieldWrapper>
+      </section>
+
+      {loadError ? <p className="government-admin-page__error">{loadError}</p> : null}
+      {loading ? <LoadingState message="불러오는 중…" /> : null}
+      {!loading && rows.length === 0 ? (
+        <EmptyState message="등록된 이용자가 없습니다. 대행사 코드로 회원가입하면 목록에 표시됩니다." />
+      ) : null}
+      {!loading && rows.length > 0 ? (
+        <div className="government-admin-users-page__table-wrap">
+          <table className="government-admin-users-table">
+            <thead>
+              <tr>
+                <th>아이디</th>
+                <th>이름</th>
+                <th>소속 대행사</th>
+                <th>가입일</th>
+                <th>상태</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td>{row.username}</td>
+                  <td>{row.displayName || '—'}</td>
+                  <td>{tenantLabel(row)}</td>
+                  <td>{formatDate(row.createdAt)}</td>
+                  <td>{GOVERNMENT_ROLE_LABELS[row.role] ?? row.status}</td>
+                  <td>
+                    <Link
+                      to={`/government/admin/program-users/${row.id}`}
+                      className="dark-link"
+                    >
+                      상세
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+    </div>
+  )
+}
