@@ -1,7 +1,10 @@
 /**
  * government-support 전용 테이블 (idempotent DDL).
  */
+import { ensureTenantsLegacyGaIdConstraints } from '../tenantsLegacyGaIdConstraints.js'
+
 export async function ensureGovernmentSupportSchema(executor) {
+  await ensureTenantsLegacyGaIdConstraints(executor)
   await executor.query(`
     CREATE TABLE IF NOT EXISTS gov_support_profiles (
       id BIGSERIAL PRIMARY KEY,

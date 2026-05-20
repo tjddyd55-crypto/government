@@ -636,7 +636,7 @@ async function ensureCrmPlatformMetaSchema(executor) {
       code TEXT UNIQUE NOT NULL,
       name TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'active',
-      legacy_ga_id INTEGER UNIQUE REFERENCES ga_companies(id),
+      legacy_ga_id INTEGER REFERENCES ga_companies(id),
       r2_key_prefix TEXT,
       config JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -784,6 +784,9 @@ async function ensureCrmPlatformMetaSchema(executor) {
       status = EXCLUDED.status,
       updated_at = NOW()
   `)
+
+  const { ensureTenantsLegacyGaIdConstraints } = await import('./lib/tenantsLegacyGaIdConstraints.js')
+  await ensureTenantsLegacyGaIdConstraints(executor)
 
   await executor.query(`
     INSERT INTO tenants (industry_id, code, name, status, legacy_ga_id, r2_key_prefix, config)
