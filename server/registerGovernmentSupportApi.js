@@ -25,6 +25,7 @@ import {
 } from './lib/governmentSupport/governmentAdminUsers.js'
 import { mapGovSupportProfileRow, profilePatchFromBody } from './lib/governmentSupport/profileMapper.js'
 import { normalizeTenantRegistrationCodeRaw } from './lib/tenantRegistrationCodes.js'
+import { ensureGovernmentTenantRegistrationCode } from './lib/governmentSupport/ensureGovernmentTenantRegistrationCode.js'
 
 /**
  * @param {import('express').Router} router
@@ -141,17 +142,10 @@ export function registerGovernmentSupportApi(router, deps) {
         [industryId, agencyCode, name, status, legacyGaId],
       )
       const tenant = ins.rows[0]
-      await pool.query(
-        `
-        INSERT INTO tenant_registration_codes (
-          code, tenant_id, industry_code, default_membership_type, default_customer_access,
-          default_role, status
-        )
-        VALUES ($1, $2::bigint, $3, 'user', 'own', 'user', 'active')
-        ON CONFLICT DO NOTHING
-        `,
-        [agencyCode, tenant.id, GOVERNMENT_INDUSTRY_CODE],
-      )
+      await ensureGovernmentTenantRegistrationCode(pool, {
+        agencyCode,
+        tenantId: tenant.id,
+      })
       res.status(201).json({
         success: true,
         data: {
@@ -165,6 +159,47 @@ export function registerGovernmentSupportApi(router, deps) {
       handleDbError(e, req, res)
     }
   })
+
+  router.post(
+    '/government-support/admin/agencies/:tenantId/ensure-registration-code',
+    ...requireGovernmentIndustryAdmin,
+    async (req, res) => {
+      try {
+        const tenantId = String(req.params.tenantId ?? '').trim()
+        if (!tenantId) {
+          res.status(400).json({ message: 'tenantId가 필요합니다.' })
+          return
+        }
+        const industryId = await resolveGovernmentIndustryId(pool)
+        if (!industryId) {
+          res.status(500).json({ message: 'government 업종이 설정되지 않았습니다.' })
+          return
+        }
+        const row = await pool.query(
+          `
+          SELECT t.id::text AS id, t.code
+          FROM tenants t
+          INNER JOIN industries i ON i.id = t.industry_id
+          WHERE t.id::text = $1 AND LOWER(TRIM(i.code)) = $2
+          LIMIT 1
+          `,
+          [tenantId, GOVERNMENT_INDUSTRY_CODE],
+        )
+        if ((row.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '대행사를 찾을 수 없습니다.' })
+          return
+        }
+        const agencyCode = String(row.rows[0].code ?? '')
+        await ensureGovernmentTenantRegistrationCode(pool, { agencyCode, tenantId })
+        res.json({
+          success: true,
+          data: { tenantId, agencyCode },
+        })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
 
   router.get('/government-support/admin/users', ...requireGovernmentUserManager, async (req, res) => {
     try {
