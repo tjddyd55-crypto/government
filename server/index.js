@@ -36,7 +36,8 @@ import {
   isGovernmentIndustrySignup,
 } from './lib/governmentSupport/governmentSignup.js'
 import { signInviteSignup, verifyInviteSignupSignature } from './lib/inviteSignupSignature.js'
-import { purgeExpiredSmsVerificationCodes } from './services/purgeExpiredSmsCodes.js'
+import { formatDbEngineMessage, formatServerListeningMessage } from './lib/appServerLabel.js'
+import { runScheduledSmsCleanup } from './services/smsCleanupScheduler.js'
 import { normalizeKrMobile, validateKrMobileDigits } from './lib/phoneNormalize.js'
 import { resolveInsuranceCategoryForApi } from './lib/insuranceCompanyCategoryResolve.js'
 import { coerceMeritzFireToNonLifeCategory } from './lib/insuranceCompanyCategoryRules.js'
@@ -7143,14 +7144,14 @@ async function startServer() {
   await ensureYesterdayAnalyticsAggregated(pool)
 
   app.listen(PORT, () => {
-    console.log(`Insurance server listening on port ${PORT}`)
-    console.log('Insurance DB engine: PostgreSQL')
+    console.log(formatServerListeningMessage(PORT))
+    console.log(formatDbEngineMessage())
   })
 
   const SMS_CODE_PURGE_MS = 15 * 60 * 1000
-  void purgeExpiredSmsVerificationCodes(pool).catch((err) => console.error('[sms-cleanup] purge failed', err))
+  void runScheduledSmsCleanup(pool)
   setInterval(() => {
-    void purgeExpiredSmsVerificationCodes(pool).catch((err) => console.error('[sms-cleanup] purge failed', err))
+    void runScheduledSmsCleanup(pool)
   }, SMS_CODE_PURGE_MS)
 
   const analyticsScheduleState = { lastRunSeoulYmd: null }
