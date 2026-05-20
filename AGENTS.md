@@ -4,6 +4,8 @@
 
 **제품 방향(CRM 고객관리 템플릿 빌더):** 기능 스코프·우선순위는 `docs/architecture/crm-template-builder-direction.md`에 고정해 두었으며, 배포 규칙과 별도의 기준이다.
 
+**정부지원 CRM (`government-support`):** 보험 CRM을 **마스터로 복제**한다. 새 UI/UX 설계 금지. 상세·우선순위·매핑은 `docs/architecture/government-crm-architecture.md` **§0** 및 `.cursor/rules/government-insurance-copy.mdc`를 따른다. 작업 브랜치는 **develop만** (production/main·보험 DB 금지).
+
 ---
 
 ## 1. 브랜치 전략

@@ -1,9 +1,26 @@
 # Government-support CRM 개발 진행 기록
 
-> **아키텍처·운영 SSOT:** [`docs/architecture/government-crm-architecture.md`](architecture/government-crm-architecture.md)  
+> **아키텍처·운영 SSOT:** [`docs/architecture/government-crm-architecture.md`](architecture/government-crm-architecture.md) — **§0 보험 CRM 마스터 복제 원칙 (고정)**  
+> **에이전트 규칙:** `.cursor/rules/government-insurance-copy.mdc`  
 > 계획 문서(로컬, Git 미추적): `dev/government_support_crm_composer25_step_plan.md`  
 > 브랜치: `develop`  
 > push 정책: 단계별 **commit만**, push는 별도 지시 시
+
+---
+
+## 로드맵 (고정 — 2026-05)
+
+| 순서 | 작업 | 보험 CRM 기준 파일(예) | 정부지원 목표 |
+|------|------|------------------------|---------------|
+| **1** | 전자서명 | `src/features/contracts/**`, `server/apis/contract*Api.js` | `government-support/signatures`, `gov_signature_*` (**1차 커밋됨**) |
+| **2** | 이용자 UI 재정렬 | `CustomersPage`, `CustomerWorkspaceLayout` | 좌측 사업장/신청 리스트 + 우측 상세 탭 |
+| **3** | 메모 | 보험 memo 모듈 | profile scope |
+| **3** | 상담내역 | `customer_consultations` UI | 정부 상담 API |
+| **3** | 진행상황 | 보험 진행/상태 UI | 접수·진행상황 |
+| **3** | 서류/첨부 | files/storage UI | `gov_support_document_items` |
+| **3** | 신청 | application UI | `gov_support_application_cases` |
+
+**금지:** 새 레이아웃·새 UX·보험 원본 수정·데이터 혼합.
 
 ---
 

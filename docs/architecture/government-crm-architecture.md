@@ -1,9 +1,9 @@
 # 정부지원 CRM — 아키텍처·운영 기준
 
 > **단일 기준 문서(SSOT)**  
-> 정부지원 CRM(`government-support`)의 권한·데이터 소유권·운영 기능·Railway 배포 원칙을 정리한다.  
-> 배포·브랜치 규칙의 공통 부분은 루트 `AGENTS.md`를 따른다.  
-> 단계별 구현 이력은 `docs/government-support-dev-progress.md`를 참고한다.
+> 정부지원 CRM(`government-support`)의 **제품 원칙(§0)·권한·데이터·운영·복제 방법**을 정리한다.  
+> 배포·브랜치: 루트 `AGENTS.md`. 에이전트 규칙: `.cursor/rules/government-insurance-copy.mdc`  
+> 단계별 이력: `docs/government-support-dev-progress.md`
 
 **최종 검증 스냅샷 (develop):**
 
@@ -16,6 +16,42 @@
 | 자료실/서식함 | 구현 완료 |
 | E2E (HTTP) | 25 pass / 0 fail |
 | production / main | **미변경** (develop만 반영) |
+
+---
+
+## 0. 제품 원칙 — 보험 CRM 마스터 복제 (고정)
+
+정부지원 CRM은 **보험 CRM을 마스터**로 삼고, **화면·메뉴·리스트·상세·탭·좌측 리스트 + 우측 컨텐츠·대분류/소분류·기능 배치·PC/모바일 반응형**을 **그대로 복사**한다.
+
+**바뀌는 것:** 데이터명, API, DB, 권한, R2, 문구. **바뀌지 않는 것:** 레이아웃·흐름·배치.
+
+### 0.1 절대 금지
+
+새 UI/UX 설계 · 새 화면 흐름 · 보험과 다른 레이아웃 · 독자 카드형 화면 · 보험 원본(`CustomersPage`, `features/contracts`, contract API) **직접 수정** · 보험/정부 **데이터·R2·템플릿 혼합** · 관리자에게 유저 소유 데이터 **전체 노출** · production/main/보험 DB/secret.
+
+### 0.2 작업 절차
+
+1. 보험 CRM 해당 기능 **소스 먼저 조사**
+2. 정부 전용 경로로 **파일 복사**
+3. §2 역할·§3 데이터 매핑으로 **이름·FK·가드만** 치환
+4. `pdf-engine`, R2, `SignatureModal`, `ResponsiveLayout` 등 **공통 유틸 재사용**, scope는 분리
+
+### 0.3 UI 목표 (2단계)
+
+보험 `CustomersPage` / `CustomerWorkspaceLayout` 동형: **좌측 사업장·신청 리스트 + 우측 상세(메모·상담·진행·서류·전자서명 탭)**.  
+현재 `/government/workspace`, `/my-businesses` 등 **분리 페이지는 과도기**.
+
+### 0.4 우선순위
+
+| 순서 | 범위 |
+|------|------|
+| **1** | 전자서명 — 보험 `contracts` → `gov_signature_*` (1차 포팅 완료, develop 검증 중) |
+| **2** | 이용자 UI — 보험 고객관리 레이아웃으로 재정렬 |
+| **3** | 메모·상담·진행·서류·신청 — 보험 모듈 **순차 복사** |
+
+### 0.5 데이터 매핑 (요약)
+
+보험 고객→정부 사업장/신청 대상 · GA→대행사 · contract 전자서명→`gov_signature_*` · 발송 시 **고객 선택→사업장(profile) 선택**.
 
 ---
 
@@ -321,6 +357,9 @@ develop URL: `https://app-develop-9663.up.railway.app`
 | `/government/my-businesses` | 동일 | 내 사업장 |
 | `/government/my-applications` | 동일 | 내 고객/신청 |
 | `/government/notices`, `/resources`, `/me` | 동일 | 공지·자료·내 정보 |
+| `/government/signatures`, `/signatures/send` | `requireProgramUserWorkspace` | 전자서명 (보험 contracts UI 복제) |
+| `/government/signature-templates` | 동일 | 템플릿·PDF 좌표 |
+| `/government/sign/:token` | 공개 | 공개 서명 |
 | `/government/admin/*` | `requireAdmin` / `requireOperational` / `requireUserManager` | 관리·운영 |
 
 `government_user`에게 **`/government/admin/*` 메뉴·API 모두 차단**.
@@ -345,13 +384,16 @@ admin 비밀번호 운영: [government-support-admin-password-ops.md](../governm
 
 ## 10. 남은 이슈·후속 과제
 
-| 항목 | 설명 |
-|------|------|
-| E2E 테스트 계정 정리 | develop DB의 `e2e_*` 계정·시드 데이터 유지/삭제 정책 결정 |
-| 공지 읽음 확인 | read receipt / unread 배지 미구현 |
-| 자료 다운로드 이력 | audit log·다운로드 카운트 미구현 |
-| assignment 기반 제한 접근 | staff가 특정 이용자만 담당하는 **assignment** 모델 후속 (현재는 tenant 단위 운영만) |
-| 문의/FAQ/보완 요청 | 1차 범위 **제외** (별도 기능) |
+| 우선순위 | 항목 | 설명 |
+|----------|------|------|
+| **P0** | 전자서명 develop E2E/수동 | PDF→좌표→템플릿→발송→공개서명→완료 PDF (보험 동형 검증) |
+| **P1** | 이용자 UI 재정렬 | placeholder·분리 페이지 → 보험 `CustomersPage` 좌측 리스트+우측 상세 |
+| **P2** | 메모·상담·진행·서류·신청 | 보험 해당 feature **복사 이식** (순차 PR) |
+| P3 | E2E 테스트 계정 정리 | develop DB `e2e_*` 유지/삭제 정책 |
+| P3 | 공지 읽음 확인 | read receipt / unread 배지 |
+| P3 | 자료 다운로드 이력 | audit log |
+| P3 | assignment 기반 staff 접근 | tenant 단위 운영만 (현재) |
+| — | 문의/FAQ/보완 요청 | 1차 범위 제외 |
 
 ---
 
@@ -359,7 +401,8 @@ admin 비밀번호 운영: [government-support-admin-password-ops.md](../governm
 
 | 문서/경로 | 내용 |
 |-----------|------|
-| `AGENTS.md` | develop/main 배포, PC/Mobile 분리, 모달 규칙 |
+| `AGENTS.md` | develop/main 배포, PC/Mobile 분리, **§ 정부지원 복제 원칙** |
+| `.cursor/rules/government-insurance-copy.mdc` | 에이전트용 보험→정부 복제 규칙 |
 | `docs/government-support-dev-progress.md` | 단계별 구현 이력 |
 | `.env.railway.development.example` | develop ENV 키 체크리스트 |
 | `server/lib/governmentSupport/schema.js` | DDL (`gov_support_notices`, `gov_support_resources`) |
@@ -367,4 +410,4 @@ admin 비밀번호 운영: [government-support-admin-password-ops.md](../governm
 
 ---
 
-*문서 버전: develop `e799d73` 기준 (공지 목록 SQL alias fix 포함). production/main 미반영.*
+*문서 버전: develop `d6005ec` 기준 (전자서명 포팅 + §0 복제 원칙). production/main 미반영.*
