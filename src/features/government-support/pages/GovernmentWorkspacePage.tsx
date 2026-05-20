@@ -97,6 +97,12 @@ export default function GovernmentWorkspacePage() {
       <header className="government-workspace__header">
         <div>
           <strong style={{ color: '#f8fafc' }}>정부지원 CRM</strong>
+          <Link to="/government/notices" style={{ marginLeft: '0.75rem', color: '#60a5fa' }}>
+            공지사항
+          </Link>
+          <Link to="/government/resources" style={{ marginLeft: '0.75rem', color: '#60a5fa' }}>
+            자료실
+          </Link>
           {showAdminLink ? (
             <Link to="/government/admin" style={{ marginLeft: '0.75rem', color: '#60a5fa' }}>
               관리

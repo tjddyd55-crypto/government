@@ -129,6 +129,9 @@ import GovernmentAdminUsersPage from './features/government-support/pages/admin/
 import GovernmentAdminProgramUsersPage from './features/government-support/pages/admin/GovernmentAdminProgramUsersPage'
 import GovernmentAdminProgramUserDetailPage from './features/government-support/pages/admin/GovernmentAdminProgramUserDetailPage'
 import GovernmentAdminNoticesPage from './features/government-support/pages/admin/GovernmentAdminNoticesPage'
+import GovernmentAdminResourcesPage from './features/government-support/pages/admin/GovernmentAdminResourcesPage'
+import GovernmentUserNoticesPage from './features/government-support/pages/GovernmentUserNoticesPage'
+import GovernmentUserResourcesPage from './features/government-support/pages/GovernmentUserResourcesPage'
 import GovernmentPlaceholderPage from './features/government-support/components/GovernmentPlaceholderPage'
 import GovernmentProtectedRoute from './features/government-support/routes/GovernmentProtectedRoute'
 
@@ -153,6 +156,8 @@ export const appRouter = createBrowserRouter([
         element: <GovernmentProtectedRoute requireProgramUserWorkspace />,
         children: [
           { path: 'government/workspace', element: <GovernmentWorkspacePage /> },
+          { path: 'government/notices', element: <GovernmentUserNoticesPage /> },
+          { path: 'government/resources', element: <GovernmentUserResourcesPage /> },
           { path: 'government/customers', element: <Navigate to="/government/workspace" replace /> },
           {
             path: 'government/settings',
@@ -219,6 +224,7 @@ export const appRouter = createBrowserRouter([
             element: <GovernmentAdminLayout />,
             children: [
               { path: 'government/admin/notices', element: <GovernmentAdminNoticesPage /> },
+              { path: 'government/admin/resources', element: <GovernmentAdminResourcesPage /> },
             ],
           },
         ],

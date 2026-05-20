@@ -131,4 +131,61 @@ export async function ensureGovernmentSupportSchema(executor) {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_notices (
+      id BIGSERIAL PRIMARY KEY,
+      tenant_id BIGINT REFERENCES tenants(id) ON DELETE CASCADE,
+      scope_type TEXT NOT NULL DEFAULT 'agency',
+      title TEXT NOT NULL DEFAULT '',
+      content TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT 'general',
+      status TEXT NOT NULL DEFAULT 'draft',
+      is_pinned BOOLEAN NOT NULL DEFAULT false,
+      created_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      published_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_notices_list
+    ON gov_support_notices (status, is_pinned DESC, published_at DESC NULLS LAST, updated_at DESC)
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_notices_tenant
+    ON gov_support_notices (tenant_id, status, updated_at DESC)
+    WHERE tenant_id IS NOT NULL
+  `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_resources (
+      id BIGSERIAL PRIMARY KEY,
+      tenant_id BIGINT REFERENCES tenants(id) ON DELETE CASCADE,
+      scope_type TEXT NOT NULL DEFAULT 'agency',
+      title TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT 'other',
+      status TEXT NOT NULL DEFAULT 'draft',
+      file_name TEXT NOT NULL DEFAULT '',
+      file_key TEXT NOT NULL DEFAULT '',
+      file_size BIGINT NOT NULL DEFAULT 0,
+      mime_type TEXT NOT NULL DEFAULT '',
+      created_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      published_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_resources_list
+    ON gov_support_resources (status, published_at DESC NULLS LAST, updated_at DESC)
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_resources_tenant
+    ON gov_support_resources (tenant_id, status, updated_at DESC)
+    WHERE tenant_id IS NOT NULL
+  `)
 }

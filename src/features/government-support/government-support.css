@@ -463,3 +463,72 @@
   border: 1px solid #1e293b;
   border-radius: 10px;
 }
+
+.government-ops-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.government-ops-form-grid__full {
+  grid-column: 1 / -1;
+}
+
+.government-page--mobile .government-ops-form-grid {
+  grid-template-columns: 1fr;
+}
+
+.government-ops-badge {
+  display: inline-block;
+  margin-right: 0.35rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.government-ops-row--pinned td:first-child {
+  color: #f8fafc;
+}
+
+.government-user-ops-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+  min-height: 60vh;
+}
+
+.government-user-ops-list {
+  overflow-y: auto;
+  border-right: 1px solid #1e293b;
+  padding-right: 0.5rem;
+}
+
+.government-user-ops-detail {
+  padding: 0 0.5rem 1rem;
+}
+
+.government-user-ops-detail__body {
+  margin-top: 1rem;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  color: #e5e7eb;
+}
+
+.government-user-ops-cards {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.government-page--mobile .government-user-ops-layout {
+  grid-template-columns: 1fr;
+}
+
+.government-page--mobile .government-user-ops-list {
+  border-right: none;
+  max-height: 220px;
+}

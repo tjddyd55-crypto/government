@@ -4,19 +4,22 @@ import { EmptyState, LoadingState, StatusMessage } from '../../../../components/
 import { FieldWrapper, FormButton, FormInput, FormSelect, FormTextarea } from '../../../../components/form'
 import { useAuth } from '../../../auth/AuthProvider'
 import {
-  archiveGovernmentNotice,
-  createGovernmentNotice,
-  fetchGovernmentNotices,
-  updateGovernmentNotice,
-  type GovernmentNoticeRow,
+  archiveGovernmentResource,
+  fetchGovernmentResources,
+  presignGovernmentResource,
+  saveGovernmentResource,
+  updateGovernmentResource,
+  downloadGovernmentResource,
+  type GovernmentResourceRow,
 } from '../../api/governmentOperationsApi'
 import { fetchGovAgencies } from '../../api/governmentProfilesApi'
 import {
-  GOVERNMENT_NOTICE_CATEGORIES,
-  GOVERNMENT_NOTICE_STATUSES,
+  GOVERNMENT_RESOURCE_CATEGORIES,
+  GOVERNMENT_RESOURCE_STATUSES,
   GOVERNMENT_SCOPE_OPTIONS,
+  formatFileSize,
   formatOpsDate,
-  labelForNoticeCategory,
+  labelForResourceCategory,
   labelForStatus,
 } from '../../constants/governmentOperations'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
@@ -24,27 +27,27 @@ import { canManageGovernmentNotices } from '../../lib/governmentHome'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 import '../../government-support.css'
 
-type NoticeForm = {
+type ResourceForm = {
   title: string
-  content: string
+  description: string
   category: string
   status: string
   scopeType: string
   tenantId: string
-  isPinned: boolean
+  file: File | null
 }
 
-const EMPTY_FORM: NoticeForm = {
+const EMPTY_FORM: ResourceForm = {
   title: '',
-  content: '',
-  category: 'general',
+  description: '',
+  category: 'form',
   status: 'draft',
   scopeType: 'agency',
   tenantId: '',
-  isPinned: false,
+  file: null,
 }
 
-export default function GovernmentAdminNoticesPage() {
+export default function GovernmentAdminResourcesPage() {
   const { token } = useAuth()
   const { summary } = useGovernmentAccess(token)
   const { confirm, confirmDialog } = useConfirmDialog()
@@ -55,15 +58,15 @@ export default function GovernmentAdminNoticesPage() {
     ''
 
   const [agencies, setAgencies] = useState<GovAgencyRow[]>([])
-  const [rows, setRows] = useState<GovernmentNoticeRow[]>([])
+  const [rows, setRows] = useState<GovernmentResourceRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [filterQ, setFilterQ] = useState('')
   const [editorOpen, setEditorOpen] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState<NoticeForm>({ ...EMPTY_FORM, tenantId: defaultTenantId })
+  const [editing, setEditing] = useState<GovernmentResourceRow | null>(null)
+  const [form, setForm] = useState<ResourceForm>({ ...EMPTY_FORM, tenantId: defaultTenantId })
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -78,7 +81,7 @@ export default function GovernmentAdminNoticesPage() {
     setError(null)
     try {
       setRows(
-        await fetchGovernmentNotices(token, {
+        await fetchGovernmentResources(token, {
           managerView: true,
           status: filterStatus || undefined,
           category: filterCategory || undefined,
@@ -86,7 +89,7 @@ export default function GovernmentAdminNoticesPage() {
         }),
       )
     } catch (e) {
-      setError(e instanceof Error ? e.message : '공지 목록을 불러오지 못했습니다.')
+      setError(e instanceof Error ? e.message : '자료 목록을 불러오지 못했습니다.')
     } finally {
       setLoading(false)
     }
@@ -105,28 +108,27 @@ export default function GovernmentAdminNoticesPage() {
     return (
       <div className="government-admin-page">
         <h1 className="government-page__title">접근할 수 없습니다</h1>
-        <p className="government-page__muted">공지/전달사항은 대행사 운영 계정만 이용할 수 있습니다.</p>
       </div>
     )
   }
 
   const openCreate = () => {
-    setEditingId(null)
+    setEditing(null)
     setForm({ ...EMPTY_FORM, tenantId: defaultTenantId })
     setFormError(null)
     setEditorOpen(true)
   }
 
-  const openEdit = (row: GovernmentNoticeRow) => {
-    setEditingId(row.id)
+  const openEdit = (row: GovernmentResourceRow) => {
+    setEditing(row)
     setForm({
       title: row.title,
-      content: row.content,
+      description: row.description,
       category: row.category,
       status: row.status,
       scopeType: row.scopeType,
       tenantId: row.tenantId ?? defaultTenantId,
-      isPinned: row.isPinned,
+      file: null,
     })
     setFormError(null)
     setEditorOpen(true)
@@ -137,19 +139,44 @@ export default function GovernmentAdminNoticesPage() {
     setSaving(true)
     setFormError(null)
     try {
-      const body = {
+      const meta = {
         title: form.title.trim(),
-        content: form.content,
+        description: form.description,
         category: form.category,
         status: form.status,
         scopeType: form.scopeType,
         tenantId: form.scopeType === 'global' ? null : form.tenantId,
-        isPinned: form.isPinned,
       }
-      if (editingId) {
-        await updateGovernmentNotice(token, editingId, body)
+      if (editing && !form.file) {
+        await updateGovernmentResource(token, editing.id, meta)
       } else {
-        await createGovernmentNotice(token, body)
+        if (!form.file && !editing) {
+          setFormError('파일을 선택하세요.')
+          return
+        }
+        const presign = await presignGovernmentResource(token, {
+          ...meta,
+          fileName: form.file!.name,
+          contentType: form.file!.type || 'application/octet-stream',
+          sizeBytes: form.file!.size,
+          resourceId: editing?.id,
+        })
+        await fetch(presign.uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': form.file!.type || 'application/octet-stream',
+            ...presign.putHeaders,
+          },
+          body: form.file!,
+        })
+        await saveGovernmentResource(token, {
+          ...meta,
+          resourceId: presign.resourceId,
+          fileKey: presign.objectKey,
+          fileName: form.file!.name,
+          fileSize: form.file!.size,
+          mimeType: form.file!.type || 'application/octet-stream',
+        })
       }
       setEditorOpen(false)
       await load()
@@ -160,54 +187,51 @@ export default function GovernmentAdminNoticesPage() {
     }
   }
 
-  const handleArchive = async (row: GovernmentNoticeRow) => {
+  const handleArchive = async (row: GovernmentResourceRow) => {
     if (!token) return
     const ok = await confirm({
-      title: '공지 보관',
-      message: `「${row.title}」 공지를 보관 처리하시겠습니까?`,
+      title: '자료 보관',
+      message: `「${row.title}」 자료를 보관 처리하시겠습니까?`,
       tone: 'danger',
     })
     if (!ok) return
-    await archiveGovernmentNotice(token, row.id)
+    await archiveGovernmentResource(token, row.id)
     await load()
   }
 
   return (
-    <div className="government-admin-page government-admin-notices-page">
+    <div className="government-admin-page government-admin-resources-page">
       <div className="government-admin-page__toolbar">
-        <h1 className="government-page__title">공지/전달사항</h1>
+        <h1 className="government-page__title">자료실/서식함</h1>
         <FormButton htmlType="button" variant="primary" onClick={openCreate}>
-          공지 작성
+          자료 등록
         </FormButton>
       </div>
-      <p className="government-page__muted">
-        소속 대행사 이용자에게 전달할 공지·안내를 관리합니다. 사업장/고객/신청 데이터와 분리되어
-        있습니다.
-      </p>
+      <p className="government-page__muted">신청 서식·안내문 등 대행사 이용자용 자료를 관리합니다.</p>
 
       <section className="government-admin-users-page__filters">
         <FieldWrapper label="검색">
-          <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="제목·내용" />
+          <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="제목·설명" />
         </FieldWrapper>
-        <FieldWrapper label="구분">
+        <FieldWrapper label="카테고리">
           <FormSelect
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            options={[{ value: '', label: '전체' }, ...GOVERNMENT_NOTICE_CATEGORIES]}
+            options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_CATEGORIES]}
           />
         </FieldWrapper>
         <FieldWrapper label="상태">
           <FormSelect
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            options={[{ value: '', label: '전체' }, ...GOVERNMENT_NOTICE_STATUSES]}
+            options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_STATUSES]}
           />
         </FieldWrapper>
       </section>
 
       {error ? <StatusMessage message={error} tone="error" className="m-0 mb-3" /> : null}
       {loading ? <LoadingState message="불러오는 중…" /> : null}
-      {!loading && rows.length === 0 ? <EmptyState message="등록된 공지가 없습니다." /> : null}
+      {!loading && rows.length === 0 ? <EmptyState message="등록된 자료가 없습니다." /> : null}
 
       {!loading && rows.length > 0 ? (
         <div className="government-admin-users-page__table-wrap">
@@ -215,26 +239,33 @@ export default function GovernmentAdminNoticesPage() {
             <thead>
               <tr>
                 <th>제목</th>
-                <th>구분</th>
+                <th>카테고리</th>
+                <th>파일</th>
                 <th>상태</th>
-                <th>범위</th>
-                <th>작성자</th>
                 <th>등록일</th>
                 <th />
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className={row.isPinned ? 'government-ops-row--pinned' : undefined}>
+                <tr key={row.id}>
+                  <td>{row.title}</td>
+                  <td>{labelForResourceCategory(row.category)}</td>
                   <td>
-                    {row.isPinned ? <span className="government-ops-badge">중요</span> : null} {row.title}
+                    {row.fileName} ({formatFileSize(row.fileSize)})
                   </td>
-                  <td>{labelForNoticeCategory(row.category)}</td>
                   <td>{labelForStatus(row.status)}</td>
-                  <td>{row.scopeType === 'global' ? '전체' : row.tenantName || '대행사'}</td>
-                  <td>{row.createdByDisplayName || '—'}</td>
                   <td>{formatOpsDate(row.publishedAt ?? row.createdAt)}</td>
                   <td className="government-admin-users-page__actions">
+                    {row.status === 'published' ? (
+                      <FormButton
+                        htmlType="button"
+                        variant="secondary"
+                        onClick={() => void downloadGovernmentResource(token!, row.id)}
+                      >
+                        다운로드
+                      </FormButton>
+                    ) : null}
                     <FormButton htmlType="button" variant="secondary" onClick={() => openEdit(row)}>
                       수정
                     </FormButton>
@@ -254,7 +285,7 @@ export default function GovernmentAdminNoticesPage() {
       <FormDialog
         open={editorOpen}
         onClose={() => !saving && setEditorOpen(false)}
-        title={editingId ? '공지 수정' : '공지 작성'}
+        title={editing ? '자료 수정' : '자료 등록'}
         closeOnBackdrop={false}
         closeOnEsc={!saving}
         panelPreset="largeForm"
@@ -264,18 +295,18 @@ export default function GovernmentAdminNoticesPage() {
           <FieldWrapper label="제목">
             <FormInput value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
           </FieldWrapper>
-          <FieldWrapper label="구분">
+          <FieldWrapper label="카테고리">
             <FormSelect
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-              options={[...GOVERNMENT_NOTICE_CATEGORIES]}
+              options={[...GOVERNMENT_RESOURCE_CATEGORIES]}
             />
           </FieldWrapper>
           <FieldWrapper label="상태">
             <FormSelect
               value={form.status}
               onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-              options={[...GOVERNMENT_NOTICE_STATUSES]}
+              options={[...GOVERNMENT_RESOURCE_STATUSES]}
             />
           </FieldWrapper>
           {canGlobal ? (
@@ -296,21 +327,21 @@ export default function GovernmentAdminNoticesPage() {
               />
             </FieldWrapper>
           ) : null}
-          <FieldWrapper label="중요 공지">
-            <FormSelect
-              value={form.isPinned ? 'yes' : 'no'}
-              onChange={(e) => setForm((f) => ({ ...f, isPinned: e.target.value === 'yes' }))}
-              options={[
-                { value: 'no', label: '아니오' },
-                { value: 'yes', label: '예 (상단 고정)' },
-              ]}
+          <FieldWrapper label="파일" className="government-ops-form-grid__full">
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.hwp,.zip,.png,.jpg,.jpeg,.webp"
+              onChange={(e) => setForm((f) => ({ ...f, file: e.target.files?.[0] ?? null }))}
             />
+            {editing?.fileName ? (
+              <p className="government-page__muted">현재 파일: {editing.fileName}</p>
+            ) : null}
           </FieldWrapper>
-          <FieldWrapper label="내용" className="government-ops-form-grid__full">
+          <FieldWrapper label="설명" className="government-ops-form-grid__full">
             <FormTextarea
-              value={form.content}
-              onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-              rows={8}
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              rows={4}
             />
           </FieldWrapper>
         </div>
