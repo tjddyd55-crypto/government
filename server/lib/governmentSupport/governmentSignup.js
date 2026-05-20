@@ -44,7 +44,7 @@ export async function attachGovernmentProgramUserMembership(poolExec, params) {
       $4::bigint,
       $5::bigint,
       'active',
-      'user',
+      'agent',
       'own'
     WHERE NOT EXISTS (
       SELECT 1 FROM user_memberships m
