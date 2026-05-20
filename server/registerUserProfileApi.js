@@ -24,15 +24,10 @@ import { normalizeKrMobile, validateKrMobileDigits } from './lib/phoneNormalize.
 import { logSmsVerifyFailure } from './services/smsStructuredLog.js'
 import { SMS_PUBLIC_DELAY_MESSAGE } from './services/smsPublicMessages.js'
 import { buildSubscriptionResponseForUser } from './subscription/applyToResponseUser.js'
+import { exposeSmsDebugCode } from './lib/smsDebugExposure.js'
 
 const SMS_PURPOSE_SIGNUP = 'SIGNUP'
 const SMS_PURPOSE_PHONE_CHANGE = 'PHONE_CHANGE'
-
-function exposeSmsDebugCode(runningInProduction) {
-  return (
-    !runningInProduction && String(process.env.INSURANCE_SMS_DEBUG_RESPONSE_CODE ?? '').trim() === 'true'
-  )
-}
 
 /** USER 역할·숫자만 동일(포맷 무시) — 회원가입/가입 SMS 플로우용 */
 async function isUserSignupPhoneDuplicate(pool, phoneDigits) {

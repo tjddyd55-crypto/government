@@ -17,6 +17,7 @@ import {
 import { applyUserSmsRequestAfterSend, evaluateUserSmsRequestQuota } from './services/smsUserDbRate.js'
 import { normalizeKrMobile, validateKrMobileDigits } from './lib/phoneNormalize.js'
 import { SMS_PUBLIC_DELAY_MESSAGE } from './services/smsPublicMessages.js'
+import { exposeSmsDebugCode } from './lib/smsDebugExposure.js'
 
 const SMS_PURPOSE_PASSWORD_RESET = 'PASSWORD_RESET'
 const SMS_PURPOSE_ACCOUNT_RESET = 'ACCOUNT_RESET'
@@ -26,12 +27,6 @@ const PUBLIC_AUTH_MSG = '요청을 처리할 수 없습니다.'
 
 function jsonPublicAuth(res, status, extra = {}) {
   res.status(status).json({ message: PUBLIC_AUTH_MSG, ...extra })
-}
-
-function exposeSmsDebugCode(runningInProduction) {
-  return (
-    !runningInProduction && String(process.env.INSURANCE_SMS_DEBUG_RESPONSE_CODE ?? '').trim() === 'true'
-  )
 }
 
 function logSmsEvent(label, meta) {
