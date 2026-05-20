@@ -1,5 +1,6 @@
 import { apiRequest } from '../../../lib/apiClient'
 
+/** 이용자 계정·상태만 — 사업장/고객/신청 원본 미포함 */
 export type GovernmentProgramUserDetail = {
   id: string
   username: string
@@ -11,11 +12,6 @@ export type GovernmentProgramUserDetail = {
   tenantName: string
   agencyCode: string
   role: string
-  profileCount: number
-  latestProgressStatus: string | null
-  lastUpdatedAt: string | null
-  assignedStaffUserId: string | null
-  assignedStaffDisplayName: string | null
   profilesAccessible: boolean
   profilesAccessNote: string
 }

@@ -6,19 +6,22 @@ import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { ApiError } from '../../../lib/apiClient'
 import { login as loginApi } from '../../auth/authApi'
 import { useAuth } from '../../auth/AuthProvider'
+import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
+import { resolveGovernmentHomePath } from '../lib/governmentHome'
 import '../government-support.css'
 
 export default function GovernmentLoginPage() {
   useDocumentTitle(GOVERNMENT_LOGIN_DOCUMENT_TITLE)
   const navigate = useNavigate()
-  const { isAuthenticated, login } = useAuth()
+  const { isAuthenticated, token, login } = useAuth()
+  const { summary, loading } = useGovernmentAccess(token)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  if (isAuthenticated) {
-    return <Navigate to="/government/workspace" replace />
+  if (isAuthenticated && token && !loading && summary) {
+    return <Navigate to={resolveGovernmentHomePath(summary)} replace />
   }
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {

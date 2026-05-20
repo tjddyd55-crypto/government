@@ -315,6 +315,7 @@ export function registerGovernmentSupportApi(router, deps) {
         `
         SELECT * FROM gov_support_profiles
         WHERE tenant_id = ANY($1::bigint[])
+          AND owner_user_id IS NOT NULL
           AND ($2::text IS NULL OR owner_user_id = $2::text)
         ORDER BY updated_at DESC, id DESC
         `,

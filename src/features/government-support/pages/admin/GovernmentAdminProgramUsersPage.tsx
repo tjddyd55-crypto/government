@@ -5,7 +5,6 @@ import { FieldWrapper, FormInput, FormSelect } from '../../../../components/form
 import { useAuth } from '../../../auth/AuthProvider'
 import { fetchGovernmentAdminUsers } from '../../api/governmentAdminUsersApi'
 import { fetchGovAgencies } from '../../api/governmentProfilesApi'
-import { GOVERNMENT_ROLE_LABELS } from '../../constants/governmentRoles'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 import type { GovernmentAdminUserRow } from '../../types/governmentAdminUser.types'
 import '../../government-support.css'
@@ -90,8 +89,8 @@ export default function GovernmentAdminProgramUsersPage() {
     <div className="government-admin-page government-admin-users-page">
       <h1 className="government-page__title">이용자 관리</h1>
       <p className="government-page__muted government-admin-users-page__hint">
-        기관 코드로 가입한 프로그램 이용자 목록입니다. 사업장/고객 원본 데이터는 이용자 상세에서 요약만
-        확인할 수 있으며, 담당 배정 후 상세 열람이 가능해집니다.
+        기관 코드로 가입한 프로그램 이용자 계정·상태만 확인합니다. 사업장/고객/신청 데이터는 이용자
+        본인 워크스페이스에서 관리합니다.
       </p>
 
       <section className="government-admin-users-page__filters">
@@ -139,7 +138,7 @@ export default function GovernmentAdminProgramUsersPage() {
                   <td>{row.displayName || '—'}</td>
                   <td>{tenantLabel(row)}</td>
                   <td>{formatDate(row.createdAt)}</td>
-                  <td>{GOVERNMENT_ROLE_LABELS[row.role] ?? row.status}</td>
+                  <td>{row.status === 'active' ? '정상' : row.status === 'blocked' ? '접근금지' : row.status === 'inactive' ? '비활성' : row.status}</td>
                   <td>
                     <Link
                       to={`/government/admin/program-users/${row.id}`}

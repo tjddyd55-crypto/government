@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import FormButton from '../../../components/form/FormButton'
 import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
 import useIsMobile from '../../../hooks/useIsMobile'
@@ -11,7 +11,12 @@ import {
   GOVERNMENT_DOCUMENT_TYPES,
   GOVERNMENT_SCHEDULE_TYPES,
 } from '../constants/governmentDocumentTypes'
-import { canManageGovernmentUsers, isGovernmentProgramUser } from '../lib/governmentAccess'
+import { isGovernmentProgramUser } from '../lib/governmentAccess'
+import {
+  canAccessUserOwnedWorkspace,
+  isGovernmentOperationalAccount,
+  resolveGovernmentHomePath,
+} from '../lib/governmentHome'
 import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
 import { useGovernmentWorkspaceState, type GovernmentWorkspaceTab } from '../hooks/useGovernmentWorkspaceState'
 import '../government-support.css'
@@ -52,9 +57,8 @@ export default function GovernmentWorkspacePage() {
   const { summary, reload: reloadAccess } = useGovernmentAccess(token)
   const isMobile = useIsMobile()
   const programUser = isGovernmentProgramUser(summary)
-  const showAdminLink = Boolean(
-    summary && (isIndustryAdmin || canManageGovernmentUsers(summary)),
-  )
+  const showAdminLink = isGovernmentOperationalAccount(summary)
+
   const defaultTenantId = useMemo(() => {
     if (!summary) return null
     if (summary.defaultWorkspaceTenantId) return summary.defaultWorkspaceTenantId
@@ -81,6 +85,10 @@ export default function GovernmentWorkspacePage() {
 
   const showList = !isMobile || !ws.selectedId
   const showDetail = !isMobile || Boolean(ws.selectedId)
+
+  if (summary && !canAccessUserOwnedWorkspace(summary)) {
+    return <Navigate to={resolveGovernmentHomePath(summary)} replace />
+  }
 
   return (
     <main

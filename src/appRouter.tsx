@@ -128,6 +128,7 @@ import GovernmentAdminAgenciesPage from './features/government-support/pages/adm
 import GovernmentAdminUsersPage from './features/government-support/pages/admin/GovernmentAdminUsersPage'
 import GovernmentAdminProgramUsersPage from './features/government-support/pages/admin/GovernmentAdminProgramUsersPage'
 import GovernmentAdminProgramUserDetailPage from './features/government-support/pages/admin/GovernmentAdminProgramUserDetailPage'
+import GovernmentAdminNoticesPage from './features/government-support/pages/admin/GovernmentAdminNoticesPage'
 import GovernmentPlaceholderPage from './features/government-support/components/GovernmentPlaceholderPage'
 import GovernmentProtectedRoute from './features/government-support/routes/GovernmentProtectedRoute'
 
@@ -149,7 +150,7 @@ export const appRouter = createBrowserRouter([
       { path: 'government/join', element: <GovernmentJoinPage /> },
       { path: 'government/join/:agencyCode', element: <GovernmentJoinPage /> },
       {
-        element: <GovernmentProtectedRoute />,
+        element: <GovernmentProtectedRoute requireProgramUserWorkspace />,
         children: [
           { path: 'government/workspace', element: <GovernmentWorkspacePage /> },
           { path: 'government/customers', element: <Navigate to="/government/workspace" replace /> },
@@ -207,6 +208,17 @@ export const appRouter = createBrowserRouter([
                   />
                 ),
               },
+            ],
+          },
+        ],
+      },
+      {
+        element: <GovernmentProtectedRoute requireOperational />,
+        children: [
+          {
+            element: <GovernmentAdminLayout />,
+            children: [
+              { path: 'government/admin/notices', element: <GovernmentAdminNoticesPage /> },
             ],
           },
         ],

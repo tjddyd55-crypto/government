@@ -46,6 +46,7 @@ export function isGovernmentProgramUser(summary: GovernmentAccessSummary | null)
   return summary?.isGovernmentProgramUser === true
 }
 
+/** @deprecated 워크스페이스는 프로그램 이용자 전용 — `canAccessUserOwnedWorkspace` 사용 */
 export function canAccessGovernmentWorkspace(state: GovernmentAccessState): boolean {
   return state !== 'denied' && state !== 'loading'
 }

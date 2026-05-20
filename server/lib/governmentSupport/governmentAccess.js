@@ -1,5 +1,12 @@
 /**
- * government-support 접근 판별 (platformContext 확장 필드 사용).
+ * government-support 접근 판별.
+ *
+ * 보험 CRM 대응:
+ * - government_user ≈ 보험 유저 (고객/사업장/신청 데이터 소유)
+ * - government_agency_admin ≈ GA 관리자 (직원·운영, 유저 데이터 직접 관리 아님)
+ * - government_staff ≈ GA 직원 (공지·전달·운영, 유저 데이터 직접 관리 아님)
+ * - government_industry_admin ≈ 플랫폼 운영 (전체 대행사·설정, 유저 데이터 전체 목록 노출 아님)
+ *
  * @module governmentAccess
  */
 

@@ -1,22 +1,32 @@
-/** 정부지원 CRM 관리자 사이드바 */
+/** 정부지원 CRM 관리자 사이드바 (보험 CRM: GA 관리·직원·공지 / 유저·고객 데이터 분리) */
 export type GovernmentAdminNavItem = {
   to: string
   label: string
   end?: boolean
 }
 
-/** 업종 관리자 — 대시보드·대행사·설정 */
+/** 업종 관리자 — 대행사·설정·운영 현황 */
 export const GOVERNMENT_INDUSTRY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: '/government/admin', label: '대시보드', end: true },
   { to: '/government/admin/agencies', label: '대행사 관리' },
+  { to: '/government/admin/notices', label: '공지/전달사항' },
   { to: '/government/admin/settings', label: '설정' },
 ]
 
-/** 사용자 관리자 — 직원·이용자 (사업장/고객 전체 목록 메뉴 없음) */
-export const GOVERNMENT_USER_MANAGER_NAV: GovernmentAdminNavItem[] = [
+/** 대행사 관리자 — 직원·이용자·공지 (사업장/고객 전체 목록 없음) */
+export const GOVERNMENT_AGENCY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: '/government/admin/users', label: '직원 관리' },
   { to: '/government/admin/program-users', label: '이용자 관리' },
+  { to: '/government/admin/notices', label: '공지/전달사항' },
 ]
 
-/** @deprecated 하위 호환 — industry admin 전용만 사용 */
+/** 대행사 직원 — 공지·전달·운영 업무 중심 */
+export const GOVERNMENT_STAFF_NAV: GovernmentAdminNavItem[] = [
+  { to: '/government/admin/notices', label: '공지/전달사항', end: true },
+]
+
+/** @deprecated — 레이아웃에서 역할별 배열 조합 */
 export const GOVERNMENT_ADMIN_NAV: GovernmentAdminNavItem[] = GOVERNMENT_INDUSTRY_ADMIN_NAV
+
+/** @deprecated — `GOVERNMENT_AGENCY_ADMIN_NAV` 사용 */
+export const GOVERNMENT_USER_MANAGER_NAV: GovernmentAdminNavItem[] = GOVERNMENT_AGENCY_ADMIN_NAV

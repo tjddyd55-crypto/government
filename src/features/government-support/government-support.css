@@ -455,3 +455,11 @@
   font-size: 1rem;
   color: #f8fafc;
 }
+
+.government-admin-notices-page__placeholder {
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+}

@@ -15,6 +15,12 @@ function formatDate(iso: string | null): string {
   return d.toLocaleString('ko-KR')
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  active: '정상',
+  blocked: '접근금지',
+  inactive: '비활성',
+}
+
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="government-admin-program-user-detail__row">
@@ -72,36 +78,15 @@ export default function GovernmentAdminProgramUserDetailPage() {
         </Link>
       </p>
       <h1 className="government-page__title">이용자 상세</h1>
-      <p className="government-page__muted">
-        사업장/고객 원본은 권한이 있을 때만 열람할 수 있습니다. 아래는 요약 정보만 표시합니다.
-      </p>
+      <p className="government-page__muted">{data.profilesAccessNote}</p>
 
       <section className="government-admin-program-user-detail__card">
         <DetailRow label="이용자 아이디" value={data.username} />
         <DetailRow label="이름" value={data.displayName || '—'} />
         <DetailRow label="소속 대행사" value={agencyLabel} />
         <DetailRow label="가입일" value={formatDate(data.createdAt)} />
-        <DetailRow label="상태" value={data.status} />
+        <DetailRow label="상태" value={STATUS_LABELS[data.status] ?? data.status} />
         <DetailRow label="최근 로그인" value={formatDate(data.lastLoginAt)} />
-      </section>
-
-      <section className="government-admin-program-user-detail__card">
-        <h2 className="government-admin-program-user-detail__section-title">사업장/고객 요약</h2>
-        <DetailRow label="등록 건수" value={`${data.profileCount}건`} />
-        <DetailRow
-          label="최근 처리 상태"
-          value={data.latestProgressStatus ?? '—'}
-        />
-        <DetailRow label="최근 수정" value={formatDate(data.lastUpdatedAt)} />
-        <DetailRow
-          label="담당 직원"
-          value={data.assignedStaffDisplayName ?? data.assignedStaffUserId ?? '미배정'}
-        />
-        {!data.profilesAccessible ? (
-          <p className="government-page__muted" style={{ marginTop: '1rem' }}>
-            {data.profilesAccessNote}
-          </p>
-        ) : null}
       </section>
     </div>
   )

@@ -122,19 +122,13 @@ export async function getProgramUserDetailForManager(pool, ctx, userId) {
   if (!access.ok) {
     return access
   }
-  const summary = await summarizeProgramUserProfiles(
-    pool,
-    access.row.id,
-    access.row.tenantId,
-  )
   return {
     ok: true,
     data: {
       ...access.row,
-      ...summary,
       profilesAccessible: false,
       profilesAccessNote:
-        '담당 배정(assignment) 기능이 준비되기 전까지 사업장/고객 상세 원본은 열람할 수 없습니다.',
+        '사업장/고객/신청 원본 데이터는 이용자 본인 워크스페이스에서만 관리합니다. 운영 계정은 계정·상태만 확인할 수 있습니다.',
     },
   }
 }
