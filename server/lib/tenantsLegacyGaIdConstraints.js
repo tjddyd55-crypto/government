@@ -45,15 +45,16 @@ export async function ensureTenantsLegacyGaIdConstraints(executor) {
   `)
 
   if (governmentIndustryId != null) {
-    await executor.query(
-      `
+    const govId = String(governmentIndustryId).trim()
+    if (!/^\d+$/.test(govId)) {
+      throw new Error('government industry id must be numeric for legacy_ga_id migration')
+    }
+    await executor.query(`
       CREATE UNIQUE INDEX tenants_legacy_ga_id_non_government_uk
       ON tenants (legacy_ga_id)
       WHERE legacy_ga_id IS NOT NULL
-        AND industry_id IS DISTINCT FROM $1::bigint
-      `,
-      [governmentIndustryId],
-    )
+        AND industry_id IS DISTINCT FROM ${govId}::bigint
+    `)
     return
   }
 

@@ -30,7 +30,6 @@ describe('tenantsLegacyGaIdConstraints', () => {
     assert.ok(sql.some((q) => q.text.includes('DROP INDEX IF EXISTS tenants_legacy_ga_id_non_government_uk')))
     const createIdx = sql.find((q) => q.text.includes('CREATE UNIQUE INDEX tenants_legacy_ga_id_non_government_uk'))
     assert.ok(createIdx)
-    assert.deepEqual(createIdx.params, ['99'])
-    assert.ok(createIdx.text.includes('industry_id IS DISTINCT FROM'))
+    assert.ok(createIdx.text.includes('industry_id IS DISTINCT FROM 99::bigint'))
   })
 })
