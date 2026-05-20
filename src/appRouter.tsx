@@ -138,6 +138,13 @@ import GovernmentUserNoticesPage from './features/government-support/pages/Gover
 import GovernmentUserResourcesPage from './features/government-support/pages/GovernmentUserResourcesPage'
 import GovernmentPlaceholderPage from './features/government-support/components/GovernmentPlaceholderPage'
 import GovernmentProtectedRoute from './features/government-support/routes/GovernmentProtectedRoute'
+import GovernmentSignPage from './features/government-support/publicSignature/GovernmentSignPage'
+import GovernmentSignDocumentPage from './features/government-support/publicSignature/GovernmentSignDocumentPage'
+import { GovernmentSignatureUserSendRoute } from './features/government-support/signatures/GovernmentSignatureUserSendRoute'
+import GovernmentSignatureSendPage from './features/government-support/signatures/GovernmentSignatureSendPage'
+import GovernmentSignatureHistoryPage from './features/government-support/signatures/GovernmentSignatureHistoryPage'
+import { GovernmentSignatureTemplateRoute } from './features/government-support/signatureTemplates/GovernmentSignatureTemplateRoute'
+import GovernmentSignatureTemplatesPage from './features/government-support/signatureTemplates/GovernmentSignatureTemplatesPage'
 
 export const appRouter = createBrowserRouter([
   {
@@ -165,6 +172,22 @@ export const appRouter = createBrowserRouter([
               { path: 'government/workspace', element: <GovernmentUserHomePage /> },
               { path: 'government/my-businesses', element: <GovernmentUserBusinessesPage /> },
               { path: 'government/my-applications', element: <GovernmentUserApplicationsPage /> },
+              {
+                element: <GovernmentSignatureUserSendRoute />,
+                children: [
+                  { path: 'government/signatures', element: <GovernmentSignatureHistoryPage /> },
+                  { path: 'government/signatures/send', element: <GovernmentSignatureSendPage /> },
+                  { path: 'government/signatures/:id', element: <GovernmentSignatureHistoryPage /> },
+                ],
+              },
+              {
+                element: <GovernmentSignatureTemplateRoute />,
+                children: [
+                  { path: 'government/signature-templates', element: <GovernmentSignatureTemplatesPage /> },
+                  { path: 'government/signature-templates/new', element: <GovernmentSignatureTemplatesPage /> },
+                  { path: 'government/signature-templates/:id/edit', element: <GovernmentSignatureTemplatesPage /> },
+                ],
+              },
               { path: 'government/notices', element: <GovernmentUserNoticesPage /> },
               { path: 'government/resources', element: <GovernmentUserResourcesPage /> },
               { path: 'government/me', element: <GovernmentUserMePage /> },
@@ -263,6 +286,11 @@ export const appRouter = createBrowserRouter([
       {
         path: 'contracts/sign/:linkCode/documents/:documentInstanceId',
         element: <ContractSignDocumentPage />,
+      },
+      { path: 'government/sign/:token', element: <GovernmentSignPage /> },
+      {
+        path: 'government/sign/:token/documents/:documentInstanceId',
+        element: <GovernmentSignDocumentPage />,
       },
       {
         path: 'customer-app',
