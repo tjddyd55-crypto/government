@@ -104,3 +104,18 @@ export type GovProfileConsultation = {
   updatedAt: string
   archivedAt: string | null
 }
+
+export type GovProfileProgressEvent = {
+  id: string
+  profileId: string
+  ownerUserId: string
+  status: string
+  title: string
+  content: string
+  eventDate: string | null
+  createdByUserId: string | null
+  updatedByUserId: string | null
+  createdAt: string
+  updatedAt: string
+  archivedAt: string | null
+}

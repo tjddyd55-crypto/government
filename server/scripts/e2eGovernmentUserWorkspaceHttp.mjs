@@ -280,6 +280,49 @@ async function main() {
   if (!consultListAfterDelete.some((c) => String(c.id) === consultAId)) pass('user A delete consultation')
   else fail('user A delete consultation')
 
+  const progressCreate = await api(`/government-support/profiles/${profileAId}/progress`, {
+    token: tokenA,
+    method: 'POST',
+    body: {
+      status: '심사 중',
+      content: `E2E progress A ${ts}`,
+      title: 'E2E 진행',
+      eventDate: '2026-05-19',
+    },
+    expectStatus: 201,
+  })
+  const progressAId = String(progressCreate.json?.data?.id ?? '')
+  if (progressAId) pass('user A create progress', progressAId)
+  else fail('user A create progress')
+
+  const progressListA =
+    (await api(`/government-support/profiles/${profileAId}/progress`, { token: tokenA })).json?.data ?? []
+  if (progressListA.some((p) => String(p.id) === progressAId)) pass('user A progress in list')
+  else fail('user A progress in list')
+
+  const detailAfterProgress = unwrapData((await api(`/government-support/profiles/${profileAId}`, { token: tokenA })).json)
+  if (detailAfterProgress?.progressStatus === '심사 중') pass('user A profile progressStatus synced')
+  else fail('user A profile progressStatus synced', String(detailAfterProgress?.progressStatus))
+
+  const progressPatch = await api(`/government-support/profiles/${profileAId}/progress/${progressAId}`, {
+    token: tokenA,
+    method: 'PATCH',
+    body: { content: `E2E progress A patched ${ts}`, status: '보완 요청' },
+    expectStatus: 200,
+  })
+  if (String(progressPatch.json?.data?.content ?? '').includes('patched')) pass('user A patch progress')
+  else fail('user A patch progress')
+
+  await api(`/government-support/profiles/${profileAId}/progress/${progressAId}`, {
+    token: tokenA,
+    method: 'DELETE',
+    expectStatus: 200,
+  })
+  const progressListAfterDelete =
+    (await api(`/government-support/profiles/${profileAId}/progress`, { token: tokenA })).json?.data ?? []
+  if (!progressListAfterDelete.some((p) => String(p.id) === progressAId)) pass('user A delete progress')
+  else fail('user A delete progress')
+
   const memoRegression = await api(`/government-support/profiles/${profileAId}/memos`, {
     token: tokenA,
     method: 'POST',
@@ -356,6 +399,18 @@ async function main() {
   if (consultBList.status === 403 || consultBList.status === 404) pass('user B consultation list blocked')
   else fail('user B consultation list blocked', String(consultBList.status))
 
+  const progressBCreate = await api(`/government-support/profiles/${profileAId}/progress`, {
+    token: tokenB,
+    method: 'POST',
+    body: { status: '심사 중', content: 'blocked' },
+  })
+  if (progressBCreate.status === 403 || progressBCreate.status === 404) pass('user B progress create blocked')
+  else fail('user B progress create blocked', String(progressBCreate.status))
+
+  const progressBList = await api(`/government-support/profiles/${profileAId}/progress`, { token: tokenB })
+  if (progressBList.status === 403 || progressBList.status === 404) pass('user B progress list blocked')
+  else fail('user B progress list blocked', String(progressBList.status))
+
   // Operational roles — API access shape (frontend redirect tested separately)
   const tokenStaff = await login(uStaff)
   const accessStaff = unwrapData((await api('/government-support/me/access', { token: tokenStaff })).json)
@@ -385,6 +440,14 @@ async function main() {
   const consultAgencyList = await api(`/government-support/profiles/${profileAId}/consultations`, { token: tokenAgency })
   if (consultAgencyList.status === 403) pass('agency admin consultation list 403')
   else fail('agency admin consultation list 403', String(consultAgencyList.status))
+
+  const progressStaffList = await api(`/government-support/profiles/${profileAId}/progress`, { token: tokenStaff })
+  if (progressStaffList.status === 403) pass('staff progress list 403')
+  else fail('staff progress list 403', String(progressStaffList.status))
+
+  const progressAgencyList = await api(`/government-support/profiles/${profileAId}/progress`, { token: tokenAgency })
+  if (progressAgencyList.status === 403) pass('agency admin progress list 403')
+  else fail('agency admin progress list 403', String(progressAgencyList.status))
 
   const accessIndustry = unwrapData((await api('/government-support/me/access', { token: industry })).json)
   if (accessIndustry?.isGovernmentIndustryAdmin === true || accessIndustry?.isSuperAdmin === true) {

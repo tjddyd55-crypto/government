@@ -23,6 +23,7 @@ import {
   loadProfileAccessRowByPriorLoanId,
   loadProfileAccessRowByMemoId,
   loadProfileAccessRowByConsultationId,
+  loadProfileAccessRowByProgressEventId,
   loadGovernmentProfileAccessRow,
 } from './lib/governmentSupport/governmentProfileAccessHelpers.js'
 import { GOVERNMENT_INDUSTRY_CODE } from './lib/governmentSupport/constants.js'
@@ -42,6 +43,11 @@ import {
   mapGovSupportProfileConsultationRow,
   parseGovProfileConsultationPatchBody,
 } from './lib/governmentSupport/governmentProfileConsultations.js'
+import {
+  mapGovSupportProfileProgressEventRow,
+  parseGovProfileProgressPatchBody,
+  syncGovProfileProgressStatus,
+} from './lib/governmentSupport/governmentProfileProgress.js'
 import { normalizeTenantRegistrationCodeRaw } from './lib/tenantRegistrationCodes.js'
 import { ensureGovernmentTenantRegistrationCode } from './lib/governmentSupport/ensureGovernmentTenantRegistrationCode.js'
 
@@ -1360,6 +1366,241 @@ export function registerGovernmentSupportApi(router, deps) {
         )
         if ((r.rowCount ?? 0) === 0) {
           res.status(404).json({ message: '상담 기록을 찾을 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: { id: String(r.rows[0].id), ok: true } })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.get('/government-support/profiles/:profileId/progress', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      if (!isGovernmentProgramUser(ctx)) {
+        res.status(403).json({ message: '진행상황은 프로그램 이용자만 조회할 수 있습니다.' })
+        return
+      }
+      const profileId = String(req.params.profileId ?? '').trim()
+      const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+      if (!profileRow) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canAccessGovernmentProfile(ctx, profileRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+        return
+      }
+      const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 200)
+      const offset = Math.max(Number(req.query.offset) || 0, 0)
+      const r = await pool.query(
+        `
+        SELECT *
+        FROM gov_support_profile_progress_events
+        WHERE profile_id = $1::bigint AND archived_at IS NULL
+        ORDER BY event_date DESC NULLS LAST, created_at DESC, id DESC
+        LIMIT $2 OFFSET $3
+        `,
+        [profileId, limit, offset],
+      )
+      res.json({ success: true, data: r.rows.map(mapGovSupportProfileProgressEventRow) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.post('/government-support/profiles/:profileId/progress', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      if (!isGovernmentProgramUser(ctx)) {
+        res.status(403).json({ message: '진행상황은 프로그램 이용자만 작성할 수 있습니다.' })
+        return
+      }
+      const profileId = String(req.params.profileId ?? '').trim()
+      const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+      if (!profileRow) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canAccessGovernmentProfile(ctx, profileRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+        return
+      }
+      const parsed = parseGovProfileProgressPatchBody(req.body ?? {}, {
+        requireContent: true,
+        requireStatus: true,
+      })
+      if (!parsed.ok) {
+        res.status(parsed.status).json({ message: parsed.message })
+        return
+      }
+      const { patch } = parsed
+      const ownerUserId = String(profileRow.owner_user_id ?? ctx.userId)
+      const r = await pool.query(
+        `
+        INSERT INTO gov_support_profile_progress_events (
+          profile_id, owner_user_id, status, title, content, event_date,
+          created_by_user_id, updated_by_user_id
+        ) VALUES ($1::bigint, $2, $3, $4, $5, $6::date, $7, $7)
+        RETURNING *
+        `,
+        [
+          profileId,
+          ownerUserId,
+          patch.status,
+          patch.title ?? '',
+          patch.content,
+          patch.eventDate,
+          ctx.userId,
+        ],
+      )
+      await syncGovProfileProgressStatus(pool, profileId, patch.status ?? '')
+      res.status(201).json({ success: true, data: mapGovSupportProfileProgressEventRow(r.rows[0]) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.patch(
+    '/government-support/profiles/:profileId/progress/:progressId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        if (!isGovernmentProgramUser(ctx)) {
+          res.status(403).json({ message: '진행상황은 프로그램 이용자만 수정할 수 있습니다.' })
+          return
+        }
+        const profileId = String(req.params.profileId ?? '').trim()
+        const progressId = String(req.params.progressId ?? '').trim()
+        const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+        if (!profileRow) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, profileRow)) {
+          res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+          return
+        }
+        const progressAccess = await loadProfileAccessRowByProgressEventId(pool, progressId)
+        if (!progressAccess) {
+          res.status(404).json({ message: '진행 이력을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, progressAccess)) {
+          res.status(403).json({ message: '진행상황 접근 권한이 없습니다.' })
+          return
+        }
+        if (progressAccess.archived_at != null) {
+          res.status(404).json({ message: '진행 이력을 찾을 수 없습니다.' })
+          return
+        }
+        const parsed = parseGovProfileProgressPatchBody(req.body ?? {}, {
+          requireContent: false,
+          requireStatus: false,
+        })
+        if (!parsed.ok) {
+          res.status(parsed.status).json({ message: parsed.message })
+          return
+        }
+        const { patch } = parsed
+        /** @type {string[]} */
+        const sets = []
+        /** @type {unknown[]} */
+        const vals = [progressId, profileId]
+        let idx = 3
+        if (patch.status != null) {
+          sets.push(`status = $${idx}`)
+          vals.push(patch.status)
+          idx += 1
+        }
+        if (patch.title != null) {
+          sets.push(`title = $${idx}`)
+          vals.push(patch.title)
+          idx += 1
+        }
+        if (patch.content != null) {
+          sets.push(`content = $${idx}`)
+          vals.push(patch.content)
+          idx += 1
+        }
+        if (patch.eventDate != null) {
+          sets.push(`event_date = $${idx}::date`)
+          vals.push(patch.eventDate)
+          idx += 1
+        }
+        sets.push(`updated_by_user_id = $${idx}`)
+        vals.push(ctx.userId)
+        idx += 1
+        const r = await pool.query(
+          `
+          UPDATE gov_support_profile_progress_events
+          SET ${sets.join(', ')}, updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          RETURNING *
+          `,
+          vals,
+        )
+        if ((r.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '진행 이력을 찾을 수 없습니다.' })
+          return
+        }
+        if (patch.status != null) {
+          await syncGovProfileProgressStatus(pool, profileId, patch.status)
+        }
+        res.json({ success: true, data: mapGovSupportProfileProgressEventRow(r.rows[0]) })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.delete(
+    '/government-support/profiles/:profileId/progress/:progressId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        if (!isGovernmentProgramUser(ctx)) {
+          res.status(403).json({ message: '진행상황은 프로그램 이용자만 삭제할 수 있습니다.' })
+          return
+        }
+        const profileId = String(req.params.profileId ?? '').trim()
+        const progressId = String(req.params.progressId ?? '').trim()
+        const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+        if (!profileRow) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, profileRow)) {
+          res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+          return
+        }
+        const progressAccess = await loadProfileAccessRowByProgressEventId(pool, progressId)
+        if (!progressAccess) {
+          res.status(404).json({ message: '진행 이력을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, progressAccess)) {
+          res.status(403).json({ message: '진행상황 접근 권한이 없습니다.' })
+          return
+        }
+        if (progressAccess.archived_at != null) {
+          res.status(404).json({ message: '진행 이력을 찾을 수 없습니다.' })
+          return
+        }
+        const r = await pool.query(
+          `
+          UPDATE gov_support_profile_progress_events
+          SET archived_at = NOW(), updated_by_user_id = $3, updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          RETURNING id
+          `,
+          [progressId, profileId, ctx.userId],
+        )
+        if ((r.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '진행 이력을 찾을 수 없습니다.' })
           return
         }
         res.json({ success: true, data: { id: String(r.rows[0].id), ok: true } })
