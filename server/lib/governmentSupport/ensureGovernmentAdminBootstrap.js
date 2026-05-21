@@ -13,26 +13,55 @@ function isBootstrapEnabled() {
   return String(process.env.GOVERNMENT_ADMIN_BOOTSTRAP_ENABLED ?? '').trim() === 'true'
 }
 
+function isDevelopRailwayEnvironment() {
+  const name = String(
+    process.env.RAILWAY_ENVIRONMENT_NAME ?? process.env.RAILWAY_ENVIRONMENT ?? '',
+  )
+    .trim()
+    .toLowerCase()
+  return name === 'develop' || name === 'development'
+}
+
 function isResetPasswordOnBootstrap() {
   return (
     String(process.env.GOVERNMENT_ADMIN_RESET_PASSWORD_ON_BOOTSTRAP ?? '').trim() === 'true'
   )
 }
 
+/** @returns {'off' | 'bootstrap' | 'develop-sync'} */
+function resolveAdminBootstrapMode() {
+  const password = String(
+    process.env.GOVERNMENT_ADMIN_PASSWORD ?? process.env.INSURANCE_ADMIN_BOOTSTRAP_PASSWORD ?? '',
+  ).trim()
+  if (!password) {
+    return 'off'
+  }
+  if (isBootstrapEnabled()) {
+    return 'bootstrap'
+  }
+  if (String(process.env.GOVERNMENT_ADMIN_RESET_PASSWORD_ON_BOOTSTRAP ?? '').trim() === 'true') {
+    return 'bootstrap'
+  }
+  if (isDevelopRailwayEnvironment()) {
+    return 'develop-sync'
+  }
+  return 'off'
+}
+
 function readBootstrapCredentials() {
-  const loginId = String(process.env.GOVERNMENT_ADMIN_LOGIN_ID ?? '').trim()
+  const loginIdFromEnv = String(process.env.GOVERNMENT_ADMIN_LOGIN_ID ?? '').trim()
   const legacyEmail = String(process.env.GOVERNMENT_ADMIN_EMAIL ?? '').trim()
-  if (!loginId && legacyEmail) {
+  if (!loginIdFromEnv && legacyEmail) {
     console.warn(
       `${LOG_PREFIX} GOVERNMENT_ADMIN_EMAIL 은 더 이상 사용하지 않습니다. GOVERNMENT_ADMIN_LOGIN_ID 로 설정하세요.`,
     )
   }
-  const resolvedLoginId = loginId || ''
   const password = String(
     process.env.GOVERNMENT_ADMIN_PASSWORD ??
       process.env.INSURANCE_ADMIN_BOOTSTRAP_PASSWORD ??
       '',
   ).trim()
+  const resolvedLoginId = loginIdFromEnv || (password ? 'admin' : '')
   const displayName = String(process.env.GOVERNMENT_ADMIN_NAME ?? '정부지원 CRM 관리자').trim()
   return { loginId: resolvedLoginId, password, displayName }
 }
@@ -119,25 +148,34 @@ async function ensureGovernmentIndustryAdminMembership(pool, userId, industryId)
  * @param {import('pg').Pool} pool
  */
 export async function ensureGovernmentAdminBootstrap(pool) {
-  if (!isBootstrapEnabled()) {
+  const mode = resolveAdminBootstrapMode()
+  if (mode === 'off') {
     return
   }
 
-  console.log(`${LOG_PREFIX} bootstrap enabled — checking credentials`)
+  if (mode === 'develop-sync') {
+    console.log(
+      `${LOG_PREFIX} develop password sync — GOVERNMENT_ADMIN_PASSWORD 로 admin 비밀번호를 갱신합니다 (loginId 기본 admin).`,
+    )
+  } else {
+    console.log(`${LOG_PREFIX} bootstrap enabled — checking credentials`)
+  }
 
   const { loginId, password, displayName } = readBootstrapCredentials()
   if (!loginId) {
     console.warn(
-      `${LOG_PREFIX} GOVERNMENT_ADMIN_BOOTSTRAP_ENABLED=true 이지만 GOVERNMENT_ADMIN_LOGIN_ID 가 없어 건너뜁니다.`,
+      `${LOG_PREFIX} GOVERNMENT_ADMIN_LOGIN_ID 가 없고 기본 admin 도 적용할 수 없어 건너뜁니다.`,
     )
     return
   }
   if (!password) {
     console.warn(
-      `${LOG_PREFIX} GOVERNMENT_ADMIN_BOOTSTRAP_ENABLED=true 이지만 GOVERNMENT_ADMIN_PASSWORD(또는 fallback) 가 없어 건너뜁니다.`,
+      `${LOG_PREFIX} GOVERNMENT_ADMIN_PASSWORD(또는 fallback) 가 없어 건너뜁니다.`,
     )
     return
   }
+
+  const forcePasswordReset = mode === 'develop-sync' || isResetPasswordOnBootstrap()
 
   const industryId = await resolveGovernmentIndustryIdForBootstrap(pool)
   const gaId = await resolveGovernmentBootstrapGaId(pool)
@@ -168,7 +206,7 @@ export async function ensureGovernmentAdminBootstrap(pool) {
     if (!String(dn.rows[0]?.display_name ?? '').trim() && displayName) {
       await pool.query(`UPDATE users SET display_name = $1 WHERE id = $2`, [displayName, userId])
     }
-    if (isResetPasswordOnBootstrap()) {
+    if (forcePasswordReset) {
       const hash = await bcrypt.hash(password, 10)
       await pool.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [hash, userId])
       console.log(`${LOG_PREFIX} password reset applied: loginId=${username}`)

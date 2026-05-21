@@ -15,6 +15,8 @@ describe('ensureGovernmentAdminBootstrap', () => {
     delete process.env.GOVERNMENT_ADMIN_PASSWORD
     delete process.env.GOVERNMENT_ADMIN_NAME
     delete process.env.GOVERNMENT_ADMIN_RESET_PASSWORD_ON_BOOTSTRAP
+    delete process.env.RAILWAY_ENVIRONMENT_NAME
+    delete process.env.RAILWAY_ENVIRONMENT
   })
 
   afterEach(() => {
@@ -33,24 +35,41 @@ describe('ensureGovernmentAdminBootstrap', () => {
     assert.equal(queried, false)
   })
 
-  it('enabled without GOVERNMENT_ADMIN_LOGIN_ID: query 없음', async () => {
+  it('enabled without GOVERNMENT_ADMIN_LOGIN_ID: loginId 기본 admin 으로 bootstrap', async () => {
     process.env.GOVERNMENT_ADMIN_BOOTSTRAP_ENABLED = 'true'
     process.env.GOVERNMENT_ADMIN_PASSWORD = 'test-only'
-    let queried = false
+
+    const calls = []
     const pool = {
-      query: async () => {
-        queried = true
+      query: async (sql, params) => {
+        calls.push({ sql: String(sql), params })
+        if (String(sql).includes('INSERT INTO ga_companies')) {
+          return { rows: [{ id: 99 }], rowCount: 1 }
+        }
+        if (String(sql).includes('FROM industries')) {
+          return { rows: [{ id: 7 }], rowCount: 1 }
+        }
+        if (String(sql).includes('FROM users WHERE username')) {
+          return { rows: [], rowCount: 0 }
+        }
+        if (String(sql).includes('INSERT INTO users')) {
+          assert.equal(params[1], 'admin')
+          return { rows: [], rowCount: 1 }
+        }
+        if (String(sql).includes('user_memberships')) {
+          return { rows: [], rowCount: 0 }
+        }
         return { rows: [], rowCount: 0 }
       },
     }
     await ensureGovernmentAdminBootstrap(pool)
-    assert.equal(queried, false)
+    const userInsert = calls.find((c) => c.sql.includes('INSERT INTO users'))
+    assert.ok(userInsert, 'expected user insert with default admin loginId')
   })
 
   it('GOVERNMENT_ADMIN_EMAIL 만 있으면 LOGIN_ID 없이 건너뜀 (EMAIL 미사용)', async () => {
     process.env.GOVERNMENT_ADMIN_BOOTSTRAP_ENABLED = 'true'
     process.env.GOVERNMENT_ADMIN_EMAIL = 'admin@example.com'
-    process.env.GOVERNMENT_ADMIN_PASSWORD = 'test-only'
     let queried = false
     const pool = {
       query: async () => {
@@ -176,5 +195,55 @@ describe('ensureGovernmentAdminBootstrap', () => {
     assert.equal(passwordUpdate.params[1], 'user-1')
     const ok = await bcrypt.compare('reset-bootstrap-pass', passwordUpdate.params[0])
     assert.equal(ok, true)
+  })
+
+  it('develop + GOVERNMENT_ADMIN_PASSWORD 만 설정: 기존 admin 비밀번호 갱신', async () => {
+    process.env.RAILWAY_ENVIRONMENT_NAME = 'develop'
+    process.env.GOVERNMENT_ADMIN_PASSWORD = 'develop-sync-pass'
+
+    const calls = []
+    const pool = {
+      query: async (sql, params) => {
+        calls.push({ sql: String(sql), params })
+        if (String(sql).includes('INSERT INTO ga_companies')) {
+          return { rows: [{ id: 99 }], rowCount: 1 }
+        }
+        if (String(sql).includes('FROM industries')) {
+          return { rows: [{ id: 7 }], rowCount: 1 }
+        }
+        if (String(sql).includes('FROM users WHERE username')) {
+          return { rows: [{ id: 'user-admin', username: 'admin' }], rowCount: 1 }
+        }
+        if (String(sql).includes('SELECT display_name FROM users')) {
+          return { rows: [{ display_name: '관리자' }], rowCount: 1 }
+        }
+        if (String(sql).includes('user_memberships')) {
+          return { rows: [{ id: 1 }], rowCount: 1 }
+        }
+        return { rows: [], rowCount: 0 }
+      },
+    }
+
+    await ensureGovernmentAdminBootstrap(pool)
+    const passwordUpdate = calls.find(
+      (c) => String(c.sql).includes('UPDATE users SET password_hash'),
+    )
+    assert.ok(passwordUpdate, 'expected develop password sync update')
+    const ok = await bcrypt.compare('develop-sync-pass', passwordUpdate.params[0])
+    assert.equal(ok, true)
+  })
+
+  it('production 패턴 + PASSWORD 만: bootstrap 없으면 query 없음', async () => {
+    process.env.RAILWAY_ENVIRONMENT_NAME = 'production'
+    process.env.GOVERNMENT_ADMIN_PASSWORD = 'should-not-apply'
+    let queried = false
+    const pool = {
+      query: async () => {
+        queried = true
+        return { rows: [], rowCount: 0 }
+      },
+    }
+    await ensureGovernmentAdminBootstrap(pool)
+    assert.equal(queried, false)
   })
 })
