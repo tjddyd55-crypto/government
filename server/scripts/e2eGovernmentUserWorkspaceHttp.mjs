@@ -55,7 +55,7 @@ async function main() {
   if (homeHtml.status === 200) pass('GET /government/workspace', homeHtml.bundle ?? '')
   else fail('GET /government/workspace', String(homeHtml.status))
 
-  const navMarkers = ['government-user-layout', '/government/my-businesses', '내 고객/신청', '/government/me']
+  const navMarkers = ['government-user-layout', '/government/my-applications', '내 고객/신청', '/government/me']
   for (const m of navMarkers) {
     if (homeHtml.js.includes(m)) pass(`bundle contains ${m}`)
     else fail(`bundle contains ${m}`)

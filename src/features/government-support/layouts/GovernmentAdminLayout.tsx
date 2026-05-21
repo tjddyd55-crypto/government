@@ -80,8 +80,8 @@ export default function GovernmentAdminLayout() {
         <div>
           <strong className="government-admin-layout__brand">정부지원 CRM · 관리</strong>
           {showWorkspaceLink ? (
-            <Link to="/government/my-businesses" className="government-admin-layout__workspace-link">
-              내 사업장
+            <Link to="/government/my-applications" className="government-admin-layout__workspace-link">
+              내 고객/신청
             </Link>
           ) : null}
         </div>

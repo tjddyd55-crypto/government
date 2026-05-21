@@ -24,8 +24,8 @@ import {
 } from '../../constants/governmentOperations'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import { canManageGovernmentNotices } from '../../lib/governmentHome'
+import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
-import '../../government-support.css'
 
 type ResourceForm = {
   title: string
@@ -106,9 +106,9 @@ export default function GovernmentAdminResourcesPage() {
 
   if (!canManageGovernmentNotices(summary)) {
     return (
-      <div className="government-admin-page">
-        <h1 className="government-page__title">접근할 수 없습니다</h1>
-      </div>
+      <GovernmentAdminPageShell title="접근할 수 없습니다" description="자료실/서식함은 대행사 운영 계정만 이용할 수 있습니다.">
+        <EmptyState message="권한이 없습니다." />
+      </GovernmentAdminPageShell>
     )
   }
 
@@ -200,42 +200,41 @@ export default function GovernmentAdminResourcesPage() {
   }
 
   return (
-    <div className="government-admin-page government-admin-resources-page">
-      <div className="government-admin-page__toolbar">
-        <h1 className="government-page__title">자료실/서식함</h1>
-        <FormButton htmlType="button" variant="primary" onClick={openCreate}>
-          자료 등록
-        </FormButton>
-      </div>
-      <p className="government-page__muted">신청 서식·안내문 등 대행사 이용자용 자료를 관리합니다.</p>
-
-      <section className="government-admin-users-page__filters">
-        <FieldWrapper label="검색">
-          <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="제목·설명" />
-        </FieldWrapper>
-        <FieldWrapper label="카테고리">
-          <FormSelect
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_CATEGORIES]}
-          />
-        </FieldWrapper>
-        <FieldWrapper label="상태">
-          <FormSelect
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_STATUSES]}
-          />
-        </FieldWrapper>
-      </section>
-
+    <GovernmentAdminPageShell
+      title="자료실/서식함"
+      description="신청 서식·안내문 등 대행사 이용자용 자료를 관리합니다."
+      toolbar={
+        <>
+          <FormButton htmlType="button" variant="primary" className="button button--primary" onClick={openCreate}>
+            자료 등록
+          </FormButton>
+          <FieldWrapper label="검색">
+            <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="제목·설명" />
+          </FieldWrapper>
+          <FieldWrapper label="카테고리">
+            <FormSelect
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_CATEGORIES]}
+            />
+          </FieldWrapper>
+          <FieldWrapper label="상태">
+            <FormSelect
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_STATUSES]}
+            />
+          </FieldWrapper>
+        </>
+      }
+    >
       {error ? <StatusMessage message={error} tone="error" className="m-0 mb-3" /> : null}
       {loading ? <LoadingState message="불러오는 중…" /> : null}
       {!loading && rows.length === 0 ? <EmptyState message="등록된 자료가 없습니다." /> : null}
 
       {!loading && rows.length > 0 ? (
-        <div className="government-admin-users-page__table-wrap">
-          <table className="government-admin-users-table">
+        <div className="table-container table-container--desktop">
+          <table className="admin-data-table">
             <thead>
               <tr>
                 <th>제목</th>
@@ -243,7 +242,7 @@ export default function GovernmentAdminResourcesPage() {
                 <th>파일</th>
                 <th>상태</th>
                 <th>등록일</th>
-                <th />
+                <th className="admin-table-cell--actions">관리</th>
               </tr>
             </thead>
             <tbody>
@@ -256,24 +255,27 @@ export default function GovernmentAdminResourcesPage() {
                   </td>
                   <td>{labelForStatus(row.status)}</td>
                   <td>{formatOpsDate(row.publishedAt ?? row.createdAt)}</td>
-                  <td className="government-admin-users-page__actions">
-                    {row.status === 'published' ? (
-                      <FormButton
-                        htmlType="button"
-                        variant="secondary"
-                        onClick={() => void downloadGovernmentResource(token!, row.id)}
-                      >
-                        다운로드
+                  <td className="admin-table-cell--actions">
+                    <div className="admin-table-actions">
+                      {row.status === 'published' ? (
+                        <FormButton
+                          htmlType="button"
+                          variant="secondary"
+                          className="button button--secondary"
+                          onClick={() => void downloadGovernmentResource(token!, row.id)}
+                        >
+                          다운로드
+                        </FormButton>
+                      ) : null}
+                      <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => openEdit(row)}>
+                        수정
                       </FormButton>
-                    ) : null}
-                    <FormButton htmlType="button" variant="secondary" onClick={() => openEdit(row)}>
-                      수정
-                    </FormButton>
-                    {row.status !== 'archived' ? (
-                      <FormButton htmlType="button" variant="secondary" onClick={() => void handleArchive(row)}>
-                        보관
-                      </FormButton>
-                    ) : null}
+                      {row.status !== 'archived' ? (
+                        <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => void handleArchive(row)}>
+                          보관
+                        </FormButton>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -355,6 +357,6 @@ export default function GovernmentAdminResourcesPage() {
         </div>
       </FormDialog>
       {confirmDialog}
-    </div>
+    </GovernmentAdminPageShell>
   )
 }
