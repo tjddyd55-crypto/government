@@ -22,7 +22,7 @@ const {
   api: API,
   password: E2E_PASS,
   adminLoginId,
-} = resolveE2eGovernmentHttpConfig()
+} = resolveE2eGovernmentHttpConfig({ requirePassword: true })
 
 const { pass, fail, summary } = createE2eReporter()
 

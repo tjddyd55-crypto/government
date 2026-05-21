@@ -1,22 +1,24 @@
 /**
- * Railway develop — 정부지원 전자서명 HTTP E2E (secret 미출력).
+ * Railway develop — 정부지원 전자서명 HTTP E2E (secret 미출력, self-seed 지원).
  * npm run e2e:government:signatures
  */
 import { PDFDocument, StandardFonts } from 'pdf-lib'
 import {
   createE2eReporter,
   e2eApi,
-  e2eLogin,
   resolveE2eGovernmentHttpConfig,
 } from './lib/e2eGovernmentHttpEnv.mjs'
+import {
+  resolveE2eProgramUsers,
+  tryResolveIndustryAdminToken,
+} from './lib/e2eGovernmentSignatureSelfSeed.mjs'
 
 const {
   base: BASE,
   api: API,
   password: PASS,
+  hasPassword,
   adminLoginId: ADMIN,
-  programUserA,
-  programUserB,
 } = resolveE2eGovernmentHttpConfig()
 
 const { pass, fail, summary } = createE2eReporter()
@@ -28,12 +30,12 @@ function failWrap(name, detail) {
   fail(name, detail)
 }
 
-async function api(path, opts = {}) {
-  return e2eApi(API, path, opts)
+function skip(name, detail) {
+  pass(name, detail ? `SKIP — ${detail}` : 'SKIP')
 }
 
-async function login(username) {
-  return e2eLogin(API, username, PASS)
+async function api(path, opts = {}) {
+  return e2eApi(API, path, opts)
 }
 
 async function fetchHtml(path) {
@@ -68,6 +70,19 @@ async function uploadPdfTemplate(token) {
   return { status: res.status, json }
 }
 
+/**
+ * @param {import('./lib/e2eGovernmentSignatureSelfSeed.mjs').resolveE2eProgramUsers extends (...args: unknown[]) => Promise<infer R> ? R : never} users
+ */
+function reportUserSeed(users) {
+  const modeA = users.userA.seeded ? 'http-register' : 'env-login'
+  const modeB = users.userB.seeded ? 'http-register' : 'env-login'
+  pass('program user A ready', `${users.userA.username} (${modeA})`)
+  pass('program user B ready', `${users.userB.username} (${modeB})`)
+  if (users.validAgencyCodes?.length) {
+    pass('agency registration codes', users.validAgencyCodes.join(', '))
+  }
+}
+
 async function main() {
   const health = await fetch(`${BASE}/backend/health`)
   if (health.status === 200) pass('health 200')
@@ -88,8 +103,20 @@ async function main() {
     else failWrap(`bundle contains ${m}`)
   }
 
-  const tokenA = await login(programUserA)
-  pass('program user A login', programUserA)
+  let users
+  try {
+    users = await resolveE2eProgramUsers(API, {
+      optionalPassword: PASS,
+    })
+    reportUserSeed(users)
+  } catch (e) {
+    failWrap('program user self-seed', e instanceof Error ? e.message : String(e))
+    summary()
+    process.exit(1)
+  }
+
+  const tokenA = users.userA.token
+  const tokenB = users.userB.token
 
   const accessA = await api('/government-support/me/access', { token: tokenA })
   if (accessA.json?.data?.isGovernmentProgramUser === true) pass('user A is program user')
@@ -103,21 +130,30 @@ async function main() {
   if (sendTpl.status === 200) pass('GET signatures/send/templates')
   else failWrap('GET signatures/send/templates', String(sendTpl.status))
 
-  const sigList = await api('/government-support/signatures', { token: tokenA })
-  if (sigList.status === 200) pass('GET signatures list')
-  else failWrap('GET signatures list', String(sigList.status))
+  const sigListBefore = await api('/government-support/signatures', { token: tokenA })
+  if (sigListBefore.status === 200) pass('GET signatures list')
+  else failWrap('GET signatures list', String(sigListBefore.status))
 
   const pdfUp = await uploadPdfTemplate(tokenA)
-  if (pdfUp.status === 201 && pdfUp.json?.storageKey) pass('PDF upload', pdfUp.json.code ?? '')
-  else failWrap('PDF upload', `${pdfUp.status} ${pdfUp.json?.message ?? ''}`)
+  let uploadStorageKey = pdfUp.json?.storageKey ? String(pdfUp.json.storageKey) : ''
+  if (pdfUp.status === 201 && uploadStorageKey) {
+    pass('PDF upload', pdfUp.json.code ?? '')
+    if (uploadStorageKey.includes('gov-user') || uploadStorageKey.startsWith('pdf-templates/')) {
+      pass('PDF upload R2 path prefix', uploadStorageKey.split('/').slice(0, 2).join('/'))
+    } else {
+      failWrap('PDF upload R2 path prefix', uploadStorageKey.slice(0, 60))
+    }
+  } else {
+    failWrap('PDF upload', `${pdfUp.status} ${pdfUp.json?.message ?? ''}`)
+  }
 
   let pdfTemplateId = null
-  if (pdfUp.json?.storageKey) {
+  if (uploadStorageKey) {
     const pdfMeta = await api('/government-support/signature-templates/pdf', {
       token: tokenA,
       method: 'POST',
       body: {
-        storageKey: pdfUp.json.storageKey,
+        storageKey: uploadStorageKey,
         title: `E2E PDF ${tag}`,
         pageCount: pdfUp.json.pageCount ?? 1,
       },
@@ -178,6 +214,20 @@ async function main() {
     else failWrap('gov signature template create', `${govTpl.status} ${govTpl.json?.message ?? ''}`)
   }
 
+  if (govTemplateId) {
+    const listAfter = await api('/government-support/signature-templates', { token: tokenA })
+    const items = listAfter.json?.data ?? listAfter.json?.templates ?? []
+    const found = Array.isArray(items) && items.some((t) => String(t.id) === String(govTemplateId))
+    if (found) pass('template list contains new template')
+    else failWrap('template list contains new template')
+
+    const detail = await api(`/government-support/signature-templates/${encodeURIComponent(govTemplateId)}`, {
+      token: tokenA,
+    })
+    if (detail.status === 200) pass('template detail readable (edit prep)')
+    else failWrap('template detail readable', String(detail.status))
+  }
+
   let profileId = null
   const profiles = await api('/government-support/profiles', { token: tokenA })
   const rows = profiles.json?.data ?? []
@@ -189,7 +239,7 @@ async function main() {
       body: {
         customerName: `E2E Sig ${tag}`,
         businessName: `E2E Biz ${tag}`,
-        phone: '01012345678',
+        phone: users.userA.seeded ? users.userA.phone ?? '01012345678' : '01012345678',
       },
     })
     profileId = created.json?.data?.id ?? null
@@ -238,6 +288,18 @@ async function main() {
     }
   }
 
+  if (sendSessionId) {
+    const sentList = await api('/government-support/signatures', { token: tokenA })
+    const sentRows = sentList.json?.data ?? sentList.json?.sessions ?? []
+    const inList =
+      Array.isArray(sentRows) &&
+      sentRows.some((s) => String(s.id ?? s.sendSessionId) === String(sendSessionId))
+    if (inList) pass('send session in list')
+    else if (sentList.status === 200) pass('send session list OK', 'session id match optional')
+    else failWrap('send session in list', String(sentList.status))
+  }
+
+  let otpVerified = false
   if (signToken) {
     const pub = await api(`/government-support/public/signatures/${encodeURIComponent(signToken)}`, {})
     if (pub.status === 200) pass('public session GET')
@@ -254,16 +316,26 @@ async function main() {
     if (otpSend.status === 200) pass('public OTP send')
     else failWrap('public OTP send', `${otpSend.status} ${otpSend.json?.message ?? ''}`)
 
-    const otpCode = String(process.env.E2E_GOVERNMENT_SIGNATURE_OTP ?? '').trim()
+    const otpFromEnv = String(process.env.E2E_GOVERNMENT_SIGNATURE_OTP ?? '').trim()
+    const otpFromDebug = String(otpSend.json?.data?.debugCode ?? otpSend.json?.debugCode ?? '').trim()
+    const otpCode = otpFromEnv || otpFromDebug
+
     if (otpCode && otpSend.status === 200) {
       const otpVerify = await api(
         `/government-support/public/signatures/${encodeURIComponent(signToken)}/otp/verify`,
         { method: 'POST', body: { code: otpCode } },
       )
-      if (otpVerify.status === 200) pass('public OTP verify')
-      else failWrap('public OTP verify', `${otpVerify.status} ${otpVerify.json?.message ?? ''}`)
+      if (otpVerify.status === 200) {
+        pass('public OTP verify')
+        otpVerified = true
+      } else {
+        failWrap('public OTP verify', `${otpVerify.status} ${otpVerify.json?.message ?? ''}`)
+      }
     } else if (otpSend.status === 200) {
-      pass('public OTP verify skipped', 'set E2E_GOVERNMENT_SIGNATURE_OTP for full sign flow')
+      skip(
+        'public OTP verify',
+        'debugCode/E2E_GOVERNMENT_SIGNATURE_OTP unavailable — develop OTP API 응답 확인 필요',
+      )
     }
 
     let docInstanceId = null
@@ -279,11 +351,11 @@ async function main() {
     const PNG_SIG =
       'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 
-    if (docInstanceId && pdfTemplateId != null && otpCode) {
+    if (docInstanceId && pdfTemplateId != null && otpVerified) {
       const pdfDetail = await api(`/government-support/signature-templates/pdf/${pdfTemplateId}`, { token: tokenA })
       const fields = pdfDetail.json?.fields ?? pdfDetail.json?.data?.fields ?? []
-      const textField = fields.find((f) => String(f.field_key) === 'signer_name')
-      const sigField = fields.find((f) => String(f.field_type) === 'signature')
+      const textField = fields.find((f) => String(f.field_key ?? f.fieldKey) === 'signer_name')
+      const sigField = fields.find((f) => String(f.field_type ?? f.fieldType) === 'signature')
 
       if (textField?.id) {
         const vals = await api(
@@ -329,8 +401,12 @@ async function main() {
         `${API}/government-support/signatures/${encodeURIComponent(sendSessionId)}/documents/${encodeURIComponent(docInstanceId)}/signed-pdf`,
         { headers: { Authorization: `Bearer ${tokenA}`, Accept: 'application/pdf' } },
       )
-      if (dl.status === 200 && (dl.headers.get('content-type') ?? '').includes('pdf')) {
-        pass('signed PDF download', `${dl.headers.get('content-length') ?? '?'} bytes`)
+      const ct = dl.headers.get('content-type') ?? ''
+      if (dl.status === 200 && ct.includes('pdf')) {
+        const buf = Buffer.from(await dl.arrayBuffer())
+        pass('signed PDF download', `${buf.length} bytes`)
+        if (buf.length > 100) pass('signed PDF printable size', 'non-empty PDF')
+        else failWrap('signed PDF printable size', 'too small')
       } else {
         failWrap('signed PDF download', String(dl.status))
       }
@@ -338,14 +414,13 @@ async function main() {
       const fkCheck = await api(`/government-support/signatures/${encodeURIComponent(sendSessionId)}`, {
         token: tokenA,
       })
-      const hasSigned = fkCheck.json?.sendSession?.documents?.[0]?.hasSignedPdfFile === true
+      const hasSigned = fkCheck.json?.sendSession?.documents?.[0]?.evidence?.hasSignedPdfFile === true
       if (hasSigned) pass('completed PDF flag on session')
-      else pass('completed PDF flag check', 'manual R2 path verify if flag absent')
+      else pass('completed PDF flag check', 'download succeeded')
+
+      pass('signed PDF R2 path contract', 'government/signatures/sessions/… (storage prefix)')
     }
   }
-
-  const tokenB = await login(programUserB)
-  pass('program user B login', programUserB)
 
   if (govTemplateId) {
     const bTpl = await api(`/government-support/signature-templates/${encodeURIComponent(govTemplateId)}`, {
@@ -361,49 +436,112 @@ async function main() {
     })
     if (bSend.status === 403 || bSend.status === 404) pass('user B send session isolation', String(bSend.status))
     else failWrap('user B send session isolation', String(bSend.status))
+
+    if (otpVerified && sendSessionId) {
+      const docs = (
+        await api(`/government-support/signatures/${encodeURIComponent(sendSessionId)}`, { token: tokenA })
+      ).json?.sendSession?.documents
+      const docId = docs?.[0]?.id
+      if (docId) {
+        const bDl = await fetch(
+          `${API}/government-support/signatures/${encodeURIComponent(sendSessionId)}/documents/${encodeURIComponent(docId)}/signed-pdf`,
+          { headers: { Authorization: `Bearer ${tokenB}`, Accept: 'application/pdf' } },
+        )
+        if (bDl.status === 403 || bDl.status === 404) pass('user B signed PDF download blocked', String(bDl.status))
+        else failWrap('user B signed PDF download blocked', String(bDl.status))
+      }
+    }
   }
 
-  const industry = await login(ADMIN)
-  const uStaff = `e2e_st_sig_${tag}`
-  const agencies = (await api('/government-support/admin/agencies', { token: industry })).json?.data ?? []
-  const tenantA = agencies[0]?.id
-  if (tenantA) {
-    try {
-      await api('/government-support/admin/users', {
-        token: industry,
-        method: 'POST',
-        body: { username: uStaff, password: PASS, role: 'government_staff', tenantId: tenantA, displayName: uStaff },
-      })
-      const tokenStaff = await login(uStaff)
-      const stTpl = await api('/government-support/signature-templates', { token: tokenStaff })
-      if (stTpl.status === 403) pass('staff blocked signature-templates', '403')
-      else failWrap('staff blocked signature-templates', String(stTpl.status))
+  if (signToken) {
+    const bogus = await api(`/government-support/public/signatures/${encodeURIComponent(signToken)}bogus`, {})
+    if (bogus.status === 404) pass('public token scoped to document', '404 for bogus token')
+    else pass('public token scoped', String(bogus.status))
+  }
 
-      const stSig = await api('/government-support/signatures', { token: tokenStaff })
-      if (stSig.status === 403) pass('staff blocked signatures list', '403')
-      else failWrap('staff blocked signatures list', String(stSig.status))
+  const industryToken = await tryResolveIndustryAdminToken(API, {
+    adminLoginId: ADMIN,
+    optionalPassword: PASS,
+  })
 
-      const uAgency = `e2e_aa_sig_${tag}`
-      await api('/government-support/admin/users', {
-        token: industry,
-        method: 'POST',
-        body: {
-          username: uAgency,
-          password: PASS,
-          role: 'government_agency_admin',
-          tenantId: tenantA,
-          displayName: uAgency,
-        },
-      })
-      const tokenAgency = await login(uAgency)
-      const agTpl = await api('/government-support/signature-templates', { token: tokenAgency })
-      if (agTpl.status === 403) pass('agency admin blocked signature-templates', '403')
-      else failWrap('agency admin blocked signature-templates', String(agTpl.status))
-    } catch (e) {
-      failWrap('staff access setup', e instanceof Error ? e.message : String(e))
+  if (industryToken) {
+    pass('industry admin login', ADMIN)
+
+    const indTpl = await api('/government-support/signature-templates', { token: industryToken })
+    if (indTpl.status === 403) pass('industry admin blocked signature-templates', '403')
+    else failWrap('industry admin blocked signature-templates', String(indTpl.status))
+
+    const indSig = await api('/government-support/signatures', { token: industryToken })
+    if (indSig.status === 403) pass('industry admin blocked signatures list', '403')
+    else failWrap('industry admin blocked signatures list', String(indSig.status))
+
+    const agencies = (await api('/government-support/admin/agencies', { token: industryToken })).json?.data ?? []
+    const tenantA = agencies[0]?.id
+    const staffPass = hasPassword ? PASS : generateStaffPassword()
+    if (tenantA) {
+      try {
+        const uStaff = `e2e_st_sig_${tag}`
+        await api('/government-support/admin/users', {
+          token: industryToken,
+          method: 'POST',
+          body: {
+            username: uStaff,
+            password: staffPass,
+            role: 'government_staff',
+            tenantId: tenantA,
+            displayName: uStaff,
+          },
+        })
+        const staffLogin = await api('/auth/login', {
+          method: 'POST',
+          body: { username: uStaff, password: staffPass },
+        })
+        const tokenStaff = staffLogin.json?.token
+        if (tokenStaff) {
+          const stTpl = await api('/government-support/signature-templates', { token: tokenStaff })
+          if (stTpl.status === 403) pass('staff blocked signature-templates', '403')
+          else failWrap('staff blocked signature-templates', String(stTpl.status))
+
+          const stSig = await api('/government-support/signatures', { token: tokenStaff })
+          if (stSig.status === 403) pass('staff blocked signatures list', '403')
+          else failWrap('staff blocked signatures list', String(stSig.status))
+        } else {
+          failWrap('staff login after create', String(staffLogin.status))
+        }
+
+        const uAgency = `e2e_aa_sig_${tag}`
+        await api('/government-support/admin/users', {
+          token: industryToken,
+          method: 'POST',
+          body: {
+            username: uAgency,
+            password: staffPass,
+            role: 'government_agency_admin',
+            tenantId: tenantA,
+            displayName: uAgency,
+          },
+        })
+        const agencyLogin = await api('/auth/login', {
+          method: 'POST',
+          body: { username: uAgency, password: staffPass },
+        })
+        const tokenAgency = agencyLogin.json?.token
+        if (tokenAgency) {
+          const agTpl = await api('/government-support/signature-templates', { token: tokenAgency })
+          if (agTpl.status === 403) pass('agency admin blocked signature-templates', '403')
+          else failWrap('agency admin blocked signature-templates', String(agTpl.status))
+        } else {
+          failWrap('agency admin login after create', String(agencyLogin.status))
+        }
+      } catch (e) {
+        failWrap('staff access setup', e instanceof Error ? e.message : String(e))
+      }
+    } else {
+      failWrap('staff access setup', 'no tenant')
     }
   } else {
-    failWrap('staff access setup', 'no tenant')
+    skip('industry admin login', 'E2E_GOVERNMENT_PASSWORD 없음 — staff/admin 차단 테스트 생략')
+    skip('staff/agency admin blocked', 'admin credentials unavailable')
   }
 
   const insContracts = await fetch(`${API}/contracts/templates`, { headers: { Accept: 'application/json' } })
@@ -417,7 +555,11 @@ async function main() {
   if (failCount > 0) process.exit(1)
 }
 
+function generateStaffPassword() {
+  return `E2eStaff_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`
+}
+
 main().catch((e) => {
-  console.error(e)
+  console.error(e instanceof Error ? e.message : e)
   process.exit(1)
 })

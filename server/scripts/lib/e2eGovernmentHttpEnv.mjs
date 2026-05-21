@@ -1,6 +1,7 @@
 /**
  * develop 전용 government HTTP E2E 공통 설정·가드.
- * secret·비밀번호는 커밋하지 않는다. 실행 시 E2E_GOVERNMENT_PASSWORD 환경변수 필수.
+ * secret·비밀번호는 커밋하지 않는다.
+ * E2E_GOVERNMENT_PASSWORD는 선택(없으면 signature E2E가 HTTP 가입으로 self-seed).
  */
 
 /** CRM-government Railway develop app (고정 SSOT) */
@@ -67,11 +68,16 @@ export function assertDevelopDbTarget() {
   }
 }
 
-export function resolveE2eGovernmentHttpConfig() {
+export function resolveOptionalE2ePassword() {
+  return String(process.env.E2E_GOVERNMENT_PASSWORD ?? '').trim()
+}
+
+export function resolveE2eGovernmentHttpConfig(options = {}) {
+  const { requirePassword = false } = options
   const base = String(process.env.E2E_BASE_URL ?? DEVELOP_DEFAULT_BASE_URL).replace(/\/$/, '')
   assertDevelopHttpTarget(base)
-  const password = String(process.env.E2E_GOVERNMENT_PASSWORD ?? '').trim()
-  if (!password) {
+  const password = resolveOptionalE2ePassword()
+  if (requirePassword && !password) {
     throw new Error(
       'E2E_GOVERNMENT_PASSWORD is required. develop 테스트 계정 비밀번호를 환경변수로만 주입 (커밋·로그 금지).',
     )
@@ -80,6 +86,7 @@ export function resolveE2eGovernmentHttpConfig() {
     base,
     api: `${base}/backend/api`,
     password,
+    hasPassword: password.length > 0,
     adminLoginId: String(
       process.env.E2E_GOVERNMENT_ADMIN_LOGIN_ID ?? process.env.GOVERNMENT_ADMIN_LOGIN_ID ?? 'admin',
     ).trim(),

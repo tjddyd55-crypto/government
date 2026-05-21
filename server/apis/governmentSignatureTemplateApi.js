@@ -3,7 +3,7 @@ import { getAuthUserId, resolveGovSignatureOwnerUserId } from '../lib/government
 import { normalizeKrMobile, validateKrMobileDigits } from '../lib/phoneNormalize.js'
 import { maskKrMobileForDisplay } from '../utils/maskKrMobile.js'
 import { getGovernmentSignatureOtpPepper, isRunningInProduction } from '../lib/governmentSignatureOtpConfig.js'
-import { encryptContractTargetPhoneDigits } from '../lib/contractStoredPhone.js'
+import { encryptGovSignatureTargetPhoneDigits } from '../lib/governmentSignatureStoredPhone.js'
 import {
   assertSenderFieldValuesFilled,
   insertGovSenderPrefillDocumentValues,
@@ -255,7 +255,7 @@ export async function assertGovernmentSignatureTemplateAccess(client, templateId
     if (ownerUserIdId == null) {
       return { error: 'GA 컨텍스트가 없습니다.', status: 400 }
     }
-    if (Number(row.owner_user_id) !== Number(ownerUserIdId)) {
+    if (String(row.owner_user_id ?? '') !== String(ownerUserIdId ?? '')) {
       return { error: '템플릿에 접근할 수 없습니다.', status: 403 }
     }
   }
@@ -275,7 +275,7 @@ async function assertPackageAccess(client, packageId, ownerUserIdId, isSuper) {
     if (ownerUserIdId == null) {
       return { error: 'GA 컨텍스트가 없습니다.', status: 400 }
     }
-    if (Number(row.owner_user_id) !== Number(ownerUserIdId)) {
+    if (String(row.owner_user_id ?? '') !== String(ownerUserIdId ?? '')) {
       return { error: '패키지에 접근할 수 없습니다.', status: 403 }
     }
   }
@@ -285,7 +285,7 @@ async function assertPackageAccess(client, packageId, ownerUserIdId, isSuper) {
 export function buildTargetPhoneSnapshot(digits) {
   let encrypted = null
   try {
-    encrypted = encryptContractTargetPhoneDigits(digits)
+    encrypted = encryptGovSignatureTargetPhoneDigits(digits)
   } catch (e) {
     if (isRunningInProduction()) {
       throw e

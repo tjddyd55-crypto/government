@@ -1,5 +1,5 @@
 ﻿import { createHash, randomUUID } from 'node:crypto'
-import { decryptContractTargetPhoneBlob } from '../lib/contractStoredPhone.js'
+import { decryptGovSignatureTargetPhoneBlob } from '../lib/governmentSignatureStoredPhone.js'
 import { consentGetBuffer, consentPutObject } from '../lib/consentStorage.js'
 import { normalizeKrMobile, validateKrMobileDigits } from '../lib/phoneNormalize.js'
 import { maskKrMobileForDisplay } from '../utils/maskKrMobile.js'
@@ -49,7 +49,7 @@ function computeMaskedPhone(row) {
   const enc = String(row.target_phone_encrypted ?? '').trim()
   let digits = null
   if (enc) {
-    const d = decryptContractTargetPhoneBlob(enc)
+    const d = decryptGovSignatureTargetPhoneBlob(enc)
     if (d && validateKrMobileDigits(d) === null) {
       digits = d
     }

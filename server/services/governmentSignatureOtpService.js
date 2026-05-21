@@ -1,5 +1,5 @@
 import { createHash, randomInt, randomUUID } from 'node:crypto'
-import { decryptContractTargetPhoneBlob } from '../lib/contractStoredPhone.js'
+import { decryptGovSignatureTargetPhoneBlob } from '../lib/governmentSignatureStoredPhone.js'
 import {
   getGovernmentSignatureOtpExpiresSeconds,
   getGovernmentSignatureOtpMaxAttempts,
@@ -9,7 +9,11 @@ import {
 } from '../lib/governmentSignatureOtpConfig.js'
 import { normalizeKrMobile, validateKrMobileDigits } from '../lib/phoneNormalize.js'
 import { maskKrMobileForDisplay } from '../utils/maskKrMobile.js'
+import { exposeSmsDebugCode } from '../lib/smsDebugExposure.js'
 import { sendGovernmentSignatureSelfSmsOtp } from './governmentSignatureSelfSmsSend.js'
+
+const RUNNING_IN_PRODUCTION =
+  process.env.NODE_ENV === 'production' || Boolean(process.env.RAILWAY_ENVIRONMENT)
 
 const TERMINAL_SEND_SESSION = new Set(['expired', 'cancelled', 'completed'])
 
@@ -81,7 +85,7 @@ async function loadSendSessionWithCustomerPhone(client, signToken) {
 function resolveTargetDigits(row) {
   const enc = String(row.target_phone_encrypted ?? '').trim()
   if (enc) {
-    const d = decryptContractTargetPhoneBlob(enc)
+    const d = decryptGovSignatureTargetPhoneBlob(enc)
     if (!d) {
       return { error: '지정 휴대폰 번호를 읽을 수 없습니다. 관리자에게 문의해 주세요.' }
     }
@@ -298,15 +302,20 @@ export async function governmentSignatureOtpSend(pool, opts) {
 
     await client.query('COMMIT')
 
+    const data = {
+      identitySessionId: identityRow?.id ?? identityId,
+      maskedPhone,
+      expiresInSeconds: ttlSec,
+    }
+    if (exposeSmsDebugCode(RUNNING_IN_PRODUCTION)) {
+      data.debugCode = code
+    }
+
     return {
       httpStatus: 200,
       payload: {
         success: true,
-        data: {
-          identitySessionId: identityRow?.id ?? identityId,
-          maskedPhone,
-          expiresInSeconds: ttlSec,
-        },
+        data,
       },
     }
   } catch (e) {

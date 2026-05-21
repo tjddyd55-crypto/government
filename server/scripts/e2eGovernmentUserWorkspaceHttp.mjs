@@ -16,7 +16,7 @@ const {
   adminLoginId: ADMIN,
   programUserA,
   programUserB,
-} = resolveE2eGovernmentHttpConfig()
+} = resolveE2eGovernmentHttpConfig({ requirePassword: true })
 
 const { pass, fail, summary } = createE2eReporter()
 const tag = Date.now().toString(36)
