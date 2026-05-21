@@ -19,6 +19,7 @@ import {
   type GovernmentStaffManageableRole,
 } from '../../constants/governmentRoles'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
+import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 import type {
   GovernmentAdminUserRow,
@@ -272,50 +273,51 @@ export default function GovernmentAdminUsersPage() {
   const editNeedsTenant = editRole !== 'government_industry_admin'
 
   return (
-    <div className="government-admin-page government-admin-users-page">
-      <div className="government-admin-page__toolbar">
-        <h1 className="government-page__title">직원 관리</h1>
-        <FormButton htmlType="button" variant="primary" onClick={openCreate}>
-          직원 추가
-        </FormButton>
-      </div>
-      <p className="government-page__muted government-admin-users-page__hint">
-        대행사 직원·관리자 계정만 이 화면에서 추가합니다. 프로그램 이용자는{' '}
-        <Link to="/government/admin/program-users" className="dark-link">
-          이용자 관리
-        </Link>
-        에서 확인하세요.
-      </p>
-
-      <section className="government-admin-users-page__filters">
-        <FieldWrapper label="검색">
-          <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="아이디·이름" />
-        </FieldWrapper>
-        <FieldWrapper label="권한">
-          <FormSelect
-            value={filterRole}
-            onChange={(e) => setFilterRole(e.target.value)}
-            options={filterRoleOptions}
-          />
-        </FieldWrapper>
-        <FieldWrapper label="소속">
-          <FormSelect
-            value={filterTenant}
-            onChange={(e) => setFilterTenant(e.target.value)}
-            options={tenantFilterOptions}
-          />
-        </FieldWrapper>
-        <FieldWrapper label="상태">
-          <FormSelect
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            options={STATUS_FILTER_OPTIONS}
-          />
-        </FieldWrapper>
-      </section>
-
-      {loadError ? <p className="government-admin-page__error">{loadError}</p> : null}
-      {successMsg ? <p className="government-admin-page__msg">{successMsg}</p> : null}
+    <GovernmentAdminPageShell
+      title="직원 관리"
+      description={
+        <>
+          대행사 직원·관리자 계정만 이 화면에서 추가합니다. 프로그램 이용자는{' '}
+          <Link to="/government/admin/program-users" className="dark-link">
+            이용자 관리
+          </Link>
+          에서 확인하세요.
+        </>
+      }
+      toolbar={
+        <>
+          <FormButton htmlType="button" variant="primary" className="button button--primary" onClick={openCreate}>
+            직원 추가
+          </FormButton>
+          <FieldWrapper label="검색">
+            <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="아이디·이름" />
+          </FieldWrapper>
+          <FieldWrapper label="권한">
+            <FormSelect
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              options={filterRoleOptions}
+            />
+          </FieldWrapper>
+          <FieldWrapper label="소속">
+            <FormSelect
+              value={filterTenant}
+              onChange={(e) => setFilterTenant(e.target.value)}
+              options={tenantFilterOptions}
+            />
+          </FieldWrapper>
+          <FieldWrapper label="상태">
+            <FormSelect
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              options={STATUS_FILTER_OPTIONS}
+            />
+          </FieldWrapper>
+        </>
+      }
+    >
+      {loadError ? <p style={{ padding: '12px 16px', color: 'var(--danger)' }}>{loadError}</p> : null}
+      {successMsg ? <p style={{ padding: '12px 16px', color: 'var(--success)' }}>{successMsg}</p> : null}
       {loading ? <LoadingState message="불러오는 중…" /> : null}
       {!loading && rows.length === 0 ? (
         <EmptyState message="등록된 사용자가 없습니다.「사용자 추가」로 첫 사용자를 등록하세요." />
@@ -417,7 +419,7 @@ export default function GovernmentAdminUsersPage() {
       ) : null}
 
       {confirmDialog}
-    </div>
+    </GovernmentAdminPageShell>
   )
 }
 
@@ -549,8 +551,8 @@ function UsersTable(props: {
 }) {
   return (
     <>
-      <div className="government-admin-table-wrap government-admin-users-page__table">
-        <table className="government-admin-table">
+      <div className="table-container table-container--desktop">
+        <table className="admin-data-table">
           <thead>
             <tr>
               <th>아이디</th>

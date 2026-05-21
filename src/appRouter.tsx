@@ -124,7 +124,9 @@ import GovernmentJoinPage from './features/government-support/pages/GovernmentJo
 import GovernmentUserLayout from './features/government-support/layouts/GovernmentUserLayout'
 import GovernmentUserHomePage from './features/government-support/pages/user/GovernmentUserHomePage'
 import GovernmentUserBusinessesPage from './features/government-support/pages/user/GovernmentUserBusinessesPage'
-import GovernmentUserApplicationsPage from './features/government-support/pages/user/GovernmentUserApplicationsPage'
+import GovernmentProfileWorkspaceLayout from './features/government-support/pages/workspace/GovernmentProfileWorkspaceLayout'
+import GovernmentProfileWorkspaceHomePage from './features/government-support/pages/workspace/GovernmentProfileWorkspaceHomePage'
+import GovernmentProfileWorkspaceTabPage from './features/government-support/pages/workspace/GovernmentProfileWorkspaceTabPage'
 import GovernmentUserMePage from './features/government-support/pages/user/GovernmentUserMePage'
 import GovernmentAdminLayout from './features/government-support/layouts/GovernmentAdminLayout'
 import GovernmentAdminDashboardPage from './features/government-support/pages/admin/GovernmentAdminDashboardPage'
@@ -171,7 +173,14 @@ export const appRouter = createBrowserRouter([
             children: [
               { path: 'government/workspace', element: <GovernmentUserHomePage /> },
               { path: 'government/my-businesses', element: <GovernmentUserBusinessesPage /> },
-              { path: 'government/my-applications', element: <GovernmentUserApplicationsPage /> },
+              {
+                path: 'government/my-applications',
+                element: <GovernmentProfileWorkspaceLayout />,
+                children: [
+                  { index: true, element: <GovernmentProfileWorkspaceHomePage /> },
+                  { path: ':profileId/:tab', element: <GovernmentProfileWorkspaceTabPage /> },
+                ],
+              },
               {
                 element: <GovernmentSignatureUserSendRoute />,
                 children: [
