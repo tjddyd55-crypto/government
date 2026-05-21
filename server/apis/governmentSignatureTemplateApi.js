@@ -288,7 +288,7 @@ export function buildTargetPhoneSnapshot(digits) {
   try {
     encrypted = encryptGovSignatureTargetPhoneDigits(digits)
   } catch (e) {
-    if (isRunningInProduction()) {
+    if (isRunningInProduction() && !isGovernmentRailwayDevelop()) {
       throw e
     }
     encrypted = null
