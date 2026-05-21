@@ -24,6 +24,7 @@ import {
   loadProfileAccessRowByMemoId,
   loadProfileAccessRowByConsultationId,
   loadProfileAccessRowByProgressEventId,
+  loadProfileAccessRowByFileId,
   loadGovernmentProfileAccessRow,
 } from './lib/governmentSupport/governmentProfileAccessHelpers.js'
 import { GOVERNMENT_INDUSTRY_CODE } from './lib/governmentSupport/constants.js'
@@ -48,6 +49,28 @@ import {
   parseGovProfileProgressPatchBody,
   syncGovProfileProgressStatus,
 } from './lib/governmentSupport/governmentProfileProgress.js'
+import {
+  GOV_PROFILE_FILE_ALLOWED_MIME,
+  GOV_PROFILE_FILE_BLOCKED_MIME,
+  GOV_PROFILE_FILE_MAX_BYTES,
+  isValidGovProfileFileName,
+  mapGovSupportProfileFileRow,
+  normalizeGovProfileFileName,
+  parseGovProfileFilePatchBody,
+  resolveGovProfileFileContentType,
+} from './lib/governmentSupport/governmentProfileFiles.js'
+import {
+  assertGovernmentProfileFileObjectKey,
+  buildGovernmentProfileFileObjectKey,
+} from './lib/governmentSupport/governmentProfileFileStorage.js'
+import {
+  consentGetSignedDownloadUrl,
+  getR2InsurerAttachmentsCacheControl,
+  isConsentR2Enabled,
+  logR2EnvDiagnosticCheck,
+  r2DeleteObject,
+  r2GetPresignedPutUrl,
+} from './lib/consentStorage.js'
 import { normalizeTenantRegistrationCodeRaw } from './lib/tenantRegistrationCodes.js'
 import { ensureGovernmentTenantRegistrationCode } from './lib/governmentSupport/ensureGovernmentTenantRegistrationCode.js'
 
@@ -1604,6 +1627,383 @@ export function registerGovernmentSupportApi(router, deps) {
           return
         }
         res.json({ success: true, data: { id: String(r.rows[0].id), ok: true } })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  async function requireGovProfileFileAccess(req, res, profileId) {
+    const ctx = req.platformContext
+    if (!isGovernmentProgramUser(ctx)) {
+      res.status(403).json({ message: '서류/첨부는 프로그램 이용자만 이용할 수 있습니다.' })
+      return null
+    }
+    const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+    if (!profileRow) {
+      res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+      return null
+    }
+    if (!canAccessGovernmentProfile(ctx, profileRow)) {
+      res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+      return null
+    }
+    return { ctx, profileRow }
+  }
+
+  router.get('/government-support/profiles/:profileId/files', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const profileId = String(req.params.profileId ?? '').trim()
+      const access = await requireGovProfileFileAccess(req, res, profileId)
+      if (!access) return
+      const r = await pool.query(
+        `
+        SELECT *
+        FROM gov_support_profile_files
+        WHERE profile_id = $1::bigint AND archived_at IS NULL AND upload_status = 'active'
+        ORDER BY created_at DESC, id DESC
+        `,
+        [profileId],
+      )
+      res.json({ success: true, data: r.rows.map(mapGovSupportProfileFileRow) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.post('/government-support/profiles/:profileId/files/presign', ...requireGovernmentMember, async (req, res) => {
+    try {
+      if (!isConsentR2Enabled()) {
+        logR2EnvDiagnosticCheck()
+        res.status(503).json({ message: '파일 저장소가 구성되지 않았습니다.' })
+        return
+      }
+      const profileId = String(req.params.profileId ?? '').trim()
+      const access = await requireGovProfileFileAccess(req, res, profileId)
+      if (!access) return
+      const { ctx, profileRow } = access
+      const body = req.body ?? {}
+      const fileName = normalizeGovProfileFileName(body.fileName ?? body.file_name ?? '')
+      const contentType = resolveGovProfileFileContentType(body.contentType ?? body.content_type ?? body.mimeType)
+      const sizeBytes = Number(body.sizeBytes ?? body.size ?? body.fileSize ?? 0)
+      if (!isValidGovProfileFileName(fileName)) {
+        res.status(400).json({ message: '파일 이름이 올바르지 않습니다.' })
+        return
+      }
+      if (GOV_PROFILE_FILE_BLOCKED_MIME.has(contentType) || !GOV_PROFILE_FILE_ALLOWED_MIME.has(contentType)) {
+        res.status(400).json({ message: '파일 형식 오류' })
+        return
+      }
+      if (!Number.isFinite(sizeBytes) || sizeBytes < 1 || sizeBytes > GOV_PROFILE_FILE_MAX_BYTES) {
+        res.status(400).json({ message: '용량 초과' })
+        return
+      }
+      const ownerUserId = String(profileRow.owner_user_id ?? ctx.userId)
+      const category = String(body.category ?? '').trim().slice(0, 80)
+      const description = String(body.description ?? '').trim().slice(0, 2000)
+      const ins = await pool.query(
+        `
+        INSERT INTO gov_support_profile_files (
+          profile_id, owner_user_id, file_name, file_key, file_size, mime_type,
+          category, description, upload_status, created_by_user_id, updated_by_user_id
+        ) VALUES ($1::bigint, $2, $3, '', $4, $5, $6, $7, 'uploading', $8, $8)
+        RETURNING id
+        `,
+        [profileId, ownerUserId, fileName, sizeBytes, contentType, category, description, ctx.userId],
+      )
+      const fileId = String(ins.rows[0].id)
+      const objectKey = buildGovernmentProfileFileObjectKey({
+        ownerUserId,
+        profileId,
+        fileId,
+        fileName,
+      })
+      await pool.query(
+        `UPDATE gov_support_profile_files SET file_key = $2, updated_at = NOW() WHERE id = $1::bigint`,
+        [fileId, objectKey],
+      )
+      const cacheControl = getR2InsurerAttachmentsCacheControl()
+      const uploadUrl = await r2GetPresignedPutUrl(objectKey, contentType, 900, { cacheControl })
+      if (!uploadUrl) {
+        await pool.query(`DELETE FROM gov_support_profile_files WHERE id = $1::bigint AND upload_status = 'uploading'`, [
+          fileId,
+        ])
+        res.status(503).json({ message: '업로드 URL을 만들 수 없습니다.' })
+        return
+      }
+      const putHeaders = cacheControl ? { 'Cache-Control': cacheControl } : {}
+      res.status(201).json({
+        success: true,
+        data: {
+          id: fileId,
+          fileId,
+          uploadUrl,
+          objectKey,
+          fileKey: objectKey,
+          putHeaders,
+          fileName,
+          profileId,
+        },
+      })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.post('/government-support/profiles/:profileId/files', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const profileId = String(req.params.profileId ?? '').trim()
+      const access = await requireGovProfileFileAccess(req, res, profileId)
+      if (!access) return
+      const { ctx } = access
+      const body = req.body ?? {}
+      const fileId = String(body.fileId ?? body.id ?? '').trim()
+      const objectKey = String(body.objectKey ?? body.fileKey ?? body.file_key ?? '').trim()
+      const fileName = normalizeGovProfileFileName(body.fileName ?? body.file_name ?? body.displayName ?? '')
+      const fileSize = Number(body.size ?? body.fileSize ?? body.file_size ?? 0)
+      const mimeType = resolveGovProfileFileContentType(body.mimeType ?? body.mime_type ?? body.contentType)
+      if (!fileId) {
+        res.status(400).json({ message: 'fileId가 필요합니다.' })
+        return
+      }
+      if (!objectKey) {
+        res.status(400).json({ message: 'object key가 필요합니다.' })
+        return
+      }
+      if (!isValidGovProfileFileName(fileName)) {
+        res.status(400).json({ message: '파일 이름이 올바르지 않습니다.' })
+        return
+      }
+      const fileAccess = await loadProfileAccessRowByFileId(pool, fileId)
+      if (!fileAccess || String(fileAccess.profile_id) !== profileId) {
+        res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canAccessGovernmentProfile(ctx, fileAccess)) {
+        res.status(403).json({ message: '파일 접근 권한이 없습니다.' })
+        return
+      }
+      if (fileAccess.archived_at != null) {
+        res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+        return
+      }
+      if (String(fileAccess.upload_status ?? '') !== 'uploading') {
+        res.status(409).json({ message: '이미 등록된 파일입니다.' })
+        return
+      }
+      if (
+        !assertGovernmentProfileFileObjectKey(objectKey, {
+          ownerUserId: String(fileAccess.owner_user_id ?? ''),
+          profileId,
+          fileId,
+        })
+      ) {
+        res.status(400).json({ message: '허용되지 않은 저장 경로입니다.' })
+        return
+      }
+      if (String(fileAccess.file_key ?? '').trim() !== objectKey) {
+        res.status(400).json({ message: 'object key가 presign 시점과 일치하지 않습니다.' })
+        return
+      }
+      const rowSize = Number(fileAccess.file_size ?? 0)
+      if (!Number.isFinite(fileSize) || fileSize !== rowSize) {
+        res.status(400).json({ message: '파일 크기가 presign 시점과 일치하지 않습니다.' })
+        return
+      }
+      if (GOV_PROFILE_FILE_BLOCKED_MIME.has(mimeType) || !GOV_PROFILE_FILE_ALLOWED_MIME.has(mimeType)) {
+        res.status(400).json({ message: '파일 형식 오류' })
+        return
+      }
+      const r = await pool.query(
+        `
+        UPDATE gov_support_profile_files
+        SET file_name = $3, upload_status = 'active', updated_by_user_id = $4, updated_at = NOW()
+        WHERE id = $1::bigint AND profile_id = $2::bigint AND upload_status = 'uploading' AND archived_at IS NULL
+        RETURNING *
+        `,
+        [fileId, profileId, fileName, ctx.userId],
+      )
+      if ((r.rowCount ?? 0) === 0) {
+        res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+        return
+      }
+      res.status(201).json({ success: true, data: mapGovSupportProfileFileRow(r.rows[0]) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.get(
+    '/government-support/profiles/:profileId/files/:fileId/download',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        if (!isConsentR2Enabled()) {
+          logR2EnvDiagnosticCheck()
+          res.status(503).json({ message: '파일 저장소가 구성되지 않았습니다.' })
+          return
+        }
+        const profileId = String(req.params.profileId ?? '').trim()
+        const fileId = String(req.params.fileId ?? '').trim()
+        const access = await requireGovProfileFileAccess(req, res, profileId)
+        if (!access) return
+        const { ctx } = access
+        const fileAccess = await loadProfileAccessRowByFileId(pool, fileId)
+        if (!fileAccess || String(fileAccess.profile_id) !== profileId) {
+          res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, fileAccess)) {
+          res.status(403).json({ message: '파일 접근 권한이 없습니다.' })
+          return
+        }
+        if (fileAccess.archived_at != null || String(fileAccess.upload_status ?? '') !== 'active') {
+          res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+          return
+        }
+        const fileKey = String(fileAccess.file_key ?? '').trim()
+        if (
+          !assertGovernmentProfileFileObjectKey(fileKey, {
+            ownerUserId: String(fileAccess.owner_user_id ?? ''),
+            profileId,
+            fileId,
+          })
+        ) {
+          res.status(400).json({ message: '허용되지 않은 저장 경로입니다.' })
+          return
+        }
+        const downloadUrl = await consentGetSignedDownloadUrl(fileKey, 900)
+        if (!downloadUrl) {
+          res.status(503).json({ message: '다운로드 URL을 만들 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: { downloadUrl, url: downloadUrl } })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.patch(
+    '/government-support/profiles/:profileId/files/:fileId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const profileId = String(req.params.profileId ?? '').trim()
+        const fileId = String(req.params.fileId ?? '').trim()
+        const access = await requireGovProfileFileAccess(req, res, profileId)
+        if (!access) return
+        const { ctx } = access
+        const fileAccess = await loadProfileAccessRowByFileId(pool, fileId)
+        if (!fileAccess || String(fileAccess.profile_id) !== profileId) {
+          res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, fileAccess)) {
+          res.status(403).json({ message: '파일 접근 권한이 없습니다.' })
+          return
+        }
+        if (fileAccess.archived_at != null || String(fileAccess.upload_status ?? '') !== 'active') {
+          res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+          return
+        }
+        const parsed = parseGovProfileFilePatchBody(req.body ?? {})
+        if (!parsed.ok) {
+          res.status(parsed.status).json({ message: parsed.message })
+          return
+        }
+        const { patch } = parsed
+        /** @type {string[]} */
+        const sets = []
+        /** @type {unknown[]} */
+        const vals = [fileId, profileId]
+        let idx = 3
+        if (patch.fileName != null) {
+          sets.push(`file_name = $${idx}`)
+          vals.push(patch.fileName)
+          idx += 1
+        }
+        if (patch.description != null) {
+          sets.push(`description = $${idx}`)
+          vals.push(patch.description)
+          idx += 1
+        }
+        if (patch.category != null) {
+          sets.push(`category = $${idx}`)
+          vals.push(patch.category)
+          idx += 1
+        }
+        sets.push(`updated_by_user_id = $${idx}`)
+        vals.push(ctx.userId)
+        const r = await pool.query(
+          `
+          UPDATE gov_support_profile_files
+          SET ${sets.join(', ')}, updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL AND upload_status = 'active'
+          RETURNING *
+          `,
+          vals,
+        )
+        if ((r.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: mapGovSupportProfileFileRow(r.rows[0]) })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.delete(
+    '/government-support/profiles/:profileId/files/:fileId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const profileId = String(req.params.profileId ?? '').trim()
+        const fileId = String(req.params.fileId ?? '').trim()
+        const access = await requireGovProfileFileAccess(req, res, profileId)
+        if (!access) return
+        const { ctx } = access
+        const fileAccess = await loadProfileAccessRowByFileId(pool, fileId)
+        if (!fileAccess || String(fileAccess.profile_id) !== profileId) {
+          res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, fileAccess)) {
+          res.status(403).json({ message: '파일 접근 권한이 없습니다.' })
+          return
+        }
+        if (fileAccess.archived_at != null) {
+          res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+          return
+        }
+        const fileKey = String(fileAccess.file_key ?? '').trim()
+        if (fileKey && isConsentR2Enabled()) {
+          try {
+            await r2DeleteObject(fileKey)
+          } catch {
+            /* best effort */
+          }
+        }
+        const hardDelete = String(fileAccess.upload_status ?? '') === 'uploading'
+        if (hardDelete) {
+          await pool.query(`DELETE FROM gov_support_profile_files WHERE id = $1::bigint AND profile_id = $2::bigint`, [
+            fileId,
+            profileId,
+          ])
+        } else {
+          await pool.query(
+            `
+            UPDATE gov_support_profile_files
+            SET archived_at = NOW(), updated_by_user_id = $3, updated_at = NOW()
+            WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+            RETURNING id
+            `,
+            [fileId, profileId, ctx.userId],
+          )
+        }
+        res.json({ success: true, data: { id: fileId, ok: true } })
       } catch (e) {
         handleDbError(e, req, res)
       }

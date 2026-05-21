@@ -267,4 +267,34 @@ export async function ensureGovernmentSupportSchema(executor) {
     ON gov_support_profile_progress_events (owner_user_id, profile_id)
     WHERE archived_at IS NULL
   `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_profile_files (
+      id BIGSERIAL PRIMARY KEY,
+      profile_id BIGINT NOT NULL REFERENCES gov_support_profiles(id) ON DELETE CASCADE,
+      owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      file_name TEXT NOT NULL DEFAULT '',
+      file_key TEXT NOT NULL DEFAULT '',
+      file_size BIGINT NOT NULL DEFAULT 0,
+      mime_type TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '',
+      upload_status TEXT NOT NULL DEFAULT 'active',
+      created_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_profile_files_profile
+    ON gov_support_profile_files (profile_id, created_at DESC)
+    WHERE archived_at IS NULL
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_profile_files_owner
+    ON gov_support_profile_files (owner_user_id, profile_id)
+    WHERE archived_at IS NULL
+  `)
 }

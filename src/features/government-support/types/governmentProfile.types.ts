@@ -119,3 +119,21 @@ export type GovProfileProgressEvent = {
   updatedAt: string
   archivedAt: string | null
 }
+
+export type GovProfileFile = {
+  id: string
+  profileId: string
+  ownerUserId: string
+  fileName: string
+  fileKey: string
+  fileSize: number
+  mimeType: string
+  category: string
+  description: string
+  uploadStatus: string
+  createdByUserId: string | null
+  updatedByUserId: string | null
+  createdAt: string
+  updatedAt: string
+  archivedAt: string | null
+}

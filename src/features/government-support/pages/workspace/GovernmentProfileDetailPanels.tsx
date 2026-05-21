@@ -1,33 +1,13 @@
 import { Link } from 'react-router-dom'
-import FormButton from '../../../../components/form/FormButton'
 import { EmptyState } from '../../../../components/feedback'
 import { GOVERNMENT_EDOC_TEMPLATES } from '../../adapters/governmentContractAdapter'
-import {
-  GOVERNMENT_DOCUMENT_TYPES,
-  GOVERNMENT_SCHEDULE_TYPES,
-} from '../../constants/governmentDocumentTypes'
+import { GOVERNMENT_SCHEDULE_TYPES } from '../../constants/governmentDocumentTypes'
 import type { GovernmentProfileWorkspaceTab } from '../../config/governmentProfileWorkspaceTabs'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
 import GovernmentProfileMemosPanel from './GovernmentProfileMemosPanel'
 import GovernmentProfileConsultationsPanel from './GovernmentProfileConsultationsPanel'
 import GovernmentProfileProgressPanel from './GovernmentProfileProgressPanel'
-
-function Field({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-}) {
-  return (
-    <label>
-      {label}
-      <input value={value} onChange={(e) => onChange(e.target.value)} />
-    </label>
-  )
-}
+import GovernmentProfileFilesPanel from './GovernmentProfileFilesPanel'
 
 type GovernmentProfileDetailPanelsProps = {
   tab: GovernmentProfileWorkspaceTab
@@ -41,18 +21,7 @@ export default function GovernmentProfileDetailPanels({ tab }: GovernmentProfile
   }
 
   if (tab === 'files') {
-    return (
-      <div className="government-form-grid">
-        <p className="government-page__muted">
-          서류/파일 — 프로필 조회 시 체크리스트가 자동 생성됩니다. 파일 업로드는 R2 구조와 연동 예정.
-        </p>
-        <ul style={{ marginTop: '0.75rem', color: '#e5e7eb' }}>
-          {GOVERNMENT_DOCUMENT_TYPES.map((name) => (
-            <li key={name}>{name}</li>
-          ))}
-        </ul>
-      </div>
-    )
+    return <GovernmentProfileFilesPanel />
   }
 
   if (tab === 'consultations') {

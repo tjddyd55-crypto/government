@@ -323,6 +323,77 @@ async function main() {
   if (!progressListAfterDelete.some((p) => String(p.id) === progressAId)) pass('user A delete progress')
   else fail('user A delete progress')
 
+  const profileFileName = `e2e-ws-${ts}.pdf`
+  const profileFileBody = `E2E profile file ${ts}`
+  const profileFileSize = profileFileBody.length
+  let profileFileId = ''
+  const filePresign = await api(`/government-support/profiles/${profileAId}/files/presign`, {
+    token: tokenA,
+    method: 'POST',
+    body: {
+      fileName: profileFileName,
+      contentType: 'application/pdf',
+      sizeBytes: profileFileSize,
+      description: `E2E file ${ts}`,
+    },
+    expectStatus: 201,
+  })
+  const { uploadUrl: profileUploadUrl, objectKey: profileObjectKey, fileId: presignedFileId } =
+    filePresign.json?.data ?? {}
+  profileFileId = String(presignedFileId ?? '')
+  if (profileUploadUrl && profileObjectKey && profileFileId) pass('user A file presign', profileFileId)
+  else fail('user A file presign')
+  const objectKeyNorm = String(profileObjectKey ?? '').replace(/^\/+/, '')
+  if (objectKeyNorm.includes('government/profile-files/')) pass('profile file R2 key path')
+  else fail('profile file R2 key path', objectKeyNorm.slice(0, 80))
+
+  const profilePut = await fetch(profileUploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/pdf',
+      ...(filePresign.json?.data?.putHeaders ?? {}),
+    },
+    body: profileFileBody,
+  })
+  if (profilePut.status >= 200 && profilePut.status < 300) pass('user A R2 PUT profile file', String(profilePut.status))
+  else fail('user A R2 PUT profile file', String(profilePut.status))
+
+  const fileSave = await api(`/government-support/profiles/${profileAId}/files`, {
+    token: tokenA,
+    method: 'POST',
+    body: {
+      fileId: profileFileId,
+      objectKey: profileObjectKey,
+      fileName: profileFileName,
+      fileSize: profileFileSize,
+      mimeType: 'application/pdf',
+    },
+    expectStatus: 201,
+  })
+  if (String(fileSave.json?.data?.id ?? '') === profileFileId) pass('user A save profile file')
+  else fail('user A save profile file')
+
+  const fileListA =
+    (await api(`/government-support/profiles/${profileAId}/files`, { token: tokenA })).json?.data ?? []
+  if (fileListA.some((f) => String(f.id) === profileFileId)) pass('user A file in list')
+  else fail('user A file in list')
+
+  const fileDlA = await api(`/government-support/profiles/${profileAId}/files/${profileFileId}/download`, {
+    token: tokenA,
+  })
+  if (fileDlA.status === 200 && (fileDlA.json?.data?.downloadUrl || fileDlA.json?.data?.url)) {
+    pass('user A file download')
+  } else fail('user A file download', String(fileDlA.status))
+
+  const filePatchA = await api(`/government-support/profiles/${profileAId}/files/${profileFileId}`, {
+    token: tokenA,
+    method: 'PATCH',
+    body: { fileName: `e2e-ws-patched-${ts}.pdf`, description: 'patched' },
+    expectStatus: 200,
+  })
+  if (String(filePatchA.json?.data?.fileName ?? '').includes('patched')) pass('user A patch profile file')
+  else fail('user A patch profile file')
+
   const memoRegression = await api(`/government-support/profiles/${profileAId}/memos`, {
     token: tokenA,
     method: 'POST',
@@ -411,6 +482,28 @@ async function main() {
   if (progressBList.status === 403 || progressBList.status === 404) pass('user B progress list blocked')
   else fail('user B progress list blocked', String(progressBList.status))
 
+  const fileBList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenB })
+  if (fileBList.status === 403 || fileBList.status === 404) pass('user B file list blocked')
+  else fail('user B file list blocked', String(fileBList.status))
+
+  const fileBDownload = await api(`/government-support/profiles/${profileAId}/files/${profileFileId}/download`, {
+    token: tokenB,
+  })
+  if (fileBDownload.status === 403 || fileBDownload.status === 404) pass('user B file download blocked')
+  else fail('user B file download blocked', String(fileBDownload.status))
+
+  const fileBCreate = await api(`/government-support/profiles/${profileAId}/files/presign`, {
+    token: tokenB,
+    method: 'POST',
+    body: {
+      fileName: 'blocked.pdf',
+      contentType: 'application/pdf',
+      sizeBytes: 8,
+    },
+  })
+  if (fileBCreate.status === 403 || fileBCreate.status === 404) pass('user B file presign blocked')
+  else fail('user B file presign blocked', String(fileBCreate.status))
+
   // Operational roles — API access shape (frontend redirect tested separately)
   const tokenStaff = await login(uStaff)
   const accessStaff = unwrapData((await api('/government-support/me/access', { token: tokenStaff })).json)
@@ -448,6 +541,24 @@ async function main() {
   const progressAgencyList = await api(`/government-support/profiles/${profileAId}/progress`, { token: tokenAgency })
   if (progressAgencyList.status === 403) pass('agency admin progress list 403')
   else fail('agency admin progress list 403', String(progressAgencyList.status))
+
+  const fileStaffList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenStaff })
+  if (fileStaffList.status === 403) pass('staff file list 403')
+  else fail('staff file list 403', String(fileStaffList.status))
+
+  const fileAgencyList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenAgency })
+  if (fileAgencyList.status === 403) pass('agency admin file list 403')
+  else fail('agency admin file list 403', String(fileAgencyList.status))
+
+  await api(`/government-support/profiles/${profileAId}/files/${profileFileId}`, {
+    token: tokenA,
+    method: 'DELETE',
+    expectStatus: 200,
+  })
+  const fileListAfterDelete =
+    (await api(`/government-support/profiles/${profileAId}/files`, { token: tokenA })).json?.data ?? []
+  if (!fileListAfterDelete.some((f) => String(f.id) === profileFileId)) pass('user A delete profile file')
+  else fail('user A delete profile file')
 
   const accessIndustry = unwrapData((await api('/government-support/me/access', { token: industry })).json)
   if (accessIndustry?.isGovernmentIndustryAdmin === true || accessIndustry?.isSuperAdmin === true) {
