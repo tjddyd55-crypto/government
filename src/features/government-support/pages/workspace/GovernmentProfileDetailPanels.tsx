@@ -9,6 +9,7 @@ import {
 } from '../../constants/governmentDocumentTypes'
 import type { GovernmentProfileWorkspaceTab } from '../../config/governmentProfileWorkspaceTabs'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
+import GovernmentProfileMemosPanel from './GovernmentProfileMemosPanel'
 
 function Field({
   label,
@@ -58,12 +59,7 @@ export default function GovernmentProfileDetailPanels({ tab }: GovernmentProfile
   }
 
   if (tab === 'memos') {
-    return (
-      <div className="government-form-grid">
-        <Field label="메모/특이사항" value={p.specialNote} onChange={(v) => void ws.saveProfile({ specialNote: v })} />
-        <Field label="비고" value={p.note} onChange={(v) => void ws.saveProfile({ note: v })} />
-      </div>
-    )
+    return <GovernmentProfileMemosPanel />
   }
 
   if (tab === 'progress') {

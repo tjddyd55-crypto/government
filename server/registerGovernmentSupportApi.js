@@ -21,6 +21,8 @@ import {
   loadProfileAccessRowByApplicationCaseId,
   loadProfileAccessRowByDocumentId,
   loadProfileAccessRowByPriorLoanId,
+  loadProfileAccessRowByMemoId,
+  loadGovernmentProfileAccessRow,
 } from './lib/governmentSupport/governmentProfileAccessHelpers.js'
 import { GOVERNMENT_INDUSTRY_CODE } from './lib/governmentSupport/constants.js'
 import {
@@ -31,6 +33,10 @@ import {
   resolveGovernmentUserManagerScope,
 } from './lib/governmentSupport/governmentAdminUsers.js'
 import { mapGovSupportProfileRow, profilePatchFromBody } from './lib/governmentSupport/profileMapper.js'
+import {
+  mapGovSupportProfileMemoRow,
+  normalizeGovProfileMemoContent,
+} from './lib/governmentSupport/governmentProfileMemos.js'
 import { normalizeTenantRegistrationCodeRaw } from './lib/tenantRegistrationCodes.js'
 import { ensureGovernmentTenantRegistrationCode } from './lib/governmentSupport/ensureGovernmentTenantRegistrationCode.js'
 
@@ -940,6 +946,191 @@ export function registerGovernmentSupportApi(router, deps) {
       handleDbError(e, req, res)
     }
   })
+
+  router.get('/government-support/profiles/:profileId/memos', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      if (!isGovernmentProgramUser(ctx)) {
+        res.status(403).json({ message: '메모는 프로그램 이용자만 조회할 수 있습니다.' })
+        return
+      }
+      const profileId = String(req.params.profileId ?? '').trim()
+      const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+      if (!profileRow) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canAccessGovernmentProfile(ctx, profileRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+        return
+      }
+      const r = await pool.query(
+        `
+        SELECT *
+        FROM gov_support_profile_memos
+        WHERE profile_id = $1::bigint AND archived_at IS NULL
+        ORDER BY created_at DESC, id DESC
+        `,
+        [profileId],
+      )
+      res.json({ success: true, data: r.rows.map(mapGovSupportProfileMemoRow) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.post('/government-support/profiles/:profileId/memos', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      if (!isGovernmentProgramUser(ctx)) {
+        res.status(403).json({ message: '메모는 프로그램 이용자만 작성할 수 있습니다.' })
+        return
+      }
+      const profileId = String(req.params.profileId ?? '').trim()
+      const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+      if (!profileRow) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canAccessGovernmentProfile(ctx, profileRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+        return
+      }
+      const body = req.body ?? {}
+      const normalized = normalizeGovProfileMemoContent(body.content ?? body.memo ?? body.text)
+      if (!normalized.ok) {
+        res.status(normalized.status).json({ message: normalized.message })
+        return
+      }
+      const ownerUserId = String(profileRow.owner_user_id ?? ctx.userId)
+      const r = await pool.query(
+        `
+        INSERT INTO gov_support_profile_memos (
+          profile_id, owner_user_id, content, created_by_user_id, updated_by_user_id
+        ) VALUES ($1::bigint, $2, $3, $4, $4)
+        RETURNING *
+        `,
+        [profileId, ownerUserId, normalized.content, ctx.userId],
+      )
+      res.status(201).json({ success: true, data: mapGovSupportProfileMemoRow(r.rows[0]) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.patch(
+    '/government-support/profiles/:profileId/memos/:memoId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        if (!isGovernmentProgramUser(ctx)) {
+          res.status(403).json({ message: '메모는 프로그램 이용자만 수정할 수 있습니다.' })
+          return
+        }
+        const profileId = String(req.params.profileId ?? '').trim()
+        const memoId = String(req.params.memoId ?? '').trim()
+        const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+        if (!profileRow) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, profileRow)) {
+          res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+          return
+        }
+        const memoAccess = await loadProfileAccessRowByMemoId(pool, memoId)
+        if (!memoAccess) {
+          res.status(404).json({ message: '메모를 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, memoAccess)) {
+          res.status(403).json({ message: '메모 접근 권한이 없습니다.' })
+          return
+        }
+        if (memoAccess.archived_at != null) {
+          res.status(404).json({ message: '메모를 찾을 수 없습니다.' })
+          return
+        }
+        const body = req.body ?? {}
+        const normalized = normalizeGovProfileMemoContent(body.content ?? body.memo ?? body.text)
+        if (!normalized.ok) {
+          res.status(normalized.status).json({ message: normalized.message })
+          return
+        }
+        const r = await pool.query(
+          `
+          UPDATE gov_support_profile_memos
+          SET content = $3, updated_by_user_id = $4, updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          RETURNING *
+          `,
+          [memoId, profileId, normalized.content, ctx.userId],
+        )
+        if ((r.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '메모를 찾을 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: mapGovSupportProfileMemoRow(r.rows[0]) })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.delete(
+    '/government-support/profiles/:profileId/memos/:memoId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        if (!isGovernmentProgramUser(ctx)) {
+          res.status(403).json({ message: '메모는 프로그램 이용자만 삭제할 수 있습니다.' })
+          return
+        }
+        const profileId = String(req.params.profileId ?? '').trim()
+        const memoId = String(req.params.memoId ?? '').trim()
+        const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+        if (!profileRow) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, profileRow)) {
+          res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+          return
+        }
+        const memoAccess = await loadProfileAccessRowByMemoId(pool, memoId)
+        if (!memoAccess) {
+          res.status(404).json({ message: '메모를 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, memoAccess)) {
+          res.status(403).json({ message: '메모 접근 권한이 없습니다.' })
+          return
+        }
+        if (memoAccess.archived_at != null) {
+          res.status(404).json({ message: '메모를 찾을 수 없습니다.' })
+          return
+        }
+        const r = await pool.query(
+          `
+          UPDATE gov_support_profile_memos
+          SET archived_at = NOW(), updated_by_user_id = $3, updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          RETURNING id
+          `,
+          [memoId, profileId, ctx.userId],
+        )
+        if ((r.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '메모를 찾을 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: { id: String(r.rows[0].id) } })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
 }
 
 /** @param {ReturnType<typeof mapGovSupportProfileRow>} profile @param {Record<string, unknown>|null} caseRow */

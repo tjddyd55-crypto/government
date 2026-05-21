@@ -213,6 +213,39 @@ async function main() {
   if (detailA.status === 200) pass('user A profile detail 200')
   else fail('user A profile detail', String(detailA.status))
 
+  const memoCreate = await api(`/government-support/profiles/${profileAId}/memos`, {
+    token: tokenA,
+    method: 'POST',
+    body: { content: `E2E memo A ${ts}` },
+    expectStatus: 200,
+  })
+  const memoAId = String(memoCreate.json?.data?.id ?? '')
+  if (memoAId) pass('user A create memo', memoAId)
+  else fail('user A create memo')
+
+  const memoListA = (await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenA })).json?.data ?? []
+  if (memoListA.some((m) => String(m.id) === memoAId)) pass('user A memo in list')
+  else fail('user A memo in list')
+
+  const memoPatch = await api(`/government-support/profiles/${profileAId}/memos/${memoAId}`, {
+    token: tokenA,
+    method: 'PATCH',
+    body: { content: `E2E memo A patched ${ts}` },
+    expectStatus: 200,
+  })
+  if (String(memoPatch.json?.data?.content ?? '').includes('patched')) pass('user A patch memo')
+  else fail('user A patch memo')
+
+  await api(`/government-support/profiles/${profileAId}/memos/${memoAId}`, {
+    token: tokenA,
+    method: 'DELETE',
+    expectStatus: 200,
+  })
+  const memoListAfterDelete =
+    (await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenA })).json?.data ?? []
+  if (!memoListAfterDelete.some((m) => String(m.id) === memoAId)) pass('user A delete memo')
+  else fail('user A delete memo')
+
   const titlesA = ((await api('/government-support/notices', { token: tokenA })).json?.data ?? []).map((n) => n.title)
   if (titlesA.some((t) => t.includes(`E2E WS Global ${ts}`))) pass('user A global notice')
   else fail('user A global notice')
@@ -256,6 +289,18 @@ async function main() {
     else fail('user B profile detail forbidden', e.message)
   }
 
+  const memoBCreate = await api(`/government-support/profiles/${profileAId}/memos`, {
+    token: tokenB,
+    method: 'POST',
+    body: { content: 'blocked' },
+  })
+  if (memoBCreate.status === 403 || memoBCreate.status === 404) pass('user B memo create blocked')
+  else fail('user B memo create blocked', String(memoBCreate.status))
+
+  const memoBList = await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenB })
+  if (memoBList.status === 403 || memoBList.status === 404) pass('user B memo list blocked')
+  else fail('user B memo list blocked', String(memoBList.status))
+
   // Operational roles — API access shape (frontend redirect tested separately)
   const tokenStaff = await login(uStaff)
   const accessStaff = unwrapData((await api('/government-support/me/access', { token: tokenStaff })).json)
@@ -269,6 +314,14 @@ async function main() {
   const accessAgency = unwrapData((await api('/government-support/me/access', { token: tokenAgency })).json)
   if (accessAgency?.isGovernmentProgramUser !== true) pass('agency admin not program user')
   else fail('agency admin not program user')
+
+  const memoStaffList = await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenStaff })
+  if (memoStaffList.status === 403) pass('staff memo list 403')
+  else fail('staff memo list 403', String(memoStaffList.status))
+
+  const memoAgencyList = await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenAgency })
+  if (memoAgencyList.status === 403) pass('agency admin memo list 403')
+  else fail('agency admin memo list 403', String(memoAgencyList.status))
 
   const accessIndustry = unwrapData((await api('/government-support/me/access', { token: industry })).json)
   if (accessIndustry?.isGovernmentIndustryAdmin === true || accessIndustry?.isSuperAdmin === true) {

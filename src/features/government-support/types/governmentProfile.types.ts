@@ -73,3 +73,15 @@ export type GovApplicationCase = {
   certDelegate: string
   specialNote: string
 }
+
+export type GovProfileMemo = {
+  id: string
+  profileId: string
+  ownerUserId: string
+  content: string
+  createdByUserId: string | null
+  updatedByUserId: string | null
+  createdAt: string
+  updatedAt: string
+  archivedAt: string | null
+}
