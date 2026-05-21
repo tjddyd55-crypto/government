@@ -215,7 +215,7 @@ async function assertCustomerForUserSend(client, profileId, req) {
   }
   const r = await client.query(
     `
-    SELECT id, phone, owner_user_id
+    SELECT id, phone, owner_user_id, tenant_id
     FROM gov_support_profiles
     WHERE id = $1 AND owner_user_id = $2
     `,
@@ -856,19 +856,21 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       await client.query(
         `
         INSERT INTO gov_signature_send_sessions (
-          id, package_id, profile_id, sign_token, status,
+          id, package_id, profile_id, owner_user_id, tenant_id, sign_token, status,
           target_phone_encrypted, target_phone_hash, target_phone_masked,
           sent_by_user_id, sent_at, created_at, updated_at
         )
         VALUES (
-          $1, NULL, $2, $3, 'pending',
-          $4, $5, $6,
-          $7, ${nowSql}, ${nowSql}, ${nowSql}
+          $1, NULL, $2, $3, $4, $5, 'pending',
+          $6, $7, $8,
+          $9, ${nowSql}, ${nowSql}, ${nowSql}
         )
         `,
         [
           sendId,
           profileId,
+          ownerUserId,
+          cust.row.tenant_id ?? null,
           signToken,
           snapshot.target_phone_encrypted,
           snapshot.target_phone_hash,
