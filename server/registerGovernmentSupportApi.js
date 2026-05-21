@@ -22,6 +22,7 @@ import {
   loadProfileAccessRowByDocumentId,
   loadProfileAccessRowByPriorLoanId,
   loadProfileAccessRowByMemoId,
+  loadProfileAccessRowByConsultationId,
   loadGovernmentProfileAccessRow,
 } from './lib/governmentSupport/governmentProfileAccessHelpers.js'
 import { GOVERNMENT_INDUSTRY_CODE } from './lib/governmentSupport/constants.js'
@@ -37,6 +38,10 @@ import {
   mapGovSupportProfileMemoRow,
   normalizeGovProfileMemoContent,
 } from './lib/governmentSupport/governmentProfileMemos.js'
+import {
+  mapGovSupportProfileConsultationRow,
+  parseGovProfileConsultationPatchBody,
+} from './lib/governmentSupport/governmentProfileConsultations.js'
 import { normalizeTenantRegistrationCodeRaw } from './lib/tenantRegistrationCodes.js'
 import { ensureGovernmentTenantRegistrationCode } from './lib/governmentSupport/ensureGovernmentTenantRegistrationCode.js'
 
@@ -1126,6 +1131,238 @@ export function registerGovernmentSupportApi(router, deps) {
           return
         }
         res.json({ success: true, data: { id: String(r.rows[0].id) } })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.get('/government-support/profiles/:profileId/consultations', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      if (!isGovernmentProgramUser(ctx)) {
+        res.status(403).json({ message: '상담 이력은 프로그램 이용자만 조회할 수 있습니다.' })
+        return
+      }
+      const profileId = String(req.params.profileId ?? '').trim()
+      const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+      if (!profileRow) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canAccessGovernmentProfile(ctx, profileRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+        return
+      }
+      const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 200)
+      const offset = Math.max(Number(req.query.offset) || 0, 0)
+      const r = await pool.query(
+        `
+        SELECT *
+        FROM gov_support_profile_consultations
+        WHERE profile_id = $1::bigint AND archived_at IS NULL
+        ORDER BY consulted_at DESC NULLS LAST, created_at DESC, id DESC
+        LIMIT $2 OFFSET $3
+        `,
+        [profileId, limit, offset],
+      )
+      res.json({ success: true, data: r.rows.map(mapGovSupportProfileConsultationRow) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.post('/government-support/profiles/:profileId/consultations', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      if (!isGovernmentProgramUser(ctx)) {
+        res.status(403).json({ message: '상담 이력은 프로그램 이용자만 작성할 수 있습니다.' })
+        return
+      }
+      const profileId = String(req.params.profileId ?? '').trim()
+      const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+      if (!profileRow) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canAccessGovernmentProfile(ctx, profileRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+        return
+      }
+      const parsed = parseGovProfileConsultationPatchBody(req.body ?? {}, { requireContent: true })
+      if (!parsed.ok) {
+        res.status(parsed.status).json({ message: parsed.message })
+        return
+      }
+      const { patch } = parsed
+      const ownerUserId = String(profileRow.owner_user_id ?? ctx.userId)
+      const r = await pool.query(
+        `
+        INSERT INTO gov_support_profile_consultations (
+          profile_id, owner_user_id, content, consulted_at,
+          consultation_type, title, status,
+          created_by_user_id, updated_by_user_id
+        ) VALUES ($1::bigint, $2, $3, $4::date, $5, $6, $7, $8, $8)
+        RETURNING *
+        `,
+        [
+          profileId,
+          ownerUserId,
+          patch.content,
+          patch.consultedAt,
+          patch.consultationType ?? '',
+          patch.title ?? '',
+          patch.status ?? '',
+          ctx.userId,
+        ],
+      )
+      res.status(201).json({ success: true, data: mapGovSupportProfileConsultationRow(r.rows[0]) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.patch(
+    '/government-support/profiles/:profileId/consultations/:consultationId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        if (!isGovernmentProgramUser(ctx)) {
+          res.status(403).json({ message: '상담 이력은 프로그램 이용자만 수정할 수 있습니다.' })
+          return
+        }
+        const profileId = String(req.params.profileId ?? '').trim()
+        const consultationId = String(req.params.consultationId ?? '').trim()
+        const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+        if (!profileRow) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, profileRow)) {
+          res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+          return
+        }
+        const consultAccess = await loadProfileAccessRowByConsultationId(pool, consultationId)
+        if (!consultAccess) {
+          res.status(404).json({ message: '상담 기록을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, consultAccess)) {
+          res.status(403).json({ message: '상담 접근 권한이 없습니다.' })
+          return
+        }
+        if (consultAccess.archived_at != null) {
+          res.status(404).json({ message: '상담 기록을 찾을 수 없습니다.' })
+          return
+        }
+        const parsed = parseGovProfileConsultationPatchBody(req.body ?? {}, { requireContent: false })
+        if (!parsed.ok) {
+          res.status(parsed.status).json({ message: parsed.message })
+          return
+        }
+        const { patch } = parsed
+        /** @type {string[]} */
+        const sets = []
+        /** @type {unknown[]} */
+        const vals = [consultationId, profileId]
+        let idx = 3
+        if (patch.content != null) {
+          sets.push(`content = $${idx}`)
+          vals.push(patch.content)
+          idx += 1
+        }
+        if (patch.consultedAt != null) {
+          sets.push(`consulted_at = $${idx}::date`)
+          vals.push(patch.consultedAt)
+          idx += 1
+        }
+        if (patch.consultationType != null) {
+          sets.push(`consultation_type = $${idx}`)
+          vals.push(patch.consultationType)
+          idx += 1
+        }
+        if (patch.title != null) {
+          sets.push(`title = $${idx}`)
+          vals.push(patch.title)
+          idx += 1
+        }
+        if (patch.status != null) {
+          sets.push(`status = $${idx}`)
+          vals.push(patch.status)
+          idx += 1
+        }
+        sets.push(`updated_by_user_id = $${idx}`)
+        vals.push(ctx.userId)
+        idx += 1
+        const r = await pool.query(
+          `
+          UPDATE gov_support_profile_consultations
+          SET ${sets.join(', ')}, updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          RETURNING *
+          `,
+          vals,
+        )
+        if ((r.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '상담 기록을 찾을 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: mapGovSupportProfileConsultationRow(r.rows[0]) })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.delete(
+    '/government-support/profiles/:profileId/consultations/:consultationId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        if (!isGovernmentProgramUser(ctx)) {
+          res.status(403).json({ message: '상담 이력은 프로그램 이용자만 삭제할 수 있습니다.' })
+          return
+        }
+        const profileId = String(req.params.profileId ?? '').trim()
+        const consultationId = String(req.params.consultationId ?? '').trim()
+        const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+        if (!profileRow) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, profileRow)) {
+          res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+          return
+        }
+        const consultAccess = await loadProfileAccessRowByConsultationId(pool, consultationId)
+        if (!consultAccess) {
+          res.status(404).json({ message: '상담 기록을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, consultAccess)) {
+          res.status(403).json({ message: '상담 접근 권한이 없습니다.' })
+          return
+        }
+        if (consultAccess.archived_at != null) {
+          res.status(404).json({ message: '상담 기록을 찾을 수 없습니다.' })
+          return
+        }
+        const r = await pool.query(
+          `
+          UPDATE gov_support_profile_consultations
+          SET archived_at = NOW(), updated_by_user_id = $3, updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          RETURNING id
+          `,
+          [consultationId, profileId, ctx.userId],
+        )
+        if ((r.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '상담 기록을 찾을 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: { id: String(r.rows[0].id), ok: true } })
       } catch (e) {
         handleDbError(e, req, res)
       }

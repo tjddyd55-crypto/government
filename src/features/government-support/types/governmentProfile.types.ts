@@ -85,3 +85,22 @@ export type GovProfileMemo = {
   updatedAt: string
   archivedAt: string | null
 }
+
+/** 보험 CustomerConsultationRow 대응 — UI 복사 호환 필드(body, consultationDate) 포함 */
+export type GovProfileConsultation = {
+  id: string
+  profileId: string
+  ownerUserId: string
+  consultationType: string
+  title: string
+  content: string
+  body: string
+  status: string
+  consultedAt: string | null
+  consultationDate: string | null
+  createdByUserId: string | null
+  updatedByUserId: string | null
+  createdAt: string
+  updatedAt: string
+  archivedAt: string | null
+}

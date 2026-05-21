@@ -86,3 +86,21 @@ export async function loadProfileAccessRowByMemoId(pool, memoId) {
   )
   return r.rows[0] ?? null
 }
+
+/**
+ * @param {import('pg').Pool | { query: Function }} pool
+ * @param {string} consultationId
+ */
+export async function loadProfileAccessRowByConsultationId(pool, consultationId) {
+  const r = await pool.query(
+    `
+    SELECT p.tenant_id, p.owner_user_id, c.archived_at
+    FROM gov_support_profile_consultations c
+    INNER JOIN gov_support_profiles p ON p.id = c.profile_id
+    WHERE c.id = $1::bigint
+    LIMIT 1
+    `,
+    [consultationId],
+  )
+  return r.rows[0] ?? null
+}

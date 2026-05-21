@@ -212,4 +212,32 @@ export async function ensureGovernmentSupportSchema(executor) {
     ON gov_support_profile_memos (owner_user_id, profile_id)
     WHERE archived_at IS NULL
   `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_profile_consultations (
+      id BIGSERIAL PRIMARY KEY,
+      profile_id BIGINT NOT NULL REFERENCES gov_support_profiles(id) ON DELETE CASCADE,
+      owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      consultation_type TEXT NOT NULL DEFAULT '',
+      title TEXT NOT NULL DEFAULT '',
+      content TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT '',
+      consulted_at DATE,
+      created_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_profile_consultations_profile
+    ON gov_support_profile_consultations (profile_id, consulted_at DESC NULLS LAST, created_at DESC)
+    WHERE archived_at IS NULL
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_profile_consultations_owner
+    ON gov_support_profile_consultations (owner_user_id, profile_id)
+    WHERE archived_at IS NULL
+  `)
 }

@@ -10,6 +10,7 @@ import {
 import type { GovernmentProfileWorkspaceTab } from '../../config/governmentProfileWorkspaceTabs'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
 import GovernmentProfileMemosPanel from './GovernmentProfileMemosPanel'
+import GovernmentProfileConsultationsPanel from './GovernmentProfileConsultationsPanel'
 
 function Field({
   label,
@@ -55,7 +56,7 @@ export default function GovernmentProfileDetailPanels({ tab }: GovernmentProfile
   }
 
   if (tab === 'consultations') {
-    return <EmptyState message="상담 이력 기능을 준비 중입니다." />
+    return <GovernmentProfileConsultationsPanel />
   }
 
   if (tab === 'memos') {

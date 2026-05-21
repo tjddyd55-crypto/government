@@ -246,6 +246,49 @@ async function main() {
   if (!memoListAfterDelete.some((m) => String(m.id) === memoAId)) pass('user A delete memo')
   else fail('user A delete memo')
 
+  const consultCreate = await api(`/government-support/profiles/${profileAId}/consultations`, {
+    token: tokenA,
+    method: 'POST',
+    body: { body: `E2E consult A ${ts}`, consultationDate: '2026-05-19' },
+    expectStatus: 200,
+  })
+  const consultAId = String(consultCreate.json?.data?.id ?? '')
+  if (consultAId) pass('user A create consultation', consultAId)
+  else fail('user A create consultation')
+
+  const consultListA =
+    (await api(`/government-support/profiles/${profileAId}/consultations`, { token: tokenA })).json?.data ?? []
+  if (consultListA.some((c) => String(c.id) === consultAId)) pass('user A consultation in list')
+  else fail('user A consultation in list')
+
+  const consultPatch = await api(`/government-support/profiles/${profileAId}/consultations/${consultAId}`, {
+    token: tokenA,
+    method: 'PATCH',
+    body: { body: `E2E consult A patched ${ts}` },
+    expectStatus: 200,
+  })
+  if (String(consultPatch.json?.data?.body ?? '').includes('patched')) pass('user A patch consultation')
+  else fail('user A patch consultation')
+
+  await api(`/government-support/profiles/${profileAId}/consultations/${consultAId}`, {
+    token: tokenA,
+    method: 'DELETE',
+    expectStatus: 200,
+  })
+  const consultListAfterDelete =
+    (await api(`/government-support/profiles/${profileAId}/consultations`, { token: tokenA })).json?.data ?? []
+  if (!consultListAfterDelete.some((c) => String(c.id) === consultAId)) pass('user A delete consultation')
+  else fail('user A delete consultation')
+
+  const memoRegression = await api(`/government-support/profiles/${profileAId}/memos`, {
+    token: tokenA,
+    method: 'POST',
+    body: { content: `E2E memo regression ${ts}` },
+    expectStatus: 200,
+  })
+  if (memoRegression.json?.data?.id) pass('memo regression create after consultations')
+  else fail('memo regression create after consultations')
+
   const titlesA = ((await api('/government-support/notices', { token: tokenA })).json?.data ?? []).map((n) => n.title)
   if (titlesA.some((t) => t.includes(`E2E WS Global ${ts}`))) pass('user A global notice')
   else fail('user A global notice')
@@ -301,6 +344,18 @@ async function main() {
   if (memoBList.status === 403 || memoBList.status === 404) pass('user B memo list blocked')
   else fail('user B memo list blocked', String(memoBList.status))
 
+  const consultBCreate = await api(`/government-support/profiles/${profileAId}/consultations`, {
+    token: tokenB,
+    method: 'POST',
+    body: { body: 'blocked' },
+  })
+  if (consultBCreate.status === 403 || consultBCreate.status === 404) pass('user B consultation create blocked')
+  else fail('user B consultation create blocked', String(consultBCreate.status))
+
+  const consultBList = await api(`/government-support/profiles/${profileAId}/consultations`, { token: tokenB })
+  if (consultBList.status === 403 || consultBList.status === 404) pass('user B consultation list blocked')
+  else fail('user B consultation list blocked', String(consultBList.status))
+
   // Operational roles — API access shape (frontend redirect tested separately)
   const tokenStaff = await login(uStaff)
   const accessStaff = unwrapData((await api('/government-support/me/access', { token: tokenStaff })).json)
@@ -322,6 +377,14 @@ async function main() {
   const memoAgencyList = await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenAgency })
   if (memoAgencyList.status === 403) pass('agency admin memo list 403')
   else fail('agency admin memo list 403', String(memoAgencyList.status))
+
+  const consultStaffList = await api(`/government-support/profiles/${profileAId}/consultations`, { token: tokenStaff })
+  if (consultStaffList.status === 403) pass('staff consultation list 403')
+  else fail('staff consultation list 403', String(consultStaffList.status))
+
+  const consultAgencyList = await api(`/government-support/profiles/${profileAId}/consultations`, { token: tokenAgency })
+  if (consultAgencyList.status === 403) pass('agency admin consultation list 403')
+  else fail('agency admin consultation list 403', String(consultAgencyList.status))
 
   const accessIndustry = unwrapData((await api('/government-support/me/access', { token: industry })).json)
   if (accessIndustry?.isGovernmentIndustryAdmin === true || accessIndustry?.isSuperAdmin === true) {
