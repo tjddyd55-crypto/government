@@ -327,4 +327,13 @@ export async function ensureGovSignatureSchema(executor) {
     CREATE INDEX IF NOT EXISTS idx_gov_signature_events_session
     ON gov_signature_events(send_session_id, created_at DESC)
   `)
+
+  await executor.query(`
+    ALTER TABLE files
+    ADD COLUMN IF NOT EXISTS owner_user_id TEXT REFERENCES users(id) ON DELETE SET NULL
+  `)
+  await executor.query(`
+    ALTER TABLE files
+    ADD COLUMN IF NOT EXISTS profile_id BIGINT REFERENCES gov_support_profiles(id) ON DELETE SET NULL
+  `)
 }

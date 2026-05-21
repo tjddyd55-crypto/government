@@ -684,8 +684,10 @@ async function insertFinalSignedPdfFileRow(client, p) {
     `
     INSERT INTO files (
       user_id,
+      ga_id,
       owner_user_id,
       profile_id,
+      customer_id,
       team_id,
       folder_id,
       original_name,
@@ -697,10 +699,10 @@ async function insertFinalSignedPdfFileRow(client, p) {
       is_confirmed,
       status
     )
-    VALUES ($1, $2, $3, NULL, NULL, $4, $4, $5, $6, 'application/pdf', '', true, 'active')
+    VALUES ($1, $2, $3, $4, NULL, NULL, NULL, $5, $5, $6, $7, 'application/pdf', '', true, 'active')
     RETURNING id
     `,
-    [p.userId, p.ownerUserId, p.profileId, display, storageKey, p.buf.length],
+    [p.userId, p.gaId, p.ownerUserId, p.profileId, display, storageKey, p.buf.length],
   )
   return { fileId: String(ins.rows[0].id), hashHex }
 }
@@ -942,9 +944,12 @@ async function loadSendSessionRow(pool, signToken) {
       p.phone AS profile_phone_raw,
       p.owner_user_id AS customer_user_id,
       p.owner_user_id AS customer_owner_user_id,
-      p.home_address AS customer_address
+      p.home_address AS customer_address,
+      COALESCE(su.ga_id, ou.ga_id) AS sender_ga_id
     FROM gov_signature_send_sessions css
     INNER JOIN gov_support_profiles p ON p.id = css.profile_id
+    LEFT JOIN users su ON su.id = css.sent_by_user_id
+    LEFT JOIN users ou ON ou.id = p.owner_user_id
     WHERE css.sign_token = $1
     LIMIT 1
     `,
@@ -1329,7 +1334,8 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
           try {
             const insPdf = await insertFinalSignedPdfFileRow(client, {
               userId: fileUserId,
-              ownerUserId: Number(ownerUserIdForFile),
+              gaId: session.sender_ga_id,
+              ownerUserId: String(ownerUserIdForFile),
               profileId: Number(session.profile_id),
               docId,
               sessionId: String(session.id),
@@ -1419,7 +1425,8 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
               })
               const insPdf = await insertFinalSignedPdfFileRow(client, {
                 userId: fileUserId,
-                ownerUserId: Number(ownerUserIdForFile),
+                gaId: session.sender_ga_id,
+                ownerUserId: String(ownerUserIdForFile),
                 profileId: Number(session.profile_id),
                 docId,
                 sessionId: String(session.id),
@@ -1688,7 +1695,8 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
         }
         const fileUserIdCo = session.sent_by_user_id || session.customer_user_id
         const ownerUserIdCo = session.customer_owner_user_id
-        if (!fileUserIdCo || ownerUserIdCo == null) {
+        const gaIdCo = session.sender_ga_id
+        if (!fileUserIdCo || ownerUserIdCo == null || gaIdCo == null) {
           res.status(503).json({
             success: false,
             code: 'signature_file_owner_missing',
@@ -1733,8 +1741,10 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
             `
           INSERT INTO files (
             user_id,
+            ga_id,
             owner_user_id,
             profile_id,
+            customer_id,
             team_id,
             folder_id,
             original_name,
@@ -1746,11 +1756,12 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
             is_confirmed,
             status
           )
-          VALUES ($1, $2, $3, NULL, NULL, $4, $4, $5, $6, 'image/png', '', true, 'active')
+          VALUES ($1, $2, $3, $4, NULL, NULL, NULL, $5, $5, $6, $7, 'image/png', '', true, 'active')
           RETURNING id
           `,
             [
               fileUserIdCo,
+              gaIdCo,
               ownerUserIdCo,
               session.profile_id,
               `contract-signature-${CONFIRMATION_ONLY_SIGNATURE_FIELD_KEY}.png`,
@@ -1845,7 +1856,8 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
       }
       const fileUserId = session.sent_by_user_id || session.customer_user_id
       const ownerUserId = session.customer_owner_user_id
-      if (!fileUserId || ownerUserId == null) {
+      const gaId = session.sender_ga_id
+      if (!fileUserId || ownerUserId == null || gaId == null) {
         res.status(503).json({
           success: false,
           code: 'signature_file_owner_missing',
@@ -1885,8 +1897,10 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
           `
           INSERT INTO files (
             user_id,
+            ga_id,
             owner_user_id,
             profile_id,
+            customer_id,
             team_id,
             folder_id,
             original_name,
@@ -1898,11 +1912,12 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
             is_confirmed,
             status
           )
-          VALUES ($1, $2, $3, NULL, NULL, $4, $4, $5, $6, 'image/png', '', true, 'active')
+          VALUES ($1, $2, $3, $4, NULL, NULL, NULL, $5, $5, $6, $7, 'image/png', '', true, 'active')
           RETURNING id
           `,
           [
             fileUserId,
+            gaId,
             ownerUserId,
             session.profile_id,
             `contract-signature-${targetField.id}.png`,

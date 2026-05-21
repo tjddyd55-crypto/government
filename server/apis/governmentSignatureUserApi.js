@@ -1042,12 +1042,20 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           return
         }
         const contentHash = createHash('sha256').update(f.buffer).digest('hex')
+        const gaRow = await pool.query(`SELECT ga_id FROM users WHERE id = $1 LIMIT 1`, [String(uid)])
+        const gaId = gaRow.rows[0]?.ga_id
+        if (gaId == null) {
+          res.status(503).json({ ok: false, message: '파일 저장에 필요한 GA 정보가 없습니다.' })
+          return
+        }
         const ins = await pool.query(
           `
           INSERT INTO files (
             user_id,
+            ga_id,
             owner_user_id,
             profile_id,
+            customer_id,
             team_id,
             folder_id,
             original_name,
@@ -1059,10 +1067,10 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
             is_confirmed,
             status
           )
-          VALUES ($1, $2, $3, NULL, NULL, $4, $4, $5, $6, $7, '', true, 'active')
+          VALUES ($1, $2, $3, $4, NULL, NULL, NULL, $5, $5, $6, $7, $8, '', true, 'active')
           RETURNING id
           `,
-          [String(uid), ownerUserId, profileId, displayBase, storageKey, f.buffer.length, mime],
+          [String(uid), gaId, ownerUserId, profileId, displayBase, storageKey, f.buffer.length, mime],
         )
         const fileId = String(ins.rows[0].id)
         res.status(201).json({
