@@ -11,6 +11,8 @@ import {
   GOVERNMENT_STAFF_NAV,
   type GovernmentAdminNavItem,
 } from '../config/governmentAdminNav'
+import { buildGovernmentAdminMobileMenu } from '../config/governmentAppMenu'
+import GovernmentMobileWorkspaceShell from '../components/GovernmentMobileWorkspaceShell'
 import { canManageGovernmentUsers, isGovernmentProgramUser } from '../lib/governmentAccess'
 import { canAccessUserOwnedWorkspace } from '../lib/governmentHome'
 import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
@@ -35,14 +37,8 @@ function AdminNav({ items, className }: { items: GovernmentAdminNavItem[]; class
   )
 }
 
-export default function GovernmentAdminLayout() {
-  useDocumentTitle(`${GOVERNMENT_APP_TITLE} · 관리`)
-  const { token, logout } = useAuth()
-  const { summary } = useGovernmentAccess(token)
-  const isMobile = useIsMobile()
-  const showWorkspaceLink = canAccessUserOwnedWorkspace(summary)
-
-  const navItems = useMemo(() => {
+function useGovernmentAdminNavItems(summary: ReturnType<typeof useGovernmentAccess>['summary']) {
+  return useMemo(() => {
     const items: GovernmentAdminNavItem[] = []
     const isIndustry = Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
     const isAgencyAdmin = canManageGovernmentUsers(summary)
@@ -71,6 +67,39 @@ export default function GovernmentAdminLayout() {
     }
     return items
   }, [summary])
+}
+
+export default function GovernmentAdminLayout() {
+  useDocumentTitle(`${GOVERNMENT_APP_TITLE} · 관리`)
+  const { token, logout } = useAuth()
+  const { summary } = useGovernmentAccess(token)
+  const isMobile = useIsMobile()
+  const showWorkspaceLink = canAccessUserOwnedWorkspace(summary)
+  const navItems = useGovernmentAdminNavItems(summary)
+  const mobileMenuItems = useMemo(() => buildGovernmentAdminMobileMenu(summary), [summary])
+
+  if (isMobile) {
+    return (
+      <main
+        className={`page government-page government-admin-layout government-admin-layout--mobile ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
+      >
+        <GovernmentMobileWorkspaceShell
+          title="정부지원 CRM · 관리"
+          menuItems={mobileMenuItems}
+          onLogout={logout}
+        >
+          {showWorkspaceLink ? (
+            <div className="government-admin-layout__mobile-workspace-link">
+              <Link to="/government/my-applications">내 고객/신청</Link>
+            </div>
+          ) : null}
+          <div className="government-admin-layout__content">
+            <Outlet />
+          </div>
+        </GovernmentMobileWorkspaceShell>
+      </main>
+    )
+  }
 
   return (
     <main
@@ -90,23 +119,14 @@ export default function GovernmentAdminLayout() {
         </FormButton>
       </header>
 
-      {isMobile ? (
-        <div className="government-admin-layout__mobile">
-          <AdminNav items={navItems} className="government-admin-layout__nav government-admin-layout__nav--mobile" />
-          <div className="government-admin-layout__content">
-            <Outlet />
-          </div>
+      <div className="government-admin-layout__body">
+        <aside className="government-admin-layout__sidebar">
+          <AdminNav items={navItems} className="government-admin-layout__nav" />
+        </aside>
+        <div className="government-admin-layout__content">
+          <Outlet />
         </div>
-      ) : (
-        <div className="government-admin-layout__body">
-          <aside className="government-admin-layout__sidebar">
-            <AdminNav items={navItems} className="government-admin-layout__nav" />
-          </aside>
-          <div className="government-admin-layout__content">
-            <Outlet />
-          </div>
-        </div>
-      )}
+      </div>
     </main>
   )
 }

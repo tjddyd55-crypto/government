@@ -5,6 +5,8 @@ import useIsMobile from '../../../hooks/useIsMobile'
 import { useAuth } from '../../auth/AuthProvider'
 import FormButton from '../../../components/form/FormButton'
 import { GOVERNMENT_USER_NAV } from '../config/governmentUserNav'
+import { buildGovernmentUserMobileMenu } from '../config/governmentAppMenu'
+import GovernmentMobileWorkspaceShell from '../components/GovernmentMobileWorkspaceShell'
 import '../government-support.css'
 
 function UserNav({ className }: { className?: string }) {
@@ -30,6 +32,25 @@ export default function GovernmentUserLayout() {
   useDocumentTitle(GOVERNMENT_APP_TITLE)
   const { logout } = useAuth()
   const isMobile = useIsMobile()
+  const mobileMenuItems = buildGovernmentUserMobileMenu()
+
+  if (isMobile) {
+    return (
+      <main
+        className={`page government-page government-user-layout government-user-layout--mobile ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
+      >
+        <GovernmentMobileWorkspaceShell
+          title="정부지원 CRM"
+          menuItems={mobileMenuItems}
+          onLogout={logout}
+        >
+          <div className="government-user-layout__content">
+            <Outlet />
+          </div>
+        </GovernmentMobileWorkspaceShell>
+      </main>
+    )
+  }
 
   return (
     <main
@@ -42,23 +63,14 @@ export default function GovernmentUserLayout() {
         </FormButton>
       </header>
 
-      {isMobile ? (
-        <div className="government-user-layout__mobile">
-          <UserNav className="government-user-layout__nav government-user-layout__nav--mobile" />
-          <div className="government-user-layout__content">
-            <Outlet />
-          </div>
+      <div className="government-user-layout__body">
+        <aside className="government-user-layout__sidebar">
+          <UserNav className="government-user-layout__nav" />
+        </aside>
+        <div className="government-user-layout__content">
+          <Outlet />
         </div>
-      ) : (
-        <div className="government-user-layout__body">
-          <aside className="government-user-layout__sidebar">
-            <UserNav className="government-user-layout__nav" />
-          </aside>
-          <div className="government-user-layout__content">
-            <Outlet />
-          </div>
-        </div>
-      )}
+      </div>
     </main>
   )
 }

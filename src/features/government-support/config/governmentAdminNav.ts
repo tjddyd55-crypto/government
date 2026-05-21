@@ -31,6 +31,7 @@ export const GOVERNMENT_AGENCY_ADMIN_NAV: GovernmentAdminNavItem[] = [
 export const GOVERNMENT_STAFF_NAV: GovernmentAdminNavItem[] = [
   { to: '/government/admin/notices', label: '공지/전달사항' },
   RESOURCES_NAV,
+  { to: '/government/admin/settings', label: '내 정보' },
 ]
 
 /** @deprecated — 레이아웃에서 역할별 배열 조합 */

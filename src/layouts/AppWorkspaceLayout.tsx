@@ -12,6 +12,7 @@ import { Button, Modal } from '../components/ui'
 import ResponsiveLayout from '../components/ResponsiveLayout'
 import PCHeader from '../components/layout/PCHeader'
 import { useAuth } from '../features/auth/AuthProvider'
+import GovernmentInsuranceRouteGuard from '../features/government-support/routes/GovernmentInsuranceRouteGuard'
 import { formatGaBannerLabel, shouldShowGaTenantChrome } from '../navigation/gaTenantBarShared'
 import { buildAppMenuForSession } from '../features/dashboard/gaTenantMenu'
 import { ExpiredBanner } from '../features/subscription/components/ExpiredBanner'
@@ -173,7 +174,11 @@ export function MobileLayout() {
 
 /** 인증 라우트 전역: PC/모바일 레이아웃을 완전히 분리해 렌더링한다. */
 export default function AppWorkspaceLayout() {
-  return <ResponsiveLayout PC={PCLayout} Mobile={MobileLayout} />
+  return (
+    <GovernmentInsuranceRouteGuard>
+      <ResponsiveLayout PC={PCLayout} Mobile={MobileLayout} />
+    </GovernmentInsuranceRouteGuard>
+  )
 }
 
 function AppWorkspaceLayoutMobileShell() {

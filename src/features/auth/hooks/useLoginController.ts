@@ -4,6 +4,8 @@ import { useAuth } from '../AuthProvider'
 import { login as loginApi } from '../authApi'
 import { resolveAuthLandingPath } from '../landing'
 import useIsMobile from '../../../hooks/useIsMobile'
+import { isGovernmentGaSession } from '../../government-support/lib/isGovernmentGaSession'
+import { resolveGovernmentSessionHomePath } from '../../government-support/lib/resolveGovernmentSessionHomePath'
 
 /**
  * 로그인 페이지가 소비하는 "일시적 플래시 메시지".
@@ -52,7 +54,7 @@ export type UseLoginControllerResult = {
 export function useLoginController(): UseLoginControllerResult {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated, login, user } = useAuth()
+  const { isAuthenticated, login, user, token } = useAuth()
   const isMobile = useIsMobile()
   const flash = (location.state ?? {}) as LoginFlash
 
@@ -63,10 +65,36 @@ export function useLoginController(): UseLoginControllerResult {
   const [version, setVersion] = useState('')
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate(resolveAuthLandingPath(isMobile, user?.role), { replace: true })
+    if (!isAuthenticated || !user) {
+      return
     }
-  }, [isAuthenticated, isMobile, navigate, user?.role])
+    if (isGovernmentGaSession(user)) {
+      return
+    }
+    navigate(resolveAuthLandingPath(isMobile, user?.role), { replace: true })
+  }, [isAuthenticated, isMobile, navigate, user])
+
+  useEffect(() => {
+    if (!isAuthenticated || !user || !token?.trim() || !isGovernmentGaSession(user)) {
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      try {
+        const path = await resolveGovernmentSessionHomePath({ token, user }, isMobile)
+        if (!cancelled) {
+          navigate(path, { replace: true })
+        }
+      } catch {
+        if (!cancelled) {
+          navigate('/government/login', { replace: true })
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, isMobile, navigate, token, user])
 
   useEffect(() => {
     let cancelled = false
@@ -102,6 +130,11 @@ export function useLoginController(): UseLoginControllerResult {
     try {
       const session = await loginApi(username, password)
       login(session)
+      if (isGovernmentGaSession(session.user)) {
+        const path = await resolveGovernmentSessionHomePath(session, isMobile)
+        navigate(path, { replace: true })
+        return
+      }
       navigate(resolveAuthLandingPath(isMobile, session.user.role), { replace: true })
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : '로그인에 실패했습니다.')

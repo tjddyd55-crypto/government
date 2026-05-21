@@ -75,7 +75,6 @@ export function useGovernmentLoginController(): UseGovernmentLoginControllerResu
     try {
       const session = await loginApi(username, password)
       login(session)
-      navigate('/government/workspace', { replace: true })
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : '로그인에 실패했습니다.')
     } finally {
