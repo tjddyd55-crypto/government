@@ -4,6 +4,7 @@ import { normalizeKrMobile, validateKrMobileDigits } from '../lib/phoneNormalize
 import { maskKrMobileForDisplay } from '../utils/maskKrMobile.js'
 import { getGovernmentSignatureOtpPepper, isRunningInProduction } from '../lib/governmentSignatureOtpConfig.js'
 import { encryptGovSignatureTargetPhoneDigits } from '../lib/governmentSignatureStoredPhone.js'
+import { isGovernmentRailwayDevelop } from '../lib/smsDebugExposure.js'
 import {
   assertSenderFieldValuesFilled,
   insertGovSenderPrefillDocumentValues,
@@ -292,7 +293,7 @@ export function buildTargetPhoneSnapshot(digits) {
     }
     encrypted = null
   }
-  if (isRunningInProduction() && !encrypted) {
+  if (isRunningInProduction() && !encrypted && !isGovernmentRailwayDevelop()) {
     throw new Error('[contract phone] GOV_SIGNATURE_TARGET_PHONE_ENCRYPTION_KEY is not set')
   }
   return {

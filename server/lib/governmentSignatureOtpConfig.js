@@ -6,6 +6,7 @@ import {
   getContractOtpResendCooldownSeconds,
   isRunningInProduction,
 } from './contractOtpConfig.js'
+import { isGovernmentRailwayDevelop } from './smsDebugExposure.js'
 
 const RUNNING_IN_PRODUCTION =
   process.env.NODE_ENV === 'production' || Boolean(process.env.RAILWAY_ENVIRONMENT)
@@ -41,6 +42,9 @@ export function getGovernmentSignatureOtpPepper() {
   ).trim()
   if (RUNNING_IN_PRODUCTION) {
     if (p.length < 16) {
+      if (isGovernmentRailwayDevelop()) {
+        return 'dev-gov-signature-otp-pepper-railway-develop-only'
+      }
       throw new Error(
         '[gov signature OTP] GOV_SIGNATURE_OTP_PEPPER must be set (min 16 chars) in production',
       )
