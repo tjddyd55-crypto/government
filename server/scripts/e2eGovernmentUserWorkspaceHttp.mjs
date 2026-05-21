@@ -8,15 +8,20 @@ import {
   e2eLogin,
   resolveE2eGovernmentHttpConfig,
 } from './lib/e2eGovernmentHttpEnv.mjs'
+import {
+  resolveE2eProgramUsers,
+  tryResolveIndustryAdminToken,
+} from './lib/e2eGovernmentSignatureSelfSeed.mjs'
 
 const {
   base: BASE,
   api: API,
   password: PASS,
+  hasPassword,
   adminLoginId: ADMIN,
   programUserA,
   programUserB,
-} = resolveE2eGovernmentHttpConfig({ requirePassword: true })
+} = resolveE2eGovernmentHttpConfig({ requirePassword: false })
 
 const { pass, fail, summary } = createE2eReporter()
 const tag = Date.now().toString(36)
@@ -25,8 +30,12 @@ async function api(path, opts = {}) {
   return e2eApi(API, path, opts)
 }
 
-async function login(username) {
-  return e2eLogin(API, username, PASS)
+async function login(username, password = PASS) {
+  return e2eLogin(API, username, password)
+}
+
+function skip(name, detail = '') {
+  pass(name, detail ? `SKIP — ${detail}` : 'SKIP')
 }
 
 function unwrapData(json) {
@@ -55,42 +64,72 @@ async function main() {
   if (homeHtml.status === 200) pass('GET /government/workspace', homeHtml.bundle ?? '')
   else fail('GET /government/workspace', String(homeHtml.status))
 
-  const navMarkers = ['government-user-layout', '/government/my-applications', '내 고객/신청', '/government/me']
+  const navMarkers = [
+    'government-user-layout',
+    '/government/my-applications',
+    '내 고객/신청',
+    '/government/me',
+    '서류/파일',
+    '/files/presign',
+  ]
   for (const m of navMarkers) {
     if (homeHtml.js.includes(m)) pass(`bundle contains ${m}`)
     else fail(`bundle contains ${m}`)
   }
 
-  const industry = await login(ADMIN)
-  pass('industry admin login')
+  /** @type {string | null} */
+  let industry = null
+  if (hasPassword) {
+    industry = await login(ADMIN)
+    pass('industry admin login')
+  } else {
+    industry = await tryResolveIndustryAdminToken(API, { adminLoginId: ADMIN, optionalPassword: PASS })
+    if (industry) pass('industry admin login')
+    else skip('industry admin login', 'E2E_GOVERNMENT_PASSWORD 없음')
+  }
 
-  const agencies = (await api('/government-support/admin/agencies', { token: industry })).json?.data ?? []
-  let tenantA = agencies[0]?.id
-  let tenantB = agencies[1]?.id
-  if (!tenantA || !tenantB) fail('tenants A/B', 'need two agencies')
-  else pass('tenants ready', `A=${tenantA} B=${tenantB}`)
-
+  let tenantA = null
+  let tenantB = null
   const uStaff = `e2e_st_ws_${tag}`
   const uAgency = `e2e_aa_ws_${tag}`
-  for (const [u, role] of [
-    [uStaff, 'government_staff'],
-    [uAgency, 'government_agency_admin'],
-  ]) {
-    try {
-      await api('/government-support/admin/users', {
-        token: industry,
-        method: 'POST',
-        body: { username: u, password: PASS, role, tenantId: tenantA, displayName: u },
-        expectStatus: 200,
-      })
-      pass(`create ${role}`, u)
-    } catch (e) {
-      if (String(e.message).includes('409')) pass(`reuse ${role}`, u)
-      else throw e
+
+  if (industry) {
+    const agencies = (await api('/government-support/admin/agencies', { token: industry })).json?.data ?? []
+    tenantA = agencies[0]?.id
+    tenantB = agencies[1]?.id
+    if (!tenantA || !tenantB) fail('tenants A/B', 'need two agencies')
+    else pass('tenants ready', `A=${tenantA} B=${tenantB}`)
+
+    for (const [u, role] of [
+      [uStaff, 'government_staff'],
+      [uAgency, 'government_agency_admin'],
+    ]) {
+      try {
+        await api('/government-support/admin/users', {
+          token: industry,
+          method: 'POST',
+          body: { username: u, password: PASS, role, tenantId: tenantA, displayName: u },
+          expectStatus: 200,
+        })
+        pass(`create ${role}`, u)
+      } catch (e) {
+        if (String(e.message).includes('409')) pass(`reuse ${role}`, u)
+        else throw e
+      }
     }
+  } else {
+    skip('tenants A/B', 'admin token unavailable')
+    skip('create government_staff', 'admin token unavailable')
+    skip('create government_agency_admin', 'admin token unavailable')
   }
 
   const ts = Date.now()
+  /** @type {string | undefined} */
+  let resourceId
+  if (!industry) {
+    skip('notices seeded', 'admin token unavailable')
+    skip('resource A published', 'admin token unavailable')
+  } else {
   const globalPub = await api('/government-support/admin/notices', {
     token: industry,
     method: 'POST',
@@ -155,7 +194,8 @@ async function main() {
     },
     expectStatus: 200,
   })
-  const { uploadUrl, objectKey, resourceId } = presign.json?.data ?? {}
+  const { uploadUrl, objectKey, resourceId: seededResourceId } = presign.json?.data ?? {}
+  resourceId = seededResourceId
   const fileBody = `ws-e2e-${ts}`
   await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'application/pdf' }, body: fileBody })
   await api('/government-support/admin/resources', {
@@ -174,10 +214,19 @@ async function main() {
     expectStatus: 200,
   })
   pass('resource A published', String(resourceId))
+  }
+
+  const programUsers = await resolveE2eProgramUsers(API, {
+    optionalPassword: PASS,
+    userA: programUserA,
+    userB: programUserB,
+  })
+  pass('program user A ready', `${programUsers.userA.username} (${programUsers.userA.seeded ? 'http-register' : 'env-login'})`)
+  pass('program user B ready', `${programUsers.userB.username} (${programUsers.userB.seeded ? 'http-register' : 'env-login'})`)
 
   // Program user A
-  const tokenA = await login(programUserA)
-  pass('program user A login', programUserA)
+  const tokenA = programUsers.userA.token
+  pass('program user A login', programUsers.userA.username)
 
   const accessA = unwrapData((await api('/government-support/me/access', { token: tokenA })).json)
   if (accessA?.isGovernmentProgramUser === true) pass('user A is program user')
@@ -188,7 +237,7 @@ async function main() {
   else fail('user A accountCreatedAt present')
 
   const meA = unwrapData((await api('/me', { token: tokenA })).json)
-  if (meA?.username === programUserA) pass('user A me username')
+  if (meA?.username === programUsers.userA.username) pass('user A me username')
   else fail('user A me username')
   if (meA?.status) pass('user A me status', meA.status)
 
@@ -403,22 +452,31 @@ async function main() {
   if (memoRegression.json?.data?.id) pass('memo regression create after consultations')
   else fail('memo regression create after consultations')
 
-  const titlesA = ((await api('/government-support/notices', { token: tokenA })).json?.data ?? []).map((n) => n.title)
-  if (titlesA.some((t) => t.includes(`E2E WS Global ${ts}`))) pass('user A global notice')
-  else fail('user A global notice')
-  if (titlesA.some((t) => t.includes(`E2E WS AgencyA ${ts}`))) pass('user A agency A notice')
-  else fail('user A agency A notice')
-  if (titlesA.some((t) => t.includes(`E2E WS AgencyB ${ts}`))) fail('user A agency B isolation')
-  else pass('user A agency B isolation')
-  if (titlesA.some((t) => t.includes(`E2E WS Draft ${ts}`))) fail('user A draft hidden')
-  else pass('user A draft hidden')
+  if (industry) {
+    const titlesA = ((await api('/government-support/notices', { token: tokenA })).json?.data ?? []).map((n) => n.title)
+    if (titlesA.some((t) => t.includes(`E2E WS Global ${ts}`))) pass('user A global notice')
+    else fail('user A global notice')
+    if (titlesA.some((t) => t.includes(`E2E WS AgencyA ${ts}`))) pass('user A agency A notice')
+    else fail('user A agency A notice')
+    if (titlesA.some((t) => t.includes(`E2E WS AgencyB ${ts}`))) fail('user A agency B isolation')
+    else pass('user A agency B isolation')
+    if (titlesA.some((t) => t.includes(`E2E WS Draft ${ts}`))) fail('user A draft hidden')
+    else pass('user A draft hidden')
 
-  const resA = ((await api('/government-support/resources', { token: tokenA })).json?.data ?? []).map((r) => r.title)
-  if (resA.some((t) => t.includes(`E2E WS ResourceA ${ts}`))) pass('user A resource A')
-  else fail('user A resource A')
-  const dl = await api(`/government-support/resources/${resourceId}/download`, { token: tokenA })
-  if (dl.status === 200 || dl.json?.data?.downloadUrl || dl.json?.data?.url) pass('user A download')
-  else fail('user A download', String(dl.status))
+    const resA = ((await api('/government-support/resources', { token: tokenA })).json?.data ?? []).map((r) => r.title)
+    if (resA.some((t) => t.includes(`E2E WS ResourceA ${ts}`))) pass('user A resource A')
+    else fail('user A resource A')
+    const dl = await api(`/government-support/resources/${resourceId}/download`, { token: tokenA })
+    if (dl.status === 200 || dl.json?.data?.downloadUrl || dl.json?.data?.url) pass('user A download')
+    else fail('user A download', String(dl.status))
+  } else {
+    skip('user A global notice', 'admin seed skipped')
+    skip('user A agency A notice', 'admin seed skipped')
+    skip('user A agency B isolation', 'admin seed skipped')
+    skip('user A draft hidden', 'admin seed skipped')
+    skip('user A resource A', 'admin seed skipped')
+    skip('user A download', 'admin seed skipped')
+  }
 
   try {
     await api('/government-support/admin/notices', {
@@ -433,8 +491,8 @@ async function main() {
   }
 
   // Program user B isolation
-  const tokenB = await login(programUserB)
-  pass('program user B login', programUserB)
+  const tokenB = programUsers.userB.token
+  pass('program user B login', programUsers.userB.username)
   const listB = (await api('/government-support/profiles', { token: tokenB })).json?.data ?? []
   if (!listB.some((p) => String(p.id) === profileAId)) pass('user B cannot list A profile')
   else fail('user B cannot list A profile')
@@ -505,50 +563,68 @@ async function main() {
   else fail('user B file presign blocked', String(fileBCreate.status))
 
   // Operational roles — API access shape (frontend redirect tested separately)
-  const tokenStaff = await login(uStaff)
-  const accessStaff = unwrapData((await api('/government-support/me/access', { token: tokenStaff })).json)
-  if (accessStaff?.isGovernmentProgramUser !== true) pass('staff not program user')
-  else fail('staff not program user')
-  const staffProfiles = await api('/government-support/profiles', { token: tokenStaff })
-  if (staffProfiles.status === 200 && (staffProfiles.json?.data ?? []).length === 0) pass('staff profiles empty')
-  else fail('staff profiles empty')
+  if (industry) {
+    const tokenStaff = await login(uStaff)
+    const accessStaff = unwrapData((await api('/government-support/me/access', { token: tokenStaff })).json)
+    if (accessStaff?.isGovernmentProgramUser !== true) pass('staff not program user')
+    else fail('staff not program user')
+    const staffProfiles = await api('/government-support/profiles', { token: tokenStaff })
+    if (staffProfiles.status === 200 && (staffProfiles.json?.data ?? []).length === 0) pass('staff profiles empty')
+    else fail('staff profiles empty')
 
-  const tokenAgency = await login(uAgency)
-  const accessAgency = unwrapData((await api('/government-support/me/access', { token: tokenAgency })).json)
-  if (accessAgency?.isGovernmentProgramUser !== true) pass('agency admin not program user')
-  else fail('agency admin not program user')
+    const tokenAgency = await login(uAgency)
+    const accessAgency = unwrapData((await api('/government-support/me/access', { token: tokenAgency })).json)
+    if (accessAgency?.isGovernmentProgramUser !== true) pass('agency admin not program user')
+    else fail('agency admin not program user')
 
-  const memoStaffList = await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenStaff })
-  if (memoStaffList.status === 403) pass('staff memo list 403')
-  else fail('staff memo list 403', String(memoStaffList.status))
+    const memoStaffList = await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenStaff })
+    if (memoStaffList.status === 403) pass('staff memo list 403')
+    else fail('staff memo list 403', String(memoStaffList.status))
 
-  const memoAgencyList = await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenAgency })
-  if (memoAgencyList.status === 403) pass('agency admin memo list 403')
-  else fail('agency admin memo list 403', String(memoAgencyList.status))
+    const memoAgencyList = await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenAgency })
+    if (memoAgencyList.status === 403) pass('agency admin memo list 403')
+    else fail('agency admin memo list 403', String(memoAgencyList.status))
 
-  const consultStaffList = await api(`/government-support/profiles/${profileAId}/consultations`, { token: tokenStaff })
-  if (consultStaffList.status === 403) pass('staff consultation list 403')
-  else fail('staff consultation list 403', String(consultStaffList.status))
+    const consultStaffList = await api(`/government-support/profiles/${profileAId}/consultations`, { token: tokenStaff })
+    if (consultStaffList.status === 403) pass('staff consultation list 403')
+    else fail('staff consultation list 403', String(consultStaffList.status))
 
-  const consultAgencyList = await api(`/government-support/profiles/${profileAId}/consultations`, { token: tokenAgency })
-  if (consultAgencyList.status === 403) pass('agency admin consultation list 403')
-  else fail('agency admin consultation list 403', String(consultAgencyList.status))
+    const consultAgencyList = await api(`/government-support/profiles/${profileAId}/consultations`, { token: tokenAgency })
+    if (consultAgencyList.status === 403) pass('agency admin consultation list 403')
+    else fail('agency admin consultation list 403', String(consultAgencyList.status))
 
-  const progressStaffList = await api(`/government-support/profiles/${profileAId}/progress`, { token: tokenStaff })
-  if (progressStaffList.status === 403) pass('staff progress list 403')
-  else fail('staff progress list 403', String(progressStaffList.status))
+    const progressStaffList = await api(`/government-support/profiles/${profileAId}/progress`, { token: tokenStaff })
+    if (progressStaffList.status === 403) pass('staff progress list 403')
+    else fail('staff progress list 403', String(progressStaffList.status))
 
-  const progressAgencyList = await api(`/government-support/profiles/${profileAId}/progress`, { token: tokenAgency })
-  if (progressAgencyList.status === 403) pass('agency admin progress list 403')
-  else fail('agency admin progress list 403', String(progressAgencyList.status))
+    const progressAgencyList = await api(`/government-support/profiles/${profileAId}/progress`, { token: tokenAgency })
+    if (progressAgencyList.status === 403) pass('agency admin progress list 403')
+    else fail('agency admin progress list 403', String(progressAgencyList.status))
 
-  const fileStaffList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenStaff })
-  if (fileStaffList.status === 403) pass('staff file list 403')
-  else fail('staff file list 403', String(fileStaffList.status))
+    const fileStaffList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenStaff })
+    if (fileStaffList.status === 403) pass('staff file list 403')
+    else fail('staff file list 403', String(fileStaffList.status))
 
-  const fileAgencyList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenAgency })
-  if (fileAgencyList.status === 403) pass('agency admin file list 403')
-  else fail('agency admin file list 403', String(fileAgencyList.status))
+    const fileAgencyList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenAgency })
+    if (fileAgencyList.status === 403) pass('agency admin file list 403')
+    else fail('agency admin file list 403', String(fileAgencyList.status))
+  } else {
+    for (const name of [
+      'staff not program user',
+      'staff profiles empty',
+      'agency admin not program user',
+      'staff memo list 403',
+      'agency admin memo list 403',
+      'staff consultation list 403',
+      'agency admin consultation list 403',
+      'staff progress list 403',
+      'agency admin progress list 403',
+      'staff file list 403',
+      'agency admin file list 403',
+    ]) {
+      skip(name, 'admin credentials unavailable')
+    }
+  }
 
   await api(`/government-support/profiles/${profileAId}/files/${profileFileId}`, {
     token: tokenA,
@@ -560,10 +636,14 @@ async function main() {
   if (!fileListAfterDelete.some((f) => String(f.id) === profileFileId)) pass('user A delete profile file')
   else fail('user A delete profile file')
 
-  const accessIndustry = unwrapData((await api('/government-support/me/access', { token: industry })).json)
-  if (accessIndustry?.isGovernmentIndustryAdmin === true || accessIndustry?.isSuperAdmin === true) {
-    pass('industry admin operational')
-  } else fail('industry admin operational')
+  if (industry) {
+    const accessIndustry = unwrapData((await api('/government-support/me/access', { token: industry })).json)
+    if (accessIndustry?.isGovernmentIndustryAdmin === true || accessIndustry?.isSuperAdmin === true) {
+      pass('industry admin operational')
+    } else fail('industry admin operational')
+  } else {
+    skip('industry admin operational', 'admin credentials unavailable')
+  }
 
   // SPA routes exist in bundle for staff (redirect is client-side)
   const staffBundle = (await fetchHtml('/government/admin/notices')).js
