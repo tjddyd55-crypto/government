@@ -391,7 +391,11 @@ async function main() {
         `/government-support/public/signatures/${encodeURIComponent(signToken)}/documents/${encodeURIComponent(docInstanceId)}/complete`,
         {
           method: 'POST',
-          body: { acknowledgeElectronicContract: true },
+          body: {
+            finalPreviewConfirmed: true,
+            finalSubmitAcknowledged: true,
+            acknowledgeElectronicContract: true,
+          },
         },
       )
       if (complete.status === 200) pass('public document complete')
