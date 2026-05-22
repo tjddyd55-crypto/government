@@ -394,4 +394,70 @@ export async function ensureGovernmentSupportSchema(executor) {
     ON gov_support_document_request_files (item_id, created_at DESC)
     WHERE archived_at IS NULL
   `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_inquiries (
+      id BIGSERIAL PRIMARY KEY,
+      profile_id BIGINT REFERENCES gov_support_profiles(id) ON DELETE SET NULL,
+      owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      title TEXT NOT NULL DEFAULT '',
+      content TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'open',
+      created_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      assigned_to_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      last_replied_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_inquiries_owner
+    ON gov_support_inquiries (owner_user_id, created_at DESC)
+    WHERE archived_at IS NULL
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_inquiries_tenant
+    ON gov_support_inquiries (tenant_id, updated_at DESC)
+    WHERE archived_at IS NULL
+  `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_inquiry_messages (
+      id BIGSERIAL PRIMARY KEY,
+      inquiry_id BIGINT NOT NULL REFERENCES gov_support_inquiries(id) ON DELETE CASCADE,
+      owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      sender_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      sender_role TEXT NOT NULL DEFAULT 'government_user',
+      message TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_inquiry_messages_inquiry
+    ON gov_support_inquiry_messages (inquiry_id, created_at ASC, id ASC)
+    WHERE archived_at IS NULL
+  `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_inquiry_files (
+      id BIGSERIAL PRIMARY KEY,
+      inquiry_id BIGINT NOT NULL REFERENCES gov_support_inquiries(id) ON DELETE CASCADE,
+      message_id BIGINT REFERENCES gov_support_inquiry_messages(id) ON DELETE SET NULL,
+      owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      file_name TEXT NOT NULL DEFAULT '',
+      file_key TEXT NOT NULL DEFAULT '',
+      file_size BIGINT NOT NULL DEFAULT 0,
+      mime_type TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_inquiry_files_inquiry
+    ON gov_support_inquiry_files (inquiry_id, created_at DESC)
+    WHERE archived_at IS NULL
+  `)
 }

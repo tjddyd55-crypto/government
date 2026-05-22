@@ -171,3 +171,119 @@ export async function downloadGovCustomerSignaturePdf(
   if (!row?.downloadUrl) throw new Error('다운로드 URL을 받지 못했습니다.')
   return row
 }
+
+export type GovCustomerInquiryListItem = {
+  id: string
+  title: string
+  content: string
+  status: string
+  messageCount: number
+  fileCount: number
+  lastRepliedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type GovCustomerInquiryMessage = {
+  id: string
+  inquiryId: string
+  senderUserId: string
+  senderRole: string
+  senderUsername: string | null
+  message: string
+  createdAt: string
+}
+
+export type GovCustomerInquiryFile = {
+  id: string
+  inquiryId: string
+  messageId: string | null
+  fileName: string
+  fileSize: number
+  mimeType: string
+  createdAt: string
+}
+
+export type GovCustomerInquiryDetail = GovCustomerInquiryListItem & {
+  messages: GovCustomerInquiryMessage[]
+  files: GovCustomerInquiryFile[]
+}
+
+export async function fetchGovCustomerInquiries(token: string): Promise<GovCustomerInquiryListItem[]> {
+  const raw = await apiRequest<unknown>('/api/government-support/my/inquiries', { method: 'GET', token })
+  return unwrapList<GovCustomerInquiryListItem>(raw)
+}
+
+export async function createGovCustomerInquiry(
+  token: string,
+  payload: { title?: string; content: string },
+): Promise<GovCustomerInquiryListItem> {
+  const raw = await apiRequest<unknown>('/api/government-support/my/inquiries', {
+    method: 'POST',
+    token,
+    body: JSON.stringify(payload),
+  })
+  const row = unwrapData<GovCustomerInquiryListItem>(raw)
+  if (!row) throw new Error('문의 등록에 실패했습니다.')
+  return row
+}
+
+export async function fetchGovCustomerInquiryDetail(
+  token: string,
+  inquiryId: string,
+): Promise<GovCustomerInquiryDetail> {
+  const raw = await apiRequest<unknown>(`/api/government-support/my/inquiries/${inquiryId}`, {
+    method: 'GET',
+    token,
+  })
+  const row = unwrapData<GovCustomerInquiryDetail>(raw)
+  if (!row) throw new Error('문의를 불러오지 못했습니다.')
+  return row
+}
+
+export async function postGovCustomerInquiryMessage(
+  token: string,
+  inquiryId: string,
+  message: string,
+): Promise<GovCustomerInquiryMessage> {
+  const raw = await apiRequest<unknown>(`/api/government-support/my/inquiries/${inquiryId}/messages`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ message }),
+  })
+  const row = unwrapData<GovCustomerInquiryMessage>(raw)
+  if (!row) throw new Error('메시지 전송에 실패했습니다.')
+  return row
+}
+
+export async function presignGovCustomerInquiryFile(
+  token: string,
+  inquiryId: string,
+  payload: { fileName: string; contentType: string; fileSize: number; messageId?: string },
+): Promise<{ fileId: string; objectKey: string; uploadUrl: string; putHeaders?: Record<string, string> }> {
+  const raw = await apiRequest<unknown>(`/api/government-support/my/inquiries/${inquiryId}/files/presign`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify(payload),
+  })
+  const row = unwrapData<{
+    fileId: string
+    objectKey: string
+    uploadUrl: string
+    putHeaders?: Record<string, string>
+  }>(raw)
+  if (!row?.uploadUrl) throw new Error('업로드 URL을 받지 못했습니다.')
+  return row
+}
+
+export async function confirmGovCustomerInquiryFile(
+  token: string,
+  inquiryId: string,
+  fileId: string,
+): Promise<void> {
+  await apiRequest<unknown>(`/api/government-support/my/inquiries/${inquiryId}/files`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ fileId }),
+  })
+}

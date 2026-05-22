@@ -473,6 +473,76 @@ async function main() {
     skip('user A cannot create agency document request', 'admin token unavailable')
   }
 
+
+  // ── 문의 (inquiries) ──
+  let inquiryAId = ''
+  const inquiryCreate = await api('/government-support/my/inquiries', {
+    token: tokenA,
+    method: 'POST',
+    body: { title: `E2E inquiry ${ts}`, content: `E2E inquiry body ${ts}` },
+    expectStatus: 201,
+  })
+  inquiryAId = String(inquiryCreate.json?.data?.id ?? '')
+  if (inquiryAId) pass('user A create inquiry', inquiryAId)
+  else fail('user A create inquiry')
+
+  const inquiryListA = (await api('/government-support/my/inquiries', { token: tokenA })).json?.data ?? []
+  if (inquiryListA.some((r) => String(r.id) === inquiryAId)) pass('user A inquiry list')
+  else fail('user A inquiry list')
+
+  const inquiryDetailA = await api(`/government-support/my/inquiries/${inquiryAId}`, { token: tokenA })
+  if (inquiryDetailA.status === 200 && (inquiryDetailA.json?.data?.messages?.length ?? 0) >= 1) pass('user A inquiry detail')
+  else fail('user A inquiry detail', String(inquiryDetailA.status))
+
+  const inquiryMsgA = await api(`/government-support/my/inquiries/${inquiryAId}/messages`, {
+    token: tokenA,
+    method: 'POST',
+    body: { message: `E2E follow-up ${ts}` },
+    expectStatus: 201,
+  })
+  if (inquiryMsgA.status === 201) pass('user A inquiry message')
+  else fail('user A inquiry message', String(inquiryMsgA.status))
+
+  if (industry) {
+    const tokenStaff = await login(uStaff)
+    const adminList = await api('/government-support/admin/inquiries', { token: tokenStaff })
+    if (adminList.status === 200 && (adminList.json?.data ?? []).some((r) => String(r.id) === inquiryAId)) {
+      pass('staff admin inquiry list')
+    } else fail('staff admin inquiry list', String(adminList.status))
+
+    const staffReply = await api(`/government-support/admin/inquiries/${inquiryAId}/messages`, {
+      token: tokenStaff,
+      method: 'POST',
+      body: { message: `E2E staff reply ${ts}` },
+      expectStatus: 201,
+    })
+    if (staffReply.status === 201) pass('staff inquiry reply')
+    else fail('staff inquiry reply', String(staffReply.status))
+
+    const inquiryAfterReply = await api(`/government-support/my/inquiries/${inquiryAId}`, { token: tokenA })
+    const roles = (inquiryAfterReply.json?.data?.messages ?? []).map((m) => m.senderRole)
+    if (roles.includes('government_staff') || roles.includes('government_agency_admin')) pass('user A sees staff reply')
+    else fail('user A sees staff reply', roles.join(','))
+
+    const adminPatch = await api(`/government-support/admin/inquiries/${inquiryAId}`, {
+      token: tokenStaff,
+      method: 'PATCH',
+      body: { status: 'closed' },
+      expectStatus: 200,
+    })
+    if (adminPatch.status === 200) pass('staff patch inquiry status')
+    else fail('staff patch inquiry status', String(adminPatch.status))
+  } else {
+    for (const name of [
+      'staff admin inquiry list',
+      'staff inquiry reply',
+      'user A sees staff reply',
+      'staff patch inquiry status',
+    ]) {
+      skip(name, 'admin credentials unavailable')
+    }
+  }
+
   const progressCreate = await api(`/government-support/profiles/${profileAId}/progress`, {
     token: tokenA,
     method: 'POST',
@@ -696,6 +766,10 @@ async function main() {
   if (appBWorkspaceList.status === 403 || appBWorkspaceList.status === 404) pass('user B application list blocked')
   else fail('user B application list blocked', String(appBWorkspaceList.status))
 
+  const inquiryBAccess = await api(`/government-support/my/inquiries/${inquiryAId}`, { token: tokenB })
+  if (inquiryBAccess.status === 403 || inquiryBAccess.status === 404) pass('user B inquiry access blocked')
+  else fail('user B inquiry access blocked', String(inquiryBAccess.status))
+
   const appBList = await api(`/government-support/my/document-requests`, { token: tokenB })
   if (appBList.status === 403) {
     pass('user B my document-requests isolated')
@@ -787,6 +861,14 @@ async function main() {
     const appAgencyList = await api(`/government-support/profiles/${profileAId}/applications`, { token: tokenAgency })
     if (appAgencyList.status === 403) pass('agency admin application list 403')
     else fail('agency admin application list 403', String(appAgencyList.status))
+
+    const adminInqStaff = await api('/government-support/admin/inquiries', { token: tokenStaff })
+    if (adminInqStaff.status === 200) pass('staff admin inquiries endpoint')
+    else fail('staff admin inquiries endpoint', String(adminInqStaff.status))
+
+    const myInqStaff = await api('/government-support/my/inquiries', { token: tokenStaff })
+    if (myInqStaff.status === 403) pass('staff my inquiries 403')
+    else fail('staff my inquiries 403', String(myInqStaff.status))
 
     const myDocStaff = await api('/government-support/my/document-requests', { token: tokenStaff })
     if (myDocStaff.status === 403) pass('staff my document-requests 403')

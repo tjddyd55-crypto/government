@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react'
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate, useMatch } from 'react-router-dom'
+import FormButton from '../../../../components/form/FormButton'
 import { useAuth } from '../../../auth/AuthProvider'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import '../../../customer-app/customer-app.css'
@@ -12,11 +13,13 @@ type Props = {
 const TABS = [
   { to: '/government/app/requests', label: '요청서류', match: (p: string) => p.startsWith('/government/app/requests') },
   { to: '/government/app/progress', label: '진행상황', match: (p: string) => p.startsWith('/government/app/progress') },
+  { to: '/government/app/inquiries', label: '문의', match: (p: string) => p.startsWith('/government/app/inquiries') },
   { to: '/government/app/signatures', label: '전자서명', match: (p: string) => p.startsWith('/government/app/signatures') },
 ] as const
 
 export default function GovernmentCustomerAppShell({ children, title = '정부지원 고객앱' }: Props) {
   const navigate = useNavigate()
+  const hideInquiryCta = Boolean(useMatch('/government/app/inquiries/new'))
   const { token } = useAuth()
   const { summary } = useGovernmentAccess(token)
   const [headerName, setHeaderName] = useState('정부지원 CRM')
@@ -28,7 +31,7 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
   }, [summary])
 
   return (
-    <div className="customer-app-shell customer-app-shell--no-cta">
+    <div className={`customer-app-shell${hideInquiryCta ? ' customer-app-shell--no-cta' : ''}`}>
       <header className="customer-app-header">
         <div className="customer-app-header__row">
           <div className="customer-app-header__identity">
@@ -37,7 +40,7 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
               {' '}
               ·{' '}
             </span>
-            <span className="customer-app-header__phone-line">요청서류 · 진행 · 전자서명</span>
+            <span className="customer-app-header__phone-line">요청서류 · 진행 · 문의 · 전자서명</span>
           </div>
           <div className="customer-app-header__actions">
             <button
@@ -57,6 +60,19 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
 
       <div className="customer-app-shell__bottom">
         <div className="customer-app-shell__bottom-inner">
+          {!hideInquiryCta ? (
+            <div className="customer-app-shell__cta-wrap">
+              <FormButton
+                htmlType="button"
+                variant="primary"
+                className="customer-app-shell__cta-button"
+                fullWidth
+                onClick={() => navigate('/government/app/inquiries/new')}
+              >
+                문의하기
+              </FormButton>
+            </div>
+          ) : null}
           <nav className="customer-app-tabbar" aria-label="고객앱 주요 메뉴">
             {TABS.map((tab) => (
               <NavLink

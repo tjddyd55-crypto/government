@@ -133,6 +133,10 @@ import GovernmentCustomerAppRequestsPage from './features/government-support/cus
 import GovernmentCustomerAppRequestDetailPage from './features/government-support/customer-app/pages/GovernmentCustomerAppRequestDetailPage'
 import GovernmentCustomerAppProgressPage from './features/government-support/customer-app/pages/GovernmentCustomerAppProgressPage'
 import GovernmentCustomerAppSignaturesPage from './features/government-support/customer-app/pages/GovernmentCustomerAppSignaturesPage'
+import GovernmentCustomerAppInquiriesPage from './features/government-support/customer-app/pages/GovernmentCustomerAppInquiriesPage'
+import GovernmentCustomerAppInquiryComposePage from './features/government-support/customer-app/pages/GovernmentCustomerAppInquiryComposePage'
+import GovernmentCustomerAppInquiryDetailPage from './features/government-support/customer-app/pages/GovernmentCustomerAppInquiryDetailPage'
+import GovernmentAdminInquiriesPage from './features/government-support/pages/admin/GovernmentAdminInquiriesPage'
 import GovernmentUserMePage from './features/government-support/pages/user/GovernmentUserMePage'
 import GovernmentAdminLayout from './features/government-support/layouts/GovernmentAdminLayout'
 import GovernmentAdminDashboardPage from './features/government-support/pages/admin/GovernmentAdminDashboardPage'
@@ -182,6 +186,9 @@ export const appRouter = createBrowserRouter([
               { path: 'requests', element: <GovernmentCustomerAppRequestsPage /> },
               { path: 'requests/:requestId', element: <GovernmentCustomerAppRequestDetailPage /> },
               { path: 'progress', element: <GovernmentCustomerAppProgressPage /> },
+              { path: 'inquiries/new', element: <GovernmentCustomerAppInquiryComposePage /> },
+              { path: 'inquiries', element: <GovernmentCustomerAppInquiriesPage /> },
+              { path: 'inquiries/:inquiryId', element: <GovernmentCustomerAppInquiryDetailPage /> },
               { path: 'signatures', element: <GovernmentCustomerAppSignaturesPage /> },
             ],
           },
@@ -281,6 +288,7 @@ export const appRouter = createBrowserRouter([
             children: [
               { path: 'government/admin/notices', element: <GovernmentAdminNoticesPage /> },
               { path: 'government/admin/resources', element: <GovernmentAdminResourcesPage /> },
+              { path: 'government/admin/inquiries', element: <GovernmentAdminInquiriesPage /> },
             ],
           },
         ],
