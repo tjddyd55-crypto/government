@@ -70,6 +70,7 @@ async function main() {
     '내 고객/신청',
     '/government/me',
     '서류/파일',
+    '신청 관리',
     '/files/presign',
   ]
   for (const m of navMarkers) {
@@ -329,6 +330,53 @@ async function main() {
   if (!consultListAfterDelete.some((c) => String(c.id) === consultAId)) pass('user A delete consultation')
   else fail('user A delete consultation')
 
+  const appCreate = await api(`/government-support/profiles/${profileAId}/applications`, {
+    token: tokenA,
+    method: 'POST',
+    body: {
+      title: `E2E application A ${ts}`,
+      content: `E2E application body ${ts}`,
+      applicationType: '융자',
+    },
+    expectStatus: 201,
+  })
+  const appAId = String(appCreate.json?.data?.id ?? '')
+  if (appAId) pass('user A create application', appAId)
+  else fail('user A create application')
+
+  const appListA =
+    (await api(`/government-support/profiles/${profileAId}/applications`, { token: tokenA })).json?.data ?? []
+  if (appListA.some((a) => String(a.id) === appAId)) pass('user A application in list')
+  else fail('user A application in list')
+
+  const appDetailA = await api(`/government-support/profiles/${profileAId}/applications/${appAId}`, {
+    token: tokenA,
+    expectStatus: 200,
+  })
+  if (String(appDetailA.json?.data?.title ?? '').includes('E2E application A')) pass('user A application detail')
+  else fail('user A application detail')
+
+  const appPatch = await api(`/government-support/profiles/${profileAId}/applications/${appAId}`, {
+    token: tokenA,
+    method: 'PATCH',
+    body: { title: `E2E application A patched ${ts}`, status: 'processing' },
+    expectStatus: 200,
+  })
+  if (String(appPatch.json?.data?.title ?? '').includes('patched')) pass('user A patch application')
+  else fail('user A patch application')
+  if (appPatch.json?.data?.status === 'processing') pass('user A patch application status')
+  else fail('user A patch application status')
+
+  await api(`/government-support/profiles/${profileAId}/applications/${appAId}`, {
+    token: tokenA,
+    method: 'DELETE',
+    expectStatus: 200,
+  })
+  const appListAfterDelete =
+    (await api(`/government-support/profiles/${profileAId}/applications`, { token: tokenA })).json?.data ?? []
+  if (!appListAfterDelete.some((a) => String(a.id) === appAId)) pass('user A delete application')
+  else fail('user A delete application')
+
   const progressCreate = await api(`/government-support/profiles/${profileAId}/progress`, {
     token: tokenA,
     method: 'POST',
@@ -540,6 +588,18 @@ async function main() {
   if (progressBList.status === 403 || progressBList.status === 404) pass('user B progress list blocked')
   else fail('user B progress list blocked', String(progressBList.status))
 
+  const appBCreate = await api(`/government-support/profiles/${profileAId}/applications`, {
+    token: tokenB,
+    method: 'POST',
+    body: { title: 'blocked', content: 'blocked' },
+  })
+  if (appBCreate.status === 403 || appBCreate.status === 404) pass('user B application create blocked')
+  else fail('user B application create blocked', String(appBCreate.status))
+
+  const appBList = await api(`/government-support/profiles/${profileAId}/applications`, { token: tokenB })
+  if (appBList.status === 403 || appBList.status === 404) pass('user B application list blocked')
+  else fail('user B application list blocked', String(appBList.status))
+
   const fileBList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenB })
   if (fileBList.status === 403 || fileBList.status === 404) pass('user B file list blocked')
   else fail('user B file list blocked', String(fileBList.status))
@@ -608,6 +668,14 @@ async function main() {
     const fileAgencyList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenAgency })
     if (fileAgencyList.status === 403) pass('agency admin file list 403')
     else fail('agency admin file list 403', String(fileAgencyList.status))
+
+    const appStaffList = await api(`/government-support/profiles/${profileAId}/applications`, { token: tokenStaff })
+    if (appStaffList.status === 403) pass('staff application list 403')
+    else fail('staff application list 403', String(appStaffList.status))
+
+    const appAgencyList = await api(`/government-support/profiles/${profileAId}/applications`, { token: tokenAgency })
+    if (appAgencyList.status === 403) pass('agency admin application list 403')
+    else fail('agency admin application list 403', String(appAgencyList.status))
   } else {
     for (const name of [
       'staff not program user',
@@ -621,6 +689,8 @@ async function main() {
       'agency admin progress list 403',
       'staff file list 403',
       'agency admin file list 403',
+      'staff application list 403',
+      'agency admin application list 403',
     ]) {
       skip(name, 'admin credentials unavailable')
     }

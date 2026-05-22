@@ -8,6 +8,7 @@ import GovernmentProfileMemosPanel from './GovernmentProfileMemosPanel'
 import GovernmentProfileConsultationsPanel from './GovernmentProfileConsultationsPanel'
 import GovernmentProfileProgressPanel from './GovernmentProfileProgressPanel'
 import GovernmentProfileFilesPanel from './GovernmentProfileFilesPanel'
+import GovernmentProfileApplicationsPanel from './GovernmentProfileApplicationsPanel'
 
 type GovernmentProfileDetailPanelsProps = {
   tab: GovernmentProfileWorkspaceTab
@@ -66,6 +67,10 @@ export default function GovernmentProfileDetailPanels({ tab }: GovernmentProfile
         </ul>
       </div>
     )
+  }
+
+  if (tab === 'applications') {
+    return <GovernmentProfileApplicationsPanel />
   }
 
   return <EmptyState message="준비 중입니다." />

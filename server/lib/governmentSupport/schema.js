@@ -293,6 +293,35 @@ export async function ensureGovernmentSupportSchema(executor) {
     WHERE archived_at IS NULL
   `)
   await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_profile_applications (
+      id BIGSERIAL PRIMARY KEY,
+      profile_id BIGINT NOT NULL REFERENCES gov_support_profiles(id) ON DELETE CASCADE,
+      owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title TEXT NOT NULL DEFAULT '',
+      application_type TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'requested',
+      content TEXT NOT NULL DEFAULT '',
+      submitted_at TIMESTAMPTZ,
+      completed_at TIMESTAMPTZ,
+      created_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_profile_applications_profile
+    ON gov_support_profile_applications (profile_id, submitted_at DESC NULLS LAST, created_at DESC)
+    WHERE archived_at IS NULL
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_profile_applications_owner
+    ON gov_support_profile_applications (owner_user_id, profile_id)
+    WHERE archived_at IS NULL
+  `)
+
+  await executor.query(`
     CREATE INDEX IF NOT EXISTS idx_gov_support_profile_files_owner
     ON gov_support_profile_files (owner_user_id, profile_id)
     WHERE archived_at IS NULL

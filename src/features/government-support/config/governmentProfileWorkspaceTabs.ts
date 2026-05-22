@@ -5,6 +5,7 @@ export type GovernmentProfileWorkspaceTab =
   | 'memos'
   | 'progress'
   | 'signatures'
+  | 'applications'
 
 export const GOVERNMENT_PROFILE_WORKSPACE_TABS: { id: GovernmentProfileWorkspaceTab; label: string }[] = [
   { id: 'files', label: '서류/파일' },
@@ -12,6 +13,7 @@ export const GOVERNMENT_PROFILE_WORKSPACE_TABS: { id: GovernmentProfileWorkspace
   { id: 'memos', label: '메모' },
   { id: 'progress', label: '진행상황' },
   { id: 'signatures', label: '전자서명' },
+  { id: 'applications', label: '신청 관리' },
 ]
 
 export function parseGovernmentProfileWorkspaceTab(raw: string | undefined): GovernmentProfileWorkspaceTab {

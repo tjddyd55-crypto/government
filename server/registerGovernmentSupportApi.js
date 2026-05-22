@@ -23,6 +23,7 @@ import {
   loadProfileAccessRowByPriorLoanId,
   loadProfileAccessRowByMemoId,
   loadProfileAccessRowByConsultationId,
+  loadProfileAccessRowByApplicationId,
   loadProfileAccessRowByProgressEventId,
   loadProfileAccessRowByFileId,
   loadGovernmentProfileAccessRow,
@@ -44,6 +45,10 @@ import {
   mapGovSupportProfileConsultationRow,
   parseGovProfileConsultationPatchBody,
 } from './lib/governmentSupport/governmentProfileConsultations.js'
+import {
+  mapGovSupportProfileApplicationRow,
+  parseGovProfileApplicationPatchBody,
+} from './lib/governmentSupport/governmentProfileApplications.js'
 import {
   mapGovSupportProfileProgressEventRow,
   parseGovProfileProgressPatchBody,
@@ -1389,6 +1394,282 @@ export function registerGovernmentSupportApi(router, deps) {
         )
         if ((r.rowCount ?? 0) === 0) {
           res.status(404).json({ message: '상담 기록을 찾을 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: { id: String(r.rows[0].id), ok: true } })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.get('/government-support/profiles/:profileId/applications', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      if (!isGovernmentProgramUser(ctx)) {
+        res.status(403).json({ message: '신청 관리는 프로그램 이용자만 조회할 수 있습니다.' })
+        return
+      }
+      const profileId = String(req.params.profileId ?? '').trim()
+      const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+      if (!profileRow) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canAccessGovernmentProfile(ctx, profileRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+        return
+      }
+      const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 200)
+      const offset = Math.max(Number(req.query.offset) || 0, 0)
+      const r = await pool.query(
+        `
+        SELECT *
+        FROM gov_support_profile_applications
+        WHERE profile_id = $1::bigint AND archived_at IS NULL
+        ORDER BY submitted_at DESC NULLS LAST, created_at DESC, id DESC
+        LIMIT $2 OFFSET $3
+        `,
+        [profileId, limit, offset],
+      )
+      res.json({ success: true, data: r.rows.map(mapGovSupportProfileApplicationRow) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.post('/government-support/profiles/:profileId/applications', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      if (!isGovernmentProgramUser(ctx)) {
+        res.status(403).json({ message: '신청 관리는 프로그램 이용자만 작성할 수 있습니다.' })
+        return
+      }
+      const profileId = String(req.params.profileId ?? '').trim()
+      const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+      if (!profileRow) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canAccessGovernmentProfile(ctx, profileRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+        return
+      }
+      const parsed = parseGovProfileApplicationPatchBody(req.body ?? {}, {
+        requireTitle: true,
+        requireContent: true,
+      })
+      if (!parsed.ok) {
+        res.status(parsed.status).json({ message: parsed.message })
+        return
+      }
+      const { patch } = parsed
+      const ownerUserId = String(profileRow.owner_user_id ?? ctx.userId)
+      const status = patch.status ?? 'requested'
+      const r = await pool.query(
+        `
+        INSERT INTO gov_support_profile_applications (
+          profile_id, owner_user_id, title, application_type, status, content,
+          submitted_at, created_by_user_id, updated_by_user_id
+        ) VALUES ($1::bigint, $2, $3, $4, $5, $6, NOW(), $7, $7)
+        RETURNING *
+        `,
+        [
+          profileId,
+          ownerUserId,
+          patch.title,
+          patch.applicationType ?? '',
+          status,
+          patch.content,
+          ctx.userId,
+        ],
+      )
+      res.status(201).json({ success: true, data: mapGovSupportProfileApplicationRow(r.rows[0]) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.get(
+    '/government-support/profiles/:profileId/applications/:applicationId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        if (!isGovernmentProgramUser(ctx)) {
+          res.status(403).json({ message: '신청 관리는 프로그램 이용자만 조회할 수 있습니다.' })
+          return
+        }
+        const profileId = String(req.params.profileId ?? '').trim()
+        const applicationId = String(req.params.applicationId ?? '').trim()
+        const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+        if (!profileRow) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, profileRow)) {
+          res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+          return
+        }
+        const r = await pool.query(
+          `
+          SELECT *
+          FROM gov_support_profile_applications
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          LIMIT 1
+          `,
+          [applicationId, profileId],
+        )
+        if ((r.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '신청을 찾을 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: mapGovSupportProfileApplicationRow(r.rows[0]) })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.patch(
+    '/government-support/profiles/:profileId/applications/:applicationId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        if (!isGovernmentProgramUser(ctx)) {
+          res.status(403).json({ message: '신청 관리는 프로그램 이용자만 수정할 수 있습니다.' })
+          return
+        }
+        const profileId = String(req.params.profileId ?? '').trim()
+        const applicationId = String(req.params.applicationId ?? '').trim()
+        const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+        if (!profileRow) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, profileRow)) {
+          res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+          return
+        }
+        const appAccess = await loadProfileAccessRowByApplicationId(pool, applicationId)
+        if (!appAccess) {
+          res.status(404).json({ message: '신청을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, appAccess)) {
+          res.status(403).json({ message: '신청 접근 권한이 없습니다.' })
+          return
+        }
+        if (appAccess.archived_at != null) {
+          res.status(404).json({ message: '신청을 찾을 수 없습니다.' })
+          return
+        }
+        const parsed = parseGovProfileApplicationPatchBody(req.body ?? {}, {
+          requireTitle: false,
+          requireContent: false,
+        })
+        if (!parsed.ok) {
+          res.status(parsed.status).json({ message: parsed.message })
+          return
+        }
+        const { patch } = parsed
+        /** @type {string[]} */
+        const sets = []
+        /** @type {unknown[]} */
+        const vals = [applicationId, profileId]
+        let idx = 3
+        if (patch.title != null) {
+          sets.push(`title = $${idx}`)
+          vals.push(patch.title)
+          idx += 1
+        }
+        if (patch.content != null) {
+          sets.push(`content = $${idx}`)
+          vals.push(patch.content)
+          idx += 1
+        }
+        if (patch.applicationType != null) {
+          sets.push(`application_type = $${idx}`)
+          vals.push(patch.applicationType)
+          idx += 1
+        }
+        if (patch.status != null) {
+          sets.push(`status = $${idx}`)
+          vals.push(patch.status)
+          idx += 1
+          if (patch.status === 'done') {
+            sets.push(`completed_at = COALESCE(completed_at, NOW())`)
+          }
+        }
+        sets.push(`updated_by_user_id = $${idx}`)
+        vals.push(ctx.userId)
+        idx += 1
+        const r = await pool.query(
+          `
+          UPDATE gov_support_profile_applications
+          SET ${sets.join(', ')}, updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          RETURNING *
+          `,
+          vals,
+        )
+        if ((r.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '신청을 찾을 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: mapGovSupportProfileApplicationRow(r.rows[0]) })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.delete(
+    '/government-support/profiles/:profileId/applications/:applicationId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        if (!isGovernmentProgramUser(ctx)) {
+          res.status(403).json({ message: '신청 관리는 프로그램 이용자만 삭제할 수 있습니다.' })
+          return
+        }
+        const profileId = String(req.params.profileId ?? '').trim()
+        const applicationId = String(req.params.applicationId ?? '').trim()
+        const profileRow = await loadGovernmentProfileAccessRow(pool, profileId)
+        if (!profileRow) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, profileRow)) {
+          res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+          return
+        }
+        const appAccess = await loadProfileAccessRowByApplicationId(pool, applicationId)
+        if (!appAccess) {
+          res.status(404).json({ message: '신청을 찾을 수 없습니다.' })
+          return
+        }
+        if (!canAccessGovernmentProfile(ctx, appAccess)) {
+          res.status(403).json({ message: '신청 접근 권한이 없습니다.' })
+          return
+        }
+        if (appAccess.archived_at != null) {
+          res.status(404).json({ message: '신청을 찾을 수 없습니다.' })
+          return
+        }
+        const r = await pool.query(
+          `
+          UPDATE gov_support_profile_applications
+          SET archived_at = NOW(), updated_by_user_id = $3, updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          RETURNING id
+          `,
+          [applicationId, profileId, ctx.userId],
+        )
+        if ((r.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '신청을 찾을 수 없습니다.' })
           return
         }
         res.json({ success: true, data: { id: String(r.rows[0].id), ok: true } })

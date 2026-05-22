@@ -12,4 +12,5 @@ export type GovernmentProfileWorkspaceLayoutViewProps = {
   onClickMemos: () => void
   onClickProgress: () => void
   onClickSignatures: () => void
+  onClickApplications: () => void
 }

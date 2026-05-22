@@ -130,6 +130,7 @@ export default function GovernmentProfileWorkspaceLayout() {
     onClickMemos: () => moveToTab('memos'),
     onClickProgress: () => moveToTab('progress'),
     onClickSignatures: () => moveToTab('signatures'),
+    onClickApplications: () => moveToTab('applications'),
   }
 
   return (

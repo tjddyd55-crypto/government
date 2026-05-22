@@ -127,6 +127,24 @@ export async function loadProfileAccessRowByProgressEventId(pool, progressId) {
  * @param {import('pg').Pool | { query: Function }} pool
  * @param {string} fileId
  */
+/**
+ * @param {import('pg').Pool | { query: Function }} pool
+ * @param {string} applicationId
+ */
+export async function loadProfileAccessRowByApplicationId(pool, applicationId) {
+  const r = await pool.query(
+    `
+    SELECT p.tenant_id, p.owner_user_id, a.archived_at
+    FROM gov_support_profile_applications a
+    INNER JOIN gov_support_profiles p ON p.id = a.profile_id
+    WHERE a.id = $1::bigint
+    LIMIT 1
+    `,
+    [applicationId],
+  )
+  return r.rows[0] ?? null
+}
+
 export async function loadProfileAccessRowByFileId(pool, fileId) {
   const r = await pool.query(
     `

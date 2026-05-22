@@ -16,6 +16,9 @@ function rightTitle(pathname: string): string {
   if (pathname.includes('/signatures')) {
     return '전자서명'
   }
+  if (pathname.includes('/applications')) {
+    return '신청 관리'
+  }
   if (pathname.includes('/files')) {
     return '서류/파일'
   }
@@ -33,6 +36,7 @@ export default function GovernmentProfileWorkspaceLayoutPC({
   onClickMemos,
   onClickProgress,
   onClickSignatures,
+  onClickApplications,
 }: GovernmentProfileWorkspaceLayoutViewProps) {
   const isIndexPath =
     pathname === '/government/my-applications' || pathname === '/government/my-applications/'
@@ -97,6 +101,15 @@ export default function GovernmentProfileWorkspaceLayoutPC({
             onClick={onClickSignatures}
           >
             전자서명
+          </FormButton>
+          <FormButton
+            htmlType="button"
+            variant="action"
+            className={`filter-button${activeTab === 'applications' ? ' filter-button--workspace-active' : ''}`}
+            disabled={!selectedProfileId}
+            onClick={onClickApplications}
+          >
+            신청 관리
           </FormButton>
         </div>
       </header>

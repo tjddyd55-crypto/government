@@ -16,6 +16,9 @@ function resolveMobileSheetTitle(pathname: string): string {
   if (pathname.includes('/signatures')) {
     return '전자서명'
   }
+  if (pathname.includes('/applications')) {
+    return '신청 관리'
+  }
   if (pathname.includes('/files')) {
     return '서류/파일'
   }
@@ -29,7 +32,7 @@ export default function GovernmentProfileWorkspaceLayoutMobile(props: Government
 
   const isMobileDetailRoute = useMemo(
     () =>
-      /^\/government\/my-applications\/[^/]+\/(?:files|consultations|memos|progress|signatures)(?:\/|$)/.test(
+      /^\/government\/my-applications\/[^/]+\/(?:files|consultations|memos|progress|signatures|applications)(?:\/|$)/.test(
         location.pathname,
       ),
     [location.pathname],

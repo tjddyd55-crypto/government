@@ -120,6 +120,24 @@ export type GovProfileProgressEvent = {
   archivedAt: string | null
 }
 
+/** 보험 ClaimRequestListItem/Detail 대응 — 프로필별 신청 CRUD */
+export type GovProfileApplication = {
+  id: string
+  profileId: string
+  ownerUserId: string
+  title: string
+  applicationType: string
+  status: string
+  content: string
+  submittedAt: string | null
+  completedAt: string | null
+  createdByUserId: string | null
+  updatedByUserId: string | null
+  createdAt: string
+  updatedAt: string
+  archivedAt: string | null
+}
+
 export type GovProfileFile = {
   id: string
   profileId: string
