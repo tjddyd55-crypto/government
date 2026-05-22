@@ -295,7 +295,11 @@ export default function GovernmentAdminResourcesPage() {
         <StatusMessage message={formError} tone="error" className="m-0 mb-3" />
         <div className="government-ops-form-grid">
           <FieldWrapper label="제목">
-            <FormInput value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
+            <FormInput
+              value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+              placeholder="자료 제목"
+            />
           </FieldWrapper>
           <FieldWrapper label="카테고리">
             <FormSelect
@@ -334,6 +338,7 @@ export default function GovernmentAdminResourcesPage() {
               type="file"
               accept=".pdf,.doc,.docx,.xls,.xlsx,.hwp,.zip,.png,.jpg,.jpeg,.webp"
               onChange={(e) => setForm((f) => ({ ...f, file: e.target.files?.[0] ?? null }))}
+              aria-label="자료 파일"
             />
             {editing?.fileName ? (
               <p className="government-page__muted">현재 파일: {editing.fileName}</p>
@@ -344,6 +349,7 @@ export default function GovernmentAdminResourcesPage() {
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={4}
+              placeholder="자료 설명·이용 안내"
             />
           </FieldWrapper>
         </div>

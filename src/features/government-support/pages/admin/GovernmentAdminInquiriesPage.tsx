@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { StatusMessage } from '../../../../components/feedback'
-import { FormButton, FormSelect, FormTextarea } from '../../../../components/form'
+import { FormButton, FieldWrapper, FormSelect, FormTextarea } from '../../../../components/form'
 import useIsMobile from '../../../../hooks/useIsMobile'
 import { useAuth } from '../../../auth/AuthProvider'
 import {
@@ -227,13 +227,15 @@ export default function GovernmentAdminInquiriesPage() {
 
         <div className="claim-inbox__detail-section claim-inbox__status-editor">
           <h3>답변 작성</h3>
-          <FormTextarea
-            value={reply}
-            onChange={(e) => setReply(e.target.value)}
-            rows={4}
-            placeholder="이용자에게 전달할 답변을 입력해 주세요."
-            className="claim-inbox__status-memo"
-          />
+          <FieldWrapper label="답변 내용" className="admin-modal-field">
+            <FormTextarea
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
+              rows={4}
+              placeholder="이용자에게 전달할 답변을 입력해 주세요."
+              className="claim-inbox__status-memo"
+            />
+          </FieldWrapper>
           <FormButton htmlType="button" variant="primary" onClick={() => void handleReply()} loading={actionBusy}>
             답변 등록
           </FormButton>
@@ -242,11 +244,14 @@ export default function GovernmentAdminInquiriesPage() {
         <div className="claim-inbox__detail-section claim-inbox__status-editor">
           <h3>상태 변경</h3>
           <div className="claim-inbox__status-editor-row">
-            <FormSelect
-              value={statusTarget}
-              onChange={(e) => setStatusTarget(e.target.value)}
-              options={DETAIL_STATUS_OPTIONS}
-            />
+            <FieldWrapper label="상태" className="admin-modal-field">
+              <FormSelect
+                value={statusTarget}
+                onChange={(e) => setStatusTarget(e.target.value)}
+                options={DETAIL_STATUS_OPTIONS}
+                aria-label="문의 상태"
+              />
+            </FieldWrapper>
             <FormButton htmlType="button" variant="secondary" onClick={() => void handleStatusSave()} loading={actionBusy}>
               상태 저장
             </FormButton>
@@ -278,6 +283,7 @@ export default function GovernmentAdminInquiriesPage() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             options={[...STATUS_OPTIONS]}
+            aria-label="문의 상태"
           />
         </label>
       </section>

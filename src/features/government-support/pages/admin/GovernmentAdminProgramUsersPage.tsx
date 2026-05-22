@@ -92,13 +92,19 @@ export default function GovernmentAdminProgramUsersPage() {
       toolbar={
         <>
           <FieldWrapper label="검색">
-            <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="아이디·이름" />
+            <FormInput
+              value={filterQ}
+              onChange={(e) => setFilterQ(e.target.value)}
+              placeholder="아이디·이름"
+              aria-label="아이디·이름 검색"
+            />
           </FieldWrapper>
           <FieldWrapper label="소속 대행사">
             <FormSelect
               value={filterTenant}
               onChange={(e) => setFilterTenant(e.target.value)}
               options={tenantFilterOptions}
+              aria-label="소속 대행사"
             />
           </FieldWrapper>
           <FieldWrapper label="상태">
@@ -106,6 +112,7 @@ export default function GovernmentAdminProgramUsersPage() {
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               options={STATUS_FILTER_OPTIONS}
+              aria-label="상태"
             />
           </FieldWrapper>
         </>

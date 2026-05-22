@@ -36,6 +36,9 @@ const STATUS_FILTER_OPTIONS = [
 
 const STATUS_EDIT_OPTIONS = STATUS_FILTER_OPTIONS.filter((o) => o.value !== '')
 
+const PASSWORD_MIN_LENGTH = 8
+const PASSWORD_HELPER = `${PASSWORD_MIN_LENGTH}자 이상 입력`
+
 function formatDate(iso: string | null): string {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -297,6 +300,7 @@ export default function GovernmentAdminUsersPage() {
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
               options={filterRoleOptions}
+              aria-label="권한"
             />
           </FieldWrapper>
           <FieldWrapper label="소속">
@@ -304,6 +308,7 @@ export default function GovernmentAdminUsersPage() {
               value={filterTenant}
               onChange={(e) => setFilterTenant(e.target.value)}
               options={tenantFilterOptions}
+              aria-label="소속 수행기관/대행사"
             />
           </FieldWrapper>
           <FieldWrapper label="상태">
@@ -311,6 +316,7 @@ export default function GovernmentAdminUsersPage() {
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               options={STATUS_FILTER_OPTIONS}
+              aria-label="상태"
             />
           </FieldWrapper>
         </>
@@ -366,8 +372,8 @@ export default function GovernmentAdminUsersPage() {
           closeOnEsc={!editSaving}
         >
           <StatusMessage message={editError} tone="error" className="m-0 mb-3" />
-          <p className="government-page__muted government-admin-users-page__username">{editing.username}</p>
           <UsersEditForm
+            editUsername={editing.username}
             editDisplayName={editDisplayName}
             setEditDisplayName={setEditDisplayName}
             editRole={editRole}
@@ -400,15 +406,18 @@ export default function GovernmentAdminUsersPage() {
         >
           <StatusMessage message={resetError} tone="error" className="m-0 mb-3" />
           <p className="government-page__muted">
-            <strong>{resetTarget.username}</strong> 사용자의 새 비밀번호를 입력하세요.
+            선택한 사용자(<strong>{resetTarget.username}</strong>)의 비밀번호를 새 값으로 변경합니다.
           </p>
-          <FormInput
-            label="새 비밀번호"
-            type="password"
-            value={resetPassword}
-            onChange={(e) => setResetPassword(e.target.value)}
-            autoComplete="new-password"
-          />
+          <FieldWrapper label="새 비밀번호" helperText={PASSWORD_HELPER} className="admin-modal-field">
+            <FormInput
+              type="password"
+              value={resetPassword}
+              onChange={(e) => setResetPassword(e.target.value)}
+              placeholder={PASSWORD_HELPER}
+              autoComplete="new-password"
+              className="admin-form-input"
+            />
+          </FieldWrapper>
           <DialogActions
             onCancel={() => setResetTarget(null)}
             onSubmit={() => void submitReset()}
@@ -464,28 +473,49 @@ function UsersCreateForm(props: {
 }) {
   return (
     <div className="government-form-grid">
-      <FormInput label="아이디" value={props.createUsername} onChange={(e) => props.setCreateUsername(e.target.value)} />
-      <FormInput label="이름" value={props.createDisplayName} onChange={(e) => props.setCreateDisplayName(e.target.value)} />
-      <FormInput
-        label="초기 비밀번호"
-        type="password"
-        value={props.createPassword}
-        onChange={(e) => props.setCreatePassword(e.target.value)}
-        autoComplete="new-password"
-      />
-      <FieldWrapper label="권한">
+      <FieldWrapper label="아이디" className="admin-modal-field">
+        <FormInput
+          value={props.createUsername}
+          onChange={(e) => props.setCreateUsername(e.target.value)}
+          placeholder="예) staff01"
+          autoComplete="username"
+          className="admin-form-input"
+        />
+      </FieldWrapper>
+      <FieldWrapper label="이름" className="admin-modal-field">
+        <FormInput
+          value={props.createDisplayName}
+          onChange={(e) => props.setCreateDisplayName(e.target.value)}
+          placeholder="예) 홍길동"
+          autoComplete="name"
+          className="admin-form-input"
+        />
+      </FieldWrapper>
+      <FieldWrapper label="초기 비밀번호" helperText={PASSWORD_HELPER} className="admin-modal-field">
+        <FormInput
+          type="password"
+          value={props.createPassword}
+          onChange={(e) => props.setCreatePassword(e.target.value)}
+          placeholder={PASSWORD_HELPER}
+          autoComplete="new-password"
+          className="admin-form-input"
+        />
+      </FieldWrapper>
+      <FieldWrapper label="권한" className="admin-modal-field">
         <FormSelect
           value={props.createRole}
           onChange={(e) => props.setCreateRole(e.target.value as GovernmentStaffManageableRole)}
           options={props.roleOptions}
+          aria-label="권한"
         />
       </FieldWrapper>
       {props.createNeedsTenant && props.agencySelectOptions.length > 0 ? (
-        <FieldWrapper label="소속 수행기관/대행사">
+        <FieldWrapper label="소속 수행기관/대행사" className="admin-modal-field">
           <FormSelect
             value={props.createTenantId}
             onChange={(e) => props.setCreateTenantId(e.target.value)}
             options={props.agencySelectOptions}
+            aria-label="소속 수행기관/대행사"
           />
         </FieldWrapper>
       ) : null}
@@ -495,6 +525,7 @@ function UsersCreateForm(props: {
 
 
 function UsersEditForm(props: {
+  editUsername: string
   editDisplayName: string
   setEditDisplayName: (v: string) => void
   editRole: GovernmentStaffManageableRole
@@ -510,34 +541,55 @@ function UsersEditForm(props: {
 }) {
   return (
     <div className="government-form-grid">
-      <FormInput label="이름" value={props.editDisplayName} onChange={(e) => props.setEditDisplayName(e.target.value)} />
-      <FieldWrapper label="권한">
+      <FieldWrapper label="아이디" className="admin-modal-field">
+        <FormInput
+          value={props.editUsername}
+          readOnly
+          disabled
+          className="admin-form-input field--readonly"
+          aria-readonly="true"
+        />
+      </FieldWrapper>
+      <FieldWrapper label="이름" className="admin-modal-field">
+        <FormInput
+          value={props.editDisplayName}
+          onChange={(e) => props.setEditDisplayName(e.target.value)}
+          placeholder="예) 홍길동"
+          autoComplete="name"
+          className="admin-form-input"
+        />
+      </FieldWrapper>
+      <FieldWrapper
+        label="권한"
+        helperText={
+          props.roleSelectDisabled ? '이용자 권한은 기관 코드 가입으로만 부여됩니다.' : undefined
+        }
+        className="admin-modal-field"
+      >
         <FormSelect
           value={props.editRole}
           onChange={(e) => props.setEditRole(e.target.value as GovernmentStaffManageableRole)}
           options={props.roleOptions}
           disabled={props.roleSelectDisabled}
+          aria-label="권한"
         />
-        {props.roleSelectDisabled ? (
-          <p className="government-page__muted" style={{ marginTop: '0.35rem' }}>
-            이용자 권한은 기관 코드 가입으로만 부여됩니다.
-          </p>
-        ) : null}
       </FieldWrapper>
       {props.editNeedsTenant && props.agencySelectOptions.length > 0 ? (
-        <FieldWrapper label="소속">
+        <FieldWrapper label="소속 수행기관/대행사" className="admin-modal-field">
           <FormSelect
             value={props.editTenantId}
             onChange={(e) => props.setEditTenantId(e.target.value)}
             options={props.agencySelectOptions}
+            aria-label="소속 수행기관/대행사"
           />
         </FieldWrapper>
       ) : null}
-      <FieldWrapper label="상태">
+      <FieldWrapper label="상태" className="admin-modal-field">
         <FormSelect
           value={props.editStatus}
           onChange={(e) => props.setEditStatus(e.target.value as GovernmentUserEntityStatus)}
           options={STATUS_EDIT_OPTIONS}
+          aria-label="상태"
         />
       </FieldWrapper>
     </div>

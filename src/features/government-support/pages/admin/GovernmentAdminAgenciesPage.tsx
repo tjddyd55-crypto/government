@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EmptyState, LoadingState } from '../../../../components/feedback'
-import FormButton from '../../../../components/form/FormButton'
-import FormInput from '../../../../components/form/FormInput'
+import { FieldWrapper, FormButton, FormInput } from '../../../../components/form'
 import { useAuth } from '../../../auth/AuthProvider'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import { createGovAgency, fetchGovAgencies } from '../../api/governmentProfilesApi'
@@ -34,7 +33,7 @@ export default function GovernmentAdminAgenciesPage() {
   const onCreate = async () => {
     if (!token) return
     if (!name.trim()) {
-      setErr('대행사명을 입력하세요.')
+      setErr('기관명을 입력하세요.')
       return
     }
     if (!agencyCode.trim() || agencyCode.trim().length < 3) {
@@ -60,12 +59,34 @@ export default function GovernmentAdminAgenciesPage() {
       description="기관명·기관 코드를 등록하면 가입 링크가 발급됩니다."
       toolbar={
         <>
-          <FormInput label="기관명" value={name} onChange={(e) => setName(e.target.value)} />
-          <FormInput
-            label="기관 코드 (가입 코드)"
-            value={agencyCode}
-            onChange={(e) => setAgencyCode(e.target.value)}
-          />
+          <FieldWrapper
+            label="기관 코드"
+            helperText="가입 시 사용할 기관 코드입니다."
+            className="admin-modal-field"
+          >
+            <FormInput
+              value={agencyCode}
+              onChange={(e) => setAgencyCode(e.target.value.toUpperCase())}
+              placeholder="예) AGENCY001"
+              autoComplete="off"
+              className="admin-form-input"
+              aria-label="기관 코드"
+            />
+          </FieldWrapper>
+          <FieldWrapper
+            label="기관명"
+            helperText="관리자 화면에 표시될 수행기관/대행사명입니다."
+            className="admin-modal-field"
+          >
+            <FormInput
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="예) 서울 정부지원센터"
+              autoComplete="organization"
+              className="admin-form-input"
+              aria-label="기관명"
+            />
+          </FieldWrapper>
           <FormButton htmlType="button" variant="primary" className="button button--primary" onClick={() => void onCreate()}>
             등록
           </FormButton>

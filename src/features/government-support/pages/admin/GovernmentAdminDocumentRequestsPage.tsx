@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { StatusMessage } from '../../../../components/feedback'
-import { FormButton, FormInput, FormSelect, FormTextarea } from '../../../../components/form'
+import { FormButton, FieldWrapper, FormInput, FormSelect, FormTextarea } from '../../../../components/form'
 import useIsMobile from '../../../../hooks/useIsMobile'
 import { useAuth } from '../../../auth/AuthProvider'
 import {
@@ -297,37 +297,47 @@ export default function GovernmentAdminDocumentRequestsPage() {
       {composeOpen ? (
         <section className="claim-inbox__detail-section">
           <h3>요청서류 발송</h3>
-          <div className="claim-inbox__status-editor-row">
-            <FormSelect
-              value={composeProfileId}
-              onChange={(e) => setComposeProfileId(e.target.value)}
-              options={profileOptions}
-            />
-            <FormInput
-              value={composeTitle}
-              onChange={(e) => setComposeTitle(e.target.value)}
-              placeholder="요청 제목"
-            />
+          <div className="government-form-grid">
+            <FieldWrapper label="대상 사업장" className="admin-modal-field">
+              <FormSelect
+                value={composeProfileId}
+                onChange={(e) => setComposeProfileId(e.target.value)}
+                options={profileOptions}
+                aria-label="대상 사업장"
+              />
+            </FieldWrapper>
+            <FieldWrapper label="요청 제목" className="admin-modal-field">
+              <FormInput
+                value={composeTitle}
+                onChange={(e) => setComposeTitle(e.target.value)}
+                placeholder="예) 2026년 서류 제출 요청"
+                className="admin-form-input"
+              />
+            </FieldWrapper>
+            <FieldWrapper label="안내 메시지" className="admin-modal-field government-ops-form-grid__full">
+              <FormTextarea
+                value={composeMessage}
+                onChange={(e) => setComposeMessage(e.target.value)}
+                rows={3}
+                placeholder="이용자에게 전달할 안내 메시지"
+                className="claim-inbox__status-memo"
+              />
+            </FieldWrapper>
+            {composeItems.map((item, index) => (
+              <FieldWrapper key={`compose-item-${index}`} label={`서류 항목 ${index + 1}`} className="admin-modal-field">
+                <FormInput
+                  value={item}
+                  onChange={(e) => {
+                    const next = [...composeItems]
+                    next[index] = e.target.value
+                    setComposeItems(next)
+                  }}
+                  placeholder={`예) ${index === 0 ? '사업자등록증' : '재무제표'}`}
+                  className="admin-form-input"
+                />
+              </FieldWrapper>
+            ))}
           </div>
-          <FormTextarea
-            value={composeMessage}
-            onChange={(e) => setComposeMessage(e.target.value)}
-            rows={3}
-            placeholder="이용자에게 전달할 안내 메시지"
-            className="claim-inbox__status-memo"
-          />
-          {composeItems.map((item, index) => (
-            <FormInput
-              key={`compose-item-${index}`}
-              value={item}
-              onChange={(e) => {
-                const next = [...composeItems]
-                next[index] = e.target.value
-                setComposeItems(next)
-              }}
-              placeholder={`서류 항목 ${index + 1}`}
-            />
-          ))}
           <div className="claim-inbox__detail-actions">
             <FormButton
               htmlType="button"
@@ -374,6 +384,7 @@ export default function GovernmentAdminDocumentRequestsPage() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             options={[...STATUS_OPTIONS]}
+            aria-label="요청서류 상태"
           />
         </label>
       </section>

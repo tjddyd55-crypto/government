@@ -262,7 +262,11 @@ export default function GovernmentAdminNoticesPage() {
         <StatusMessage message={formError} tone="error" className="m-0 mb-3" />
         <div className="government-ops-form-grid">
           <FieldWrapper label="제목">
-            <FormInput value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
+            <FormInput
+              value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+              placeholder="공지 제목"
+            />
           </FieldWrapper>
           <FieldWrapper label="구분">
             <FormSelect
@@ -311,6 +315,7 @@ export default function GovernmentAdminNoticesPage() {
               value={form.content}
               onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
               rows={8}
+              placeholder="이용자에게 전달할 공지 내용을 입력하세요."
             />
           </FieldWrapper>
         </div>
