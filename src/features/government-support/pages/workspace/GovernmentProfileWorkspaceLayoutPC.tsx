@@ -4,6 +4,9 @@ import { FormButton } from '../../../../components/form'
 import type { GovernmentProfileWorkspaceLayoutViewProps } from './governmentProfileWorkspaceViewProps'
 
 function rightTitle(pathname: string): string {
+  if (pathname.includes('/basic')) {
+    return '기본정보'
+  }
   if (pathname.includes('/consultations')) {
     return '상담 이력'
   }
@@ -31,6 +34,7 @@ export default function GovernmentProfileWorkspaceLayoutPC({
   selectedProfile,
   selectedProfileLabel,
   activeTab,
+  onClickBasic,
   onClickFiles,
   onClickConsultations,
   onClickMemos,
@@ -58,6 +62,15 @@ export default function GovernmentProfileWorkspaceLayoutPC({
           </p>
         </div>
         <div className="customer-workspace-layout__actions">
+          <FormButton
+            htmlType="button"
+            variant="action"
+            className={`filter-button${activeTab === 'basic' ? ' filter-button--workspace-active' : ''}`}
+            disabled={!selectedProfileId}
+            onClick={onClickBasic}
+          >
+            기본정보
+          </FormButton>
           <FormButton
             htmlType="button"
             variant="action"

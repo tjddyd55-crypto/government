@@ -4,6 +4,9 @@ import Modal from '../../../../components/ui/Modal'
 import type { GovernmentProfileWorkspaceLayoutViewProps } from './governmentProfileWorkspaceViewProps'
 
 function resolveMobileSheetTitle(pathname: string): string {
+  if (pathname.includes('/basic')) {
+    return '기본정보'
+  }
   if (pathname.includes('/consultations')) {
     return '상담 이력'
   }
@@ -32,7 +35,7 @@ export default function GovernmentProfileWorkspaceLayoutMobile(props: Government
 
   const isMobileDetailRoute = useMemo(
     () =>
-      /^\/government\/my-applications\/[^/]+\/(?:files|consultations|memos|progress|signatures|applications)(?:\/|$)/.test(
+      /^\/government\/my-applications\/[^/]+\/(?:basic|files|consultations|memos|progress|signatures|applications)(?:\/|$)/.test(
         location.pathname,
       ),
     [location.pathname],

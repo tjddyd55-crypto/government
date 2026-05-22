@@ -1,5 +1,6 @@
 /** URL path tab → useGovernmentWorkspaceState 내부 탭 */
 export type GovernmentProfileWorkspaceTab =
+  | 'basic'
   | 'files'
   | 'consultations'
   | 'memos'
@@ -8,6 +9,7 @@ export type GovernmentProfileWorkspaceTab =
   | 'applications'
 
 export const GOVERNMENT_PROFILE_WORKSPACE_TABS: { id: GovernmentProfileWorkspaceTab; label: string }[] = [
+  { id: 'basic', label: '기본정보' },
   { id: 'files', label: '서류/파일' },
   { id: 'consultations', label: '상담 이력' },
   { id: 'memos', label: '메모' },
@@ -21,7 +23,7 @@ export function parseGovernmentProfileWorkspaceTab(raw: string | undefined): Gov
   if (GOVERNMENT_PROFILE_WORKSPACE_TABS.some((x) => x.id === t)) {
     return t as GovernmentProfileWorkspaceTab
   }
-  return 'files'
+  return 'basic'
 }
 
 export function governmentProfileWorkspacePath(profileId: string, tab: GovernmentProfileWorkspaceTab): string {

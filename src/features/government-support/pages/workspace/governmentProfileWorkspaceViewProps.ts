@@ -7,6 +7,7 @@ export type GovernmentProfileWorkspaceLayoutViewProps = {
   selectedProfile: GovSupportProfile | null
   selectedProfileLabel: string
   activeTab: GovernmentProfileWorkspaceTab | null
+  onClickBasic: () => void
   onClickFiles: () => void
   onClickConsultations: () => void
   onClickMemos: () => void

@@ -75,7 +75,7 @@ export default function GovernmentProfileWorkspaceLayout() {
 
   const onSelectProfile = useCallback(
     (profileId: string) => {
-      const tab = activeTab ?? 'files'
+      const tab = activeTab ?? 'basic'
       navigate(governmentProfileWorkspacePath(profileId, tab), { replace: true })
     },
     [activeTab, navigate],
@@ -125,6 +125,7 @@ export default function GovernmentProfileWorkspaceLayout() {
     selectedProfile: selectedProfile ?? null,
     selectedProfileLabel,
     activeTab,
+    onClickBasic: () => moveToTab('basic'),
     onClickFiles: () => moveToTab('files'),
     onClickConsultations: () => moveToTab('consultations'),
     onClickMemos: () => moveToTab('memos'),

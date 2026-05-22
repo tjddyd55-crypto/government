@@ -69,6 +69,10 @@ async function main() {
     '/government/my-applications',
     '내 고객/신청',
     '/government/me',
+    '기본정보',
+    '/basic',
+    'government-profile-basic-info-panel',
+    'customer-detail-read',
     '서류/파일',
     '신청 관리',
     '/files/presign',
@@ -265,6 +269,34 @@ async function main() {
   const detailA = await api(`/government-support/profiles/${profileAId}`, { token: tokenA })
   if (detailA.status === 200) pass('user A profile detail 200')
   else fail('user A profile detail', String(detailA.status))
+
+  const patchedBizName = `E2E Biz Patched ${ts}`
+  const patchedPhone = `010-${String(ts).slice(-8)}`
+  const profilePatchA = await api(`/government-support/profiles/${profileAId}`, {
+    token: tokenA,
+    method: 'PATCH',
+    body: {
+      businessName: patchedBizName,
+      phone: patchedPhone,
+      businessNumber: '123-45-67890',
+      note: `E2E basic info note ${ts}`,
+    },
+    expectStatus: 200,
+  })
+  const patchedProfile = unwrapData(profilePatchA.json)
+  if (String(patchedProfile?.businessName ?? '') === patchedBizName) pass('user A patch profile businessName')
+  else fail('user A patch profile businessName', String(patchedProfile?.businessName))
+  if (String(patchedProfile?.phone ?? '') === patchedPhone) pass('user A patch profile phone')
+  else fail('user A patch profile phone', String(patchedProfile?.phone))
+
+  const detailAfterPatch = unwrapData((await api(`/government-support/profiles/${profileAId}`, { token: tokenA })).json)
+  if (String(detailAfterPatch?.businessName ?? '') === patchedBizName) pass('user A profile detail reflects patch')
+  else fail('user A profile detail reflects patch', String(detailAfterPatch?.businessName))
+
+  const listAfterPatch = (await api('/government-support/profiles', { token: tokenA })).json?.data ?? []
+  const listRow = listAfterPatch.find((p) => String(p.id) === profileAId)
+  if (String(listRow?.businessName ?? '') === patchedBizName) pass('user A profile list reflects patch')
+  else fail('user A profile list reflects patch', String(listRow?.businessName))
 
   const memoCreate = await api(`/government-support/profiles/${profileAId}/memos`, {
     token: tokenA,
@@ -742,6 +774,19 @@ async function main() {
     else fail('user B profile detail forbidden', e.message)
   }
 
+  try {
+    await api(`/government-support/profiles/${profileAId}`, {
+      token: tokenB,
+      method: 'PATCH',
+      body: { businessName: 'B should not patch' },
+      expectStatus: 403,
+    })
+    pass('user B profile patch 403')
+  } catch (e) {
+    if (String(e.message).includes('404')) pass('user B profile patch 404')
+    else fail('user B profile patch forbidden', e.message)
+  }
+
   const memoBCreate = await api(`/government-support/profiles/${profileAId}/memos`, {
     token: tokenB,
     method: 'POST',
@@ -850,6 +895,19 @@ async function main() {
     if (memoStaffList.status === 403) pass('staff memo list 403')
     else fail('staff memo list 403', String(memoStaffList.status))
 
+    try {
+      await api(`/government-support/profiles/${profileAId}`, {
+        token: tokenStaff,
+        method: 'PATCH',
+        body: { businessName: 'staff should not patch' },
+        expectStatus: 403,
+      })
+      pass('staff profile patch 403')
+    } catch (e) {
+      if (String(e.message).includes('404')) pass('staff profile patch 404')
+      else fail('staff profile patch forbidden', e.message)
+    }
+
     const memoAgencyList = await api(`/government-support/profiles/${profileAId}/memos`, { token: tokenAgency })
     if (memoAgencyList.status === 403) pass('agency admin memo list 403')
     else fail('agency admin memo list 403', String(memoAgencyList.status))
@@ -911,6 +969,7 @@ async function main() {
       'staff profiles empty',
       'agency admin not program user',
       'staff memo list 403',
+      'staff profile patch 403',
       'agency admin memo list 403',
       'staff consultation list 403',
       'agency admin consultation list 403',

@@ -9,6 +9,7 @@ import GovernmentProfileConsultationsPanel from './GovernmentProfileConsultation
 import GovernmentProfileProgressPanel from './GovernmentProfileProgressPanel'
 import GovernmentProfileFilesPanel from './GovernmentProfileFilesPanel'
 import GovernmentProfileApplicationsPanel from './GovernmentProfileApplicationsPanel'
+import GovernmentProfileBasicInfoPanel from '../../profileBasicInfo/GovernmentProfileBasicInfoPanel'
 
 type GovernmentProfileDetailPanelsProps = {
   tab: GovernmentProfileWorkspaceTab
@@ -19,6 +20,10 @@ export default function GovernmentProfileDetailPanels({ tab }: GovernmentProfile
   const p = ws.selected
   if (!p) {
     return <EmptyState message="사업장을 선택해 주세요." />
+  }
+
+  if (tab === 'basic') {
+    return <GovernmentProfileBasicInfoPanel />
   }
 
   if (tab === 'files') {
