@@ -50,6 +50,12 @@ function statusClass(status: string): string {
   }
 }
 
+function formatFileSize(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes < 1) return '0 KB'
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  return `${Math.ceil(bytes / 1024)} KB`
+}
+
 function senderLabel(role: string): string {
   if (role === 'government_user') return '고객'
   if (role === 'government_staff') return '직원'
@@ -188,6 +194,37 @@ export default function GovernmentAdminInquiriesPage() {
           )}
         </div>
 
+        {detail.files.length > 0 ? (
+          <div className="claim-inbox__detail-section">
+            <h3>첨부 파일</h3>
+            <div className="claim-inbox__file-list">
+              {detail.files.map((file) => {
+                const downloadUrl = (file as { downloadUrl?: string }).downloadUrl
+                return (
+                  <div key={file.id} className="claim-inbox__file-item">
+                    <span className="claim-inbox__file-thumb claim-inbox__file-thumb--file">
+                      {String(file.mimeType ?? '').includes('pdf') ? 'PDF' : 'FILE'}
+                    </span>
+                    <div className="claim-inbox__file-main">
+                      <div className="claim-inbox__file-name">{file.fileName}</div>
+                      <div className="claim-inbox__file-meta">{formatFileSize(file.fileSize)}</div>
+                    </div>
+                    <div className="claim-inbox__file-actions">
+                      {downloadUrl ? (
+                        <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
+                          다운
+                        </a>
+                      ) : (
+                        <span className="claim-inbox__file-meta">—</span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
+
         <div className="claim-inbox__detail-section claim-inbox__status-editor">
           <h3>답변 작성</h3>
           <FormTextarea
@@ -226,7 +263,7 @@ export default function GovernmentAdminInquiriesPage() {
 
       <section className="claim-inbox__hero">
         <div>
-          <h1 className="claim-inbox__title">고객 문의</h1>
+          <h1 className="claim-inbox__title">문의 관리</h1>
           <p className="claim-inbox__subtitle">프로그램 이용자가 남긴 문의를 확인하고 답변합니다.</p>
         </div>
         <FormButton htmlType="button" variant="secondary" onClick={() => void loadRows()} loading={loading}>

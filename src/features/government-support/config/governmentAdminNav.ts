@@ -10,28 +10,35 @@ const RESOURCES_NAV: GovernmentAdminNavItem = {
   label: '자료실/서식함',
 }
 
-/** 업종 관리자 — 대행사·설정·운영 현황 */
+const SETTINGS_NAV: GovernmentAdminNavItem = {
+  to: '/government/admin/settings',
+  label: '설정',
+}
+
+/** 업종 관리자 — 대행사·설정·운영 현황 (문의/요청서류 전체 목록 노출 없음) */
 export const GOVERNMENT_INDUSTRY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: '/government/admin', label: '대시보드', end: true },
   { to: '/government/admin/agencies', label: '대행사 관리' },
   { to: '/government/admin/notices', label: '공지/전달사항' },
-  { to: '/government/admin/inquiries', label: '고객 문의' },
   RESOURCES_NAV,
-  { to: '/government/admin/settings', label: '설정' },
+  SETTINGS_NAV,
 ]
 
-/** 대행사 관리자 — 직원·이용자·공지 (사업장/고객 전체 목록 없음) */
+/** 대행사 관리자 — 직원·이용자·요청서류·문의 (사업장/고객 전체 목록 없음) */
 export const GOVERNMENT_AGENCY_ADMIN_NAV: GovernmentAdminNavItem[] = [
-  { to: '/government/admin/inquiries', label: '고객 문의' },
   { to: '/government/admin/users', label: '직원 관리' },
   { to: '/government/admin/program-users', label: '이용자 관리' },
+  { to: '/government/admin/document-requests', label: '요청서류 관리' },
+  { to: '/government/admin/inquiries', label: '문의 관리' },
   { to: '/government/admin/notices', label: '공지/전달사항' },
   RESOURCES_NAV,
+  SETTINGS_NAV,
 ]
 
-/** 대행사 직원 — 공지·전달·운영 업무 중심 */
+/** 대행사 직원 — 요청서류·문의·공지·운영 업무 중심 */
 export const GOVERNMENT_STAFF_NAV: GovernmentAdminNavItem[] = [
-  { to: '/government/admin/inquiries', label: '고객 문의' },
+  { to: '/government/admin/document-requests', label: '요청서류 관리' },
+  { to: '/government/admin/inquiries', label: '문의 관리' },
   { to: '/government/admin/notices', label: '공지/전달사항' },
   RESOURCES_NAV,
   { to: '/government/admin/settings', label: '내 정보' },

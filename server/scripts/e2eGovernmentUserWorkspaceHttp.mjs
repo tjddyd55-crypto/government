@@ -73,6 +73,8 @@ async function main() {
     '신청 관리',
     '/files/presign',
     '/government/app',
+    '/government/admin/document-requests',
+    '요청서류 관리',
   ]
   for (const m of navMarkers) {
     if (homeHtml.js.includes(m)) pass(`bundle contains ${m}`)
@@ -406,6 +408,19 @@ async function main() {
     if (docRequestId) pass('staff create document request', docRequestId)
     else fail('staff create document request')
 
+    const adminDocList = await api('/government-support/admin/document-requests', { token: tokenStaff })
+    if (adminDocList.status === 200 && (adminDocList.json?.data ?? []).some((r) => String(r.id) === docRequestId)) {
+      pass('staff admin document requests list')
+    } else fail('staff admin document requests list', String(adminDocList.status))
+
+    const industryDocList = await api('/government-support/admin/document-requests', { token: industry })
+    if (industryDocList.status === 403) pass('industry admin document requests 403')
+    else fail('industry admin document requests 403', String(industryDocList.status))
+
+    const industryInqList = await api('/government-support/admin/inquiries', { token: industry })
+    if (industryInqList.status === 403) pass('industry admin inquiries 403')
+    else fail('industry admin inquiries 403', String(industryInqList.status))
+
     const myDocList =
       (await api('/government-support/my/document-requests', { token: tokenA })).json?.data ?? []
     if (myDocList.some((r) => String(r.id) === docRequestId)) pass('user A my document-requests list')
@@ -454,6 +469,11 @@ async function main() {
     if (String(myDocAfter.json?.data?.items?.[0]?.status ?? '') === '제출 완료') pass('user A item submitted status')
     else fail('user A item submitted status', String(myDocAfter.json?.data?.items?.[0]?.status))
 
+    const adminDocDetail = await api(`/government-support/admin/document-requests/${docRequestId}`, { token: tokenStaff })
+    const adminItemStatus = String(adminDocDetail.json?.data?.items?.[0]?.status ?? '')
+    if (adminDocDetail.status === 200 && adminItemStatus === '제출 완료') pass('staff admin document request submitted')
+    else fail('staff admin document request submitted', `${adminDocDetail.status}:${adminItemStatus}`)
+
     const progUserDocCreate = await api(`/government-support/profiles/${profileAId}/document-requests`, {
       token: tokenA,
       method: 'POST',
@@ -470,6 +490,10 @@ async function main() {
     skip('user A R2 PUT request doc', 'admin token unavailable')
     skip('user A confirm request doc file', 'admin token unavailable')
     skip('user A item submitted status', 'admin token unavailable')
+    skip('staff admin document request submitted', 'admin token unavailable')
+    skip('staff admin document requests list', 'admin token unavailable')
+    skip('industry admin document requests 403', 'admin token unavailable')
+    skip('industry admin inquiries 403', 'admin token unavailable')
     skip('user A cannot create agency document request', 'admin token unavailable')
   }
 
@@ -866,6 +890,10 @@ async function main() {
     if (adminInqStaff.status === 200) pass('staff admin inquiries endpoint')
     else fail('staff admin inquiries endpoint', String(adminInqStaff.status))
 
+    const adminDocStaff = await api('/government-support/admin/document-requests', { token: tokenStaff })
+    if (adminDocStaff.status === 200) pass('staff admin document-requests endpoint')
+    else fail('staff admin document-requests endpoint', String(adminDocStaff.status))
+
     const myInqStaff = await api('/government-support/my/inquiries', { token: tokenStaff })
     if (myInqStaff.status === 403) pass('staff my inquiries 403')
     else fail('staff my inquiries 403', String(myInqStaff.status))
@@ -892,6 +920,9 @@ async function main() {
       'agency admin file list 403',
       'staff application list 403',
       'agency admin application list 403',
+      'staff admin inquiries endpoint',
+      'staff admin document-requests endpoint',
+      'staff my inquiries 403',
       'staff my document-requests 403',
       'agency admin my document-requests 403',
     ]) {

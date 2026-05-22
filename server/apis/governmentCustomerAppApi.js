@@ -8,6 +8,7 @@ import {
   isGovernmentIndustryAdmin,
   isGovernmentProgramUser,
   isGovernmentSuperAdmin,
+  resolveGovernmentTenantScopeForQuery,
 } from '../lib/governmentSupport/governmentAccess.js'
 import { loadGovernmentProfileAccessRow } from '../lib/governmentSupport/governmentProfileAccessHelpers.js'
 import {
@@ -42,6 +43,20 @@ const REQUEST_DOC_MAX_BYTES = 10 * 1024 * 1024
  * @param {import('../lib/platformRbac.js').EffectivePlatformContext} ctx
  * @param {{ tenant_id?: string|number|null, owner_user_id?: string|null }} profileRow
  */
+function canStaffAccessDocumentRequests(ctx) {
+  if (isGovernmentProgramUser(ctx)) {
+    return false
+  }
+  if (isGovernmentIndustryAdmin(ctx) && !isGovernmentSuperAdmin(ctx)) {
+    return false
+  }
+  return (
+    isGovernmentSuperAdmin(ctx) ||
+    (ctx.governmentAgencyAdminTenantIds?.length ?? 0) > 0 ||
+    (ctx.governmentStaffTenantIds?.length ?? 0) > 0
+  )
+}
+
 function canAgencyCreateDocumentRequest(ctx, profileRow) {
   if (isGovernmentProgramUser(ctx)) {
     return false
@@ -50,12 +65,7 @@ function canAgencyCreateDocumentRequest(ctx, profileRow) {
   if (!tenantId || !canAccessGovernmentTenant(ctx, tenantId)) {
     return false
   }
-  return (
-    isGovernmentSuperAdmin(ctx) ||
-    isGovernmentIndustryAdmin(ctx) ||
-    (ctx.governmentAgencyAdminTenantIds ?? []).includes(tenantId) ||
-    (ctx.governmentStaffTenantIds ?? []).includes(tenantId)
-  )
+  return canStaffAccessDocumentRequests(ctx) && canAccessGovernmentTenant(ctx, tenantId)
 }
 
 /**
@@ -77,6 +87,34 @@ export function registerGovernmentCustomerAppApi(apiRouter, deps) {
       next()
     },
   ]
+
+  const requireStaffDocumentRequests = [
+    ...requireGovernmentMember,
+    (req, res, next) => {
+      if (!canStaffAccessDocumentRequests(req.platformContext)) {
+        res.status(403).json({ message: '요청서류 관리 권한이 없습니다.' })
+        return
+      }
+      next()
+    },
+  ]
+
+  async function loadDocumentRequestForStaff(requestId, tenantIds) {
+    const r = await pool.query(
+      `
+      SELECT r.*,
+        (SELECT COUNT(*)::int FROM gov_support_document_request_items i WHERE i.request_id = r.id) AS item_count,
+        (SELECT COUNT(*)::int FROM gov_support_document_request_items i WHERE i.request_id = r.id AND i.status IN ('제출 완료', '검토 완료', '최종 완료')) AS submitted_count,
+        COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name, '') AS profile_display_name
+      FROM gov_support_document_requests r
+      LEFT JOIN gov_support_profiles p ON p.id = r.profile_id
+      WHERE r.id = $1::bigint AND r.tenant_id = ANY($2::bigint[]) AND r.archived_at IS NULL
+      LIMIT 1
+      `,
+      [requestId, tenantIds],
+    )
+    return r.rows[0] ?? null
+  }
 
   async function loadRequestForOwner(requestId, ownerUserId) {
     const r = await pool.query(
@@ -628,6 +666,170 @@ export function registerGovernmentCustomerAppApi(apiRouter, deps) {
       handleDbError(e, req, res)
     }
   })
+
+  apiRouter.get('/government-support/admin/document-requests', ...requireStaffDocumentRequests, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
+      if (!scope.ok) {
+        res.status(scope.status).json({ message: scope.message })
+        return
+      }
+      if (scope.tenantIds.length === 0) {
+        res.json({ success: true, data: [] })
+        return
+      }
+      const statusFilter = String(req.query?.status ?? '').trim()
+      const params = [scope.tenantIds]
+      let statusSql = ''
+      if (statusFilter) {
+        params.push(statusFilter)
+        statusSql = ` AND r.status = $${params.length}`
+      }
+      const r = await pool.query(
+        `
+        SELECT r.*,
+          (SELECT COUNT(*)::int FROM gov_support_document_request_items i WHERE i.request_id = r.id) AS item_count,
+          (SELECT COUNT(*)::int FROM gov_support_document_request_items i WHERE i.request_id = r.id AND i.status IN ('제출 완료', '검토 완료', '최종 완료')) AS submitted_count,
+          COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name, '') AS profile_display_name
+        FROM gov_support_document_requests r
+        LEFT JOIN gov_support_profiles p ON p.id = r.profile_id
+        WHERE r.tenant_id = ANY($1::bigint[]) AND r.archived_at IS NULL${statusSql}
+        ORDER BY r.created_at DESC, r.id DESC
+        LIMIT 200
+        `,
+        params,
+      )
+      res.json({
+        success: true,
+        data: r.rows.map((row) => ({
+          ...mapGovDocumentRequestRow(row),
+          profileDisplayName: String(row.profile_display_name ?? ''),
+          itemCount: Number(row.item_count ?? 0),
+          submittedCount: Number(row.submitted_count ?? 0),
+        })),
+      })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  apiRouter.get('/government-support/admin/document-requests/:requestId', ...requireStaffDocumentRequests, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      const requestId = String(req.params.requestId ?? '').trim()
+      const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
+      if (!scope.ok) {
+        res.status(scope.status).json({ message: scope.message })
+        return
+      }
+      const row = await loadDocumentRequestForStaff(requestId, scope.tenantIds)
+      if (!row) {
+        res.status(404).json({ message: '요청서류를 찾을 수 없습니다.' })
+        return
+      }
+      const itemsR = await pool.query(
+        `
+        SELECT i.*,
+          (SELECT COUNT(*)::int FROM gov_support_document_request_files f
+           WHERE f.item_id = i.id AND f.archived_at IS NULL) AS file_count
+        FROM gov_support_document_request_items i
+        WHERE i.request_id = $1::bigint
+        ORDER BY i.sort_order ASC, i.id ASC
+        `,
+        [requestId],
+      )
+      const filesR = await pool.query(
+        `
+        SELECT *
+        FROM gov_support_document_request_files
+        WHERE request_id = $1::bigint AND archived_at IS NULL
+        ORDER BY created_at DESC, id DESC
+        `,
+        [requestId],
+      )
+      const filesByItem = new Map()
+      for (const f of filesR.rows) {
+        const mapped = mapGovDocumentRequestFileRow(f)
+        let downloadUrl = ''
+        if (mapped.fileKey && isConsentR2Enabled()) {
+          try {
+            downloadUrl = (await consentGetSignedDownloadUrl(String(mapped.fileKey), 900)) ?? ''
+          } catch {
+            downloadUrl = ''
+          }
+        }
+        const itemId = String(f.item_id)
+        if (!filesByItem.has(itemId)) {
+          filesByItem.set(itemId, [])
+        }
+        filesByItem.get(itemId).push({ ...mapped, downloadUrl })
+      }
+      const items = itemsR.rows.map((item) => ({
+        ...mapGovDocumentRequestItemRow(item),
+        files: filesByItem.get(String(item.id)) ?? [],
+      }))
+      res.json({
+        success: true,
+        data: {
+          ...mapGovDocumentRequestRow(row),
+          profileDisplayName: String(row.profile_display_name ?? ''),
+          itemCount: Number(row.item_count ?? 0),
+          submittedCount: Number(row.submitted_count ?? 0),
+          items,
+        },
+      })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  apiRouter.get(
+    '/government-support/admin/document-requests/:requestId/items/:itemId/files/:fileId/download',
+    ...requireStaffDocumentRequests,
+    async (req, res) => {
+      try {
+        const requestId = String(req.params.requestId ?? '').trim()
+        const itemId = String(req.params.itemId ?? '').trim()
+        const fileId = String(req.params.fileId ?? '').trim()
+        const scope = await resolveGovernmentTenantScopeForQuery(pool, req.platformContext)
+        if (!scope.ok) {
+          res.status(scope.status).json({ message: scope.message })
+          return
+        }
+        const row = await loadDocumentRequestForStaff(requestId, scope.tenantIds)
+        if (!row) {
+          res.status(404).json({ message: '요청서류를 찾을 수 없습니다.' })
+          return
+        }
+        const fr = await pool.query(
+          `
+          SELECT f.*
+          FROM gov_support_document_request_files f
+          WHERE f.id = $1::bigint AND f.item_id = $2::bigint AND f.request_id = $3::bigint AND f.archived_at IS NULL
+          LIMIT 1
+          `,
+          [fileId, itemId, requestId],
+        )
+        if ((fr.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '파일을 찾을 수 없습니다.' })
+          return
+        }
+        const fileRow = fr.rows[0]
+        const downloadUrl = await consentGetSignedDownloadUrl(String(fileRow.file_key ?? ''), 900)
+        if (!downloadUrl) {
+          res.status(503).json({ message: '다운로드 URL을 만들 수 없습니다.' })
+          return
+        }
+        res.json({
+          success: true,
+          data: { downloadUrl, fileName: String(fileRow.file_name ?? 'file') },
+        })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
 
   apiRouter.get(
     '/government-support/my/document-requests/:requestId/items/:itemId/files/:fileId/download',
