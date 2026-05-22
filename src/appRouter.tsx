@@ -127,6 +127,12 @@ import GovernmentUserBusinessesPage from './features/government-support/pages/us
 import GovernmentProfileWorkspaceLayout from './features/government-support/pages/workspace/GovernmentProfileWorkspaceLayout'
 import GovernmentProfileWorkspaceHomePage from './features/government-support/pages/workspace/GovernmentProfileWorkspaceHomePage'
 import GovernmentProfileWorkspaceTabPage from './features/government-support/pages/workspace/GovernmentProfileWorkspaceTabPage'
+import GovernmentCustomerAppMainLayout from './features/government-support/customer-app/components/GovernmentCustomerAppMainLayout'
+import GovernmentCustomerAppIndexPage from './features/government-support/customer-app/pages/GovernmentCustomerAppIndexPage'
+import GovernmentCustomerAppRequestsPage from './features/government-support/customer-app/pages/GovernmentCustomerAppRequestsPage'
+import GovernmentCustomerAppRequestDetailPage from './features/government-support/customer-app/pages/GovernmentCustomerAppRequestDetailPage'
+import GovernmentCustomerAppProgressPage from './features/government-support/customer-app/pages/GovernmentCustomerAppProgressPage'
+import GovernmentCustomerAppSignaturesPage from './features/government-support/customer-app/pages/GovernmentCustomerAppSignaturesPage'
 import GovernmentUserMePage from './features/government-support/pages/user/GovernmentUserMePage'
 import GovernmentAdminLayout from './features/government-support/layouts/GovernmentAdminLayout'
 import GovernmentAdminDashboardPage from './features/government-support/pages/admin/GovernmentAdminDashboardPage'
@@ -168,6 +174,17 @@ export const appRouter = createBrowserRouter([
       {
         element: <GovernmentProtectedRoute requireProgramUserWorkspace />,
         children: [
+          {
+            path: 'government/app',
+            element: <GovernmentCustomerAppMainLayout />,
+            children: [
+              { index: true, element: <GovernmentCustomerAppIndexPage /> },
+              { path: 'requests', element: <GovernmentCustomerAppRequestsPage /> },
+              { path: 'requests/:requestId', element: <GovernmentCustomerAppRequestDetailPage /> },
+              { path: 'progress', element: <GovernmentCustomerAppProgressPage /> },
+              { path: 'signatures', element: <GovernmentCustomerAppSignaturesPage /> },
+            ],
+          },
           {
             element: <GovernmentUserLayout />,
             children: [

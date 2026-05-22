@@ -82,6 +82,7 @@ import { registerInsurerSitesApi } from './registerInsurerSitesApi.js'
 import { registerPlatformAdminApi } from './registerPlatformAdminApi.js'
 import { registerCrmCustomerTemplateAdminApi } from './registerCrmCustomerTemplateAdminApi.js'
 import { registerGovernmentSupportApi } from './registerGovernmentSupportApi.js'
+import { registerGovernmentCustomerAppApi } from './apis/governmentCustomerAppApi.js'
 import { registerGovernmentOperationsApi } from './registerGovernmentOperationsApi.js'
 import { registerGovernmentSignatureApi } from './registerGovernmentSignatureApi.js'
 import { registerContractPublicOtpApi } from './apis/contractPublicOtpApi.js'
@@ -1470,6 +1471,7 @@ registerInsurerSitesApi(apiRouter, { pool, requireAuth, requireSuperAdmin, handl
 registerPlatformAdminApi(apiRouter, { pool, requireAuth, requireSuperAdmin, handleDbError })
 registerCrmCustomerTemplateAdminApi(apiRouter, { pool, requireAuth, requireSuperAdmin, handleDbError })
 registerGovernmentSupportApi(apiRouter, { pool, requireAuth, handleDbError })
+registerGovernmentCustomerAppApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentOperationsApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentSignatureApi(apiRouter, { pool, requireAuth, handleDbError })
 

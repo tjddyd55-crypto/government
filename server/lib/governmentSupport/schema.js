@@ -326,4 +326,72 @@ export async function ensureGovernmentSupportSchema(executor) {
     ON gov_support_profile_files (owner_user_id, profile_id)
     WHERE archived_at IS NULL
   `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_document_requests (
+      id BIGSERIAL PRIMARY KEY,
+      tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      profile_id BIGINT NOT NULL REFERENCES gov_support_profiles(id) ON DELETE CASCADE,
+      owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      application_id BIGINT REFERENCES gov_support_profile_applications(id) ON DELETE SET NULL,
+      title TEXT NOT NULL DEFAULT '',
+      message TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'open',
+      created_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_document_requests_profile
+    ON gov_support_document_requests (profile_id, created_at DESC)
+    WHERE archived_at IS NULL
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_document_requests_owner
+    ON gov_support_document_requests (owner_user_id, created_at DESC)
+    WHERE archived_at IS NULL
+  `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_document_request_items (
+      id BIGSERIAL PRIMARY KEY,
+      request_id BIGINT NOT NULL REFERENCES gov_support_document_requests(id) ON DELETE CASCADE,
+      doc_type TEXT NOT NULL DEFAULT '',
+      label TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT '요청 전',
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_document_request_items_request
+    ON gov_support_document_request_items (request_id, sort_order ASC, id ASC)
+  `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_document_request_files (
+      id BIGSERIAL PRIMARY KEY,
+      request_id BIGINT NOT NULL REFERENCES gov_support_document_requests(id) ON DELETE CASCADE,
+      item_id BIGINT NOT NULL REFERENCES gov_support_document_request_items(id) ON DELETE CASCADE,
+      profile_id BIGINT NOT NULL REFERENCES gov_support_profiles(id) ON DELETE CASCADE,
+      owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      file_name TEXT NOT NULL DEFAULT '',
+      file_key TEXT NOT NULL DEFAULT '',
+      file_size BIGINT NOT NULL DEFAULT 0,
+      mime_type TEXT NOT NULL DEFAULT '',
+      created_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_document_request_files_item
+    ON gov_support_document_request_files (item_id, created_at DESC)
+    WHERE archived_at IS NULL
+  `)
 }

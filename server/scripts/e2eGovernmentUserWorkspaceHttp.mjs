@@ -72,6 +72,7 @@ async function main() {
     '서류/파일',
     '신청 관리',
     '/files/presign',
+    '/government/app',
   ]
   for (const m of navMarkers) {
     if (homeHtml.js.includes(m)) pass(`bundle contains ${m}`)
@@ -377,6 +378,101 @@ async function main() {
   if (!appListAfterDelete.some((a) => String(a.id) === appAId)) pass('user A delete application')
   else fail('user A delete application')
 
+  const myProgressRes = await api('/government-support/my/progress', { token: tokenA })
+  if (myProgressRes.status === 200 && Array.isArray(myProgressRes.json?.data)) pass('user A my/progress list')
+  else fail('user A my/progress list', String(myProgressRes.status))
+
+  const mySigRes = await api('/government-support/my/signatures', { token: tokenA })
+  if (mySigRes.status === 200 && Array.isArray(mySigRes.json?.data)) pass('user A my/signatures list')
+  else fail('user A my/signatures list', String(mySigRes.status))
+
+  /** @type {string | undefined} */
+  let docRequestId
+  /** @type {string | undefined} */
+  let docItemId
+  if (industry) {
+    const tokenStaff = await login(uStaff)
+    const docReqCreate = await api(`/government-support/profiles/${profileAId}/document-requests`, {
+      token: tokenStaff,
+      method: 'POST',
+      body: {
+        title: `E2E doc req ${ts}`,
+        message: '제출해 주세요',
+        items: [{ docType: '사업자등록증', label: '사업자등록증' }],
+      },
+      expectStatus: 201,
+    })
+    docRequestId = String(docReqCreate.json?.data?.id ?? '')
+    if (docRequestId) pass('staff create document request', docRequestId)
+    else fail('staff create document request')
+
+    const myDocList =
+      (await api('/government-support/my/document-requests', { token: tokenA })).json?.data ?? []
+    if (myDocList.some((r) => String(r.id) === docRequestId)) pass('user A my document-requests list')
+    else fail('user A my document-requests list')
+
+    const myDocDetail = await api(`/government-support/my/document-requests/${docRequestId}`, { token: tokenA })
+    docItemId = String(myDocDetail.json?.data?.items?.[0]?.id ?? '')
+    if (docItemId) pass('user A document request detail', docItemId)
+    else fail('user A document request detail')
+
+    const docFileName = `e2e-doc-${ts}.pdf`
+    const docFileBody = `E2E request doc ${ts}`
+    const docPresign = await api(
+      `/government-support/my/document-requests/${docRequestId}/items/${docItemId}/files/presign`,
+      {
+        token: tokenA,
+        method: 'POST',
+        body: { fileName: docFileName, contentType: 'application/pdf', sizeBytes: docFileBody.length },
+        expectStatus: 201,
+      },
+    )
+    const { uploadUrl: docUploadUrl, objectKey: docObjectKey, fileId: docFileId } = docPresign.json?.data ?? {}
+    if (docUploadUrl && docObjectKey && docFileId) pass('user A doc presign', String(docFileId))
+    else fail('user A doc presign')
+    const docKeyNorm = String(docObjectKey ?? '').replace(/^\/+/, '')
+    if (docKeyNorm.includes('government/request-documents/')) pass('request-doc R2 key path')
+    else fail('request-doc R2 key path', docKeyNorm.slice(0, 80))
+
+    const docPut = await fetch(docUploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/pdf', ...(docPresign.json?.data?.putHeaders ?? {}) },
+      body: docFileBody,
+    })
+    if (docPut.status >= 200 && docPut.status < 300) pass('user A R2 PUT request doc')
+    else fail('user A R2 PUT request doc', String(docPut.status))
+
+    await api(`/government-support/my/document-requests/${docRequestId}/items/${docItemId}/files`, {
+      token: tokenA,
+      method: 'POST',
+      body: { fileId: docFileId },
+      expectStatus: 200,
+    })
+    pass('user A confirm request doc file')
+
+    const myDocAfter = await api(`/government-support/my/document-requests/${docRequestId}`, { token: tokenA })
+    if (String(myDocAfter.json?.data?.items?.[0]?.status ?? '') === '제출 완료') pass('user A item submitted status')
+    else fail('user A item submitted status', String(myDocAfter.json?.data?.items?.[0]?.status))
+
+    const progUserDocCreate = await api(`/government-support/profiles/${profileAId}/document-requests`, {
+      token: tokenA,
+      method: 'POST',
+      body: { title: 'blocked', items: [{ label: 'x' }] },
+    })
+    if (progUserDocCreate.status === 403) pass('user A cannot create agency document request')
+    else fail('user A cannot create agency document request', String(progUserDocCreate.status))
+  } else {
+    skip('staff create document request', 'admin token unavailable')
+    skip('user A my document-requests list', 'admin token unavailable')
+    skip('user A document request detail', 'admin token unavailable')
+    skip('user A doc presign', 'admin token unavailable')
+    skip('request-doc R2 key path', 'admin token unavailable')
+    skip('user A R2 PUT request doc', 'admin token unavailable')
+    skip('user A confirm request doc file', 'admin token unavailable')
+    skip('user A item submitted status', 'admin token unavailable')
+    skip('user A cannot create agency document request', 'admin token unavailable')
+  }
+
   const progressCreate = await api(`/government-support/profiles/${profileAId}/progress`, {
     token: tokenA,
     method: 'POST',
@@ -596,9 +692,24 @@ async function main() {
   if (appBCreate.status === 403 || appBCreate.status === 404) pass('user B application create blocked')
   else fail('user B application create blocked', String(appBCreate.status))
 
-  const appBList = await api(`/government-support/profiles/${profileAId}/applications`, { token: tokenB })
-  if (appBList.status === 403 || appBList.status === 404) pass('user B application list blocked')
-  else fail('user B application list blocked', String(appBList.status))
+  const appBWorkspaceList = await api(`/government-support/profiles/${profileAId}/applications`, { token: tokenB })
+  if (appBWorkspaceList.status === 403 || appBWorkspaceList.status === 404) pass('user B application list blocked')
+  else fail('user B application list blocked', String(appBWorkspaceList.status))
+
+  const appBList = await api(`/government-support/my/document-requests`, { token: tokenB })
+  if (appBList.status === 403) {
+    pass('user B my document-requests isolated')
+  } else if (appBList.status === 200) {
+    const rows = appBList.json?.data ?? []
+    if (!docRequestId || !rows.some((r) => String(r.id) === docRequestId)) {
+      pass('user B my document-requests isolated')
+    } else fail('user B my document-requests isolated', 'user B saw user A request')
+  } else fail('user B my document-requests isolated', String(appBList.status))
+
+  const mySigB = await api('/government-support/my/signatures', { token: tokenB })
+  if (mySigB.status === 403 || (mySigB.status === 200 && Array.isArray(mySigB.json?.data))) {
+    pass('user B my signatures endpoint')
+  } else fail('user B my signatures endpoint', String(mySigB.status))
 
   const fileBList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenB })
   if (fileBList.status === 403 || fileBList.status === 404) pass('user B file list blocked')
@@ -676,6 +787,14 @@ async function main() {
     const appAgencyList = await api(`/government-support/profiles/${profileAId}/applications`, { token: tokenAgency })
     if (appAgencyList.status === 403) pass('agency admin application list 403')
     else fail('agency admin application list 403', String(appAgencyList.status))
+
+    const myDocStaff = await api('/government-support/my/document-requests', { token: tokenStaff })
+    if (myDocStaff.status === 403) pass('staff my document-requests 403')
+    else fail('staff my document-requests 403', String(myDocStaff.status))
+
+    const myDocAgency = await api('/government-support/my/document-requests', { token: tokenAgency })
+    if (myDocAgency.status === 403) pass('agency admin my document-requests 403')
+    else fail('agency admin my document-requests 403', String(myDocAgency.status))
   } else {
     for (const name of [
       'staff not program user',
@@ -691,6 +810,8 @@ async function main() {
       'agency admin file list 403',
       'staff application list 403',
       'agency admin application list 403',
+      'staff my document-requests 403',
+      'agency admin my document-requests 403',
     ]) {
       skip(name, 'admin credentials unavailable')
     }

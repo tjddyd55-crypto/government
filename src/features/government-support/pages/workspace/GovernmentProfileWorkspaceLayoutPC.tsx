@@ -37,6 +37,7 @@ export default function GovernmentProfileWorkspaceLayoutPC({
   onClickProgress,
   onClickSignatures,
   onClickApplications,
+  onClickCustomerApp,
 }: GovernmentProfileWorkspaceLayoutViewProps) {
   const isIndexPath =
     pathname === '/government/my-applications' || pathname === '/government/my-applications/'
@@ -110,6 +111,15 @@ export default function GovernmentProfileWorkspaceLayoutPC({
             onClick={onClickApplications}
           >
             신청 관리
+          </FormButton>
+          <FormButton
+            htmlType="button"
+            variant="secondary"
+            className="filter-button"
+            disabled={!selectedProfileId}
+            onClick={onClickCustomerApp}
+          >
+            고객앱 보기
           </FormButton>
         </div>
       </header>

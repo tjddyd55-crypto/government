@@ -131,6 +131,7 @@ export default function GovernmentProfileWorkspaceLayout() {
     onClickProgress: () => moveToTab('progress'),
     onClickSignatures: () => moveToTab('signatures'),
     onClickApplications: () => moveToTab('applications'),
+    onClickCustomerApp: () => navigate('/government/app/requests'),
   }
 
   return (
