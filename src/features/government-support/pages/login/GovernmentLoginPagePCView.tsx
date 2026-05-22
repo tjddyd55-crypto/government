@@ -11,7 +11,7 @@ export default function GovernmentLoginPagePCView() {
         <div className="auth-login-sidebar__inner">
           <h2 className="auth-login-sidebar__brand">정부지원 CRM</h2>
           <p className="auth-login-sidebar__copy">
-            사업장 · 고객 · 신청 · 전자서명을 한 화면에서 이어서 처리합니다.
+            사업장 · 신청 · 요청서류 · 전자서명을 한 화면에서 이어서 처리합니다.
           </p>
         </div>
       </aside>

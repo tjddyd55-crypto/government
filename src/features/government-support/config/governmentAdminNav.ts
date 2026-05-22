@@ -26,7 +26,7 @@ export const GOVERNMENT_INDUSTRY_ADMIN_NAV: GovernmentAdminNavItem[] = [
 
 /** 대행사 관리자 — 직원·이용자·요청서류·문의 (사업장/고객 전체 목록 없음) */
 export const GOVERNMENT_AGENCY_ADMIN_NAV: GovernmentAdminNavItem[] = [
-  { to: '/government/admin/users', label: '직원 관리' },
+  { to: '/government/admin/users', label: '대행사 직원' },
   { to: '/government/admin/program-users', label: '이용자 관리' },
   { to: '/government/admin/document-requests', label: '요청서류 관리' },
   { to: '/government/admin/inquiries', label: '문의 관리' },

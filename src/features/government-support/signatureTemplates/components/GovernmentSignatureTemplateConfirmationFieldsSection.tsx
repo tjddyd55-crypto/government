@@ -32,7 +32,7 @@ const INPUT_TYPE_OPTIONS: Array<{ value: GovernmentSignatureTemplateConfirmation
 
 const INPUT_ROLE_OPTIONS: Array<{ value: GovernmentSignatureTemplateConfirmationFieldInputRole; label: string }> = [
   { value: 'sender', label: '발송자 입력' },
-  { value: 'customer', label: '고객 입력' },
+  { value: 'customer', label: '수신자 입력' },
 ]
 
 function normalizeInputRole(raw: unknown): GovernmentSignatureTemplateConfirmationFieldInputRole {
@@ -40,7 +40,7 @@ function normalizeInputRole(raw: unknown): GovernmentSignatureTemplateConfirmati
 }
 
 function inputRoleLabel(role: unknown): string {
-  return normalizeInputRole(role) === 'customer' ? '고객 입력' : '발송자 입력'
+  return normalizeInputRole(role) === 'customer' ? '수신자 입력' : '발송자 입력'
 }
 
 function emptyCreateDraft(): CreateGovernmentSignatureTemplateConfirmationFieldInput {
@@ -123,7 +123,7 @@ export function GovernmentSignatureTemplateConfirmationFieldsSection({
           확인서 항목(무좌표)
         </h4>
         <p className="contract-signature-console__hint" style={{ margin: '0 0 10px', fontSize: 12 }}>
-          고객 확인서에 표시할 입력 항목을 정의합니다. 발송·고객 화면 연동은 이후 단계에서 적용됩니다.
+          수신자 확인서에 표시할 입력 항목을 정의합니다. 발송·수신자 화면 연동은 이후 단계에서 적용됩니다.
         </p>
         {loading ? (
           <p className="contract-signature-console__body-text">확인 항목 불러오는 중…</p>
@@ -193,8 +193,8 @@ export function GovernmentSignatureTemplateConfirmationFieldsSection({
                 />
                 <span className="contract-signature-console__conf-role-help">
                   {normalizeInputRole(createDraft.inputRole) === 'customer'
-                    ? '고객 입력: 고객이 공개 링크에서 직접 입력합니다.'
-                    : '발송자 입력: 발송자가 값을 입력하고 고객은 확인합니다.'}
+                    ? '수신자 입력: 수신자가 공개 링크에서 직접 입력합니다.'
+                    : '발송자 입력: 발송자가 값을 입력하고 수신자는 확인합니다.'}
                 </span>
               </label>
               <label className="contract-signature-console__conf-label contract-signature-console__conf-label--checkbox">

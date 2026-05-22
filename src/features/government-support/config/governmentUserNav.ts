@@ -7,7 +7,7 @@ export type GovernmentUserNavItem = {
 
 export const GOVERNMENT_USER_NAV: GovernmentUserNavItem[] = [
   { to: '/government/workspace', label: '홈', end: true },
-  { to: '/government/my-applications', label: '내 고객/신청' },
+  { to: '/government/my-applications', label: '내 사업장/신청' },
   { to: '/government/signatures', label: '전자서명' },
   { to: '/government/notices', label: '공지사항' },
   { to: '/government/resources', label: '자료실' },

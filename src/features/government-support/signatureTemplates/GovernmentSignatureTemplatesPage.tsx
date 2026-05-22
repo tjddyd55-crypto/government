@@ -70,7 +70,7 @@ export default function GovernmentSignatureTemplatesPage() {
       const list = await listGovernmentSignatureTemplates(t, role, tenantGaId)
       setGovernmentSignatureTemplates(list)
     } catch (e) {
-      setContractPanelError(e instanceof ApiError ? e.message : '계약 템플릿 목록을 불러오지 못했습니다.')
+      setContractPanelError(e instanceof ApiError ? e.message : '전자서명 템플릿 목록을 불러오지 못했습니다.')
     }
   }, [t, role, tenantGaId])
 
@@ -161,7 +161,7 @@ export default function GovernmentSignatureTemplatesPage() {
       <div className="contract-signature-console__container">
         <h1 className="contract-signature-console__title">전자서명 템플릿 관리</h1>
         <p className="contract-signature-console__lead">
-          관리자는 PDF 좌표 템플릿을 전자서명 발송용 계약서 템플릿으로 등록하고 관리합니다. 실제 고객 발송은 유저/FC 화면의 「전자서명
+          관리자는 PDF 좌표 템플릿을 전자서명 발송용 문서 템플릿으로 등록하고 관리합니다. 실제 발송은 이용자 화면의 「전자서명
           발송」 메뉴에서 진행합니다.
         </p>
         <div className="contract-signature-console__notice" role="status">

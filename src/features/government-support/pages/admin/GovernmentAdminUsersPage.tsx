@@ -274,7 +274,7 @@ export default function GovernmentAdminUsersPage() {
 
   return (
     <GovernmentAdminPageShell
-      title="직원 관리"
+      title="대행사 직원"
       description={
         <>
           대행사 직원·관리자 계정만 이 화면에서 추가합니다. 프로그램 이용자는{' '}
@@ -287,7 +287,7 @@ export default function GovernmentAdminUsersPage() {
       toolbar={
         <>
           <FormButton htmlType="button" variant="primary" className="button button--primary" onClick={openCreate}>
-            직원 추가
+            대행사 직원 추가
           </FormButton>
           <FieldWrapper label="검색">
             <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="아이디·이름" />

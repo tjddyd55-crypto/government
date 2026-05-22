@@ -177,7 +177,7 @@ export default function GovernmentAdminNoticesPage() {
   return (
     <GovernmentAdminPageShell
       title="공지/전달사항"
-      description="소속 대행사 이용자에게 전달할 공지·안내를 관리합니다. 사업장/고객/신청 데이터와 분리되어 있습니다."
+      description="소속 대행사 이용자에게 전달할 공지·안내를 관리합니다. 사업장·신청 데이터와 분리되어 있습니다."
       toolbar={
         <>
           <FormButton htmlType="button" variant="primary" className="button button--primary" onClick={openCreate}>

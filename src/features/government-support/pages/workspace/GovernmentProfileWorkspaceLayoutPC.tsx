@@ -57,7 +57,7 @@ export default function GovernmentProfileWorkspaceLayoutPC({
           </div>
           <p className="customer-workspace-layout__subtitle">
             {selectedProfileId
-              ? `고객 ${selectedProfile?.customerName || '-'} · 연락처 ${selectedProfile?.phone || '-'} · ${selectedProfile?.progressStatus || '-'}`
+              ? `담당자 ${selectedProfile?.customerName || '-'} · 연락처 ${selectedProfile?.phone || '-'} · ${selectedProfile?.progressStatus || '-'}`
               : '사업장을 선택해 주세요.'}
           </p>
         </div>

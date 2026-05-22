@@ -17,7 +17,7 @@ export default function GovernmentAdminHubPage() {
         </li>
         <li>
           <Link to="/government/admin/templates" className="dark-link">
-            고객관리 템플릿 (동적/정적 안내)
+            사업장 관리 템플릿 (동적/정적 안내)
           </Link>
         </li>
         <li>

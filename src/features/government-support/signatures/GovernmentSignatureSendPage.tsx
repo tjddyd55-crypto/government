@@ -313,7 +313,7 @@ export default function GovernmentSignatureSendPage() {
     } catch (e) {
       setCustomerHits([])
       setCustomerSearchExecuted(true)
-      setCustomerSearchValidationError(e instanceof ApiError ? e.message : '고객 검색 중 오류가 발생했습니다.')
+      setCustomerSearchValidationError(e instanceof ApiError ? e.message : '사업장 검색 중 오류가 발생했습니다.')
     } finally {
       setCustomerSearchBusy(false)
     }
@@ -328,7 +328,7 @@ export default function GovernmentSignatureSendPage() {
     customerSearchInputRef.current?.focus()
   }, [])
 
-  /** 모바일: 다른 고객 검색 — 선택·결과·검색어 초기화 후 입력 포커스 */
+  /** 모바일: 다른 사업장 검색 — 선택·결과·검색어 초기화 후 입력 포커스 */
   const resetMobileCustomerSearchFlow = useCallback(() => {
     setSelectedCustomer(null)
     setCustomerHits([])
@@ -564,17 +564,17 @@ export default function GovernmentSignatureSendPage() {
   const sendSessionPanelHint =
     attachmentSendBlockHint ||
     (selectedCustomer == null
-      ? '고객을 먼저 선택해 주세요.'
+      ? '사업장을 먼저 선택해 주세요.'
       : inactiveTemplateHint ||
         (!senderPrefillSatisfied(selectedTpl ?? undefined) ? '발송 전 입력값의 필수 항목을 모두 채워 주세요.' : null) ||
         confirmationDraftValidationMessage ||
         (confirmationOnlySelected
           ? confirmationTemplateFields.length === 0
             ? '이 템플릿에 등록된 확인서 항목이 없어 발송할 수 없습니다. 관리자 화면에서 항목을 추가해 주세요.'
-            : '무좌표 전자확인서는 공개 링크에서 내용 확인까지 지원합니다. 고객 전자서명·최종 완료는 이후 단계에서 제공됩니다.'
+            : '무좌표 전자확인서는 공개 링크에서 내용 확인까지 지원합니다. 수신자 전자서명·최종 완료는 이후 단계에서 제공됩니다.'
           : null) ||
         (selectedCustomer != null && !selectedCustomer.hasPhone
-          ? '선택한 고객에 유효한 휴대폰번호가 없습니다.'
+          ? '선택한 사업장에 유효한 휴대폰번호가 없습니다.'
           : null) ||
         (selectedTemplateId == null ? '전자서명 템플릿을 선택해 주세요.' : null))
 
@@ -668,7 +668,7 @@ export default function GovernmentSignatureSendPage() {
       return
     }
     if (!selectedCustomer) {
-      setSendError('고객을 선택한 뒤 첨부파일을 추가할 수 있습니다.')
+      setSendError('사업장을 선택한 뒤 첨부파일을 추가할 수 있습니다.')
       return
     }
     if (!selectedTemplateId) {
@@ -792,7 +792,7 @@ export default function GovernmentSignatureSendPage() {
     if (!selectedCustomer) {
       return (
         <p className="contract-signature-console__hint contract-signature-send-attach--disabled">
-          고객을 선택한 뒤 첨부파일을 추가할 수 있습니다.
+          사업장을 선택한 뒤 첨부파일을 추가할 수 있습니다.
         </p>
       )
     }
@@ -815,10 +815,10 @@ export default function GovernmentSignatureSendPage() {
         {isMobile ? null : (
           <>
             <p className="contract-signature-console__body-text" style={{ margin: '0 0 8px' }}>
-              고객이 전자서명 전에 확인해야 할 참고자료를 첨부할 수 있습니다.
+              수신자가 전자서명 전에 확인해야 할 참고자료를 첨부할 수 있습니다.
             </p>
             <p className="contract-signature-console__hint" style={{ margin: '0 0 12px' }}>
-              첨부자료는 고객 화면의 「고객 확인 항목」 단계에서 열람되며, 고객이 모달 하단의 「이 첨부자료를 확인했습니다」 버튼을
+              첨부자료는 수신자 화면의 「수신자 확인 항목」 단계에서 열람되며, 수신자가 모달 하단의 「이 첨부자료를 확인했습니다」 버튼을
               눌러야 확인 완료됩니다.
             </p>
           </>
@@ -898,7 +898,7 @@ export default function GovernmentSignatureSendPage() {
         )}
         {isMobile ? (
           <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
-            고객 화면에서 첨부를 열람한 뒤 확인을 완료해야 전자서명 단계로 넘어갈 수 있습니다.
+            수신자 화면에서 첨부를 열람한 뒤 확인을 완료해야 전자서명 단계로 넘어갈 수 있습니다.
           </p>
         ) : null}
       </>
@@ -917,8 +917,8 @@ export default function GovernmentSignatureSendPage() {
         <div className="contract-signature-console__container">
           <h1 className="contract-signature-console__title">전자서명 발송</h1>
           <p className="contract-signature-console__lead">
-            본인에게 등록된 고객을 선택하고, 관리자가 활성화한 전자서명 템플릿으로 링크를 발송합니다. 휴대폰 번호는
-            고객 정보에서만 읽으며 임의 입력·전송은 할 수 없습니다.
+            본인에게 등록된 사업장을 선택하고, 관리자가 활성화한 전자서명 템플릿으로 링크를 발송합니다. 휴대폰 번호는
+            사업장 정보에서만 읽으며 임의 입력·전송은 할 수 없습니다.
           </p>
 
           {bootError ? (
@@ -929,22 +929,22 @@ export default function GovernmentSignatureSendPage() {
 
           {mobileStepShell(
             {
-              title: '1. 내 고객 검색',
+              title: '1. 내 사업장 검색',
               desc: selectedCustomer
-                ? '선택한 고객에게 전자서명을 발송합니다.'
-                : '전자서명을 발송할 고객을 검색해 선택하세요.',
+                ? '선택한 사업장 담당자에게 전자서명을 발송합니다.'
+                : '전자서명을 발송할 사업장을 검색해 선택하세요.',
               active: step1Active,
               completed: step1Complete,
               locked: false,
             },
             selectedCustomer ? (
               <div className="contract-send-mobile-selected-customer">
-                <p className="contract-send-mobile-selected-customer__heading">선택 고객</p>
+                <p className="contract-send-mobile-selected-customer__heading">선택 사업장</p>
                 <div className="contract-send-mobile-selected-customer__body">
                   <span className="contract-send-mobile-selected-customer__name">{selectedCustomer.name}</span>
                   <span className="contract-send-mobile-selected-customer__line">
-                    고객 ID: {selectedCustomer.id}
-                    {selectedCustomer.customerCode?.trim() ? ` · 고객번호 ${selectedCustomer.customerCode}` : ''}
+                    사업장 ID: {selectedCustomer.id}
+                    {selectedCustomer.customerCode?.trim() ? ` · 사업장번호 ${selectedCustomer.customerCode}` : ''}
                   </span>
                   <span className="contract-send-mobile-selected-customer__line">
                     {selectedCustomer.hasPhone ? selectedCustomer.maskedPhone : '휴대폰 —'}
@@ -960,7 +960,7 @@ export default function GovernmentSignatureSendPage() {
                     선택 해제
                   </FormButton>
                   <FormButton htmlType="button" variant="secondary" size="sm" disabled={!t} onClick={resetMobileCustomerSearchFlow}>
-                    다른 고객 검색
+                    다른 사업장 검색
                   </FormButton>
                 </div>
               </div>
@@ -982,7 +982,7 @@ export default function GovernmentSignatureSendPage() {
                           void executeCustomerSearch()
                         }
                       }}
-                      placeholder="이름 · 전화번호 일부 · 고객번호"
+                      placeholder="이름 · 전화번호 일부 · 사업장번호"
                       disabled={!t}
                     />
                   </div>
@@ -1006,7 +1006,7 @@ export default function GovernmentSignatureSendPage() {
 
                 {!customerSearchExecuted && !customerSearchValidationError ? (
                   <p className="contract-signature-console__hint contract-signature-console__hint--flush">
-                    고객 이름, 전화번호 일부 또는 고객번호를 입력해 검색하세요.
+                    담당자 이름, 전화번호 일부 또는 사업장번호를 입력해 검색하세요.
                   </p>
                 ) : null}
 
@@ -1039,8 +1039,8 @@ export default function GovernmentSignatureSendPage() {
                           <span className="contract-send-mobile-customer-result-card__name">{c.name}</span>
                           <span className="contract-send-mobile-customer-result-card__meta">
                             {c.customerCode?.trim()
-                              ? `고객번호 ${c.customerCode} · 고객 ID ${c.id}`
-                              : `고객 ID: ${c.id}`}
+                              ? `사업장번호 ${c.customerCode} · 사업장 ID ${c.id}`
+                              : `사업장 ID: ${c.id}`}
                           </span>
                           <span className="contract-send-mobile-customer-result-card__meta">
                             {c.hasPhone ? c.maskedPhone : '휴대폰 —'}
@@ -1062,7 +1062,7 @@ export default function GovernmentSignatureSendPage() {
           {mobileStepShell(
             {
               title: '2. 전자서명 템플릿 선택',
-              desc: selectedCustomer == null ? '먼저 고객을 검색해 선택해 주세요.' : null,
+              desc: selectedCustomer == null ? '먼저 사업장을 검색해 선택해 주세요.' : null,
               active: step2Active,
               completed: step2Complete,
               locked: !step1Complete,
@@ -1120,7 +1120,7 @@ export default function GovernmentSignatureSendPage() {
             ? mobileStepShell(
                 {
                   title: '발송 전 입력값',
-                  desc: '고객에게 보내기 전에 계약서에 들어갈 값을 입력해주세요.',
+                  desc: '수신자에게 보내기 전에 문서에 들어갈 값을 입력해주세요.',
                   active:
                     templatePickComplete &&
                     senderFields.length > 0 &&
@@ -1201,7 +1201,7 @@ export default function GovernmentSignatureSendPage() {
             ? mobileStepShell(
                 {
                   title: '확인서 항목 입력',
-                  desc: '전자확인서 항목을 입력한 뒤 발송하면 고객이 공개 링크에서 내용을 확인할 수 있습니다.',
+                  desc: '전자확인서 항목을 입력한 뒤 발송하면 수신자가 공개 링크에서 내용을 확인할 수 있습니다.',
                   active:
                     templatePickComplete &&
                     confirmationOnlySelected &&
@@ -1226,7 +1226,7 @@ export default function GovernmentSignatureSendPage() {
           {selectedCustomer && selectedTemplateId && confirmationDrafts.length > 0
             ? mobileStepShell(
                 {
-                  title: '고객 확인 항목',
+                  title: '수신자 확인 항목',
                   desc: '이 템플릿에는 아래 확인 항목이 포함됩니다. 수정은 관리자 전자서명 템플릿 설정 화면에서 합니다.',
                   active:
                     customerConfirmDraftsApply &&
@@ -1249,7 +1249,7 @@ export default function GovernmentSignatureSendPage() {
             {
               title: '2-3. 첨부자료',
               desc: selectedTemplateId
-                ? '고객이 전자서명 전에 확인할 자료를 첨부하세요.'
+                ? '수신자가 전자서명 전에 확인할 자료를 첨부하세요.'
                 : '전자서명 템플릿을 선택하면 첨부자료를 추가할 수 있습니다.',
               active: attachmentStepActive,
               completed: false,
@@ -1318,7 +1318,7 @@ export default function GovernmentSignatureSendPage() {
       <div className="contract-signature-console__container">
         <h1 className="contract-signature-console__title">전자서명 발송</h1>
         <p className="contract-signature-console__lead">
-          본인에게 등록된 고객을 선택하고, 관리자가 활성화한 전자서명 템플릿으로 링크를 발송합니다. 휴대폰 번호는 고객
+          본인에게 등록된 사업장을 선택하고, 관리자가 활성화한 전자서명 템플릿으로 링크를 발송합니다. 휴대폰 번호는 사업장
           정보에서만 읽으며 임의 입력·전송은 할 수 없습니다.
         </p>
 
@@ -1329,12 +1329,12 @@ export default function GovernmentSignatureSendPage() {
         ) : null}
 
         <section className="contract-signature-console__section">
-          <h2 className="contract-signature-console__section-title">1. 내 고객 검색</h2>
+          <h2 className="contract-signature-console__section-title">1. 내 사업장 검색</h2>
           <p className="contract-signature-console__body-text" style={{ margin: '0 0 6px' }}>
-            전자서명을 발송할 고객을 검색해 선택하세요.
+            전자서명을 발송할 사업장을 검색해 선택하세요.
           </p>
           <p className="contract-signature-console__hint" style={{ marginTop: 0 }}>
-            고객 이름, 전화번호 일부 또는 고객번호를 입력해 검색하세요.
+            담당자 이름, 전화번호 일부 또는 사업장번호를 입력해 검색하세요.
           </p>
           <div className="contract-signature-console__search-row" style={{ marginBottom: 8, alignItems: 'stretch' }}>
             <FormInput
@@ -1351,7 +1351,7 @@ export default function GovernmentSignatureSendPage() {
                   void executeCustomerSearch()
                 }
               }}
-              placeholder="이름 · 전화번호 일부 · 고객번호"
+              placeholder="이름 · 전화번호 일부 · 사업장번호"
               disabled={!t}
               className="max-w-md flex-1 min-w-[200px]"
             />
@@ -1373,13 +1373,13 @@ export default function GovernmentSignatureSendPage() {
 
           {selectedCustomer ? (
             <div className="contract-signature-console__selected-card" style={{ marginTop: 12, marginBottom: 12 }}>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>선택 고객</div>
+              <div style={{ fontWeight: 600, marginBottom: 8 }}>선택 사업장</div>
               <div className="contract-signature-console__body-text" style={{ fontSize: '0.9375rem' }}>
                 {selectedCustomer.name}
               </div>
               <div className="contract-signature-console__hint" style={{ marginTop: 6 }}>
-                고객 ID: {selectedCustomer.id}
-                {selectedCustomer.customerCode?.trim() ? ` · 고객번호: ${selectedCustomer.customerCode}` : ''}
+                사업장 ID: {selectedCustomer.id}
+                {selectedCustomer.customerCode?.trim() ? ` · 사업장번호: ${selectedCustomer.customerCode}` : ''}
               </div>
               <div className="contract-signature-console__hint">휴대폰: {selectedCustomer.hasPhone ? selectedCustomer.maskedPhone : '—'}</div>
               {!selectedCustomer.hasPhone ? (
@@ -1392,7 +1392,7 @@ export default function GovernmentSignatureSendPage() {
                   선택 해제
                 </FormButton>
                 <FormButton htmlType="button" variant="secondary" size="sm" disabled={!t} onClick={focusSearchAndClearCustomer}>
-                  다른 고객 검색
+                  다른 사업장 검색
                 </FormButton>
               </div>
             </div>
@@ -1405,7 +1405,7 @@ export default function GovernmentSignatureSendPage() {
                   <tr>
                     <th>선택</th>
                     <th>이름</th>
-                    <th>고객번호 · ID</th>
+                    <th>사업장번호 · ID</th>
                     <th>휴대폰(마스킹)</th>
                   </tr>
                 </thead>
@@ -1461,7 +1461,7 @@ export default function GovernmentSignatureSendPage() {
                               <span className="contract-signature-console__hint"> (ID {c.id})</span>
                             </>
                           ) : (
-                            <span>고객 ID: {c.id}</span>
+                            <span>사업장 ID: {c.id}</span>
                           )}
                         </td>
                         <td>
@@ -1477,14 +1477,14 @@ export default function GovernmentSignatureSendPage() {
             </div>
           ) : !customerSearchValidationError ? (
             <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
-              「검색」을 누르면 본인에게 등록된 고객만 결과로 표시됩니다. 휴대폰 번호는 마스킹만 표시됩니다.
+              「검색」을 누르면 본인에게 등록된 사업장만 결과로 표시됩니다. 휴대폰 번호는 마스킹만 표시됩니다.
             </p>
           ) : null}
         </section>
 
         <section className="contract-signature-console__section">
           <h2 className="contract-signature-console__section-title">2. 전자서명 템플릿 (active)</h2>
-          {selectedCustomer == null ? <p className="contract-signature-console__hint">고객을 선택하면 템플릿을 고를 수 있습니다.</p> : null}
+          {selectedCustomer == null ? <p className="contract-signature-console__hint">사업장을 선택하면 템플릿을 고를 수 있습니다.</p> : null}
           <div className="contract-signature-console__scroll-x">
             <table className="pdf-engine-table contract-signature-console__table--compact contract-signature-console__pick-table">
               <thead>
@@ -1566,7 +1566,7 @@ export default function GovernmentSignatureSendPage() {
           <section className="contract-signature-console__section">
             <h2 className="contract-signature-console__section-title">2-1. 발송 전 입력값</h2>
             <p className="contract-signature-console__hint">
-              고객에게 보내기 전에 계약서에 들어갈 값을 입력해주세요. 이 값은 고객이 수정할 수 없습니다.
+              수신자에게 보내기 전에 문서에 들어갈 값을 입력해주세요. 이 값은 수신자가 수정할 수 없습니다.
             </p>
             <div className="mt-4 space-y-4">
               {senderFields.map((d) => {
@@ -1651,9 +1651,9 @@ export default function GovernmentSignatureSendPage() {
 
         {selectedCustomer && selectedTemplateId && selectedTpl?.templateMode !== 'confirmation_only' ? (
           <section className="contract-signature-console__section">
-            <h2 className="contract-signature-console__section-title">2-2. 고객 확인 체크 항목</h2>
+            <h2 className="contract-signature-console__section-title">2-2. 수신자 확인 체크 항목</h2>
             <p className="contract-signature-console__body-text" style={{ margin: '0 0 8px' }}>
-              고객이 전자서명 전에 확인해야 할 내용을 체크 항목으로 추가할 수 있습니다.
+              수신자가 전자서명 전에 확인해야 할 내용을 체크 항목으로 추가할 수 있습니다.
             </p>
             <div className="space-y-3 mt-2">
               {confirmationDrafts.map((row) => (
@@ -1700,7 +1700,7 @@ export default function GovernmentSignatureSendPage() {
               </p>
             ) : (
               <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
-                선택 사항입니다. 추가 시 고객이 모두 체크해야 다음 단계로 진행할 수 있습니다.
+                선택 사항입니다. 추가 시 수신자가 모두 체크해야 다음 단계로 진행할 수 있습니다.
               </p>
             )}
           </section>

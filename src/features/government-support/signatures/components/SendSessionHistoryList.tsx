@@ -41,7 +41,7 @@ export function SendSessionHistoryList({
           return (
             <div key={row.id} className="contract-history-mobile-card">
               <div className="contract-history-mobile-card__row">
-                <span className="contract-history-mobile-card__label">고객</span>
+                <span className="contract-history-mobile-card__label">사업장</span>
                 <span>
                   {row.profileDisplayName || '—'}
                   {row.customerCode ? (
@@ -148,7 +148,7 @@ export function SendSessionHistoryList({
         </colgroup>
         <thead>
           <tr>
-            <th className="contract-table-cell-left">고객</th>
+            <th className="contract-table-cell-left">사업장</th>
             <th className="contract-table-cell-left">연락처</th>
             <th className="contract-table-cell-left">문서</th>
             <th className="contract-table-cell-center">상태</th>

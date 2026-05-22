@@ -15,7 +15,7 @@ export default function GovernmentUserHomePage() {
     <section className="government-user-section">
       <h1 className="government-page__title">안녕하세요, {displayName}님</h1>
       <p className="government-page__muted government-user-home__lead">
-        사업장 등록·고객/신청 관리·공지·자료를 이용자 메뉴에서 이용할 수 있습니다.
+        사업장 등록·신청 관리·공지·자료를 이용자 메뉴에서 이용할 수 있습니다.
       </p>
       <div className="government-user-home__cards">
         {HOME_LINKS.map((item) => (

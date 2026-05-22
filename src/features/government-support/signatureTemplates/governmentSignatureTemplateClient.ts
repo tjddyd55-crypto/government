@@ -228,7 +228,7 @@ export async function listGovernmentSignatureTemplates(
   )
   const raw = body as { templates?: GovernmentSignatureTemplateListItem[] }
   if (!raw?.templates || !Array.isArray(raw.templates)) {
-    throw new ApiError('계약 템플릿 목록 응답 형식이 올바르지 않습니다.', 500)
+    throw new ApiError('전자서명 템플릿 목록 응답 형식이 올바르지 않습니다.', 500)
   }
   return raw.templates.map((t) => ({
     ...t,
@@ -252,7 +252,7 @@ export async function fetchGovernmentSignatureTemplateDetail(
   )
   const tpl = (body as { template?: GovernmentSignatureTemplateDetail }).template
   if (!tpl?.id) {
-    throw new ApiError('계약 템플릿 상세 응답이 올바르지 않습니다.', 500)
+    throw new ApiError('전자서명 템플릿 상세 응답이 올바르지 않습니다.', 500)
   }
   return {
     ...tpl,
@@ -302,7 +302,7 @@ export async function createGovernmentSignatureTemplateFromPdfTemplate(
   params: { pdfTemplateId: number; pdfTitle: string; tenantGaId: number | null },
 ): Promise<string> {
   const isSuper = role === 'SUPER_ADMIN'
-  const baseTitle = String(params.pdfTitle ?? '').trim() || '계약서'
+  const baseTitle = String(params.pdfTitle ?? '').trim() || '전자서명 문서'
   const title = `${baseTitle} 전자서명 템플릿`
   const body = await apiRequest<{ data?: { id?: string } }>(`/api/government-support/signature-templates`, {
     method: 'POST',
@@ -318,7 +318,7 @@ export async function createGovernmentSignatureTemplateFromPdfTemplate(
   })
   const id = (body as { data?: { id?: string } })?.data?.id
   if (!id || typeof id !== 'string') {
-    throw new ApiError('계약 템플릿 생성 응답에 id가 없습니다.', 500)
+    throw new ApiError('전자서명 템플릿 생성 응답에 id가 없습니다.', 500)
   }
   return id
 }
@@ -347,7 +347,7 @@ export async function createConfirmationOnlyGovernmentSignatureTemplate(
   })
   const id = (body as { data?: { id?: string } })?.data?.id
   if (!id || typeof id !== 'string') {
-    throw new ApiError('계약 템플릿 생성 응답에 id가 없습니다.', 500)
+    throw new ApiError('전자서명 템플릿 생성 응답에 id가 없습니다.', 500)
   }
   return id
 }

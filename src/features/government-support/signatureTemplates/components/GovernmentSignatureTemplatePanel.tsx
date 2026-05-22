@@ -261,7 +261,7 @@ export function GovernmentSignatureTemplatePanel({
         </div>
       ) : null}
       <p className="contract-signature-console__body-text" style={{ marginTop: 0, marginBottom: '0.65rem' }}>
-        전자서명 발송용 계약서 템플릿 목록입니다. 각 행의 동작 버튼으로 상세 확인, 수정, 상태 변경을 할 수 있습니다.
+        전자서명 발송용 문서 템플릿 목록입니다. 각 행의 동작 버튼으로 상세 확인, 수정, 상태 변경을 할 수 있습니다.
       </p>
       <div className="contract-signature-console__filter-row">
         {pdfTemplateId != null ? (
@@ -531,7 +531,7 @@ export function GovernmentSignatureTemplatePanel({
                 <th scope="col">상태</th>
                 <th scope="col">모드</th>
                 <th scope="col">연결 PDF</th>
-                <th scope="col">계약 템플릿 ID</th>
+                <th scope="col">전자서명 템플릿 ID</th>
                 <th scope="col">수정일</th>
                 <th scope="col">동작</th>
               </tr>
@@ -724,7 +724,7 @@ export function GovernmentSignatureTemplatePanel({
                 <dd>
                   {statusLabelShort(detail.status)} — {statusDescription(detail.status)}
                 </dd>
-                <dt>계약 템플릿 ID</dt>
+                <dt>전자서명 템플릿 ID</dt>
                 <dd>
                   <code>{detail.id}</code>
                 </dd>
@@ -732,7 +732,7 @@ export function GovernmentSignatureTemplatePanel({
                 <dd>
                   {detail.pdfEngine?.title ?? (detail.pdfTemplateId != null ? `PDF #${detail.pdfTemplateId}` : '—')}
                 </dd>
-                <dt>필드 수(계약 템플릿 필드)</dt>
+                <dt>필드 수(전자서명 템플릿 필드)</dt>
                 <dd>{detail.governmentSignatureTemplateFieldsCount}</dd>
                 <dt>설명</dt>
                 <dd>{detail.description?.trim() ? detail.description : '—'}</dd>

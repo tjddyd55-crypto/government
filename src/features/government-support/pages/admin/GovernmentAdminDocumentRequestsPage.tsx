@@ -61,7 +61,7 @@ function itemStatusClass(status: string): string {
 }
 
 function profileLabel(profile: GovSupportProfile): string {
-  const name = profile.businessName?.trim() || profile.customerName?.trim() || `고객 #${profile.id}`
+  const name = profile.businessName?.trim() || profile.customerName?.trim() || `사업장 #${profile.id}`
   return `#${profile.id} ${name}`
 }
 
@@ -92,7 +92,7 @@ export default function GovernmentAdminDocumentRequestsPage() {
 
   const profileOptions = useMemo(
     () => [
-      { value: '', label: '고객/사업장 선택' },
+      { value: '', label: '사업장 선택' },
       ...profiles.map((p) => ({ value: String(p.id), label: profileLabel(p) })),
     ],
     [profiles],
@@ -178,7 +178,7 @@ export default function GovernmentAdminDocumentRequestsPage() {
 
   const handleCreateRequest = async () => {
     if (!token?.trim() || !composeProfileId) {
-      setError('고객/사업장을 선택해 주세요.')
+      setError('사업장을 선택해 주세요.')
       return
     }
     const items = composeItems.map((label) => label.trim()).filter(Boolean)

@@ -90,7 +90,7 @@ export default function GovernmentAdminLayout() {
         >
           {showWorkspaceLink ? (
             <div className="government-admin-layout__mobile-workspace-link">
-              <Link to="/government/my-applications">내 고객/신청</Link>
+              <Link to="/government/my-applications">내 사업장/신청</Link>
             </div>
           ) : null}
           <div className="government-admin-layout__content">
@@ -110,7 +110,7 @@ export default function GovernmentAdminLayout() {
           <strong className="government-admin-layout__brand">정부지원 CRM · 관리</strong>
           {showWorkspaceLink ? (
             <Link to="/government/my-applications" className="government-admin-layout__workspace-link">
-              내 고객/신청
+              내 사업장/신청
             </Link>
           ) : null}
         </div>

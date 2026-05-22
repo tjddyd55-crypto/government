@@ -67,7 +67,7 @@ async function main() {
   const navMarkers = [
     'government-user-layout',
     '/government/my-applications',
-    '내 고객/신청',
+    '내 사업장/신청',
     '/government/me',
     '기본정보',
     '/basic',

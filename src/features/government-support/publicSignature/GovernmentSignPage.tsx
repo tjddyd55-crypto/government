@@ -190,10 +190,10 @@ export default function GovernmentSignPage() {
       <div className="contract-public-link-page__stack">
         <div className="contract-public-sign-page__card">
           <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text-main)' }}>
-            {session.sendSession.customerDisplayName}님, 계약서 확인을 위해 휴대폰 인증이 필요합니다.
+            {session.sendSession.customerDisplayName}님, 전자서명 문서 확인을 위해 휴대폰 인증이 필요합니다.
           </p>
           <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-sub)' }}>
-            인증번호는 계약서 발송 시 지정된 번호로만 발송됩니다.
+            인증번호는 문서 발송 시 지정된 번호로만 발송됩니다.
           </p>
           <p
             className="mt-3 text-base font-semibold tracking-wide"
@@ -290,7 +290,7 @@ export default function GovernmentSignPage() {
   return (
     <div className="contract-public-link-page">
       <div className="contract-public-link-page__inner">
-        <h1 className="contract-public-link-page__title">계약서</h1>
+        <h1 className="contract-public-link-page__title">전자서명 문서</h1>
         {body}
       </div>
     </div>

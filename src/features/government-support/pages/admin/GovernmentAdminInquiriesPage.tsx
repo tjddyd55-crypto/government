@@ -57,8 +57,8 @@ function formatFileSize(bytes: number): string {
 }
 
 function senderLabel(role: string): string {
-  if (role === 'government_user') return '고객'
-  if (role === 'government_staff') return '직원'
+  if (role === 'government_user') return '이용자'
+  if (role === 'government_staff') return '대행사 직원'
   return '담당자'
 }
 
@@ -231,7 +231,7 @@ export default function GovernmentAdminInquiriesPage() {
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             rows={4}
-            placeholder="고객에게 전달할 답변을 입력해 주세요."
+            placeholder="이용자에게 전달할 답변을 입력해 주세요."
             className="claim-inbox__status-memo"
           />
           <FormButton htmlType="button" variant="primary" onClick={() => void handleReply()} loading={actionBusy}>

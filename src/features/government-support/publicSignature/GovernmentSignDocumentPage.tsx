@@ -892,7 +892,7 @@ export default function GovernmentSignDocumentPage() {
         setDrafts({})
         setSignatureDrafts({})
         if (e instanceof ApiError && e.status === 403) {
-          setError('계약서 수신번호 인증이 필요합니다. 목록 화면에서 인증을 완료해 주세요.')
+          setError('문서 수신번호 인증이 필요합니다. 목록 화면에서 인증을 완료해 주세요.')
           return
         }
         if (e instanceof ApiError && e.status === 404) {
@@ -1141,7 +1141,7 @@ export default function GovernmentSignDocumentPage() {
       return
     }
     if (!canSign) {
-      setActionError('필수 정보 입력과 2단계(고객 확인 체크·첨부자료 확인)를 모두 완료한 뒤 최종 문서 확인을 진행해 주세요.')
+      setActionError('필수 정보 입력과 2단계(수신자 확인 체크·첨부자료 확인)를 모두 완료한 뒤 최종 문서 확인을 진행해 주세요.')
       return
     }
     if (!isStep3Complete) {
@@ -1221,7 +1221,7 @@ export default function GovernmentSignDocumentPage() {
       return
     }
     if (!detail.completionAvailable) {
-      setActionError('필수 확인서 항목·고객 확인·첨부 확인·전자서명을 모두 마친 뒤 진행해 주세요.')
+      setActionError('필수 확인서 항목·수신자 확인·첨부 확인·전자서명을 모두 마친 뒤 진행해 주세요.')
       return
     }
     if (!coFinalAck) {
@@ -1366,7 +1366,7 @@ export default function GovernmentSignDocumentPage() {
                 아래에서 <strong>완료 확인서 PDF</strong>를 저장할 수 있습니다. 이 문서는 확인·서명이 반영된 최종 확인서입니다.
               </p>
               <p className="contract-public-sign-page__notice contract-public-sign-page__notice--secondary">
-                <strong>증빙 PDF</strong>는 본인확인·확인 항목·첨부·서명·해시 등 감사 기록을 담은 별도 문서이며, 고객 화면이 아니라 담당자 발송 내역에서 내려받을 수 있습니다.
+                <strong>증빙 PDF</strong>는 본인확인·확인 항목·첨부·서명·해시 등 감사 기록을 담은 별도 문서이며, 수신자 화면이 아니라 담당자 발송 내역에서 내려받을 수 있습니다.
               </p>
               {coSignedOk ? (
                 <PublicSignedPdfAnchor
@@ -1411,7 +1411,7 @@ export default function GovernmentSignDocumentPage() {
           >
             <p className="contract-public-sign-page__card-title">1단계. 확인서 내용 작성/확인</p>
             <p className="contract-public-sign-page__notice mt-2">
-              발송자 입력 내용은 읽기 전용으로 확인하고, 고객 입력 항목은 직접 작성 후 저장해 주세요.
+              발송자 입력 내용은 읽기 전용으로 확인하고, 수신자 입력 항목은 직접 작성 후 저장해 주세요.
             </p>
             {(() => {
               const senderFields = sortedConfFields.filter((row) => normalizeConfirmationInputRole(row.inputRole) === 'sender')
@@ -1459,7 +1459,7 @@ export default function GovernmentSignDocumentPage() {
 
                   {customerFields.length > 0 ? (
                     <div className="contract-public-sign-page__subsection contract-public-sign-page__subsection--tight space-y-3">
-                      <p className="contract-public-sign-page__section-label">고객이 직접 입력할 내용</p>
+                      <p className="contract-public-sign-page__section-label">수신자가 직접 입력할 내용</p>
                       {customerFields.map((row) => {
                         const valueText = String(row.valueText ?? '')
                         const normalizedType = String(row.inputType ?? 'text').toLowerCase()
@@ -1558,7 +1558,7 @@ export default function GovernmentSignDocumentPage() {
               ref={coRefConfirmChecksSection}
               className="contract-public-sign-page__subsection contract-public-sign-page__subsection--tight mt-4 space-y-3"
             >
-              <p className="contract-public-sign-page__section-label">고객 확인 체크</p>
+              <p className="contract-public-sign-page__section-label">수신자 확인 체크</p>
               {(detail.confirmationItems?.length ?? 0) > 0 ? (
                 (detail.confirmationItems ?? []).map((c) => (
                   <label key={c.id} className="contract-public-sign-page__label-row">
@@ -1582,7 +1582,7 @@ export default function GovernmentSignDocumentPage() {
                   </label>
                 ))
               ) : (
-                <p className="contract-public-sign-page__notice">등록된 고객 확인 체크 문구가 없습니다.</p>
+                <p className="contract-public-sign-page__notice">등록된 수신자 확인 체크 문구가 없습니다.</p>
               )}
             </div>
 
@@ -1672,7 +1672,7 @@ export default function GovernmentSignDocumentPage() {
               </p>
             ) : coConfirmCardStatus === 'skipped' ? (
               <p className="contract-public-sign-page__notice contract-public-sign-page__step-status">
-                필수 고객 확인·첨부 항목이 없습니다.
+                필수 수신자 확인·첨부 항목이 없습니다.
               </p>
             ) : (
               <p className="contract-public-sign-page__status-pending contract-public-sign-page__step-status">
@@ -1748,7 +1748,7 @@ export default function GovernmentSignDocumentPage() {
             >
               <p className="contract-public-sign-page__card-title">최종 완료</p>
               <p className="contract-public-sign-page__notice mt-2">
-                확인서 내용·첨부·고객 확인 체크 및 전자서명을 모두 마쳤다면 동의 후 최종 완료를 눌러 주세요.
+                확인서 내용·첨부·수신자 확인 체크 및 전자서명을 모두 마쳤다면 동의 후 최종 완료를 눌러 주세요.
               </p>
               <label className="contract-public-sign-page__label-row mt-4">
                 <FormInput
@@ -1773,7 +1773,7 @@ export default function GovernmentSignDocumentPage() {
               </FormButton>
               {canEdit && !detail.completionAvailable ? (
                 <p className="contract-public-sign-page__status-pending contract-public-sign-page__step-status mt-2">
-                  필수 확인서 값·고객 확인·첨부 확인·전자서명이 모두 완료되어야 합니다.
+                  필수 확인서 값·수신자 확인·첨부 확인·전자서명이 모두 완료되어야 합니다.
                 </p>
               ) : null}
             </div>
@@ -1896,15 +1896,15 @@ export default function GovernmentSignDocumentPage() {
               return can ? (
                 <PublicSignedPdfAnchor
                   href={publicSignedPdfHref}
-                  downloadName="완료 계약서.pdf"
+                  downloadName="완료 전자서명 문서.pdf"
                   variant="secondary"
                   className="mt-4"
                 >
-                  완료 계약서 PDF 다운로드
+                  완료 전자서명 문서 PDF 다운로드
                 </PublicSignedPdfAnchor>
               ) : (
                 <p className="contract-public-sign-page__panel-success-note">
-                  완료 계약서 PDF를 불러오는 중입니다. 담당자 화면에서 증빙 상태를 확인할 수 있습니다.
+                  완료 전자서명 문서 PDF를 불러오는 중입니다. 담당자 화면에서 증빙 상태를 확인할 수 있습니다.
                 </p>
               )
             })()}
@@ -1924,12 +1924,12 @@ export default function GovernmentSignDocumentPage() {
             loading={saving}
             onClick={() => void onOpenContractPreview()}
           >
-            계약서 미리보기
+            문서 미리보기
           </FormButton>
         ) : null}
         {canEdit && detail.fields.length > 0 ? (
           <p className="contract-public-sign-page__notice text-sm mt-1">
-            현재까지 입력한 내용이 반영된 계약서를 엽니다. 단계 완료와 무관하게 확인용으로만 사용할 수 있습니다.
+            현재까지 입력한 내용이 반영된 문서를 엽니다. 단계 완료와 무관하게 확인용으로만 사용할 수 있습니다.
           </p>
         ) : null}
 
@@ -1941,7 +1941,7 @@ export default function GovernmentSignDocumentPage() {
             >
               <p className="contract-public-sign-page__card-title">1단계. 필수 정보 입력</p>
               <p className="contract-public-sign-page__notice mt-2">
-                계약서에 직접 입력하실 항목을 작성해 주세요.
+                문서에 직접 입력하실 항목을 작성해 주세요.
               </p>
               <div className="mt-4 space-y-4">
                 {agreementFields.length > 0 ? (
@@ -2048,7 +2048,7 @@ export default function GovernmentSignDocumentPage() {
                 <p className="contract-public-sign-page__status-ok contract-public-sign-page__step-status">1단계 완료</p>
               ) : coordinateStepState?.input.status === 'skipped' ? (
                 <p className="contract-public-sign-page__notice contract-public-sign-page__step-status">
-                  고객 입력 필수 항목이 없습니다.
+                  수신자 입력 필수 항목이 없습니다.
                 </p>
               ) : (
                 <p className="contract-public-sign-page__status-pending contract-public-sign-page__step-status">
@@ -2058,7 +2058,7 @@ export default function GovernmentSignDocumentPage() {
             </div>
 
             <div className={publicStepCardClassNameByStatus(pdfCard2Status)}>
-              <p className="contract-public-sign-page__card-title">2단계. 고객 확인 항목</p>
+              <p className="contract-public-sign-page__card-title">2단계. 수신자 확인 항목</p>
               <p className="contract-public-sign-page__notice mt-2">
                 아래 내용을 확인해야 전자서명을 진행할 수 있습니다.
               </p>
@@ -2070,7 +2070,7 @@ export default function GovernmentSignDocumentPage() {
                 ref={pdfRefStep2Checks}
                 className="contract-public-sign-page__subsection contract-public-sign-page__subsection--tight mt-4 space-y-3"
               >
-                <p className="contract-public-sign-page__section-label">고객 확인 체크 항목</p>
+                <p className="contract-public-sign-page__section-label">수신자 확인 체크 항목</p>
                 {(detail.confirmationItems?.length ?? 0) > 0 ? (
                   (detail.confirmationItems ?? []).map((c) => (
                     <label key={c.id} className="contract-public-sign-page__label-row">
@@ -2092,7 +2092,7 @@ export default function GovernmentSignDocumentPage() {
                     </label>
                   ))
                 ) : (
-                  <p className="contract-public-sign-page__notice">이 문서 발송에 별도 고객 확인 체크 문구가 없습니다.</p>
+                  <p className="contract-public-sign-page__notice">이 문서 발송에 별도 수신자 확인 체크 문구가 없습니다.</p>
                 )}
               </div>
 
@@ -2176,7 +2176,7 @@ export default function GovernmentSignDocumentPage() {
                 <p className="contract-public-sign-page__status-ok contract-public-sign-page__step-status">2단계 완료</p>
               ) : pdfCard2Status === 'skipped' ? (
                 <p className="contract-public-sign-page__notice contract-public-sign-page__step-status">
-                  필수 고객 확인·첨부 항목이 없습니다.
+                  필수 수신자 확인·첨부 항목이 없습니다.
                 </p>
               ) : (
                 <p className="contract-public-sign-page__status-pending contract-public-sign-page__step-status">
@@ -2195,11 +2195,11 @@ export default function GovernmentSignDocumentPage() {
             >
               <p className="contract-public-sign-page__card-title">3단계. 전자서명</p>
               <p className="contract-public-sign-page__notice mt-2">
-                계약서에 사용할 전자서명을 입력해주세요.
+                문서에 사용할 전자서명을 입력해주세요.
               </p>
               {coordinateStep3Locked ? (
                 <p className="contract-public-sign-page__notice mt-3">
-                  고객 확인 항목을 완료하면 전자서명을 진행할 수 있습니다.
+                  수신자 확인 항목을 완료하면 전자서명을 진행할 수 있습니다.
                 </p>
               ) : null}
               {signatureFields.length > 0 ? (
@@ -2227,7 +2227,7 @@ export default function GovernmentSignDocumentPage() {
                                 onChange={(ev) => handleCoordinateSignAckChange(ev.target.checked)}
                                 className="mt-0.5"
                               />
-                              <span>본인은 본 계약서가 본인에게 발송된 문서임을 확인하고, 전자서명합니다.</span>
+                              <span>본인은 본 문서가 본인에게 발송된 문서임을 확인하고, 전자서명합니다.</span>
                             </label>
                             <FormButton
                               htmlType="button"
@@ -2249,7 +2249,7 @@ export default function GovernmentSignDocumentPage() {
                                 onChange={(ev) => handleCoordinateSignAckChange(ev.target.checked)}
                                 className="mt-0.5"
                               />
-                              <span>본인은 본 계약서가 본인에게 발송된 문서임을 확인하고, 전자서명합니다.</span>
+                              <span>본인은 본 문서가 본인에게 발송된 문서임을 확인하고, 전자서명합니다.</span>
                             </label>
                             <FormButton
                               htmlType="button"
@@ -2286,7 +2286,7 @@ export default function GovernmentSignDocumentPage() {
             >
               <p className="contract-public-sign-page__card-title">4단계. 최종 문서 확인</p>
               <p className="contract-public-sign-page__notice mt-2">
-                고객 입력값, 발송자 입력값, 고정 출력값 및 전자서명이 모두 반영된 최종 계약서를 확인해 주세요.
+                수신자 입력값, 발송자 입력값, 고정 출력값 및 전자서명이 모두 반영된 최종 전자서명 문서를 확인해 주세요.
               </p>
               {coordinateStep4Locked ? (
                 <p className="contract-public-sign-page__notice mt-3">전자서명을 완료하면 최종 문서를 확인할 수 있습니다.</p>
@@ -2358,8 +2358,8 @@ export default function GovernmentSignDocumentPage() {
         <PublicPdfPreviewModal
           open={contractPreviewOpen}
           onClose={() => setContractPreviewOpen(false)}
-          title="계약서 미리보기"
-          subtitle="현재까지 저장된 내용이 반영된 계약서입니다. 확인 후 닫기만 하시면 됩니다."
+          title="문서 미리보기"
+          subtitle="현재까지 저장된 내용이 반영된 문서입니다. 확인 후 닫기만 하시면 됩니다."
           pdfUrl={inputRenderedPdfSrc}
           initialPdfBytes={null}
           pageCount={Math.max(1, detail.pdfTemplate?.pageCount ?? 1)}
@@ -2490,7 +2490,7 @@ export default function GovernmentSignDocumentPage() {
   return (
     <div className="contract-public-sign-page">
       <div className="contract-public-sign-page__inner">
-        <h1 className="contract-public-sign-page__h1">계약서 문서</h1>
+        <h1 className="contract-public-sign-page__h1">전자서명 문서</h1>
         {body}
         {successOpen && completeResult && detail ? (
           <div
@@ -2525,16 +2525,16 @@ export default function GovernmentSignDocumentPage() {
                   return canDl ? (
                     <PublicSignedPdfAnchor
                       href={publicSignedPdfHref}
-                      downloadName={successIsConfirmation ? '완료 확인서.pdf' : '완료 계약서.pdf'}
+                      downloadName={successIsConfirmation ? '완료 확인서.pdf' : '완료 전자서명 문서.pdf'}
                       variant="primary"
                     >
-                      {successIsConfirmation ? '완료 확인서 PDF 다운로드' : '완료 계약서 PDF 다운로드'}
+                      {successIsConfirmation ? '완료 확인서 PDF 다운로드' : '완료 전자서명 문서 PDF 다운로드'}
                     </PublicSignedPdfAnchor>
                   ) : (
                     <p className="contract-public-sign-page__success-dialog-muted">
                       {successIsConfirmation
                         ? '완료 확인서 PDF 링크를 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.'
-                        : '완료 계약서 PDF 링크를 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.'}
+                        : '완료 전자서명 문서 PDF 링크를 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.'}
                     </p>
                   )
                 })()}

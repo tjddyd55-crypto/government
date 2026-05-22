@@ -37,7 +37,7 @@ export function ConfirmationOnlySendFieldsSection({
       <div className="contract-send-mobile-confirmation-fields">
         <div className="contract-send-mobile-confirmation-fields__header">
           <p className="contract-send-mobile-confirmation-fields__desc">
-            발송자 입력 항목은 지금 입력하고, 고객 입력 항목은 공개 링크에서 고객이 직접 작성합니다.
+            발송자 입력 항목은 지금 입력하고, 수신자 입력 항목은 공개 링크에서 수신자가 직접 작성합니다.
           </p>
         </div>
         {loadError ? (
@@ -53,7 +53,7 @@ export function ConfirmationOnlySendFieldsSection({
         ) : null}
         {!loading && !loadError && !hasSenderFields && hasCustomerFields ? (
           <p className="contract-signature-console__hint" role="status">
-            발송자가 입력할 항목은 없습니다. 고객이 공개 링크에서 직접 입력합니다.
+            발송자가 입력할 항목은 없습니다. 수신자가 공개 링크에서 직접 입력합니다.
           </p>
         ) : null}
 
@@ -114,14 +114,14 @@ export function ConfirmationOnlySendFieldsSection({
         {hasCustomerFields ? (
           <>
             <p className="contract-signature-console__hint" role="status" style={{ marginTop: 8 }}>
-              고객 입력 예정 항목 (공개 링크에서 입력)
+              수신자 입력 예정 항목 (공개 링크에서 입력)
             </p>
             <ul className="contract-mobile-readonly-list">
               {customerFields.map((f) => (
                 <li key={f.id}>
                   {f.label}
                   {f.required ? <span className="contract-signature-console__hint--warning"> (필수)</span> : null}
-                  <span className="contract-signature-console__hint"> · 고객이 공개 링크에서 입력합니다.</span>
+                  <span className="contract-signature-console__hint"> · 수신자가 공개 링크에서 입력합니다.</span>
                 </li>
               ))}
             </ul>
@@ -139,7 +139,7 @@ export function ConfirmationOnlySendFieldsSection({
   return (
     <div className="contract-signature-send-conf-only">
       <p className="contract-signature-console__body-text" style={{ margin: '0 0 8px' }}>
-        발송자 입력 항목은 지금 입력하고, 고객 입력 항목은 공개 링크에서 고객이 직접 작성합니다.
+        발송자 입력 항목은 지금 입력하고, 수신자 입력 항목은 공개 링크에서 수신자가 직접 작성합니다.
       </p>
       {loadError ? (
         <div className="contract-signature-console__alert--danger" role="alert">
@@ -154,7 +154,7 @@ export function ConfirmationOnlySendFieldsSection({
       ) : null}
       {!loading && !loadError && !hasSenderFields && hasCustomerFields ? (
         <p className="contract-signature-console__hint" role="status">
-          발송자가 입력할 항목은 없습니다. 고객이 공개 링크에서 직접 입력합니다.
+          발송자가 입력할 항목은 없습니다. 수신자가 공개 링크에서 직접 입력합니다.
         </p>
       ) : null}
       {hasSenderFields ? (
@@ -214,14 +214,14 @@ export function ConfirmationOnlySendFieldsSection({
       {hasCustomerFields ? (
         <>
           <p className="contract-signature-console__hint" role="status" style={{ marginTop: 8 }}>
-            고객 입력 예정 항목 (공개 링크에서 입력)
+            수신자 입력 예정 항목 (공개 링크에서 입력)
           </p>
           <ul className="contract-mobile-readonly-list">
             {customerFields.map((f) => (
               <li key={f.id}>
                 {f.label}
                 {f.required ? <span className="contract-signature-console__hint--warning"> (필수)</span> : null}
-                <span className="contract-signature-console__hint"> · 고객이 공개 링크에서 입력합니다.</span>
+                <span className="contract-signature-console__hint"> · 수신자가 공개 링크에서 입력합니다.</span>
               </li>
             ))}
           </ul>

@@ -390,12 +390,12 @@ export function PublicPdfPreviewModal({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={title || '계약서 미리보기'}
+      aria-label={title || '문서 미리보기'}
       className="public-pdf-preview-modal"
     >
       <header className="public-pdf-preview-modal__header">
         <div className="public-pdf-preview-modal__titles">
-          <h2 className="public-pdf-preview-modal__title">{title || '계약서 미리보기'}</h2>
+          <h2 className="public-pdf-preview-modal__title">{title || '문서 미리보기'}</h2>
           {subtitle ? <p className="public-pdf-preview-modal__subtitle">{subtitle}</p> : null}
         </div>
         <FormButton htmlType="button" variant="secondary" onClick={onClose}>

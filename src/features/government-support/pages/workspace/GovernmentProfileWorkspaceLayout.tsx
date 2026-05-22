@@ -40,7 +40,7 @@ function resolveActiveTab(pathname: string): GovernmentProfileWorkspaceTab | nul
 }
 
 export default function GovernmentProfileWorkspaceLayout() {
-  useDocumentTitle('정부지원 CRM · 내 고객/신청')
+  useDocumentTitle('정부지원 CRM · 내 사업장/신청')
   const navigate = useNavigate()
   const location = useLocation()
   const { token } = useAuth()

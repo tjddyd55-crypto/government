@@ -54,11 +54,11 @@ export function SendSessionPanel({
   const consoleIsConfirmation = detail?.templateMode === 'confirmation_only'
   const signedCompleteDocDlLabel = consoleIsConfirmation
     ? '완료 확인서 PDF 다운로드'
-    : '완료 계약서 PDF 다운로드'
+    : '완료 전자서명 문서 PDF 다운로드'
   const signedCompleteDocPendingLabel = consoleIsConfirmation
     ? '완료 확인서 PDF 준비 중'
-    : '완료 계약서 PDF 준비 중'
-  const completedDocColumnLabel = consoleIsConfirmation ? '완료 확인서 PDF' : '완료 계약서 PDF'
+    : '완료 전자서명 문서 PDF 준비 중'
+  const completedDocColumnLabel = consoleIsConfirmation ? '완료 확인서 PDF' : '완료 전자서명 문서 PDF'
 
   const notifyDownloadError = (message: string) => {
     window.alert(message)

@@ -50,7 +50,7 @@ export default function GovernmentAdminDashboardPage() {
         },
         {
           to: '/government/admin/users',
-          title: '직원 관리',
+          title: '대행사 직원',
           description: '대행사 직원·관리자 계정 등록·상태 관리',
         },
       )
@@ -75,7 +75,7 @@ export default function GovernmentAdminDashboardPage() {
       <header className="platform-admin-page__head">
         <h1 className="platform-admin-page__title">정부지원 CRM 관리</h1>
         <p className="platform-admin-page__lede">
-          대행사·직원·이용자·운영 공지/자료를 관리합니다. 사업장/고객 전체 목록은 제공하지 않으며, 이용자
+          대행사·대행사 직원·이용자·운영 공지/자료를 관리합니다. 사업장 전체 목록은 제공하지 않으며, 이용자
           워크스페이스 또는 이용자 상세 요약에서만 확인합니다.
         </p>
       </header>

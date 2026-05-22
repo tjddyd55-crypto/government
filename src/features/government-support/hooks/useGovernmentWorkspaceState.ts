@@ -100,7 +100,7 @@ export function useGovernmentWorkspaceState(
       return
     }
     if (!canCreateProfile) {
-      setError('고객/사업장을 등록할 권한이 없습니다.')
+      setError('사업장을 등록할 권한이 없습니다.')
       return
     }
     setError(null)
@@ -111,7 +111,7 @@ export function useGovernmentWorkspaceState(
       setFeedback('사업장을 등록했습니다.')
       onProfilesChanged?.()
     } catch (e) {
-      setError(e instanceof Error ? e.message : '고객/사업장 등록에 실패했습니다.')
+      setError(e instanceof Error ? e.message : '사업장 등록에 실패했습니다.')
     }
   }, [token, defaultTenantId, canCreateProfile, onProfilesChanged])
 

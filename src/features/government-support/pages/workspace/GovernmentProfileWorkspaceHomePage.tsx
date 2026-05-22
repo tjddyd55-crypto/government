@@ -14,7 +14,7 @@ export default function GovernmentProfileWorkspaceHomePage() {
       <div className="customer-workspace-home__intro">
         <h3 className="customer-workspace-home__title">사업장 작업영역</h3>
         <p className="customer-workspace-home__desc">
-          좌측 목록에서 사업장을 선택한 뒤, 상단 버튼으로 서류/상담/메모/진행/전자서명/신청 관리 작업을 진행하세요.
+          좌측 목록에서 사업장을 선택한 뒤, 상단 버튼으로 기본정보·서류/파일·상담·메모·진행·전자서명·신청 관리 작업을 진행하세요.
         </p>
         <p className="customer-workspace-home__selected">
           현재 선택: {selectedProfileId ? selectedProfileId.slice(0, 8) : '없음'}

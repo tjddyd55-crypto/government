@@ -88,7 +88,7 @@ export default function GovernmentAdminProgramUsersPage() {
   return (
     <GovernmentAdminPageShell
       title="이용자 관리"
-      description="기관 코드로 가입한 프로그램 이용자 계정·상태만 확인합니다. 사업장/고객/신청 데이터는 이용자 본인 워크스페이스에서 관리합니다."
+      description="기관 코드로 가입한 프로그램 이용자 계정·상태만 확인합니다. 사업장·신청 데이터는 이용자 본인 워크스페이스에서 관리합니다."
       toolbar={
         <>
           <FieldWrapper label="검색">

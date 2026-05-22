@@ -207,7 +207,7 @@ export default function GovernmentSignatureHistoryPage() {
       message: (
         <>
           <p style={{ margin: '0 0 8px' }}>이 전자서명 발송을 취소하시겠습니까?</p>
-          <p style={{ margin: '0 0 8px' }}>취소하면 고객은 더 이상 링크에서 문서 작성·서명을 진행할 수 없습니다.</p>
+          <p style={{ margin: '0 0 8px' }}>취소하면 수신자는 더 이상 링크에서 문서 작성·서명을 진행할 수 없습니다.</p>
           <p style={{ margin: 0 }}>발송 이력은 삭제되지 않습니다.</p>
         </>
       ),
@@ -237,7 +237,7 @@ export default function GovernmentSignatureHistoryPage() {
       message: (
         <>
           <p style={{ margin: '0 0 8px' }}>이 전자서명 발송을 취소하시겠습니까?</p>
-          <p style={{ margin: '0 0 8px' }}>취소하면 고객은 더 이상 링크에서 문서 작성·서명을 진행할 수 없습니다.</p>
+          <p style={{ margin: '0 0 8px' }}>취소하면 수신자는 더 이상 링크에서 문서 작성·서명을 진행할 수 없습니다.</p>
           <p style={{ margin: 0 }}>발송 이력은 삭제되지 않습니다.</p>
         </>
       ),
@@ -261,7 +261,7 @@ export default function GovernmentSignatureHistoryPage() {
       <div className="contract-signature-console__container">
         <h1 className="contract-signature-console__title">전자문서 발송 내역</h1>
         <p className="contract-signature-console__lead">
-          내가 고객에게 발송한 전자서명 문서의 진행 상태와 완료 증빙을 확인합니다.
+          내가 수신자에게 발송한 전자서명 문서의 진행 상태와 완료 증빙을 확인합니다.
         </p>
 
         <p className="contract-signature-console__notice">
@@ -277,7 +277,7 @@ export default function GovernmentSignatureHistoryPage() {
                     type="search"
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
-                    placeholder="고객명·고객번호·전화·템플릿명 검색"
+                    placeholder="사업장명·식별번호·전화·템플릿명 검색"
                     disabled={!t}
                     className="contract-history-mobile-toolbar__search-input"
                   />
@@ -331,7 +331,7 @@ export default function GovernmentSignatureHistoryPage() {
                   type="search"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="고객명·고객번호·전화·템플릿명 검색"
+                  placeholder="사업장명·식별번호·전화·템플릿명 검색"
                   disabled={!t}
                   style={{ maxWidth: 360, flex: '1 1 200px' }}
                 />

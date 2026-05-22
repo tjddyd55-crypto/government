@@ -10,7 +10,7 @@ export default function GovernmentProfileListPanel() {
     <div className="customers-page customers-page--pc" style={{ height: '100%', minHeight: 0 }}>
       <header className="customers-page__header" style={{ padding: '12px 16px 8px' }}>
         <h1 className="customers-page__title" style={{ fontSize: '1.125rem', margin: 0 }}>
-          내 고객/신청
+          내 사업장/신청
         </h1>
         <p className="customers-page__subtitle" style={{ margin: '4px 0 0', fontSize: '0.8125rem', color: '#94a3b8' }}>
           본인 명의 사업장만 표시됩니다.

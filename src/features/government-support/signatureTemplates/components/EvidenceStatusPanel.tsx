@@ -28,11 +28,11 @@ export function EvidenceStatusPanel({ detail, loading, onRefresh, layout = 'desk
   const consoleIsConfirmation = detail?.templateMode === 'confirmation_only'
   const signedCompleteDocDlLabel = consoleIsConfirmation
     ? '완료 확인서 PDF 다운로드'
-    : '완료 계약서 PDF 다운로드'
+    : '완료 전자서명 문서 PDF 다운로드'
   const signedCompleteDocPendingLabel = consoleIsConfirmation
     ? '완료 확인서 PDF 준비 중'
-    : '완료 계약서 PDF 준비 중'
-  const completedDocPdfLabel = consoleIsConfirmation ? '완료 확인서 PDF' : '완료 계약서 PDF'
+    : '완료 전자서명 문서 PDF 준비 중'
+  const completedDocPdfLabel = consoleIsConfirmation ? '완료 확인서 PDF' : '완료 전자서명 문서 PDF'
 
   async function downloadSignedPdf(docId: string) {
     if (!detail || !t) {
@@ -190,7 +190,7 @@ export function EvidenceStatusPanel({ detail, loading, onRefresh, layout = 'desk
                         </div>
                         {!sessionCompleted ? (
                           <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
-                            고객이 문서를 완료하면 증빙 PDF를 다운로드할 수 있습니다.
+                            수신자가 문서를 완료하면 증빙 PDF를 다운로드할 수 있습니다.
                           </p>
                         ) : null}
                         {d.status === 'completed' && !canDl ? (
@@ -214,7 +214,7 @@ export function EvidenceStatusPanel({ detail, loading, onRefresh, layout = 'desk
                 테스트 절차 안내
               </summary>
               <ol className="contract-signature-console__ordered-list" style={{ marginTop: 8 }}>
-                <li>고객 공개 링크를 새 탭으로 엽니다.</li>
+                <li>수신자 공개 링크를 새 탭으로 엽니다.</li>
                 <li>마스킹된 번호가 맞는지 확인합니다.</li>
                 <li>인증번호 받기를 누릅니다.</li>
                 <li>개발 환경에서는 mock OTP 로그를 확인합니다.</li>
@@ -253,7 +253,7 @@ export function EvidenceStatusPanel({ detail, loading, onRefresh, layout = 'desk
           </ul>
           {detail.confirmationItems != null && detail.confirmationItems.length > 0 ? (
             <>
-              <h3 className="contract-signature-console__subsection-title">고객 확인 항목</h3>
+              <h3 className="contract-signature-console__subsection-title">수신자 확인 항목</h3>
               <ul className="contract-signature-console__unordered-list">
                 {detail.confirmationItems.map((c) => (
                   <li key={c.id}>
@@ -336,7 +336,7 @@ export function EvidenceStatusPanel({ detail, loading, onRefresh, layout = 'desk
                             </FormButton>
                           ) : (
                             <span className="contract-signature-console__hint">
-                              고객이 문서를 완료하면 다운로드할 수 있습니다.
+                              수신자가 문서를 완료하면 다운로드할 수 있습니다.
                             </span>
                           )}
                         </td>
@@ -355,7 +355,7 @@ export function EvidenceStatusPanel({ detail, loading, onRefresh, layout = 'desk
 
       <h3 className="contract-signature-console__subsection-title">테스트 절차 안내</h3>
       <ol className="contract-signature-console__ordered-list">
-        <li>고객 공개 링크를 새 탭으로 엽니다.</li>
+        <li>수신자 공개 링크를 새 탭으로 엽니다.</li>
         <li>마스킹된 번호가 맞는지 확인합니다.</li>
         <li>인증번호 받기를 누릅니다.</li>
         <li>개발 환경에서는 mock OTP 로그를 확인합니다.</li>
