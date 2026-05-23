@@ -34,13 +34,25 @@ type VerifySignupResponseLike = {
 
 export type SignupIndustry = 'insurance' | 'gym' | 'government'
 
-export function RegisterPage({ signupIndustry = 'insurance' }: { signupIndustry?: SignupIndustry }) {
+export function RegisterPage({
+  signupIndustry = 'insurance',
+  initialRegistrationCode,
+}: {
+  signupIndustry?: SignupIndustry
+  /** /government/join/:agencyCode 등에서 전달 */
+  initialRegistrationCode?: string
+}) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { isAuthenticated, login } = useAuth()
   const tenantCodeMode = signupIndustry === 'gym' || signupIndustry === 'government'
   const [gaCode, setGaCode] = useState('')
-  const [registrationCode, setRegistrationCode] = useState('')
+  const [registrationCode, setRegistrationCode] = useState(() =>
+    String(initialRegistrationCode ?? '')
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, ''),
+  )
   const [gaInfo, setGaInfo] = useState<string | null>(null)
   const [gaError, setGaError] = useState('')
   const [inviteRefUserId, setInviteRefUserId] = useState('')
@@ -88,15 +100,15 @@ export function RegisterPage({ signupIndustry = 'insurance' }: { signupIndustry?
   }, [searchParams])
 
   useEffect(() => {
-    if (signupIndustry !== 'government') {
+    if (signupIndustry !== 'government' || initialRegistrationCode?.trim()) {
       return
     }
     const stored = sessionStorage.getItem('government_join_agency_code')?.trim()
     if (stored) {
-      setRegistrationCode(stored.toUpperCase())
+      setRegistrationCode(stored.toUpperCase().replace(/\s+/g, ''))
       sessionStorage.removeItem('government_join_agency_code')
     }
-  }, [signupIndustry])
+  }, [signupIndustry, initialRegistrationCode])
 
   useEffect(() => {
     if (secondsLeft <= 0) {
@@ -491,11 +503,11 @@ export function RegisterPage({ signupIndustry = 'insurance' }: { signupIndustry?
           {tenantCodeMode ?
             <label className="field">
               <span className="field__label">
-                {signupIndustry === 'government' ? '대행사 코드' : '가입 코드'}
+                {signupIndustry === 'government' ? '기관 코드' : '가입 코드'}
               </span>
               <p className="text-xs text-gray-400 mb-2">
                 {signupIndustry === 'government'
-                  ? '소속 대행사에서 안내받은 코드를 입력하세요.'
+                  ? '소속 수행기관/대행사에서 안내받은 코드를 입력하세요.'
                   : '테넌트에서 발급한 코드입니다. 업종별 화면에 맞는 코드만 입력하세요.'}
               </p>
               <FormInput
@@ -506,10 +518,11 @@ export function RegisterPage({ signupIndustry = 'insurance' }: { signupIndustry?
                   setSignupPhoneProof(null)
                 }}
                 autoComplete="off"
-                placeholder={signupIndustry === 'government' ? '대행사 코드' : '가입 코드'}
+                placeholder={signupIndustry === 'government' ? '예) AGENCY001' : '가입 코드'}
+                aria-label={signupIndustry === 'government' ? '기관 코드' : '가입 코드'}
                 required
               />
-              {gaInfo ? <div className="ga-success">{`사업장: ${gaInfo}`}</div> : null}
+              {gaInfo ? <div className="ga-success">{`수행기관/대행사: ${gaInfo}`}</div> : null}
               {gaError ? <div className="ga-error">{gaError}</div> : null}
             </label>
           : <label className="field">

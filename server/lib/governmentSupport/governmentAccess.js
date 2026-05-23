@@ -151,6 +151,26 @@ export async function isGovernmentSupportTenant(pool, tenantId) {
  */
 /**
  * @param {import('pg').Pool | { query: Function }} pool
+ * @returns {Promise<number>}
+ */
+export async function ensureGovernmentCrmGaId(pool) {
+  const r = await pool.query(
+    `
+    INSERT INTO ga_companies (name, code)
+    VALUES ('정부지원 CRM', 'GOVERNMENT_CRM')
+    ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name
+    RETURNING id
+    `,
+  )
+  const id = r.rows[0]?.id
+  if (id == null || Number(id) < 1) {
+    throw new Error('GOVERNMENT_CRM ga_companies 행을 확보하지 못했습니다.')
+  }
+  return Number(id)
+}
+
+/**
+ * @param {import('pg').Pool | { query: Function }} pool
  * @returns {Promise<number|null>}
  */
 export async function resolveGovernmentCrmGaId(pool) {
@@ -158,7 +178,14 @@ export async function resolveGovernmentCrmGaId(pool) {
     `SELECT id FROM ga_companies WHERE LOWER(TRIM(code)) = 'government_crm' LIMIT 1`,
   )
   const id = r.rows[0]?.id
-  return id != null && Number(id) > 0 ? Number(id) : null
+  if (id != null && Number(id) > 0) {
+    return Number(id)
+  }
+  try {
+    return await ensureGovernmentCrmGaId(pool)
+  } catch {
+    return null
+  }
 }
 
 /**

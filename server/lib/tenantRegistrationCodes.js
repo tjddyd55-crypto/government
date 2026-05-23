@@ -1,7 +1,5 @@
-/**
- * 테넌트 가입 코드(Industry + Tenant Registration Code) 검증·정규화.
- * 스태프용 코드는 이번 MVP 범위 밖(default_* 는 agent/own/agent 전용 플로우).
- */
+import { GOVERNMENT_INDUSTRY_CODE } from './governmentSupport/constants.js'
+import { ensureGovernmentCrmGaId } from './governmentSupport/governmentAccess.js'
 
 /** @typedef {{ ok: true, row: object, gaId: number, tenantDbId: number }} TenantRegOk */
 /** @typedef {{ ok: false, status: number, message: string }} TenantRegErr */
@@ -125,8 +123,34 @@ export async function evaluateTenantRegistrationCodeForSignup(exec, p) {
     }
   }
 
+  const tenantDbId = Number(row.tenant_pk)
+  if (!Number.isSafeInteger(tenantDbId) || tenantDbId < 1) {
+    return { ok: false, status: 500, message: '테넌트 정보를 확인할 수 없습니다.' }
+  }
+
   const gaRaw = row.tenant_legacy_ga_id
-  const gaId = typeof gaRaw === 'number' && Number.isInteger(gaRaw) && gaRaw > 0 ? gaRaw : Number.parseInt(String(gaRaw ?? ''), 10)
+  let gaId =
+    typeof gaRaw === 'number' && Number.isInteger(gaRaw) && gaRaw > 0
+      ? gaRaw
+      : Number.parseInt(String(gaRaw ?? ''), 10)
+
+  if ((!Number.isInteger(gaId) || gaId < 1) && industryCodeNorm === GOVERNMENT_INDUSTRY_CODE) {
+    try {
+      gaId = await ensureGovernmentCrmGaId(exec)
+      await exec.query(
+        `
+        UPDATE tenants
+        SET legacy_ga_id = $1
+        WHERE id = $2
+          AND legacy_ga_id IS NULL
+        `,
+        [gaId, tenantDbId],
+      )
+    } catch {
+      gaId = NaN
+    }
+  }
+
   if (!Number.isInteger(gaId) || gaId < 1) {
     return {
       ok: false,
@@ -146,11 +170,6 @@ export async function evaluateTenantRegistrationCodeForSignup(exec, p) {
   const g0 = gaChk.rows[0]
   if (!g0 || String(g0.status ?? '').toLowerCase() !== 'active') {
     return { ok: false, status: 400, message: '가입 코드에 연결된 조직을 사용할 수 없습니다.' }
-  }
-
-  const tenantDbId = Number(row.tenant_pk)
-  if (!Number.isSafeInteger(tenantDbId) || tenantDbId < 1) {
-    return { ok: false, status: 500, message: '테넌트 정보를 확인할 수 없습니다.' }
   }
 
   return { ok: true, row, gaId, tenantDbId }

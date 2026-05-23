@@ -6,6 +6,7 @@
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'node:crypto'
 import { GOVERNMENT_INDUSTRY_CODE } from './constants.js'
+import { ensureGovernmentCrmGaId } from './governmentAccess.js'
 
 const LOG_PREFIX = '[government-bootstrap]'
 
@@ -71,19 +72,7 @@ function readBootstrapCredentials() {
  * @param {import('pg').Pool} pool
  */
 async function resolveGovernmentBootstrapGaId(pool) {
-  const r = await pool.query(
-    `
-    INSERT INTO ga_companies (name, code)
-    VALUES ('정부지원 CRM', 'GOVERNMENT_CRM')
-    ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name
-    RETURNING id
-    `,
-  )
-  const id = r.rows[0]?.id
-  if (id == null) {
-    throw new Error(`${LOG_PREFIX} GOVERNMENT_CRM ga_companies 행을 확보하지 못했습니다.`)
-  }
-  return id
+  return ensureGovernmentCrmGaId(pool)
 }
 
 /**
