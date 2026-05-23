@@ -68,11 +68,18 @@ export async function findValidAgencyRegistrationCode(apiBase) {
 
 /**
  * @param {string} apiBase
- * @param {{ registrationCode: string; username?: string; phone?: string; displayName?: string }} opts
- * @returns {Promise<{ username: string; password: string; phone: string; registrationCode: string }>}
+ * @param {{ registrationCode?: string; registrationCodeRaw?: string; username?: string; phone?: string; displayName?: string }} opts
+ * registrationCodeRaw — 클라이언트 정규화 없이 API에 그대로 전달(공백·대소문자 서버 검증용).
+ * @returns {Promise<{ username: string; password: string; phone: string; registrationCode: string; access: object }>}
  */
 export async function registerGovernmentProgramUserViaHttp(apiBase, opts) {
-  const registrationCode = String(opts.registrationCode ?? '').trim().toUpperCase()
+  const registrationCode =
+    opts.registrationCodeRaw != null
+      ? String(opts.registrationCodeRaw)
+      : String(opts.registrationCode ?? '')
+          .trim()
+          .toUpperCase()
+          .replace(/\s+/g, '')
   const username = String(opts.username ?? generateE2eSignatureUsername()).trim()
   const password = generateE2eRandomPassword()
   const phone = String(opts.phone ?? generateE2eUniquePhone()).trim()
@@ -130,11 +137,12 @@ export async function registerGovernmentProgramUserViaHttp(apiBase, opts) {
 
   const token = await e2eLogin(apiBase, username, password)
   const access = await e2eApi(apiBase, '/government-support/me/access', { token })
-  if (access.json?.data?.isGovernmentProgramUser !== true) {
+  const accessData = access.json?.data ?? access.json
+  if (accessData?.isGovernmentProgramUser !== true) {
     throw new Error(`registered user is not government program user: ${username}`)
   }
 
-  return { username, password, phone, registrationCode }
+  return { username, password, phone, registrationCode, access: accessData, token }
 }
 
 /**
