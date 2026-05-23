@@ -7,6 +7,7 @@ import {
   createE2eReporter,
   e2eApi,
   resolveE2eGovernmentHttpConfig,
+  resolveE2eStaffPassword,
 } from './lib/e2eGovernmentHttpEnv.mjs'
 import {
   resolveE2eProgramUsers,
@@ -481,7 +482,7 @@ async function main() {
 
     const agencies = (await api('/government-support/admin/agencies', { token: industryToken })).json?.data ?? []
     const tenantA = agencies[0]?.id
-    const staffPass = hasPassword ? PASS : generateStaffPassword()
+    const staffPass = hasPassword ? resolveE2eStaffPassword(PASS) : generateStaffPassword()
     if (tenantA) {
       try {
         const uStaff = `e2e_st_sig_${tag}`

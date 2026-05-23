@@ -72,6 +72,34 @@ export function resolveOptionalE2ePassword() {
   return String(process.env.E2E_GOVERNMENT_PASSWORD ?? '').trim()
 }
 
+/** develop E2E — admin user API는 8자 이상. bootstrap admin(짧은 비밀번호)과 staff 생성/로그인 분리 */
+export function resolveE2eStaffPassword(raw = resolveOptionalE2ePassword()) {
+  const p = String(raw ?? '').trim()
+  if (p.length >= 8) return p
+  if (p.length === 0) return p
+  return `${p}${p}`
+}
+
+export const E2E_FIXED_STAFF_USERNAME = String(process.env.E2E_GOVERNMENT_STAFF_USER ?? 'e2e_staff_user').trim()
+export const E2E_FIXED_AGENCY_ADMIN_USERNAME = String(
+  process.env.E2E_GOVERNMENT_AGENCY_ADMIN ?? 'e2e_agency_admin',
+).trim()
+
+/**
+ * @param {string} apiBase
+ * @param {string} username
+ * @param {string} password
+ * @returns {Promise<string | null>}
+ */
+export async function tryE2eLogin(apiBase, username, password) {
+  const { status, json } = await e2eApi(apiBase, '/auth/login', {
+    method: 'POST',
+    body: { username, password },
+  })
+  if (status === 200 && json?.token) return json.token
+  return null
+}
+
 export function resolveE2eGovernmentHttpConfig(options = {}) {
   const { requirePassword = false } = options
   const base = String(process.env.E2E_BASE_URL ?? DEVELOP_DEFAULT_BASE_URL).replace(/\/$/, '')

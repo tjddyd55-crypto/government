@@ -6,7 +6,10 @@ import {
   createE2eReporter,
   e2eApi,
   e2eLogin,
+  E2E_FIXED_AGENCY_ADMIN_USERNAME,
+  E2E_FIXED_STAFF_USERNAME,
   resolveE2eGovernmentHttpConfig,
+  resolveE2eStaffPassword,
 } from './lib/e2eGovernmentHttpEnv.mjs'
 import {
   resolveE2eProgramUsers,
@@ -30,8 +33,49 @@ async function api(path, opts = {}) {
   return e2eApi(API, path, opts)
 }
 
+const STAFF_PASS = resolveE2eStaffPassword(PASS)
+
 async function login(username, password = PASS) {
   return e2eLogin(API, username, password)
+}
+
+async function loginStaff(username) {
+  return e2eLogin(API, username, STAFF_PASS)
+}
+
+async function ensureOperationalUser(industry, username, role, tenantId) {
+  const listRes = await api(`/government-support/admin/users?q=${encodeURIComponent(username)}`, { token: industry })
+  const existing = (listRes.json?.data ?? []).find((u) => String(u.username ?? '') === username)
+  if (existing?.id) {
+    const userId = String(existing.id)
+    const memTenant = String(existing.tenantId ?? existing.tenant_id ?? '')
+    const memRole = String(existing.role ?? existing.membershipRole ?? '')
+    if (memTenant !== String(tenantId) || memRole !== role) {
+      await api(`/government-support/admin/users/${userId}`, {
+        token: industry,
+        method: 'PATCH',
+        body: { role, tenantId },
+        expectStatus: 200,
+      })
+      pass(`sync ${role} tenant`, username)
+    } else {
+      pass(`reuse ${role}`, username)
+    }
+  } else {
+    try {
+      await api('/government-support/admin/users', {
+        token: industry,
+        method: 'POST',
+        body: { username, password: STAFF_PASS, role, tenantId, displayName: username },
+        expectStatus: 200,
+      })
+      pass(`create ${role}`, username)
+    } catch (e) {
+      if (String(e.message).includes('409')) pass(`reuse ${role}`, username)
+      else throw e
+    }
+  }
+  await loginStaff(username)
 }
 
 function skip(name, detail = '') {
@@ -98,8 +142,8 @@ async function main() {
 
   let tenantA = null
   let tenantB = null
-  const uStaff = `e2e_st_ws_${tag}`
-  const uAgency = `e2e_aa_ws_${tag}`
+  const uStaff = E2E_FIXED_STAFF_USERNAME
+  const uAgency = E2E_FIXED_AGENCY_ADMIN_USERNAME
 
   if (industry) {
     const agencies = (await api('/government-support/admin/agencies', { token: industry })).json?.data ?? []
@@ -107,24 +151,6 @@ async function main() {
     tenantB = agencies[1]?.id
     if (!tenantA || !tenantB) fail('tenants A/B', 'need two agencies')
     else pass('tenants ready', `A=${tenantA} B=${tenantB}`)
-
-    for (const [u, role] of [
-      [uStaff, 'government_staff'],
-      [uAgency, 'government_agency_admin'],
-    ]) {
-      try {
-        await api('/government-support/admin/users', {
-          token: industry,
-          method: 'POST',
-          body: { username: u, password: PASS, role, tenantId: tenantA, displayName: u },
-          expectStatus: 200,
-        })
-        pass(`create ${role}`, u)
-      } catch (e) {
-        if (String(e.message).includes('409')) pass(`reuse ${role}`, u)
-        else throw e
-      }
-    }
   } else {
     skip('tenants A/B', 'admin token unavailable')
     skip('create government_staff', 'admin token unavailable')
@@ -134,94 +160,103 @@ async function main() {
   const ts = Date.now()
   /** @type {string | undefined} */
   let resourceId
-  if (!industry) {
-    skip('notices seeded', 'admin token unavailable')
-    skip('resource A published', 'admin token unavailable')
-  } else {
-  const globalPub = await api('/government-support/admin/notices', {
-    token: industry,
-    method: 'POST',
-    body: {
-      title: `E2E WS Global ${ts}`,
-      content: 'g',
-      category: 'important',
-      status: 'published',
-      scopeType: 'global',
-    },
-    expectStatus: 200,
-  })
-  const globalDraft = await api('/government-support/admin/notices', {
-    token: industry,
-    method: 'POST',
-    body: {
-      title: `E2E WS Draft ${ts}`,
-      content: 'd',
-      category: 'general',
-      status: 'draft',
-      scopeType: 'global',
-    },
-    expectStatus: 200,
-  })
-  const noticeA = await api('/government-support/admin/notices', {
-    token: industry,
-    method: 'POST',
-    body: {
-      title: `E2E WS AgencyA ${ts}`,
-      content: 'a',
-      category: 'deadline',
-      status: 'published',
-      scopeType: 'agency',
-      tenantId: tenantA,
-    },
-    expectStatus: 200,
-  })
-  await api('/government-support/admin/notices', {
-    token: industry,
-    method: 'POST',
-    body: {
-      title: `E2E WS AgencyB ${ts}`,
-      content: 'b',
-      category: 'general',
-      status: 'published',
-      scopeType: 'agency',
-      tenantId: tenantB,
-    },
-    expectStatus: 200,
-  })
-  pass('notices seeded')
+  /** @type {string | undefined} */
+  let noticeSeedTenantA
+  /** @type {string | undefined} */
+  let noticeSeedTenantB
 
-  const presign = await api('/government-support/admin/resources/presign', {
-    token: industry,
-    method: 'POST',
-    body: {
-      scopeType: 'agency',
-      tenantId: tenantA,
-      fileName: 'ws-e2e.pdf',
-      contentType: 'application/pdf',
-      sizeBytes: 16,
-    },
-    expectStatus: 200,
-  })
-  const { uploadUrl, objectKey, resourceId: seededResourceId } = presign.json?.data ?? {}
-  resourceId = seededResourceId
-  const fileBody = `ws-e2e-${ts}`
-  await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'application/pdf' }, body: fileBody })
-  await api('/government-support/admin/resources', {
-    token: industry,
-    method: 'POST',
-    body: {
-      resourceId,
-      fileKey: objectKey,
-      fileName: 'ws-e2e.pdf',
-      fileSize: fileBody.length,
-      mimeType: 'application/pdf',
-      status: 'published',
-      title: `E2E WS ResourceA ${ts}`,
-      category: 'form',
-    },
-    expectStatus: 200,
-  })
-  pass('resource A published', String(resourceId))
+  async function seedNoticesAndResources(userTenantA, userTenantB) {
+    if (!industry || !userTenantA || !userTenantB) {
+      skip('notices seeded', 'admin token unavailable')
+      skip('resource A published', 'admin token unavailable')
+      return
+    }
+    noticeSeedTenantA = userTenantA
+    noticeSeedTenantB = userTenantB
+    await api('/government-support/admin/notices', {
+      token: industry,
+      method: 'POST',
+      body: {
+        title: `E2E WS Global ${ts}`,
+        content: 'g',
+        category: 'important',
+        status: 'published',
+        scopeType: 'global',
+      },
+      expectStatus: 200,
+    })
+    await api('/government-support/admin/notices', {
+      token: industry,
+      method: 'POST',
+      body: {
+        title: `E2E WS Draft ${ts}`,
+        content: 'd',
+        category: 'general',
+        status: 'draft',
+        scopeType: 'global',
+      },
+      expectStatus: 200,
+    })
+    await api('/government-support/admin/notices', {
+      token: industry,
+      method: 'POST',
+      body: {
+        title: `E2E WS AgencyA ${ts}`,
+        content: 'a',
+        category: 'deadline',
+        status: 'published',
+        scopeType: 'agency',
+        tenantId: userTenantA,
+      },
+      expectStatus: 200,
+    })
+    await api('/government-support/admin/notices', {
+      token: industry,
+      method: 'POST',
+      body: {
+        title: `E2E WS AgencyB ${ts}`,
+        content: 'b',
+        category: 'general',
+        status: 'published',
+        scopeType: 'agency',
+        tenantId: userTenantB,
+      },
+      expectStatus: 200,
+    })
+    pass('notices seeded')
+
+    const presign = await api('/government-support/admin/resources/presign', {
+      token: industry,
+      method: 'POST',
+      body: {
+        scopeType: 'agency',
+        tenantId: userTenantA,
+        fileName: 'ws-e2e.pdf',
+        contentType: 'application/pdf',
+        sizeBytes: 16,
+      },
+      expectStatus: 200,
+    })
+    const { uploadUrl, objectKey, resourceId: seededResourceId } = presign.json?.data ?? {}
+    resourceId = seededResourceId
+    const fileBody = `ws-e2e-${ts}`
+    await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'application/pdf' }, body: fileBody })
+    await api('/government-support/admin/resources', {
+      token: industry,
+      method: 'POST',
+      body: {
+        resourceId,
+        fileKey: objectKey,
+        fileName: 'ws-e2e.pdf',
+        fileSize: fileBody.length,
+        mimeType: 'application/pdf',
+        status: 'published',
+        title: `E2E WS ResourceA ${ts}`,
+        category: 'form',
+      },
+      expectStatus: 200,
+    })
+    pass('resource A published', String(resourceId))
   }
 
   const programUsers = await resolveE2eProgramUsers(API, {
@@ -243,6 +278,22 @@ async function main() {
   else fail('user A tenant name present')
   if (accessA?.accountCreatedAt) pass('user A accountCreatedAt present')
   else fail('user A accountCreatedAt present')
+
+  const userATenantId = String(accessA?.governmentProgramUserTenantIds?.[0] ?? '')
+  if (industry && userATenantId) {
+    await ensureOperationalUser(industry, uStaff, 'government_staff', userATenantId)
+    await ensureOperationalUser(industry, uAgency, 'government_agency_admin', userATenantId)
+  } else if (industry) {
+    fail('user A tenant for staff', 'missing tenant id')
+  } else {
+    skip('create government_staff', 'admin token unavailable')
+    skip('create government_agency_admin', 'admin token unavailable')
+  }
+
+  const tokenB = programUsers.userB.token
+  const accessB = unwrapData((await api('/government-support/me/access', { token: tokenB })).json)
+  const userBTenantId = String(accessB?.governmentProgramUserTenantIds?.[0] ?? '')
+  await seedNoticesAndResources(userATenantId, userBTenantId || tenantB || userATenantId)
 
   const meA = unwrapData((await api('/me', { token: tokenA })).json)
   if (meA?.username === programUsers.userA.username) pass('user A me username')
@@ -425,7 +476,7 @@ async function main() {
   /** @type {string | undefined} */
   let docItemId
   if (industry) {
-    const tokenStaff = await login(uStaff)
+    const tokenStaff = await loginStaff(uStaff)
     const docReqCreate = await api(`/government-support/profiles/${profileAId}/document-requests`, {
       token: tokenStaff,
       method: 'POST',
@@ -506,6 +557,14 @@ async function main() {
     if (adminDocDetail.status === 200 && adminItemStatus === '제출 완료') pass('staff admin document request submitted')
     else fail('staff admin document request submitted', `${adminDocDetail.status}:${adminItemStatus}`)
 
+    const adminDocDownload = await api(
+      `/government-support/admin/document-requests/${docRequestId}/items/${docItemId}/files/${docFileId}/download`,
+      { token: tokenStaff },
+    )
+    if (adminDocDownload.status === 200 && adminDocDownload.json?.data?.downloadUrl) {
+      pass('staff admin request doc file download')
+    } else fail('staff admin request doc file download', String(adminDocDownload.status))
+
     const progUserDocCreate = await api(`/government-support/profiles/${profileAId}/document-requests`, {
       token: tokenA,
       method: 'POST',
@@ -523,6 +582,7 @@ async function main() {
     skip('user A confirm request doc file', 'admin token unavailable')
     skip('user A item submitted status', 'admin token unavailable')
     skip('staff admin document request submitted', 'admin token unavailable')
+    skip('staff admin request doc file download', 'admin token unavailable')
     skip('staff admin document requests list', 'admin token unavailable')
     skip('industry admin document requests 403', 'admin token unavailable')
     skip('industry admin inquiries 403', 'admin token unavailable')
@@ -560,7 +620,7 @@ async function main() {
   else fail('user A inquiry message', String(inquiryMsgA.status))
 
   if (industry) {
-    const tokenStaff = await login(uStaff)
+    const tokenStaff = await loginStaff(uStaff)
     const adminList = await api('/government-support/admin/inquiries', { token: tokenStaff })
     if (adminList.status === 200 && (adminList.json?.data ?? []).some((r) => String(r.id) === inquiryAId)) {
       pass('staff admin inquiry list')
@@ -761,7 +821,6 @@ async function main() {
   }
 
   // Program user B isolation
-  const tokenB = programUsers.userB.token
   pass('program user B login', programUsers.userB.username)
   const listB = (await api('/government-support/profiles', { token: tokenB })).json?.data ?? []
   if (!listB.some((p) => String(p.id) === profileAId)) pass('user B cannot list A profile')
@@ -878,7 +937,7 @@ async function main() {
 
   // Operational roles — API access shape (frontend redirect tested separately)
   if (industry) {
-    const tokenStaff = await login(uStaff)
+    const tokenStaff = await loginStaff(uStaff)
     const accessStaff = unwrapData((await api('/government-support/me/access', { token: tokenStaff })).json)
     if (accessStaff?.isGovernmentProgramUser !== true) pass('staff not program user')
     else fail('staff not program user')
@@ -886,7 +945,7 @@ async function main() {
     if (staffProfiles.status === 200 && (staffProfiles.json?.data ?? []).length === 0) pass('staff profiles empty')
     else fail('staff profiles empty')
 
-    const tokenAgency = await login(uAgency)
+    const tokenAgency = await loginStaff(uAgency)
     const accessAgency = unwrapData((await api('/government-support/me/access', { token: tokenAgency })).json)
     if (accessAgency?.isGovernmentProgramUser !== true) pass('agency admin not program user')
     else fail('agency admin not program user')
