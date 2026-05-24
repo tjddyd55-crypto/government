@@ -5,17 +5,22 @@
 > 배포·브랜치: 루트 `AGENTS.md`. 에이전트 규칙: `.cursor/rules/government-insurance-copy.mdc`  
 > 단계별 이력: `docs/government-support-dev-progress.md`
 
-**최종 검증 스냅샷 (develop):**
+**최종 검증 스냅샷 (develop `f63c174`, 2026-05-24):**
 
 | 항목 | 상태 |
 |------|------|
 | Railway | CRM-government / **develop** / app |
 | 공개 URL (dev) | `https://app-develop-9663.up.railway.app` |
 | Source Branch | **develop** |
-| 공지/전달사항 | 구현 완료 |
-| 자료실/서식함 | 구현 완료 |
-| E2E (HTTP) | 25 pass / 0 fail |
-| production / main | **미변경** (develop만 반영) |
+| 1차 기능 | workspace 7탭 + 고객앱 4탭 + admin 요청서류·문의 + 기관 코드 가입 |
+| E2E workspace | **136 pass** / 0 fail (staff/admin 운영 흐름 포함) |
+| E2E signatures | **49 pass** / 0 fail |
+| E2E join-code | **29 pass** / 0 fail |
+| `npm test` | **204 pass** |
+| production / main | **미변경** (`c4fc790`) |
+
+**1차 운영 체크리스트:** [`docs/government-support-phase1-ops-checklist.md`](../government-support-phase1-ops-checklist.md)  
+**1차 완료 상세:** [`docs/government-support-dev-progress.md`](../government-support-dev-progress.md) §1차 기능 구현 완료
 
 ---
 
@@ -41,13 +46,17 @@
 보험 `CustomersPage` / `CustomerWorkspaceLayout` 동형: **좌측 사업장·신청 리스트 + 우측 상세(메모·상담·진행·서류·전자서명 탭)**.  
 현재 `/government/workspace`, `/my-businesses` 등 **분리 페이지는 과도기**.
 
-### 0.4 우선순위
+### 0.4 우선순위 (1차 완료 — 2026-05-22)
 
-| 순서 | 범위 |
-|------|------|
-| **1** | 전자서명 — 보험 `contracts` → `gov_signature_*` (1차 포팅 완료, develop 검증 중) |
-| **2** | 이용자 UI — 보험 고객관리 레이아웃으로 재정렬 |
-| **3** | 메모·상담·진행·서류·신청 — 보험 모듈 **순차 복사** |
+| 순서 | 범위 | 상태 |
+|------|------|------|
+| **1** | 전자서명 — `gov_signature_*` | ✅ develop E2E 49 pass |
+| **2** | 이용자 UI — 좌측 리스트 + 우측 탭 | ✅ `/government/my-applications` |
+| **3** | 메모·상담·진행·서류·신청·기본정보 | ✅ workspace 탭 |
+| **3+** | 고객앱 (요청·진행·문의·서명) | ✅ 신청 CRUD 없음 |
+| **3+** | 대행사 요청서류·문의 admin | ✅ + staff E2E (`f63c174`) |
+| **3+** | 기관 코드 가입 | ✅ join-link·직접 입력 E2E |
+| **3+** | 문구 정리 | ✅ `99ee404` |
 
 ### 0.5 데이터 매핑 (요약)
 
@@ -65,7 +74,7 @@
 |------|------|
 | **역할** | 사업장·고객·신청 데이터 **소유자** |
 | **가입** | 대행사 **기관 코드**로 회원가입 (`/government/join`, `RegisterPage` + `government_user` 멤버십) |
-| **화면** | `/government/workspace`(홈), `/government/my-businesses`, `/government/my-applications`, `/government/notices`, `/government/resources`, `/government/me` |
+| **화면** | `/government/workspace`, `/government/my-applications`, `/government/notices`, `/government/resources`, `/government/me`, `/government/app/*`, `/government/signatures/*` |
 | **금지** | `/government/admin/*`, 운영 API CRUD, 타 대행사 데이터 |
 
 ### 1.2 `government_staff` (대행사 직원)
@@ -74,7 +83,8 @@
 |------|------|
 | **역할** | 소속 대행사 **운영 업무** (공지·자료 등록·전달) |
 | **생성** | 대행사 관리자가 **직원 관리** API/UI로 생성 (`government_staff`) |
-| **화면** | `/government/admin/notices`, `/government/admin/resources`, (내 정보 등) |
+| **화면** | `/government/admin/document-requests`, `/government/admin/inquiries`, `/government/admin/notices`, `/government/admin/resources`, (내 정보) |
+| **가능** | 소속 tenant **요청서류·문의** 처리, 공지·자료 운영 |
 | **금지** | `/government/workspace` (프로그램 이용자 전용), 사업장/고객 **전체 목록·직접 CRUD** |
 | **삭제/보관** | 공지·자료 **본인 작성분만** (agency admin은 tenant 전체) |
 
@@ -84,7 +94,7 @@
 |------|------|
 | **역할** | 소속 대행사 **직원·이용자·운영** 관리 |
 | **생성** | 업종 관리자 또는 상위 관리자가 사용자 관리 API로 생성 |
-| **화면** | 직원 관리, 이용자 관리, 공지/자료 관리 (`governmentAdminNav.ts`) |
+| **화면** | 대행사 직원, 이용자 관리, **요청서류·문의** 관리, 공지/자료 (`governmentAdminNav.ts`) |
 | **금지** | 사업장/고객 **전체 목록 메뉴**, 유저 소유 profile/application **직접 관리** |
 | **운영 CRUD** | **자기 tenant** agency scope만 (global scope 생성·삭제 불가) |
 
@@ -347,22 +357,47 @@ develop URL: `https://app-develop-9663.up.railway.app`
 
 ---
 
-## 8. 프론트 라우트 요약
+## 8. 프론트 라우트 요약 (1차)
+
+### 8.1 이용자·workspace
 
 | 경로 | 게이트 | 용도 |
 |------|--------|------|
-| `/government/login` | 공개 | 로그인 |
-| `/government/join` | 공개 | 기관 코드 가입 |
-| `/government/workspace` | `requireProgramUserWorkspace` | 이용자 홈 |
-| `/government/my-businesses` | 동일 | 내 사업장 |
-| `/government/my-applications` | 동일 | 내 고객/신청 |
-| `/government/notices`, `/resources`, `/me` | 동일 | 공지·자료·내 정보 |
-| `/government/signatures`, `/signatures/send` | `requireProgramUserWorkspace` | 전자서명 (보험 contracts UI 복제) |
-| `/government/signature-templates` | 동일 | 템플릿·PDF 좌표 |
-| `/government/sign/:token` | 공개 | 공개 서명 |
-| `/government/admin/*` | `requireAdmin` / `requireOperational` / `requireUserManager` | 관리·운영 |
+| `/government/login`, `/signup`, `/join` | 공개 | 인증·가입 |
+| `/government/workspace` | program user | 홈 |
+| `/government/my-applications` | program user | 사업장 리스트 |
+| `/government/my-applications/:profileId/:tab` | program user | 우측 탭 (`basic` 기본) |
+| `/government/signatures`, `/signatures/send` | program user | 전자서명 |
+| `/government/notices`, `/resources`, `/me` | program user | 공지·자료·내 정보 |
 
-`government_user`에게 **`/government/admin/*` 메뉴·API 모두 차단**.
+**workspace 탭 (`:tab`):** `basic` · `files` · `consultations` · `memos` · `progress` · `signatures` · `applications`
+
+### 8.2 고객앱 (program user, 신청 CRUD 없음)
+
+| 경로 | 용도 |
+|------|------|
+| `/government/app/requests`, `/requests/:id` | 요청서류 목록·상세·업로드 |
+| `/government/app/progress` | 진행상황 조회 |
+| `/government/app/inquiries`, `/inquiries/new`, `/inquiries/:id` | 문의 |
+| `/government/app/signatures` | 전자서명 내역 |
+
+Shell: `GovernmentCustomerAppShell` — 4탭 + 문의하기 CTA
+
+### 8.3 관리자·운영
+
+| 경로 | 게이트 | 용도 |
+|------|--------|------|
+| `/government/admin` | admin | 대시보드 |
+| `/government/admin/agencies` | industry admin | 대행사·기관 코드 |
+| `/government/admin/users` | agency admin | **대행사 직원** |
+| `/government/admin/program-users` | agency admin | 이용자 계정(메타) |
+| `/government/admin/document-requests` | staff / agency admin | 요청서류 관리 |
+| `/government/admin/inquiries` | staff / agency admin | 문의 관리 |
+| `/government/admin/notices`, `/resources` | operational | 공지·자료 |
+| `/government/signature-templates` | program user (템플릿) | PDF·전자서명 템플릿 |
+| `/government/sign/:token` | **공개** | 수신자 서명 |
+
+`government_user` → **`/government/admin/*` 전부 차단**
 
 ---
 
@@ -370,30 +405,33 @@ develop URL: `https://app-develop-9663.up.railway.app`
 
 | 명령 | 용도 |
 |------|------|
-| `npm test` | 서버 단위 테스트 (`governmentOperationsAccess.test.js` 등) |
+| `npm test` | 서버·lib 단위 테스트 (**204 pass**, 2026-05-24) |
 | `npm run build` | 프론트 프로덕션 빌드 |
-| `npm run e2e:government:operations` | develop HTTP E2E — 공지·자료 (DB 불필요) |
-| `npm run e2e:government:user-workspace` | develop HTTP E2E — 이용자 workspace·사업장·A/B 격리 |
+| `npm run e2e:government:operations` | develop HTTP E2E — 공지·자료 |
+| `npm run e2e:government:user-workspace` | develop HTTP E2E — workspace·staff/admin·A/B (**136 pass**) |
+| `npm run e2e:government:signatures` | develop HTTP E2E — PDF·템플릿·발송·공개서명 (**49 pass**) |
+| `npm run e2e:government:join-code` | develop HTTP E2E — 기관 코드 가입 (**29 pass**) |
 
 상세·ENV·안전장치: [government-support-e2e.md](../government-support-e2e.md)  
-admin 비밀번호 운영: [government-support-admin-password-ops.md](../government-support-admin-password-ops.md)
-
-**develop E2E 기준 (2026-05):** 공지·자료 25 pass / 이용자 workspace 37 pass (0 fail).
+admin 비밀번호 운영: [government-support-admin-password-ops.md](../government-support-admin-password-ops.md)  
+**운영 전 수동 체크:** [government-support-phase1-ops-checklist.md](../government-support-phase1-ops-checklist.md)
 
 ---
 
-## 10. 남은 이슈·후속 과제
+## 10. 남은 이슈·후속 과제 (1차 이후)
 
 | 우선순위 | 항목 | 설명 |
 |----------|------|------|
-| **P0** | 전자서명 develop E2E/수동 | PDF→좌표→템플릿→발송→공개서명→완료 PDF (보험 동형 검증) |
-| **P1** | 이용자 UI 재정렬 | placeholder·분리 페이지 → 보험 `CustomersPage` 좌측 리스트+우측 상세 |
-| **P2** | 메모·상담·진행·서류·신청 | 보험 해당 feature **복사 이식** (순차 PR) |
-| P3 | E2E 테스트 계정 정리 | develop DB `e2e_*` 유지/삭제 정책 |
+| **P0** | 실기기 모바일 스모크 | coarse pointer — workspace 탭·고객앱·admin 모달 |
+| P1 | 문의 첨부파일 E2E | API·UI 구현됨, HTTP 시나리오 추가 가능 |
+| P1 | SMS 429 cooldown | 연속 HTTP 가입 E2E 시 60~90초 대기 |
+| P1 | production 배포 전 ENV 점검 | bootstrap password 삭제·R2·ALIGO·JWT Railway만 |
+| P1 | BasicInfoPanel 피드백 중복 | `ws.feedback` vs 로컬 `statusText` |
+| P2 | develop DB `e2e_*` 정리 | 테스트 데이터 유지/삭제 정책 |
 | P3 | 공지 읽음 확인 | read receipt / unread 배지 |
 | P3 | 자료 다운로드 이력 | audit log |
-| P3 | assignment 기반 staff 접근 | tenant 단위 운영만 (현재) |
-| — | 문의/FAQ/보완 요청 | 1차 범위 제외 |
+| P3 | assignment 기반 staff 접근 | 1차 범위 외 — 현재 profile 원본 **staff 불가** |
+| — | production merge | **사용자 명시 지시 시에만** develop → main |
 
 ---
 
@@ -403,11 +441,12 @@ admin 비밀번호 운영: [government-support-admin-password-ops.md](../governm
 |-----------|------|
 | `AGENTS.md` | develop/main 배포, PC/Mobile 분리, **§ 정부지원 복제 원칙** |
 | `.cursor/rules/government-insurance-copy.mdc` | 에이전트용 보험→정부 복제 규칙 |
-| `docs/government-support-dev-progress.md` | 단계별 구현 이력 |
+| `docs/government-support-dev-progress.md` | 단계별 구현 이력 · **§1차 완료** |
+| `docs/government-support-phase1-ops-checklist.md` | **운영 전 수동 체크리스트** |
 | `.env.railway.development.example` | develop ENV 키 체크리스트 |
 | `server/lib/governmentSupport/schema.js` | DDL (`gov_support_notices`, `gov_support_resources`) |
 | `server/registerGovernmentOperationsApi.js` | 운영 API 라우트 |
 
 ---
 
-*문서 버전: develop `d6005ec` 기준 (전자서명 포팅 + §0 복제 원칙). production/main 미반영.*
+*문서 버전: develop `f63c174` 기준 (1차 운영 흐름·E2E 보강). production/main 미반영.*

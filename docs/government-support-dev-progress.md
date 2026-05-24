@@ -1,6 +1,7 @@
 # Government-support CRM 개발 진행 기록
 
 > **아키텍처·운영 SSOT:** [`docs/architecture/government-crm-architecture.md`](architecture/government-crm-architecture.md) — **§0 보험 CRM 마스터 복제 원칙 (고정)**  
+> **1차 운영 체크리스트:** [`docs/government-support-phase1-ops-checklist.md`](government-support-phase1-ops-checklist.md)  
 > **에이전트 규칙:** `.cursor/rules/government-insurance-copy.mdc`  
 > 계획 문서(로컬, Git 미추적): `dev/government_support_crm_composer25_step_plan.md`  
 > 브랜치: `develop`  
@@ -8,17 +9,114 @@
 
 ---
 
-## 로드맵 (고정 — 2026-05)
+## 1차 기능 구현 완료 (2026-05-24)
 
-| 순서 | 작업 | 보험 CRM 기준 파일(예) | 정부지원 목표 |
-|------|------|------------------------|---------------|
-| **1** | 전자서명 | `src/features/contracts/**`, `server/apis/contract*Api.js` | `government-support/signatures`, `gov_signature_*` (**1차 커밋됨**) |
-| **2** | 이용자 UI 재정렬 | `CustomersPage`, `CustomerWorkspaceLayout` | 좌측 사업장/신청 리스트 + 우측 상세 탭 |
-| **3** | 메모 | 보험 memo 모듈 | profile scope |
-| **3** | 상담내역 | `customer_consultations` UI | 정부 상담 API |
-| **3** | 진행상황 | 보험 진행/상태 UI | 접수·진행상황 |
-| **3** | 서류/첨부 | files/storage UI | `gov_support_document_items` |
-| **3** | 신청 | application UI | `gov_support_application_cases` |
+**develop HEAD:** `f63c174` — `test(government): cover staff admin operating flows`  
+**직전 주요 커밋:** `9148e59` (join-code E2E), `679f6a8` (기관 코드 가입), `b7b320b` (admin 폼 라벨), `99ee404` (문구)  
+**Railway develop:** `https://app-develop-9663.up.railway.app`  
+**production/main:** **미변경** (`c4fc790`)
+
+### 자동 검증 스냅샷
+
+| 항목 | 결과 |
+|------|------|
+| `npm run build` | ✅ |
+| `npm test` | ✅ **204 pass** |
+| `e2e:government:user-workspace` | ✅ **136 pass** (staff/admin 운영 흐름 포함) |
+| `e2e:government:signatures` | ✅ **49 pass** |
+| `e2e:government:join-code` | ✅ **29 pass** (가입 링크·직접 코드 입력) |
+
+### 1차 완료 기능 목록
+
+| # | 기능 | 프론트 (정부 전용 복사본) | 비고 |
+|---|------|---------------------------|------|
+| 1 | 보험 UI 복사 기준 | `.cursor/rules/government-insurance-copy.mdc`, `AGENTS.md` §8 | 보험 원본 **미수정** |
+| 2 | 로그인 UI | `GovernmentLoginPage`, `GovernmentLoginForm` | PC/Mobile `ResponsiveLayout` |
+| 3 | 관리자 UI | `GovernmentAdminLayout`, `GovernmentAdmin*Page` | 역할별 nav |
+| 4 | 이용자 workspace | `GovernmentProfileWorkspaceLayout` | 좌측 리스트 + 우측 탭 |
+| 5 | 기본정보/사업장 | `profileBasicInfo/*` | `gov_support_profiles` GET/PATCH |
+| 6 | 서류/파일 | `GovernmentProfileFilesPanel` | presign → R2 → DB |
+| 7 | 메모 | `GovernmentProfileMemosPanel` | profile scope CRUD |
+| 8 | 상담 이력 | `GovernmentProfileConsultationsPanel` | profile scope CRUD |
+| 9 | 진행상황 | `GovernmentProfileProgressPanel` | `progressStatus` 연동 |
+| 10 | 전자서명 | `signatures/*`, `signatureTemplates/*`, `publicSignature/*` | `gov_signature_*` |
+| 11 | 고객앱 요청서류 | `customer-app/*` | 업로드만, 신청 CRUD 없음 |
+| 12 | 고객앱 문의 | `GovernmentCustomerAppInquiries*` | program user 전용 |
+| 13 | 고객앱 전자서명 내역 | `GovernmentCustomerAppSignaturesPage` | 조회·다운로드 |
+| 14 | 문구 정리 | `government-support/**` copy only | 99ee404 |
+| 15 | 기관 코드 가입 | `/government/join`, `/join/:code`, `/signup` | join-code E2E 29 pass |
+| 16 | staff/admin 운영 흐름 E2E | `e2eGovernmentUserWorkspaceHttp.mjs` | 요청서류·문의·격리·다운로드 (`f63c174`) |
+
+### 라우트 SSOT (1차)
+
+| 영역 | 경로 |
+|------|------|
+| **인증** | `/government/login`, `/signup`, `/join`, `/join/:agencyCode` |
+| **이용자 홈** | `/government/workspace` |
+| **workspace** | `/government/my-applications` (index), `/government/my-applications/:profileId/:tab` |
+| **workspace 탭** | `basic`, `files`, `consultations`, `memos`, `progress`, `signatures`, `applications` |
+| **전자서명** | `/government/signatures`, `/signatures/send`, `/signatures/:id` |
+| **템플릿** | `/government/signature-templates` (+ `/new`, `/:id/edit`) |
+| **공개 서명** | `/government/sign/:token`, `/sign/:token/documents/:documentInstanceId` |
+| **고객앱** | `/government/app/requests`, `/progress`, `/inquiries`, `/signatures` |
+| **이용자 운영 조회** | `/government/notices`, `/resources`, `/me` |
+| **관리자** | `/government/admin`, `/agencies`, `/users`, `/program-users`, `/notices`, `/resources`, `/document-requests`, `/inquiries` |
+| **리다이렉트** | `/government/my-businesses`, `/customers` → `/my-applications` |
+
+탭 정의 코드: `src/features/government-support/config/governmentProfileWorkspaceTabs.ts`
+
+### API·DB·R2 요약 (1차)
+
+| 기능 | 주요 API (`/api/...`) | DB 테이블 | R2 prefix (예) |
+|------|------------------------|-----------|----------------|
+| 프로필·기본정보 | `GET/PATCH /government-support/profiles/:id` | `gov_support_profiles` | — |
+| 메모 | `.../profiles/:id/memos` | `gov_support_profile_memos` | — |
+| 상담 | `.../consultations` | `gov_support_profile_consultations` | — |
+| 진행 | `.../progress` | `gov_support_profile_progress_events` | — |
+| 신청(workspace) | `.../applications` | `gov_support_profile_applications` | — |
+| 사업장 첨부 | `.../files/presign`, `.../files` | `gov_support_profile_files` | `government/profile-files/...` |
+| 요청서류(대행사→이용자) | `POST .../profiles/:id/document-requests`, `GET /admin/document-requests` | `gov_support_document_requests`, `_items`, `_files` | `government/request-documents/...` |
+| 요청서류(고객앱) | `GET /my/document-requests`, `.../items/.../files/presign` | 동일 | 동일 |
+| 문의 | `GET/POST /my/inquiries`, `GET/PATCH /admin/inquiries` | `gov_support_inquiries`, `_messages`, `_files` | `government/inquiries/...` |
+| 고객앱 진행/서명 | `GET /my/progress`, `GET /my/signatures` | progress + `gov_signature_*` | `government/signatures/...` |
+| 전자서명 발송 | `GET /signatures/profiles/search`, `POST /signatures/send` | `gov_signature_send_sessions`, `_document_instances`, … | 템플릿 PDF·완료 PDF |
+| 공개 서명 | `/government-support/public/signatures/*` (별도 public API) | OTP·identity sessions | 완료·증빙 PDF |
+| 공지·자료 | `registerGovernmentOperationsApi.js` | `gov_support_notices`, `_resources` | `government/resources/...` |
+
+API 등록: `registerGovernmentSupportApi.js`, `registerGovernmentOperationsApi.js`, `registerGovernmentSignatureApi.js`, `governmentCustomerAppApi.js`, `governmentInquiriesApi.js`
+
+### 권한 (1차 요약)
+
+| 역할 | workspace·profile | 고객앱 API | 요청서류/문의 admin | 공지·자료 |
+|------|-------------------|------------|---------------------|-----------|
+| `government_user` | 본인 `owner_user_id`만 | ✅ | ❌ | published 조회 |
+| `government_staff` | ❌ (403) | ❌ | ✅ tenant | ✅ tenant |
+| `government_agency_admin` | ❌ | ❌ | ✅ + 직원·이용자 관리 | ✅ tenant |
+| `government_industry_admin` | ❌ | ❌ | ❌ (전체 목록 없음) | ✅ global+전체 |
+
+서버 SSOT: `server/lib/governmentSupport/governmentAccess.js` — `canAccessGovernmentProfile` (program user + owner만 true)
+
+### 운영 전 남은 확인
+
+→ [`government-support-phase1-ops-checklist.md`](government-support-phase1-ops-checklist.md) §B~§F
+
+---
+
+## 로드맵 (고정 — 2026-05) — **1차 완료 후 갱신**
+
+| 순서 | 작업 | 상태 |
+|------|------|------|
+| **1** | 전자서명 | ✅ 1차 (develop E2E 49 pass) |
+| **2** | 이용자 UI (좌측 리스트 + 우측 탭) | ✅ `/government/my-applications` |
+| **3** | 메모·상담·진행·서류·신청 | ✅ workspace 탭 |
+| **3+** | 기본정보 탭 | ✅ `basic` |
+| **3+** | 고객앱 (요청·진행·문의·서명) | ✅ CRUD 제외 |
+| **3+** | 대행사 요청서류·문의 관리 | ✅ admin 화면 + staff E2E |
+| **3+** | 기관 코드 가입 | ✅ join-link·직접 입력 E2E |
+| **3+** | 문구 정리 | ✅ 99ee404 |
+| **후속** | 실기기 모바일 스모크 | ☐ |
+| **후속** | 문의 첨부파일 E2E | ☐ (API·UI 있음) |
+| **후속** | assignment 기반 staff profile 접근 | 범위 외(1차) |
 
 **금지:** 새 레이아웃·새 UX·보험 원본 수정·데이터 혼합.
 
