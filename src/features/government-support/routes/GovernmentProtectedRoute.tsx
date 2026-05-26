@@ -1,11 +1,13 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider'
-import { canManageGovernmentUsers, resolveGovernmentAccessState } from '../lib/governmentAccess'
+import { canManageGovernmentUsers, isGovernmentProgramUser, resolveGovernmentAccessState } from '../lib/governmentAccess'
 import { isGovernmentOperationalAccount, resolveGovernmentHomePath } from '../lib/governmentHome'
 import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
 
 type GovernmentProtectedRouteProps = {
   requireAdmin?: boolean
+  /** 업종·super·대행사 운영(직원/관리자) 대시보드 */
+  requireAdminDashboard?: boolean
   /** 업종 관리자·super·대행사 관리자(사용자 관리 전용) */
   requireUserManager?: boolean
   /** 대행사 운영(공지·전달) — 업종/대행사 관리자·직원 */
@@ -19,6 +21,7 @@ type GovernmentProtectedRouteProps = {
  */
 export default function GovernmentProtectedRoute({
   requireAdmin = false,
+  requireAdminDashboard = false,
   requireUserManager = false,
   requireOperational = false,
   requireProgramUserWorkspace = false,
@@ -53,6 +56,18 @@ export default function GovernmentProtectedRoute({
   }
   if (requireAdmin && !summary?.isGovernmentIndustryAdmin && !summary?.isSuperAdmin) {
     return <Navigate to={resolveGovernmentHomePath(summary)} replace />
+  }
+  if (requireAdminDashboard) {
+    if (isGovernmentProgramUser(summary)) {
+      return <Navigate to={resolveGovernmentHomePath(summary)} replace />
+    }
+    const canDashboard =
+      summary?.isSuperAdmin ||
+      summary?.isGovernmentIndustryAdmin ||
+      isGovernmentOperationalAccount(summary)
+    if (!canDashboard) {
+      return <Navigate to={resolveGovernmentHomePath(summary)} replace />
+    }
   }
   if (requireUserManager && !canManageGovernmentUsers(summary)) {
     return <Navigate to={resolveGovernmentHomePath(summary)} replace />

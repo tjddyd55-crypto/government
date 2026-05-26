@@ -84,6 +84,7 @@ import { registerCrmCustomerTemplateAdminApi } from './registerCrmCustomerTempla
 import { registerGovernmentSupportApi } from './registerGovernmentSupportApi.js'
 import { registerGovernmentCustomerAppApi } from './apis/governmentCustomerAppApi.js'
 import { registerGovernmentInquiriesApi } from './apis/governmentInquiriesApi.js'
+import { registerGovernmentAdminDashboardApi } from './apis/governmentAdminDashboardApi.js'
 import { registerGovernmentOperationsApi } from './registerGovernmentOperationsApi.js'
 import { registerGovernmentSignatureApi } from './registerGovernmentSignatureApi.js'
 import { registerContractPublicOtpApi } from './apis/contractPublicOtpApi.js'
@@ -1474,6 +1475,7 @@ registerCrmCustomerTemplateAdminApi(apiRouter, { pool, requireAuth, requireSuper
 registerGovernmentSupportApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentCustomerAppApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentInquiriesApi(apiRouter, { pool, requireAuth, handleDbError })
+registerGovernmentAdminDashboardApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentOperationsApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentSignatureApi(apiRouter, { pool, requireAuth, handleDbError })
 

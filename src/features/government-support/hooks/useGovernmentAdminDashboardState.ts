@@ -1,0 +1,131 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { GovernmentAccessSummary } from '../api/governmentSupportApi'
+import {
+  fetchGovernmentAdminDashboardSummary,
+  type GovernmentAdminDashboardSummary,
+} from '../api/governmentAdminDashboardApi'
+import { fetchGovAgencies } from '../api/governmentProfilesApi'
+import { fetchGovernmentAdminUsers } from '../api/governmentAdminUsersApi'
+import { canManageGovernmentUsers } from '../lib/governmentAccess'
+import { isGovernmentOperationalAccount } from '../lib/governmentHome'
+
+export type GovernmentAdminDashboardHubCard = {
+  to: string
+  title: string
+  description: string
+}
+
+export type GovernmentAdminDashboardViewProps = {
+  variant: 'platform' | 'operational'
+  loading: boolean
+  error: string
+  summary: GovernmentAdminDashboardSummary | null
+  platformCards: GovernmentAdminDashboardHubCard[]
+  showUserMgmt: boolean
+}
+
+export function useGovernmentAdminDashboardState(
+  token: string | null,
+  accessSummary: GovernmentAccessSummary | null,
+): GovernmentAdminDashboardViewProps {
+  const showUserMgmt = canManageGovernmentUsers(accessSummary)
+  const variant: 'platform' | 'operational' = useMemo(() => {
+    if (!accessSummary) return 'platform'
+    if (accessSummary.isSuperAdmin || accessSummary.isGovernmentIndustryAdmin) {
+      return 'platform'
+    }
+    if (isGovernmentOperationalAccount(accessSummary)) {
+      return 'operational'
+    }
+    return 'platform'
+  }, [accessSummary])
+
+  const [agencyCount, setAgencyCount] = useState<number | null>(null)
+  const [programUserCount, setProgramUserCount] = useState<number | null>(null)
+  const [summary, setSummary] = useState<GovernmentAdminDashboardSummary | null>(null)
+  const [loading, setLoading] = useState(variant === 'operational')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!token || variant !== 'platform') return
+    void fetchGovAgencies(token)
+      .then((agencies) => setAgencyCount(agencies.length))
+      .catch(() => setAgencyCount(0))
+  }, [token, variant])
+
+  useEffect(() => {
+    if (!token || !showUserMgmt || variant !== 'platform') return
+    void fetchGovernmentAdminUsers(token, { role: 'government_user' })
+      .then((users) => setProgramUserCount(users.length))
+      .catch(() => setProgramUserCount(0))
+  }, [token, showUserMgmt, variant])
+
+  const loadOperationalSummary = useCallback(async () => {
+    if (!token) return
+    setLoading(true)
+    try {
+      const data = await fetchGovernmentAdminDashboardSummary(token)
+      setSummary(data)
+      setError('')
+    } catch (e) {
+      setSummary(null)
+      setError(e instanceof Error ? e.message : '운영 대시보드를 불러오지 못했습니다.')
+    } finally {
+      setLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (variant !== 'operational' || !token) {
+      setLoading(false)
+      return
+    }
+    void loadOperationalSummary()
+  }, [variant, token, loadOperationalSummary])
+
+  const platformCards = useMemo((): GovernmentAdminDashboardHubCard[] => {
+    const list: GovernmentAdminDashboardHubCard[] = [
+      {
+        to: '/government/admin/agencies',
+        title: '대행사 관리',
+        description: `등록 대행사 ${agencyCount ?? '—'}곳 · 기관 코드·가입 링크 발급`,
+      },
+    ]
+    if (showUserMgmt) {
+      list.push(
+        {
+          to: '/government/admin/program-users',
+          title: '이용자 관리',
+          description: `프로그램 이용자 ${programUserCount ?? '—'}명 · 사업장 요약은 이용자 상세에서만`,
+        },
+        {
+          to: '/government/admin/users',
+          title: '대행사 직원',
+          description: '대행사 직원·관리자 계정 등록·상태 관리',
+        },
+      )
+    }
+    list.push(
+      {
+        to: '/government/admin/notices',
+        title: '공지/전달사항',
+        description: '운영 공지·전달사항 게시',
+      },
+      {
+        to: '/government/admin/resources',
+        title: '자료실/서식함',
+        description: '운영 자료·서식 파일 관리',
+      },
+    )
+    return list
+  }, [agencyCount, programUserCount, showUserMgmt])
+
+  return {
+    variant,
+    loading,
+    error,
+    summary,
+    platformCards,
+    showUserMgmt,
+  }
+}

@@ -232,12 +232,20 @@ export const appRouter = createBrowserRouter([
         ],
       },
       {
+        element: <GovernmentProtectedRoute requireAdminDashboard />,
+        children: [
+          {
+            element: <GovernmentAdminLayout />,
+            children: [{ path: 'government/admin', element: <GovernmentAdminDashboardPage /> }],
+          },
+        ],
+      },
+      {
         element: <GovernmentProtectedRoute requireAdmin />,
         children: [
           {
             element: <GovernmentAdminLayout />,
             children: [
-              { path: 'government/admin', element: <GovernmentAdminDashboardPage /> },
               { path: 'government/admin/agencies', element: <GovernmentAdminAgenciesPage /> },
               {
                 path: 'government/admin/profiles',

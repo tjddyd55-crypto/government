@@ -28,16 +28,16 @@ describe('resolveGovernmentHomePath policy mirror', () => {
   function resolveGovernmentHomePath(summary) {
     if (!summary) return '/government/login'
     if (summary.isGovernmentProgramUser) return '/government/workspace'
-    if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return '/government/admin/agencies'
-    if ((summary.governmentAgencyAdminTenantIds?.length ?? 0) > 0) return '/government/admin/users'
-    if ((summary.governmentStaffTenantIds?.length ?? 0) > 0) return '/government/admin/notices'
+    if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return '/government/admin'
+    if ((summary.governmentAgencyAdminTenantIds?.length ?? 0) > 0) return '/government/admin'
+    if ((summary.governmentStaffTenantIds?.length ?? 0) > 0) return '/government/admin'
     return '/government/admin/notices'
   }
 
   it('role별 redirect', () => {
     assert.equal(
       resolveGovernmentHomePath({ isGovernmentIndustryAdmin: true, isGovernmentProgramUser: false }),
-      '/government/admin/agencies',
+      '/government/admin',
     )
     assert.equal(
       resolveGovernmentHomePath({
@@ -45,7 +45,7 @@ describe('resolveGovernmentHomePath policy mirror', () => {
         isGovernmentProgramUser: false,
         governmentAgencyAdminTenantIds: ['1'],
       }),
-      '/government/admin/users',
+      '/government/admin',
     )
     assert.equal(
       resolveGovernmentHomePath({
@@ -53,7 +53,7 @@ describe('resolveGovernmentHomePath policy mirror', () => {
         isGovernmentProgramUser: false,
         governmentStaffTenantIds: ['1'],
       }),
-      '/government/admin/notices',
+      '/government/admin',
     )
     assert.equal(
       resolveGovernmentHomePath({ isGovernmentProgramUser: true }),

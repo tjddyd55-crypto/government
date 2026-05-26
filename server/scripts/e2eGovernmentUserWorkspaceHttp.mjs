@@ -1011,6 +1011,37 @@ async function main() {
     if (adminDocStaff.status === 200) pass('staff admin document-requests endpoint')
     else fail('staff admin document-requests endpoint', String(adminDocStaff.status))
 
+    const dashStaff = await api('/government-support/admin/dashboard/summary', { token: tokenStaff })
+    if (
+      dashStaff.status === 200 &&
+      dashStaff.json?.success === true &&
+      typeof dashStaff.json?.data?.pendingDocumentRequests === 'number' &&
+      typeof dashStaff.json?.data?.programUsersCount === 'number'
+    ) {
+      pass('staff dashboard summary 200')
+    } else fail('staff dashboard summary 200', String(dashStaff.status))
+
+    const dashAgency = await api('/government-support/admin/dashboard/summary', { token: tokenAgency })
+    if (dashAgency.status === 200 && dashAgency.json?.success === true) pass('agency admin dashboard summary 200')
+    else fail('agency admin dashboard summary 200', String(dashAgency.status))
+
+    const dashUserA = await api('/government-support/admin/dashboard/summary', { token: tokenA })
+    if (dashUserA.status === 403) pass('program user dashboard summary 403')
+    else fail('program user dashboard summary 403', String(dashUserA.status))
+
+    if (industry) {
+      const dashIndustry = await api('/government-support/admin/dashboard/summary', { token: industry })
+      if (dashIndustry.status === 403) pass('industry admin dashboard summary 403')
+      else fail('industry admin dashboard summary 403', String(dashIndustry.status))
+    }
+
+    const adminDashSpa = await fetchHtml('/government/admin')
+    if (adminDashSpa.bundle && adminDashSpa.js.includes('government-admin-dashboard-page')) {
+      pass('GET /government/admin SPA dashboard')
+    } else if (adminDashSpa.js.includes('government-admin-layout')) {
+      pass('GET /government/admin SPA dashboard')
+    } else fail('GET /government/admin SPA dashboard')
+
     const myInqStaff = await api('/government-support/my/inquiries', { token: tokenStaff })
     if (myInqStaff.status === 403) pass('staff my inquiries 403')
     else fail('staff my inquiries 403', String(myInqStaff.status))

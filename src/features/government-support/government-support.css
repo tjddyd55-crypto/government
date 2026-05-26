@@ -330,6 +330,125 @@
   line-height: 2;
 }
 
+.government-admin-dashboard-page--pc .government-admin-dashboard__stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.government-admin-dashboard-page--mobile .government-admin-dashboard__stats {
+  grid-template-columns: 1fr;
+}
+
+.government-admin-dashboard__section {
+  margin: 1.5rem 0 2rem;
+}
+
+.government-admin-dashboard__section-title {
+  color: #f8fafc;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.government-admin-dashboard__stat-hint {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.government-admin-dashboard__panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.government-admin-dashboard__panel {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.government-admin-dashboard__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.government-admin-dashboard__panel-title {
+  color: #f8fafc;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.government-admin-dashboard__panel-link {
+  color: #60a5fa;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.government-admin-dashboard__panel-link:hover {
+  text-decoration: underline;
+}
+
+.government-admin-dashboard__subheading {
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+
+.government-admin-dashboard__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.government-admin-dashboard__list li + li {
+  margin-top: 0.5rem;
+}
+
+.government-admin-dashboard__list-link {
+  display: block;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  background: #0b111a;
+  text-decoration: none;
+  color: inherit;
+}
+
+.government-admin-dashboard__list-link:hover {
+  border-color: #334155;
+}
+
+.government-admin-dashboard__list-link--static {
+  cursor: default;
+}
+
+.government-admin-dashboard__list-title {
+  display: block;
+  color: #e5e7eb;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.government-admin-dashboard__list-meta {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+}
+
+.government-admin-dashboard-page--mobile .government-admin-dashboard__panels {
+  grid-template-columns: 1fr;
+}
+
+.government-admin-dashboard-page--mobile .platform-admin-page__grid {
+  grid-template-columns: 1fr;
+}
+
 .government-admin-table-wrap {
   overflow-x: auto;
   margin-top: 1rem;
