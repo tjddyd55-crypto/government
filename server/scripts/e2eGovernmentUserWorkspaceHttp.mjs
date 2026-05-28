@@ -1068,13 +1068,24 @@ async function main() {
     if (notifIndustry.status === 403) pass('industry admin notifications 403')
     else fail('industry admin notifications 403', String(notifIndustry.status))
 
-    if (tenantA && tenantB && notifStaffList.status === 200) {
+    if (tenantA && notifStaffList.status === 200) {
       const rows = notifStaffList.json?.notifications ?? []
-      const hasForeignTenant = rows.some((n) => String(n.tenantId) === String(tenantB))
-      if (!hasForeignTenant) pass('notifications tenant scoped')
-      else fail('notifications tenant scoped', `tenant B id ${tenantB} leaked`)
-    } else if (tenantA && notifStaffList.status === 200) {
-      pass('notifications tenant scoped', 'SKIP — single tenant')
+      const runNotifs = rows.filter(
+        (n) =>
+          String(n.message ?? '').includes(ts) ||
+          String(n.title ?? '').includes(ts) ||
+          String(n.message ?? '').includes('E2E'),
+      )
+      if (runNotifs.length >= 2 && runNotifs.every((n) => String(n.tenantId) === String(tenantA))) {
+        pass('notifications tenant scoped')
+      } else if (runNotifs.length === 0) {
+        fail('notifications tenant scoped', 'no run-scoped notifications')
+      } else {
+        fail(
+          'notifications tenant scoped',
+          runNotifs.map((n) => `${n.eventType}:${n.tenantId}`).join(','),
+        )
+      }
     }
 
     const dashStaff = await api('/government-support/admin/dashboard/summary', { token: tokenStaff })
