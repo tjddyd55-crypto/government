@@ -1068,7 +1068,7 @@ async function main() {
     if (notifIndustry.status === 403) pass('industry admin notifications 403')
     else fail('industry admin notifications 403', String(notifIndustry.status))
 
-    if (tenantA && notifStaffList.status === 200) {
+    if (userATenantId && notifStaffList.status === 200) {
       const rows = notifStaffList.json?.notifications ?? []
       const runNotifs = rows.filter(
         (n) =>
@@ -1076,7 +1076,7 @@ async function main() {
           String(n.title ?? '').includes(ts) ||
           String(n.message ?? '').includes('E2E'),
       )
-      if (runNotifs.length >= 2 && runNotifs.every((n) => String(n.tenantId) === String(tenantA))) {
+      if (runNotifs.length >= 2 && runNotifs.every((n) => String(n.tenantId) === userATenantId)) {
         pass('notifications tenant scoped')
       } else if (runNotifs.length === 0) {
         fail('notifications tenant scoped', 'no run-scoped notifications')
