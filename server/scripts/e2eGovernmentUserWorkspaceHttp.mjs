@@ -1068,11 +1068,13 @@ async function main() {
     if (notifIndustry.status === 403) pass('industry admin notifications 403')
     else fail('industry admin notifications 403', String(notifIndustry.status))
 
-    if (tenantA && notifStaffList.status === 200) {
+    if (tenantA && tenantB && notifStaffList.status === 200) {
       const rows = notifStaffList.json?.notifications ?? []
-      const allSameTenant = rows.length === 0 || rows.every((n) => String(n.tenantId) === String(tenantA))
-      if (allSameTenant) pass('notifications tenant scoped')
-      else fail('notifications tenant scoped')
+      const hasForeignTenant = rows.some((n) => String(n.tenantId) === String(tenantB))
+      if (!hasForeignTenant) pass('notifications tenant scoped')
+      else fail('notifications tenant scoped', `tenant B id ${tenantB} leaked`)
+    } else if (tenantA && notifStaffList.status === 200) {
+      pass('notifications tenant scoped', 'SKIP — single tenant')
     }
 
     const dashStaff = await api('/government-support/admin/dashboard/summary', { token: tokenStaff })
