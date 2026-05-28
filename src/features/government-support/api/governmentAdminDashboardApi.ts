@@ -43,10 +43,14 @@ export type GovernmentAdminDashboardSummary = {
   submittedDocumentRequests: number
   openInquiries: number
   unansweredInquiries: number
+  inProgressInquiries: number
   sentSignatures: number
   completedSignatures: number
   completedSignaturesNeedingReview: number
+  cancelledSignatures: number
+  expiredSignatures: number
   programUsersCount: number
+  profilesCount: number
   recentDocumentRequests: GovernmentAdminDashboardRecentDocumentRequest[]
   recentInquiries: GovernmentAdminDashboardRecentInquiry[]
   recentSignatures: GovernmentAdminDashboardRecentSignature[]

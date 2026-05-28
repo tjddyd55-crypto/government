@@ -131,10 +131,14 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
         submittedDocumentRequests: 0,
         openInquiries: 0,
         unansweredInquiries: 0,
+        inProgressInquiries: 0,
         sentSignatures: 0,
         completedSignatures: 0,
         completedSignaturesNeedingReview: 0,
+        cancelledSignatures: 0,
+        expiredSignatures: 0,
         programUsersCount: 0,
+        profilesCount: 0,
         recentDocumentRequests: [],
         recentInquiries: [],
         recentSignatures: [],
@@ -160,6 +164,8 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
         WHERE i.tenant_id = ANY($1::bigint[]) AND i.archived_at IS NULL AND i.status = 'open') AS open_inquiries,
       (SELECT COUNT(*)::int FROM gov_support_inquiries i
         WHERE i.tenant_id = ANY($1::bigint[]) AND i.archived_at IS NULL AND i.status = 'open') AS unanswered_inquiries,
+      (SELECT COUNT(*)::int FROM gov_support_inquiries i
+        WHERE i.tenant_id = ANY($1::bigint[]) AND i.archived_at IS NULL AND i.status = 'replied') AS in_progress_inquiries,
       (SELECT COUNT(*)::int FROM gov_signature_send_sessions s
         WHERE s.tenant_id = ANY($1::bigint[])
           AND s.status NOT IN ('completed', 'expired', 'cancelled')) AS sent_signatures,
@@ -169,10 +175,16 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
         WHERE s.tenant_id = ANY($1::bigint[]) AND s.status = 'completed'
           AND s.completed_at IS NOT NULL
           AND s.completed_at >= NOW() - INTERVAL '30 days') AS completed_signatures_needing_review,
+      (SELECT COUNT(*)::int FROM gov_signature_send_sessions s
+        WHERE s.tenant_id = ANY($1::bigint[]) AND s.status = 'cancelled') AS cancelled_signatures,
+      (SELECT COUNT(*)::int FROM gov_signature_send_sessions s
+        WHERE s.tenant_id = ANY($1::bigint[]) AND s.status = 'expired') AS expired_signatures,
       (SELECT COUNT(DISTINCT u.id)::int FROM users u
         INNER JOIN user_memberships m ON m.user_id = u.id AND m.role = $2
         WHERE m.tenant_id = ANY($1::bigint[])
-          AND COALESCE(u.is_deleted, false) IS NOT TRUE) AS program_users_count
+          AND COALESCE(u.is_deleted, false) IS NOT TRUE) AS program_users_count,
+      (SELECT COUNT(*)::int FROM gov_support_profiles p
+        WHERE p.tenant_id = ANY($1::bigint[])) AS profiles_count
     `,
     [tenantIds, GOVERNMENT_PROGRAM_USER_ROLE],
   )
@@ -247,10 +259,14 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
       submittedDocumentRequests: Number(counts.submitted_document_requests ?? 0),
       openInquiries: Number(counts.open_inquiries ?? 0),
       unansweredInquiries: Number(counts.unanswered_inquiries ?? 0),
+      inProgressInquiries: Number(counts.in_progress_inquiries ?? 0),
       sentSignatures: Number(counts.sent_signatures ?? 0),
       completedSignatures: Number(counts.completed_signatures ?? 0),
       completedSignaturesNeedingReview: Number(counts.completed_signatures_needing_review ?? 0),
+      cancelledSignatures: Number(counts.cancelled_signatures ?? 0),
+      expiredSignatures: Number(counts.expired_signatures ?? 0),
       programUsersCount: Number(counts.program_users_count ?? 0),
+      profilesCount: Number(counts.profiles_count ?? 0),
       recentDocumentRequests: recentDocsR.rows.map(mapRecentDocumentRequest),
       recentInquiries: recentInqR.rows.map(mapRecentInquiry),
       recentSignatures: recentSigR.rows.map(mapRecentSignature),

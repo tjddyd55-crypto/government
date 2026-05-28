@@ -69,7 +69,10 @@ describe('loadGovernmentAdminDashboardSummary', () => {
                 sent_signatures: 4,
                 completed_signatures: 5,
                 completed_signatures_needing_review: 1,
+                cancelled_signatures: 0,
+                expired_signatures: 1,
                 program_users_count: 10,
+                profiles_count: 3,
               },
             ],
           }
@@ -84,6 +87,7 @@ describe('loadGovernmentAdminDashboardSummary', () => {
     assert.equal(r.ok, true)
     assert.equal(r.data.pendingDocumentRequests, 2)
     assert.equal(r.data.programUsersCount, 10)
+    assert.equal(typeof r.data.profilesCount, 'number')
     const countQuery = queries.find((q) => q.sql.includes('pending_document_requests'))
     assert.ok(countQuery)
     assert.deepEqual(countQuery.params[0], ['36'])

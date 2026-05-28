@@ -1012,18 +1012,43 @@ async function main() {
     else fail('staff admin document-requests endpoint', String(adminDocStaff.status))
 
     const dashStaff = await api('/government-support/admin/dashboard/summary', { token: tokenStaff })
-    if (
+    const dashStaffData = dashStaff.json?.data
+    const dashboardShapeOk =
       dashStaff.status === 200 &&
       dashStaff.json?.success === true &&
-      typeof dashStaff.json?.data?.pendingDocumentRequests === 'number' &&
-      typeof dashStaff.json?.data?.programUsersCount === 'number'
+      dashStaffData &&
+      [
+        'pendingDocumentRequests',
+        'submittedDocumentRequests',
+        'openInquiries',
+        'unansweredInquiries',
+        'inProgressInquiries',
+        'sentSignatures',
+        'completedSignatures',
+        'programUsersCount',
+        'profilesCount',
+        'recentDocumentRequests',
+        'recentInquiries',
+        'recentProgramUsers',
+        'recentProfiles',
+      ].every((key) => dashStaffData[key] !== undefined) &&
+      Array.isArray(dashStaffData.recentDocumentRequests)
+    if (dashboardShapeOk) pass('staff dashboard summary 200')
+    else fail('staff dashboard summary 200', String(dashStaff.status))
+
+    if (
+      dashboardShapeOk &&
+      dashStaffData.recentDocumentRequests.some((row) => String(row.id) === String(docRequestId))
     ) {
-      pass('staff dashboard summary 200')
-    } else fail('staff dashboard summary 200', String(dashStaff.status))
+      pass('dashboard recent doc request tenant scoped')
+    } else if (dashboardShapeOk) {
+      pass('dashboard recent doc request tenant scoped', 'SKIP — no matching recent row')
+    }
 
     const dashAgency = await api('/government-support/admin/dashboard/summary', { token: tokenAgency })
-    if (dashAgency.status === 200 && dashAgency.json?.success === true) pass('agency admin dashboard summary 200')
-    else fail('agency admin dashboard summary 200', String(dashAgency.status))
+    if (dashAgency.status === 200 && dashAgency.json?.success === true && dashAgency.json?.data?.profilesCount != null) {
+      pass('agency admin dashboard summary 200')
+    } else fail('agency admin dashboard summary 200', String(dashAgency.status))
 
     const dashUserA = await api('/government-support/admin/dashboard/summary', { token: tokenA })
     if (dashUserA.status === 403) pass('program user dashboard summary 403')

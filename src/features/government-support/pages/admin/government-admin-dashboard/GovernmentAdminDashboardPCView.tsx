@@ -40,10 +40,13 @@ export function OperationalDashboardBody({
     { label: '요청서류 · 제출 대기', value: summary.pendingDocumentRequests, hint: '이용자 미제출' },
     { label: '요청서류 · 확인 필요', value: summary.submittedDocumentRequests, hint: '제출·일부 제출' },
     { label: '문의 · 미답변', value: summary.unansweredInquiries, hint: 'open 상태' },
-    { label: '전자서명 · 진행 중', value: summary.sentSignatures, hint: '발송·미완료' },
+    { label: '문의 · 진행 중', value: summary.inProgressInquiries, hint: '답변 후 종료 전' },
+    { label: '전자서명 · 발송 중', value: summary.sentSignatures, hint: '미완료' },
     { label: '전자서명 · 완료', value: summary.completedSignatures, hint: '서명 완료' },
     { label: '완료 PDF 확인', value: summary.completedSignaturesNeedingReview, hint: '최근 30일' },
+    { label: '전자서명 · 취소/만료', value: summary.cancelledSignatures + summary.expiredSignatures, hint: '취소·만료 합계' },
     { label: '프로그램 이용자', value: summary.programUsersCount, hint: '내 대행사' },
+    { label: '등록 사업장', value: summary.profilesCount, hint: '프로필 수' },
   ]
 
   const shortcutCards = [
@@ -55,7 +58,7 @@ export function OperationalDashboardBody({
     {
       to: '/government/admin/inquiries',
       title: '문의 관리',
-      description: `미답변 ${summary.unansweredInquiries}건 · 전체 open ${summary.openInquiries}건`,
+      description: `미답변 ${summary.unansweredInquiries}건 · 진행 ${summary.inProgressInquiries}건`,
     },
     ...(showUserMgmt
       ? [
