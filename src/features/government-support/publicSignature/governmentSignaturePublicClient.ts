@@ -472,3 +472,33 @@ export function formatContractPublicCompleteError(e: unknown): string {
   }
   return formatContractPublicActionError(e, 'complete')
 }
+
+const PUBLIC_SESSION_FALLBACK = '정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+
+/** 공개 링크 진입·OTP 등 세션 API 오류 → 이용자용 문구 */
+export function formatContractPublicSessionError(e: unknown): string {
+  if (e instanceof ApiError) {
+    const code = String(e.code ?? '').trim().toUpperCase()
+    if (code === 'INVALID_TOKEN' || code === 'NOT_FOUND') {
+      return '유효하지 않거나 만료된 전자서명 링크입니다.'
+    }
+    if (code === 'FORBIDDEN') {
+      return '접근 권한이 없습니다.'
+    }
+    if (e.status === 403) {
+      return '접근 권한이 없습니다.'
+    }
+    if (e.status === 404) {
+      return '유효하지 않거나 만료된 전자서명 링크입니다.'
+    }
+    if (e.status >= 500 || isLikelyInternalErrorMessage(e.message ?? '')) {
+      return '처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+    }
+    const msg = (e.message ?? '').trim()
+    if (msg && !isLikelyInternalErrorMessage(msg)) {
+      return msg
+    }
+    return PUBLIC_SESSION_FALLBACK
+  }
+  return PUBLIC_SESSION_FALLBACK
+}

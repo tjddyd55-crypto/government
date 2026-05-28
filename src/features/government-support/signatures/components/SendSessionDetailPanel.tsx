@@ -5,10 +5,10 @@ import {
   downloadStaffEvidencePdfFile,
   downloadStaffSignedPdfFile,
 } from '../../signatureTemplates/governmentSignatureTemplateClient'
-import { buildGovSignaturePublicSignUrl } from '../governmentSignatureHistoryClient'
 import { SendSessionStatusBadge } from './SendSessionStatusBadge'
-import { formatStaffSessionDate, staffDocumentStatusLabel, staffSendSessionDisplayLabel } from '../sendSessionStaffDisplay'
-import { ContractTableDateCell, ContractTableHashCell } from './GovernmentSignatureTableCells'
+import { formatStaffSessionDate, staffDocumentStatusLabel } from '../sendSessionStaffDisplay'
+import { formatIdentityStatusLabel, mapGovernmentSignatureApiError } from '../governmentSignatureUserDisplay'
+import { ContractTableDateCell } from './GovernmentSignatureTableCells'
 
 type Props = {
   open: boolean
@@ -49,7 +49,6 @@ export function SendSessionDetailPanel({
   }
 
   const signToken = detail?.signToken ?? ''
-  const publicUrl = signToken ? buildGovSignaturePublicSignUrl(signToken) : ''
   const sessionSt = detail?.status ?? ''
   const hasCompletedDoc = detail?.documents?.some((d) => d.status === 'completed') ?? false
   const canCancel =
@@ -70,7 +69,7 @@ export function SendSessionDetailPanel({
     setDownloadMessage(null)
     void downloadStaffSignedPdfFile(token, detail.id, documentInstanceId).then((r) => {
       if (!r.ok) {
-        setDownloadMessage(r.message)
+        setDownloadMessage(mapGovernmentSignatureApiError(new Error(r.message), r.message))
       }
     })
   }
@@ -82,7 +81,7 @@ export function SendSessionDetailPanel({
     setDownloadMessage(null)
     void downloadStaffEvidencePdfFile(token, detail.id).then((r) => {
       if (!r.ok) {
-        setDownloadMessage(r.message)
+        setDownloadMessage(mapGovernmentSignatureApiError(new Error(r.message), r.message))
       }
     })
   }
@@ -134,29 +133,15 @@ export function SendSessionDetailPanel({
         {detail ? (
           <>
             <p className="contract-signature-console__hint">
-              사업장: {detail.profileDisplayName ?? '—'}{' '}
-              {detail.customerCode ? <span>({detail.customerCode})</span> : null}
+              사업장: {detail.profileDisplayName ?? '—'}
             </p>
-            <p className="contract-signature-console__hint">마스킹 연락처: {detail.maskedPhone ?? '—'}</p>
+            <p className="contract-signature-console__hint">수신자 연락처: {detail.maskedPhone ?? '—'}</p>
             <p className="contract-signature-console__hint">
-              발송 링크:{' '}
-              <code style={{ fontSize: 12, wordBreak: 'break-all' }} title={publicUrl}>
-                {publicUrl}
-              </code>
+              상태:{' '}
+              <SendSessionStatusBadge sessionStatus={detail.status} hasSignedNotCompleted={signedHint} />
             </p>
             <p className="contract-signature-console__hint">
-              세션 상태:{' '}
-              <SendSessionStatusBadge sessionStatus={detail.status} hasSignedNotCompleted={signedHint} />{' '}
-              <span className="contract-signature-console__hint">
-                (
-                {staffSendSessionDisplayLabel(detail.status, {
-                  hasSignedNotCompleted: signedHint,
-                })}
-                )
-              </span>
-            </p>
-            <p className="contract-signature-console__hint">
-              인증 상태: {detail.identityStatus ?? '—'}
+              본인인증: {formatIdentityStatusLabel(detail.identityStatus)}
               {detail.identityVerifiedAt ? ` · ${formatStaffSessionDate(detail.identityVerifiedAt)}` : ''}
             </p>
             <p className="contract-signature-console__hint">
@@ -194,9 +179,6 @@ export function SendSessionDetailPanel({
                       </div>
                       <div className="contract-signature-console__hint">
                         완료일: {d.completedAt ? formatStaffSessionDate(d.completedAt) : '—'}
-                      </div>
-                      <div className="contract-signature-console__hint">
-                        증빙: <ContractTableHashCell prefix={ev?.evidenceHashPrefix ?? null} />
                       </div>
                       <div className="contract-session-pdf-dl-stack" style={{ marginTop: 10 }}>
                         <FormButton

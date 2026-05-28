@@ -21,6 +21,7 @@ import {
 import { PublicPdfPreviewModal } from './components/PublicPdfPreviewModal'
 import { GovernmentSignatureAttachmentReviewModal } from './components/GovernmentSignatureAttachmentReviewModal'
 import { resolveApiUrl } from '../../../lib/apiClient'
+import { publicSignatureFieldLabel } from '../signatures/governmentSignatureUserDisplay'
 
 type PublicStepStatus = 'pending' | 'active' | 'complete' | 'skipped'
 
@@ -1430,7 +1431,7 @@ export default function GovernmentSignDocumentPage() {
                         return (
                           <div key={`sender-${row.fieldKey}`} className="space-y-1">
                             <p className="contract-public-sign-page__field-label">
-                              {row.label || row.fieldKey}
+                              {publicSignatureFieldLabel(row.label)}
                               {row.required ? <span className="contract-public-sign-page__required"> *</span> : null}
                             </p>
                             <p
@@ -1466,7 +1467,7 @@ export default function GovernmentSignDocumentPage() {
                         return (
                           <div key={`customer-${row.fieldKey}`} className="space-y-1">
                             <p className="contract-public-sign-page__field-label">
-                              {row.label || row.fieldKey}
+                              {publicSignatureFieldLabel(row.label)}
                               {row.required ? <span className="contract-public-sign-page__required"> *</span> : null}
                             </p>
                             {normalizedType === 'textarea' ? (
@@ -1886,11 +1887,6 @@ export default function GovernmentSignDocumentPage() {
             {!detail.evidenceSummary.completedAt && detail.evidenceSummary.signedAt ? (
               <p>서명 시각: {detail.evidenceSummary.signedAt}</p>
             ) : null}
-            {detail.evidenceSummary.evidenceHashPrefix ? (
-              <p className="contract-public-sign-page__panel-success-note">
-                증빙 기록(해시 일부): {detail.evidenceSummary.evidenceHashPrefix}
-              </p>
-            ) : null}
             {(() => {
               const can = publicSignedPdfHrefEnabled(detail) && Boolean(publicSignedPdfHref)
               return can ? (
@@ -1963,7 +1959,7 @@ export default function GovernmentSignDocumentPage() {
                             className="mt-0.5"
                           />
                           <span>
-                            {f.label || f.fieldKey}
+                            {publicSignatureFieldLabel(f.label)}
                             {f.required ? <span className="contract-public-sign-page__required"> *</span> : null}
                           </span>
                         </label>
@@ -1982,7 +1978,7 @@ export default function GovernmentSignDocumentPage() {
                         return (
                           <div key={f.id} className="space-y-1">
                             <p className="contract-public-sign-page__field-label">
-                              {f.label || f.fieldKey}
+                              {publicSignatureFieldLabel(f.label)}
                               {f.required ? <span className="contract-public-sign-page__required"> *</span> : null}
                             </p>
                             <FormSelect
@@ -2004,7 +2000,7 @@ export default function GovernmentSignDocumentPage() {
                       return (
                         <div key={f.id} className="space-y-1">
                           <p className="contract-public-sign-page__field-label">
-                            {f.label || f.fieldKey}
+                            {publicSignatureFieldLabel(f.label)}
                             {f.required ? <span className="contract-public-sign-page__required"> *</span> : null}
                           </p>
                           {isTextarea ? (
@@ -2209,7 +2205,7 @@ export default function GovernmentSignDocumentPage() {
                     return (
                       <div key={f.id} className="contract-public-sign-page__sig-row space-y-2">
                         <p className="text-sm text-[var(--text-main)]">
-                          {f.label || f.fieldKey}
+                          {publicSignatureFieldLabel(f.label)}
                           {f.required ? <span className="contract-public-sign-page__required"> *</span> : null}
                           {signed ? (
                             <span className="contract-public-sign-page__success-inline">
@@ -2234,7 +2230,7 @@ export default function GovernmentSignDocumentPage() {
                               variant={canSign ? 'primary' : 'secondary'}
                               fullWidth
                               disabled={saving || !signAck || !canSign || coordinateStep3Locked}
-                              onClick={() => openSignatureModal(f.id, f.label || f.fieldKey)}
+                              onClick={() => openSignatureModal(f.id, publicSignatureFieldLabel(f.label))}
                             >
                               다시 서명하기
                             </FormButton>
@@ -2256,7 +2252,7 @@ export default function GovernmentSignDocumentPage() {
                               variant={canSign ? 'primary' : 'secondary'}
                               fullWidth
                               disabled={saving || !signAck || !canSign || coordinateStep3Locked}
-                              onClick={() => openSignatureModal(f.id, f.label || f.fieldKey)}
+                              onClick={() => openSignatureModal(f.id, publicSignatureFieldLabel(f.label))}
                             >
                               전자서명하기
                             </FormButton>
@@ -2507,11 +2503,6 @@ export default function GovernmentSignDocumentPage() {
                 문서명: <span className="font-medium">{detail.document.title || '문서'}</span>
               </p>
               {completeResult.completedAt ? <p>완료 시각: {completeResult.completedAt}</p> : null}
-              {completeResult.evidenceSummary?.evidenceHashPrefix ? (
-                <p className="contract-public-sign-page__success-dialog-muted">
-                  증빙번호(해시 일부): {completeResult.evidenceSummary.evidenceHashPrefix}
-                </p>
-              ) : null}
               <p className="contract-public-sign-page__success-dialog-muted">
                 {successIsConfirmation
                   ? '완료 확인서 PDF(최종 확인·서명 문서)와 증빙 PDF(감사 기록)가 저장되었습니다. 완료 확인서 PDF는 아래에서 내려받을 수 있으며, 증빙 PDF는 담당자 발송 내역에서 내려받을 수 있습니다.'

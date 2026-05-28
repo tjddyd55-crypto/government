@@ -8,6 +8,7 @@ import '../../pdf-engine/pdf-engine.css'
 import '../signatureTemplates/government-signature-console.css'
 import './government-signature-send-mobile.css'
 import { useAuth } from '../../auth/AuthProvider'
+import { mapGovernmentSignatureApiError } from './governmentSignatureUserDisplay'
 import { ApiError } from '../../../lib/apiClient'
 import { EvidenceStatusPanel } from '../signatureTemplates/components/EvidenceStatusPanel'
 import { SendSessionPanel } from '../signatureTemplates/components/SendSessionPanel'
@@ -276,7 +277,7 @@ export default function GovernmentSignatureSendPage() {
       const list = await listUserGovernmentSignatureTemplates(t)
       setTemplates(list)
     } catch (e) {
-      setBootError(e instanceof ApiError ? e.message : '템플릿 목록을 불러오지 못했습니다.')
+      setBootError(mapGovernmentSignatureApiError(e, '템플릿 목록을 불러오지 못했습니다.'))
     }
   }, [t])
 
@@ -313,7 +314,7 @@ export default function GovernmentSignatureSendPage() {
     } catch (e) {
       setCustomerHits([])
       setCustomerSearchExecuted(true)
-      setCustomerSearchValidationError(e instanceof ApiError ? e.message : '사업장 검색 중 오류가 발생했습니다.')
+      setCustomerSearchValidationError(mapGovernmentSignatureApiError(e, '사업장 검색 중 오류가 발생했습니다.'))
     } finally {
       setCustomerSearchBusy(false)
     }
@@ -348,7 +349,7 @@ export default function GovernmentSignatureSendPage() {
       const next = await getUserGovernmentSignatureSendSessionDetail(t, sid)
       setSessionDetail(next)
     } catch (e) {
-      setSendError(e instanceof ApiError ? e.message : '세션 상태를 불러오지 못했습니다.')
+      setSendError(mapGovernmentSignatureApiError(e, '세션 상태를 불러오지 못했습니다.'))
     } finally {
       setEvidenceLoading(false)
     }
@@ -398,7 +399,7 @@ export default function GovernmentSignatureSendPage() {
           return
         }
         setConfirmationTemplateFields([])
-        setConfirmationFieldsError(e instanceof ApiError ? e.message : '확인 항목을 불러오지 못했습니다.')
+        setConfirmationFieldsError(mapGovernmentSignatureApiError(e, '확인 항목을 불러오지 못했습니다.'))
       })
       .finally(() => {
         if (!cancelled) {
@@ -552,14 +553,16 @@ export default function GovernmentSignatureSendPage() {
       setSessionDetail(next)
       setAttachmentDrafts([])
     } catch (e) {
-      setSendError(e instanceof ApiError ? e.message : '발송 세션 생성에 실패했습니다.')
+      setSendError(mapGovernmentSignatureApiError(e, '전자서명 발송에 실패했습니다.'))
     } finally {
       setSendBusy(false)
     }
   }
 
   const inactiveTemplateHint =
-    selectedTpl != null && String(selectedTpl.status) !== 'active' ? 'active 템플릿만 발송할 수 있습니다.' : null
+    selectedTpl != null && String(selectedTpl.status) !== 'active'
+      ? '사용 중인 템플릿만 발송할 수 있습니다.'
+      : null
 
   const sendSessionPanelHint =
     attachmentSendBlockHint ||
@@ -1454,16 +1457,7 @@ export default function GovernmentSignatureSendPage() {
                           />
                         </td>
                         <td>{c.name}</td>
-                        <td>
-                          {c.customerCode?.trim() ? (
-                            <>
-                              {c.customerCode}
-                              <span className="contract-signature-console__hint"> (ID {c.id})</span>
-                            </>
-                          ) : (
-                            <span>사업장 ID: {c.id}</span>
-                          )}
-                        </td>
+                        <td>{c.customerCode?.trim() || '—'}</td>
                         <td>
                           {c.hasPhone ? c.maskedPhone : '—'}
                           {!c.hasPhone ? <div className="contract-signature-console__hint--warning">번호 없음</div> : null}
@@ -1483,7 +1477,7 @@ export default function GovernmentSignatureSendPage() {
         </section>
 
         <section className="contract-signature-console__section">
-          <h2 className="contract-signature-console__section-title">2. 전자서명 템플릿 (active)</h2>
+          <h2 className="contract-signature-console__section-title">2. 전자서명 템플릿</h2>
           {selectedCustomer == null ? <p className="contract-signature-console__hint">사업장을 선택하면 템플릿을 고를 수 있습니다.</p> : null}
           <div className="contract-signature-console__scroll-x">
             <table className="pdf-engine-table contract-signature-console__table--compact contract-signature-console__pick-table">

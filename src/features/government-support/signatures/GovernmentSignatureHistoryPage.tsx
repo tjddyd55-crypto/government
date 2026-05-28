@@ -10,7 +10,7 @@ import '../../pdf-engine/pdf-engine.css'
 import '../signatureTemplates/government-signature-console.css'
 import '../signatures/government-signature-send-mobile.css'
 import { useAuth } from '../../auth/AuthProvider'
-import { ApiError } from '../../../lib/apiClient'
+import { mapGovernmentSignatureApiError } from './governmentSignatureUserDisplay'
 import type { SendSessionDetail } from '../signatureTemplates/governmentSignatureTemplateClient'
 import {
   buildGovSignaturePublicSignUrl,
@@ -26,14 +26,7 @@ import { SendSessionHistoryList } from './components/SendSessionHistoryList'
 const PAGE_SIZE = 30
 
 function formatCancelFailureMessage(e: unknown): string {
-  if (e instanceof ApiError) {
-    const raw = e.message.trim()
-    if (!raw || raw === 'DB_ERROR' || raw.toUpperCase() === 'DB_ERROR') {
-      return '발송 취소 중 오류가 발생했습니다. 다시 시도해주세요.'
-    }
-    return raw
-  }
-  return '발송 취소 중 오류가 발생했습니다. 다시 시도해주세요.'
+  return mapGovernmentSignatureApiError(e, '발송 취소 중 오류가 발생했습니다. 다시 시도해 주세요.')
 }
 
 const HISTORY_MOBILE_MQ = '(max-width: 768px)'
@@ -89,7 +82,7 @@ export default function GovernmentSignatureHistoryPage() {
     } catch (e) {
       setRows([])
       setTotal(0)
-      setListError(e instanceof ApiError ? e.message : '목록을 불러오지 못했습니다.')
+      setListError(mapGovernmentSignatureApiError(e, '목록을 불러오지 못했습니다.'))
     } finally {
       setListBusy(false)
     }
@@ -147,7 +140,7 @@ export default function GovernmentSignatureHistoryPage() {
       const d = await getUserSendSessionDetail(t, row.id)
       setDetail(d)
     } catch (e) {
-      setDetailError(e instanceof ApiError ? e.message : '상세를 불러오지 못했습니다.')
+      setDetailError(mapGovernmentSignatureApiError(e, '상세를 불러오지 못했습니다.'))
     } finally {
       setDetailLoading(false)
     }
@@ -163,7 +156,7 @@ export default function GovernmentSignatureHistoryPage() {
       const d = await getUserSendSessionDetail(t, detail.id)
       setDetail(d)
     } catch (e) {
-      setDetailError(e instanceof ApiError ? e.message : '상세를 불러오지 못했습니다.')
+      setDetailError(mapGovernmentSignatureApiError(e, '상세를 불러오지 못했습니다.'))
     } finally {
       setDetailLoading(false)
     }
@@ -186,7 +179,7 @@ export default function GovernmentSignatureHistoryPage() {
           const d = await getUserSendSessionDetail(t, sendSessionId)
           setDetail(d)
         } catch (e) {
-          setDetailError(e instanceof ApiError ? e.message : '상세를 불러오지 못했습니다.')
+          setDetailError(mapGovernmentSignatureApiError(e, '상세를 불러오지 못했습니다.'))
         } finally {
           setDetailLoading(false)
         }

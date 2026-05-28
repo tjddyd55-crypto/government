@@ -8,6 +8,7 @@ import {
   fetchGovCustomerSignatures,
   type GovCustomerSignatureItem,
 } from '../api/governmentCustomerAppApi'
+import { mapGovernmentSignatureApiError } from '../../signatures/governmentSignatureUserDisplay'
 import '../../../customer-app/customer-app-claims.css'
 
 function formatDateTime(iso: string | null): string {
@@ -50,7 +51,7 @@ export default function GovernmentCustomerAppSignaturesPage() {
         const data = await fetchGovCustomerSignatures(token)
         if (mounted) setRows(data)
       } catch (e) {
-        if (mounted) setError(e instanceof Error ? e.message : '전자서명 내역을 불러오지 못했습니다.')
+        if (mounted) setError(mapGovernmentSignatureApiError(e, '전자서명 내역을 불러오지 못했습니다.'))
       }
     })()
     return () => {
@@ -73,7 +74,8 @@ export default function GovernmentCustomerAppSignaturesPage() {
                       {row.templateNames || '전자서명'}
                     </div>
                     <div className="customer-app-claim-request-card__meta">
-                      {row.profileDisplayName} · 발송 {formatDateTime(row.sentAt)}
+                      발송 {formatDateTime(row.sentAt)}
+                      {row.completedAt ? ` · 완료 ${formatDateTime(row.completedAt)}` : ''}
                     </div>
                   </div>
                   <span className={signatureStatusClass(row.displayStatus)}>{row.displayStatus}</span>
@@ -96,7 +98,7 @@ export default function GovernmentCustomerAppSignaturesPage() {
                             )
                             window.open(dl.downloadUrl, '_blank', 'noopener,noreferrer')
                           } catch (e) {
-                            setError(e instanceof Error ? e.message : '다운로드에 실패했습니다.')
+                            setError(mapGovernmentSignatureApiError(e, '다운로드에 실패했습니다.'))
                           } finally {
                             setBusyId(null)
                           }

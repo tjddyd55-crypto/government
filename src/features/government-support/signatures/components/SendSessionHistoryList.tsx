@@ -1,7 +1,7 @@
 ﻿import { FormButton } from '../../../../components/form'
 import type { SendSessionHistoryListItem } from '../governmentSignatureHistoryClient'
 import { SendSessionStatusBadge } from './SendSessionStatusBadge'
-import { ContractTableDateCell, ContractTableHashCell } from './GovernmentSignatureTableCells'
+import { ContractTableDateCell } from './GovernmentSignatureTableCells'
 
 type Props = {
   rows: SendSessionHistoryListItem[]
@@ -44,9 +44,6 @@ export function SendSessionHistoryList({
                 <span className="contract-history-mobile-card__label">사업장</span>
                 <span>
                   {row.profileDisplayName || '—'}
-                  {row.customerCode ? (
-                    <span className="contract-signature-console__hint"> ({row.customerCode})</span>
-                  ) : null}
                 </span>
               </div>
               <div className="contract-history-mobile-card__row">
@@ -80,12 +77,6 @@ export function SendSessionHistoryList({
                 <span className="contract-history-mobile-card__label">완료일</span>
                 <span>
                   <ContractTableDateCell iso={row.completedAt} />
-                </span>
-              </div>
-              <div className="contract-history-mobile-card__row">
-                <span className="contract-history-mobile-card__label">증빙</span>
-                <span>
-                  <ContractTableHashCell prefix={row.evidenceHashPrefix} />
                 </span>
               </div>
               <div className="contract-history-mobile-card__actions">
@@ -136,15 +127,13 @@ export function SendSessionHistoryList({
     <div className="contract-signature-console__scroll-x">
       <table className="contract-history-table contract-signature-console__table--striped">
         <colgroup>
-          <col style={{ width: '8.5%' }} />
           <col style={{ width: '9.5%' }} />
-          <col style={{ width: '17%' }} />
-          <col style={{ width: '7%' }} />
-          <col style={{ width: '7%' }} />
-          <col style={{ width: '10%' }} />
-          <col style={{ width: '10%' }} />
+          <col style={{ width: '19%' }} />
           <col style={{ width: '8%' }} />
-          <col style={{ width: '23%' }} />
+          <col style={{ width: '8%' }} />
+          <col style={{ width: '11%' }} />
+          <col style={{ width: '11%' }} />
+          <col style={{ width: '31%' }} />
         </colgroup>
         <thead>
           <tr>
@@ -155,7 +144,6 @@ export function SendSessionHistoryList({
             <th className="contract-table-cell-center">진행</th>
             <th className="contract-table-cell-center">발송일</th>
             <th className="contract-table-cell-center">완료일</th>
-            <th className="contract-table-cell-center">증빙</th>
             <th className="contract-table-cell-center">액션</th>
           </tr>
         </thead>
@@ -164,19 +152,10 @@ export function SendSessionHistoryList({
             const tpl = row.templateNames.length > 0 ? row.templateNames.join(', ') : ''
             const req = Math.max(0, row.requiredDocumentCount)
             const done = Math.max(0, row.completedDocumentCount)
-            const evidencePrefix =
-              row.evidenceHashPrefix && String(row.evidenceHashPrefix).trim() !== ''
-                ? row.evidenceHashPrefix
-                : null
             return (
               <tr key={row.id}>
                 <td className="contract-table-cell-left">
                   <div className="contract-table-customer">{row.profileDisplayName || '—'}</div>
-                  {row.customerCode ? (
-                    <div className="contract-signature-console__hint contract-signature-console__hint--flush">
-                      {row.customerCode}
-                    </div>
-                  ) : null}
                 </td>
                 <td className="contract-table-cell-left">
                   <div className="contract-table-phone">{row.maskedPhone || '—'}</div>
@@ -219,9 +198,6 @@ export function SendSessionHistoryList({
                 </td>
                 <td className="contract-table-cell-center">
                   <ContractTableDateCell iso={row.completedAt} />
-                </td>
-                <td className="contract-table-cell-center">
-                  <ContractTableHashCell prefix={evidencePrefix} />
                 </td>
                 <td className="contract-table-cell-center">
                   <div className="history-actions">

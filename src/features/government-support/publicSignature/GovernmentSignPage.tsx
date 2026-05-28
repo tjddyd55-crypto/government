@@ -8,6 +8,7 @@ import {
   fetchContractOtpStatus,
   fetchContractPublicDocuments,
   fetchContractPublicSession,
+  formatContractPublicSessionError,
   postContractOtpSend,
   postContractOtpVerify,
   postContractPublicOpen,
@@ -17,8 +18,13 @@ import {
 
 function labelForDocStatus(st: string) {
   if (st === 'completed') return '완료'
-  if (st === 'viewed' || st === 'pending') return '미완료'
-  return st
+  if (st === 'signed') return '서명 완료'
+  if (st === 'viewed' || st === 'opened') return '열람됨'
+  if (st === 'pending' || st === 'sent') return '대기 중'
+  if (st === 'cancelled') return '취소됨'
+  if (st === 'expired') return '만료됨'
+  if (st === 'failed') return '실패'
+  return '미완료'
 }
 
 export default function GovernmentSignPage() {
@@ -63,7 +69,7 @@ export default function GovernmentSignPage() {
       .catch((e) => {
         if (cancelled) return
         setSession(null)
-        setError(e instanceof ApiError ? e.message : '정보를 불러오지 못했습니다.')
+        setError(formatContractPublicSessionError(e))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -127,7 +133,7 @@ export default function GovernmentSignPage() {
       if (e instanceof ApiError && e.status === 429 && e.retryAfterSec) {
         setCooldownSec(e.retryAfterSec)
       }
-      setOtpError(e instanceof ApiError ? e.message : '인증번호를 요청하지 못했습니다.')
+      setOtpError(formatContractPublicSessionError(e))
     } finally {
       setOtpSending(false)
     }
@@ -143,7 +149,7 @@ export default function GovernmentSignPage() {
       setOtpCode('')
       await refreshAuthorized()
     } catch (e) {
-      setOtpError(e instanceof ApiError ? e.message : '인증에 실패했습니다.')
+      setOtpError(formatContractPublicSessionError(e))
     } finally {
       setOtpVerifying(false)
     }

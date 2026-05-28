@@ -1,5 +1,7 @@
 ﻿import { FormButton } from '../../../../components/form'
 import { buildGovSignaturePublicSignUrl } from '../../signatures/governmentSignatureHistoryClient'
+import { SendSessionStatusBadge } from '../../signatures/components/SendSessionStatusBadge'
+import { formatStaffSessionDate, staffDocumentStatusLabel } from '../../signatures/sendSessionStaffDisplay'
 import type { CreateSendSessionResult, SendSessionDetail } from '../governmentSignatureTemplateClient'
 import { downloadStaffEvidencePdfFile, downloadStaffSignedPdfFile } from '../governmentSignatureTemplateClient'
 
@@ -110,9 +112,8 @@ export function SendSessionPanel({
           <div className="contract-mobile-success-banner" style={{ marginTop: 14 }}>
             <strong>링크가 생성되었습니다.</strong>
             <div className="contract-signature-console__hint" style={{ marginTop: 6 }}>
-              고객에게 전달할 링크
+              고객에게 전달할 링크가 준비되었습니다. 아래 버튼으로 복사하거나 열 수 있습니다.
             </div>
-            <div className="contract-mobile-link-preview">{buildGovSignaturePublicSignUrl(session.signToken)}</div>
             <div className="contract-mobile-action-grid">
               <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => void copyLink(session.signToken)}>
                 링크 복사
@@ -179,7 +180,9 @@ export function SendSessionPanel({
                   return (
                     <div key={d.id} className="contract-mobile-doc-card">
                       <div className="contract-mobile-doc-card__title">{d.titleSnapshot}</div>
-                      <div className="contract-signature-console__hint">상태: {d.status}</div>
+                      <div className="contract-signature-console__hint">
+                        상태: {staffDocumentStatusLabel(d.status)}
+                      </div>
                       <div className="contract-session-pdf-dl-stack" style={{ marginTop: 8 }}>
                         <FormButton
                           htmlType="button"
@@ -262,19 +265,20 @@ export function SendSessionPanel({
 
       {session ? (
         <div className="contract-signature-console__session-summary">
-          <div>
-            <strong>sendSessionId</strong>{' '}
-            <code style={{ fontSize: 11 }}>{session.id}</code>
-          </div>
-          <div>
-            <strong>signToken</strong> <code style={{ fontSize: 11 }}>{session.signToken}</code>
-          </div>
-          <div>
-            <strong>maskedPhone</strong> {session.maskedPhone}
-          </div>
-          <div>
-            <strong>문서 수</strong> {session.documents?.length ?? '—'}
-          </div>
+          <p className="contract-signature-console__body-text" style={{ margin: 0 }}>
+            <strong>수신자 연락처</strong> {session.maskedPhone || '—'}
+          </p>
+          <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
+            상태 <SendSessionStatusBadge sessionStatus={session.status} />
+          </p>
+          {session.createdAt ? (
+            <p className="contract-signature-console__hint" style={{ marginTop: 4 }}>
+              생성일 {formatStaffSessionDate(session.createdAt)}
+            </p>
+          ) : null}
+          <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
+            고객에게 전달할 링크를 복사하거나 새 탭에서 열 수 있습니다.
+          </p>
           {session.confirmationItems && session.confirmationItems.length > 0 ? (
             <div style={{ marginTop: 12 }}>
               <strong>고객 확인 항목</strong>
@@ -319,16 +323,6 @@ export function SendSessionPanel({
               </ul>
             </div>
           ) : null}
-          <div>
-            <strong>상태</strong> {session.status}
-          </div>
-          <div>
-            <strong>생성일</strong> {session.createdAt?.slice(0, 19) ?? '—'}
-          </div>
-          <div style={{ marginTop: 8 }}>
-            <strong>공개 링크</strong>{' '}
-            <code style={{ fontSize: 11, wordBreak: 'break-all' }}>{buildGovSignaturePublicSignUrl(session.signToken)}</code>
-          </div>
           <div className="contract-signature-console__btn-row">
             <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => void copyLink(session.signToken)}>
               링크 복사
@@ -358,7 +352,7 @@ export function SendSessionPanel({
                     return (
                       <tr key={d.id}>
                         <td>{d.titleSnapshot}</td>
-                        <td>{d.status}</td>
+                        <td>{staffDocumentStatusLabel(d.status)}</td>
                         <td>
                           {d.status === 'completed' && canDl ? (
                             <FormButton
