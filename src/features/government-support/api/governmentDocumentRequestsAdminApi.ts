@@ -20,6 +20,12 @@ function unwrapList<T>(raw: unknown): T[] {
 
 export type GovAdminDocumentRequestListItem = GovCustomerDocumentRequestListItem & {
   profileDisplayName?: string
+  assignedToDisplayName?: string | null
+}
+
+export type GovAdminDocumentRequestsQuery = {
+  status?: string
+  assignee?: string
 }
 
 export type GovAdminDocumentRequestFile = GovCustomerDocumentRequestFile & {
@@ -32,10 +38,17 @@ export type GovAdminDocumentRequestDetail = GovCustomerDocumentRequestDetail & {
 
 export async function fetchGovAdminDocumentRequests(
   token: string,
-  status?: string,
+  query?: GovAdminDocumentRequestsQuery | string,
 ): Promise<GovAdminDocumentRequestListItem[]> {
-  const q = status ? `?status=${encodeURIComponent(status)}` : ''
-  const raw = await apiRequest<unknown>(`/api/government-support/admin/document-requests${q}`, {
+  const q =
+    typeof query === 'string'
+      ? { status: query }
+      : query ?? {}
+  const params = new URLSearchParams()
+  if (q.status) params.set('status', q.status)
+  if (q.assignee) params.set('assignee', q.assignee)
+  const qs = params.toString()
+  const raw = await apiRequest<unknown>(`/api/government-support/admin/document-requests${qs ? `?${qs}` : ''}`, {
     method: 'GET',
     token,
   })
@@ -86,5 +99,23 @@ export async function downloadGovAdminDocumentRequestFile(
   )
   const row = unwrapData<{ downloadUrl: string; fileName: string }>(raw)
   if (!row?.downloadUrl) throw new Error('다운로드 URL을 받지 못했습니다.')
+  return row
+}
+
+export async function patchGovAdminDocumentRequestAssignee(
+  token: string,
+  requestId: string,
+  assignedToUserId: string | null,
+): Promise<GovAdminDocumentRequestListItem> {
+  const raw = await apiRequest<unknown>(
+    `/api/government-support/admin/document-requests/${encodeURIComponent(requestId)}/assignee`,
+    {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify({ assignedToUserId }),
+    },
+  )
+  const row = unwrapData<GovAdminDocumentRequestListItem>(raw)
+  if (!row) throw new Error('담당자 지정에 실패했습니다.')
   return row
 }

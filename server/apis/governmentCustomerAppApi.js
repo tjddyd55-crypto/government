@@ -27,8 +27,15 @@ import {
 } from '../lib/governmentSupport/governmentProfileFiles.js'
 import {
   notifyDocumentRequestSubmitted,
+  notifyDocumentRequestAssigned,
   safeEmitGovNotification,
 } from '../lib/governmentSupport/governmentNotifications.js'
+import {
+  appendGovernmentAssigneeFilterSql,
+  mapAssigneeDisplayFields,
+  parseGovernmentAssigneeQuery,
+  validateGovernmentOperationalAssignee,
+} from '../lib/governmentSupport/governmentAssignees.js'
 import {
   assertGovernmentRequestDocumentObjectKey,
   buildGovernmentRequestDocumentObjectKey,
@@ -709,21 +716,31 @@ export function registerGovernmentCustomerAppApi(apiRouter, deps) {
         return
       }
       const statusFilter = String(req.query?.status ?? '').trim()
+      const assigneeFilter = parseGovernmentAssigneeQuery(req.query?.assignee, ctx.userId)
       const params = [scope.tenantIds]
       let statusSql = ''
       if (statusFilter) {
         params.push(statusFilter)
         statusSql = ` AND r.status = $${params.length}`
       }
+      const assigneeSql = appendGovernmentAssigneeFilterSql({
+        filter: assigneeFilter,
+        tableAlias: 'r',
+        params,
+        currentUserId: ctx.userId,
+      })
       const r = await pool.query(
         `
         SELECT r.*,
           (SELECT COUNT(*)::int FROM gov_support_document_request_items i WHERE i.request_id = r.id) AS item_count,
           (SELECT COUNT(*)::int FROM gov_support_document_request_items i WHERE i.request_id = r.id AND i.status IN ('제출 완료', '검토 완료', '최종 완료')) AS submitted_count,
-          COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name, '') AS profile_display_name
+          COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name, '') AS profile_display_name,
+          COALESCE(NULLIF(TRIM(au.display_name), ''), au.username, '') AS assigned_to_display_name,
+          au.username AS assigned_to_username
         FROM gov_support_document_requests r
         LEFT JOIN gov_support_profiles p ON p.id = r.profile_id
-        WHERE r.tenant_id = ANY($1::bigint[]) AND r.archived_at IS NULL${statusSql}
+        LEFT JOIN users au ON au.id = r.assigned_to_user_id
+        WHERE r.tenant_id = ANY($1::bigint[]) AND r.archived_at IS NULL${statusSql}${assigneeSql}
         ORDER BY r.created_at DESC, r.id DESC
         LIMIT 200
         `,
@@ -733,6 +750,7 @@ export function registerGovernmentCustomerAppApi(apiRouter, deps) {
         success: true,
         data: r.rows.map((row) => ({
           ...mapGovDocumentRequestRow(row),
+          ...mapAssigneeDisplayFields(row),
           profileDisplayName: String(row.profile_display_name ?? ''),
           itemCount: Number(row.item_count ?? 0),
           submittedCount: Number(row.submitted_count ?? 0),
@@ -894,6 +912,70 @@ export function registerGovernmentCustomerAppApi(apiRouter, deps) {
           success: true,
           data: { downloadUrl, fileName: String(fileRow.file_name ?? 'file') },
         })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  apiRouter.patch(
+    '/government-support/admin/document-requests/:requestId/assignee',
+    ...requireStaffDocumentRequests,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        const requestId = String(req.params.requestId ?? '').trim()
+        const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
+        if (!scope.ok) {
+          res.status(scope.status).json({ message: scope.message })
+          return
+        }
+        const row = await loadDocumentRequestForStaff(requestId, scope.tenantIds)
+        if (!row) {
+          res.status(404).json({ message: '요청서류를 찾을 수 없습니다.' })
+          return
+        }
+        const hasAssigneeKey =
+          req.body?.assignedToUserId !== undefined ||
+          req.body?.assigned_to_user_id !== undefined ||
+          req.body?.assigneeUserId !== undefined
+        if (!hasAssigneeKey) {
+          res.status(400).json({ message: 'assignedToUserId가 필요합니다.' })
+          return
+        }
+        const rawAssignee =
+          req.body?.assignedToUserId ?? req.body?.assigned_to_user_id ?? req.body?.assigneeUserId
+        const validated = await validateGovernmentOperationalAssignee(pool, row.tenant_id, rawAssignee)
+        if (!validated.ok) {
+          res.status(validated.status).json({ message: validated.message })
+          return
+        }
+        const prevAssignee = row.assigned_to_user_id != null ? String(row.assigned_to_user_id) : null
+        const upd = await pool.query(
+          `
+          UPDATE gov_support_document_requests
+          SET assigned_to_user_id = $2, updated_by_user_id = $3, updated_at = NOW()
+          WHERE id = $1::bigint
+          RETURNING *
+          `,
+          [requestId, validated.assigneeUserId, ctx.userId],
+        )
+        const updated = upd.rows[0]
+        const nextAssignee = updated.assigned_to_user_id != null ? String(updated.assigned_to_user_id) : null
+        if (nextAssignee && nextAssignee !== prevAssignee) {
+          await safeEmitGovNotification(pool, (p) =>
+            notifyDocumentRequestAssigned(p, {
+              tenantId: row.tenant_id,
+              assigneeUserId: nextAssignee,
+              actorUserId: ctx.userId,
+              ownerUserId: String(row.owner_user_id ?? ''),
+              profileId: row.profile_id,
+              requestId,
+              requestTitle: String(row.title ?? ''),
+            }),
+          )
+        }
+        res.json({ success: true, data: mapGovDocumentRequestRow(updated) })
       } catch (e) {
         handleDbError(e, req, res)
       }

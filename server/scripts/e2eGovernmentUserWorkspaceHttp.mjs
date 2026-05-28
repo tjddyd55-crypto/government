@@ -1007,6 +1007,97 @@ async function main() {
     if (appAgencyList.status === 403) pass('agency admin application list 403')
     else fail('agency admin application list 403', String(appAgencyList.status))
 
+    const staffMe = unwrapData((await api('/me', { token: tokenStaff })).json)
+    const staffUserId = String(staffMe?.id ?? '')
+
+    const inquiryForAssign = await api('/government-support/my/inquiries', {
+      token: tokenA,
+      method: 'POST',
+      body: { title: `E2E assign inq ${ts}`, content: `assign body ${ts}` },
+      expectStatus: 201,
+    })
+    const inquiryAssignId = String(inquiryForAssign.json?.data?.id ?? '')
+
+    if (inquiryAssignId && staffUserId) {
+      const assignInq = await api(`/government-support/admin/inquiries/${inquiryAssignId}/assignee`, {
+        token: tokenAgency,
+        method: 'PATCH',
+        body: { assignedToUserId: staffUserId },
+        expectStatus: 200,
+      })
+      const assignedInqUserId = String(assignInq.json?.data?.assignedToUserId ?? '')
+      if (assignInq.status === 200 && assignedInqUserId === staffUserId) pass('agency admin assign inquiry')
+      else fail('agency admin assign inquiry', `${assignInq.status}:${assignedInqUserId}`)
+
+      const inqMeFilter = await api('/government-support/admin/inquiries?assignee=me', { token: tokenStaff })
+      const inqMeIds = (inqMeFilter.json?.data ?? []).map((r) => String(r.id))
+      if (inqMeFilter.status === 200 && inqMeIds.includes(inquiryAssignId)) pass('staff inquiry assignee=me filter')
+      else fail('staff inquiry assignee=me filter', inqMeIds.join(','))
+
+      const userAssignInq = await api(`/government-support/admin/inquiries/${inquiryAssignId}/assignee`, {
+        token: tokenA,
+        method: 'PATCH',
+        body: { assignedToUserId: staffUserId },
+      })
+      if (userAssignInq.status === 403) pass('program user inquiry assign 403')
+      else fail('program user inquiry assign 403', String(userAssignInq.status))
+    } else {
+      fail('agency admin assign inquiry', 'missing inquiry or staff user id')
+      skip('staff inquiry assignee=me filter', 'assign setup failed')
+      skip('program user inquiry assign 403', 'assign setup failed')
+    }
+
+    if (tenantB && inquiryAssignId) {
+      const uStaffB = `e2e-staff-b-${tag}`
+      await ensureOperationalUser(industry, uStaffB, 'government_staff', tenantB)
+      const tokenStaffB = await loginStaff(uStaffB)
+      const staffBMe = unwrapData((await api('/me', { token: tokenStaffB })).json)
+      const staffBUserId = String(staffBMe?.id ?? '')
+      if (staffBUserId) {
+        const badAssign = await api(`/government-support/admin/inquiries/${inquiryAssignId}/assignee`, {
+          token: tokenAgency,
+          method: 'PATCH',
+          body: { assignedToUserId: staffBUserId },
+        })
+        if (badAssign.status === 400) pass('cross-tenant inquiry assign rejected')
+        else fail('cross-tenant inquiry assign rejected', String(badAssign.status))
+      } else {
+        skip('cross-tenant inquiry assign rejected', 'staff B user id missing')
+      }
+    } else {
+      skip('cross-tenant inquiry assign rejected', 'tenant B or inquiry missing')
+    }
+
+    if (docRequestId && staffUserId) {
+      const assignDoc = await api(`/government-support/admin/document-requests/${docRequestId}/assignee`, {
+        token: tokenAgency,
+        method: 'PATCH',
+        body: { assignedToUserId: staffUserId },
+        expectStatus: 200,
+      })
+      const assignedDocUserId = String(assignDoc.json?.data?.assignedToUserId ?? '')
+      if (assignDoc.status === 200 && assignedDocUserId === staffUserId) pass('agency admin assign document request')
+      else fail('agency admin assign document request', `${assignDoc.status}:${assignedDocUserId}`)
+
+      const docMeFilter = await api('/government-support/admin/document-requests?assignee=me', { token: tokenStaff })
+      const docMeIds = (docMeFilter.json?.data ?? []).map((r) => String(r.id))
+      if (docMeFilter.status === 200 && docMeIds.includes(String(docRequestId))) {
+        pass('staff document request assignee=me filter')
+      } else fail('staff document request assignee=me filter', docMeIds.join(','))
+
+      const userAssignDoc = await api(`/government-support/admin/document-requests/${docRequestId}/assignee`, {
+        token: tokenA,
+        method: 'PATCH',
+        body: { assignedToUserId: staffUserId },
+      })
+      if (userAssignDoc.status === 403) pass('program user document request assign 403')
+      else fail('program user document request assign 403', String(userAssignDoc.status))
+    } else {
+      fail('agency admin assign document request', 'missing doc request or staff user id')
+      skip('staff document request assignee=me filter', 'assign setup failed')
+      skip('program user document request assign 403', 'assign setup failed')
+    }
+
     const adminInqStaff = await api('/government-support/admin/inquiries', { token: tokenStaff })
     if (adminInqStaff.status === 200) pass('staff admin inquiries endpoint')
     else fail('staff admin inquiries endpoint', String(adminInqStaff.status))
@@ -1033,6 +1124,18 @@ async function main() {
       pass('inquiry replied notification')
     } else if (notifStaffList.status === 200) {
       fail('inquiry replied notification', notifEvents.join(','))
+    }
+
+    if (notifStaffList.status === 200 && notifEvents.includes('inquiry_assigned')) {
+      pass('inquiry assigned notification')
+    } else if (notifStaffList.status === 200) {
+      fail('inquiry assigned notification', notifEvents.join(','))
+    }
+
+    if (notifStaffList.status === 200 && notifEvents.includes('document_request_assigned')) {
+      pass('document request assigned notification')
+    } else if (notifStaffList.status === 200) {
+      fail('document request assigned notification', notifEvents.join(','))
     }
 
     const unreadStaff = await api('/government-support/admin/notifications/unread-count', { token: tokenStaff })
@@ -1110,6 +1213,10 @@ async function main() {
         'recentProfiles',
         'unreadNotifications',
         'recentNotifications',
+        'myAssignedOpenInquiries',
+        'myAssignedDocumentRequestsReview',
+        'unassignedOpenInquiries',
+        'unassignedDocumentRequestsReview',
       ].every((key) => dashStaffData[key] !== undefined) &&
       Array.isArray(dashStaffData.recentDocumentRequests) &&
       Array.isArray(dashStaffData.recentNotifications)
@@ -1123,6 +1230,18 @@ async function main() {
       pass('dashboard recent doc request tenant scoped')
     } else if (dashboardShapeOk) {
       pass('dashboard recent doc request tenant scoped', 'SKIP — no matching recent row')
+    }
+
+    if (dashboardShapeOk && Number(dashStaffData.myAssignedOpenInquiries) >= 1) {
+      pass('dashboard my assigned inquiries count')
+    } else if (dashboardShapeOk) {
+      fail('dashboard my assigned inquiries count', String(dashStaffData.myAssignedOpenInquiries))
+    }
+
+    if (dashboardShapeOk && typeof dashStaffData.unassignedOpenInquiries === 'number') {
+      pass('dashboard unassigned inquiries count')
+    } else if (dashboardShapeOk) {
+      fail('dashboard unassigned inquiries count')
     }
 
     const dashAgency = await api('/government-support/admin/dashboard/summary', { token: tokenAgency })
@@ -1183,9 +1302,18 @@ async function main() {
       'agency admin application list 403',
       'staff admin inquiries endpoint',
       'staff admin document-requests endpoint',
+      'agency admin assign inquiry',
+      'staff inquiry assignee=me filter',
+      'program user inquiry assign 403',
+      'cross-tenant inquiry assign rejected',
+      'agency admin assign document request',
+      'staff document request assignee=me filter',
+      'program user document request assign 403',
       'document request submitted notification',
       'inquiry created notification',
       'inquiry replied notification',
+      'inquiry assigned notification',
+      'document request assigned notification',
       'staff notifications unread count',
       'read notification',
       'read all notifications',
@@ -1193,6 +1321,13 @@ async function main() {
       'industry admin notifications 403',
       'notifications tenant scoped',
       'GET /government/admin/notifications SPA',
+      'staff dashboard summary 200',
+      'dashboard my assigned inquiries count',
+      'dashboard unassigned inquiries count',
+      'agency admin dashboard summary 200',
+      'program user dashboard summary 403',
+      'industry admin dashboard summary 403',
+      'GET /government/admin SPA dashboard',
       'staff my inquiries 403',
       'staff my document-requests 403',
       'agency admin my document-requests 403',

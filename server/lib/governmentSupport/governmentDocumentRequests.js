@@ -19,6 +19,7 @@ export function mapGovDocumentRequestRow(row) {
     message: String(row.message ?? ''),
     status: String(row.status ?? 'open'),
     createdByUserId: row.created_by_user_id != null ? String(row.created_by_user_id) : null,
+    assignedToUserId: row.assigned_to_user_id != null ? String(row.assigned_to_user_id) : null,
     createdAt:
       createdAt instanceof Date ? createdAt.toISOString() : createdAt != null ? String(createdAt) : new Date().toISOString(),
     updatedAt:

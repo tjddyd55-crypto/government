@@ -7,10 +7,15 @@ import {
   fetchGovAdminInquiries,
   fetchGovAdminInquiryDetail,
   patchGovAdminInquiry,
+  patchGovAdminInquiryAssignee,
   postGovAdminInquiryMessage,
   type GovAdminInquiryListItem,
 } from '../../api/governmentInquiriesApi'
 import type { GovCustomerInquiryDetail } from '../../customer-app/api/governmentCustomerAppApi'
+import {
+  formatAssigneeLabel,
+  useGovernmentOperationalAssigneeOptions,
+} from '../../hooks/useGovernmentOperationalAssigneeOptions'
 import '../../../claim-requests/claim-inbox.css'
 
 const STATUS_OPTIONS = [
@@ -67,6 +72,7 @@ export default function GovernmentAdminInquiriesPage() {
   const isMobile = useIsMobile()
   const [rows, setRows] = useState<GovAdminInquiryListItem[]>([])
   const [statusFilter, setStatusFilter] = useState('')
+  const [assigneeFilter, setAssigneeFilter] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<GovCustomerInquiryDetail | null>(null)
   const [loading, setLoading] = useState(false)
@@ -77,6 +83,8 @@ export default function GovernmentAdminInquiriesPage() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false)
+  const { filterOptions, assignOptions } = useGovernmentOperationalAssigneeOptions(token)
+  const [assigneeTarget, setAssigneeTarget] = useState('')
 
   const selectedRow = useMemo(() => rows.find((row) => row.id === selectedId) ?? null, [rows, selectedId])
 
@@ -85,14 +93,17 @@ export default function GovernmentAdminInquiriesPage() {
     setLoading(true)
     setError('')
     try {
-      const list = await fetchGovAdminInquiries(token, statusFilter || undefined)
+      const list = await fetchGovAdminInquiries(token, {
+        status: statusFilter || undefined,
+        assignee: assigneeFilter || undefined,
+      })
       setRows(list)
     } catch (e) {
       setError(e instanceof Error ? e.message : '문의 목록을 불러오지 못했습니다.')
     } finally {
       setLoading(false)
     }
-  }, [statusFilter, token])
+  }, [assigneeFilter, statusFilter, token])
 
   const loadDetail = useCallback(async () => {
     if (!token?.trim() || !selectedId) {
@@ -104,6 +115,7 @@ export default function GovernmentAdminInquiriesPage() {
       const data = await fetchGovAdminInquiryDetail(token, selectedId)
       setDetail(data)
       setStatusTarget(data.status === 'open' ? 'replied' : data.status)
+      setAssigneeTarget(data.assignedToUserId ?? '')
     } catch (e) {
       setError(e instanceof Error ? e.message : '문의 상세를 불러오지 못했습니다.')
     } finally {
@@ -157,6 +169,22 @@ export default function GovernmentAdminInquiriesPage() {
     }
   }
 
+  const handleAssigneeSave = async () => {
+    if (!token?.trim() || !selectedId) return
+    setActionBusy(true)
+    setError('')
+    try {
+      await patchGovAdminInquiryAssignee(token, selectedId, assigneeTarget || null)
+      setNotice('담당자가 저장되었습니다.')
+      await loadRows()
+      await loadDetail()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '담당자 지정에 실패했습니다.')
+    } finally {
+      setActionBusy(false)
+    }
+  }
+
   const renderDetail = () => {
     if (detailLoading) return <div className="claim-inbox__empty">상세를 불러오는 중…</div>
     if (!detail) return <div className="claim-inbox__empty">목록에서 문의를 선택해 주세요.</div>
@@ -171,6 +199,9 @@ export default function GovernmentAdminInquiriesPage() {
             <div className="claim-inbox__detail-meta">작성 {formatDateTime(detail.createdAt)}</div>
           </div>
           <span className={statusClass(detail.status)}>{statusLabel(detail.status)}</span>
+        </div>
+        <div className="claim-inbox__detail-meta">
+          담당: {formatAssigneeLabel(detail.assignedToUserId, selectedRow?.assignedToDisplayName)}
         </div>
         {detail.content ? <div className="claim-inbox__detail-memo">{detail.content}</div> : null}
 
@@ -242,6 +273,28 @@ export default function GovernmentAdminInquiriesPage() {
         </div>
 
         <div className="claim-inbox__detail-section claim-inbox__status-editor">
+          <h3>담당자</h3>
+          <div className="claim-inbox__status-editor-row">
+            <FieldWrapper label="담당 직원" className="admin-modal-field">
+              <FormSelect
+                value={assigneeTarget}
+                onChange={(e) => setAssigneeTarget(e.target.value)}
+                options={assignOptions}
+                aria-label="담당자"
+              />
+            </FieldWrapper>
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              onClick={() => void handleAssigneeSave()}
+              loading={actionBusy}
+            >
+              담당 저장
+            </FormButton>
+          </div>
+        </div>
+
+        <div className="claim-inbox__detail-section claim-inbox__status-editor">
           <h3>상태 변경</h3>
           <div className="claim-inbox__status-editor-row">
             <FieldWrapper label="상태" className="admin-modal-field">
@@ -286,6 +339,15 @@ export default function GovernmentAdminInquiriesPage() {
             aria-label="문의 상태"
           />
         </label>
+        <label className="claim-inbox__filter-label">
+          담당자
+          <FormSelect
+            value={assigneeFilter}
+            onChange={(e) => setAssigneeFilter(e.target.value)}
+            options={filterOptions}
+            aria-label="담당자 필터"
+          />
+        </label>
       </section>
 
       <div className={`claim-inbox__layout${isMobile ? ' claim-inbox__layout--mobile' : ''}`}>
@@ -304,7 +366,8 @@ export default function GovernmentAdminInquiriesPage() {
                     <span className={statusClass(row.status)}>{statusLabel(row.status)}</span>
                   </div>
                   <div className="claim-inbox__list-item-meta">
-                    {(row as GovAdminInquiryListItem).ownerDisplayName || '이용자'} · 메시지 {row.messageCount} ·{' '}
+                    {(row as GovAdminInquiryListItem).ownerDisplayName || '이용자'} ·{' '}
+                    {formatAssigneeLabel(row.assignedToUserId, row.assignedToDisplayName)} · 메시지 {row.messageCount} ·{' '}
                     {formatDateTime(row.createdAt)}
                   </div>
                 </button>

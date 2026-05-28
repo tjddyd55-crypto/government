@@ -27,8 +27,15 @@ import {
 import {
   notifyInquiryCreated,
   notifyInquiryReplied,
+  notifyInquiryAssigned,
   safeEmitGovNotification,
 } from '../lib/governmentSupport/governmentNotifications.js'
+import {
+  appendGovernmentAssigneeFilterSql,
+  mapAssigneeDisplayFields,
+  parseGovernmentAssigneeQuery,
+  validateGovernmentOperationalAssignee,
+} from '../lib/governmentSupport/governmentAssignees.js'
 import {
   consentGetSignedDownloadUrl,
   getR2InsurerAttachmentsCacheControl,
@@ -408,21 +415,31 @@ export function registerGovernmentInquiriesApi(apiRouter, deps) {
         return
       }
       const statusFilter = String(req.query?.status ?? '').trim()
+      const assigneeFilter = parseGovernmentAssigneeQuery(req.query?.assignee, ctx.userId)
       const params = [tenantIds]
       let statusSql = ''
       if (statusFilter && isValidGovInquiryStatus(statusFilter)) {
         params.push(statusFilter)
         statusSql = ` AND i.status = $${params.length}`
       }
+      const assigneeSql = appendGovernmentAssigneeFilterSql({
+        filter: assigneeFilter,
+        tableAlias: 'i',
+        params,
+        currentUserId: ctx.userId,
+      })
       const r = await pool.query(
         `
         SELECT i.*,
           (SELECT COUNT(*)::int FROM gov_support_inquiry_messages m WHERE m.inquiry_id = i.id AND m.archived_at IS NULL) AS message_count,
           (SELECT COUNT(*)::int FROM gov_support_inquiry_files f WHERE f.inquiry_id = i.id AND f.archived_at IS NULL) AS file_count,
-          COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name, '') AS owner_display_name
+          COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name, '') AS owner_display_name,
+          COALESCE(NULLIF(TRIM(au.display_name), ''), au.username, '') AS assigned_to_display_name,
+          au.username AS assigned_to_username
         FROM gov_support_inquiries i
         LEFT JOIN gov_support_profiles p ON p.id = i.profile_id
-        WHERE i.tenant_id = ANY($1::bigint[]) AND i.archived_at IS NULL${statusSql}
+        LEFT JOIN users au ON au.id = i.assigned_to_user_id
+        WHERE i.tenant_id = ANY($1::bigint[]) AND i.archived_at IS NULL${statusSql}${assigneeSql}
         ORDER BY i.updated_at DESC, i.id DESC
         LIMIT 200
         `,
@@ -432,6 +449,7 @@ export function registerGovernmentInquiriesApi(apiRouter, deps) {
         success: true,
         data: r.rows.map((row) => ({
           ...mapGovInquiryRow(row),
+          ...mapAssigneeDisplayFields(row),
           ownerDisplayName: String(row.owner_display_name ?? ''),
         })),
       })
@@ -570,7 +588,12 @@ export function registerGovernmentInquiriesApi(apiRouter, deps) {
         sets.push(`status = $${params.length}`)
       }
       if (assignedTo !== null) {
-        params.push(assignedTo || null)
+        const validated = await validateGovernmentOperationalAssignee(pool, row.tenant_id, assignedTo || null)
+        if (!validated.ok) {
+          res.status(validated.status).json({ message: validated.message })
+          return
+        }
+        params.push(validated.assigneeUserId)
         sets.push(`assigned_to_user_id = $${params.length}`)
       }
       if (sets.length === 0) {
@@ -582,9 +605,91 @@ export function registerGovernmentInquiriesApi(apiRouter, deps) {
         `UPDATE gov_support_inquiries SET ${sets.join(', ')} WHERE id = $1::bigint RETURNING *`,
         params,
       )
-      res.json({ success: true, data: mapGovInquiryRow(upd.rows[0]) })
+      const updated = upd.rows[0]
+      if (assignedTo !== null) {
+        const prevAssignee = row.assigned_to_user_id != null ? String(row.assigned_to_user_id) : null
+        const nextAssignee = updated.assigned_to_user_id != null ? String(updated.assigned_to_user_id) : null
+        if (nextAssignee && nextAssignee !== prevAssignee) {
+          await safeEmitGovNotification(pool, (p) =>
+            notifyInquiryAssigned(p, {
+              tenantId: row.tenant_id,
+              assigneeUserId: nextAssignee,
+              actorUserId: ctx.userId,
+              ownerUserId: String(row.owner_user_id ?? ''),
+              profileId: row.profile_id,
+              inquiryId,
+              inquiryTitle: String(row.title ?? ''),
+            }),
+          )
+        }
+      }
+      res.json({ success: true, data: mapGovInquiryRow(updated) })
     } catch (e) {
       handleDbError(e, req, res)
     }
   })
+
+  apiRouter.patch(
+    '/government-support/admin/inquiries/:inquiryId/assignee',
+    ...requireStaffInquiries,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        const inquiryId = String(req.params.inquiryId ?? '').trim()
+        const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
+        if (!scope.ok) {
+          res.status(scope.status).json({ message: scope.message })
+          return
+        }
+        const row = await loadInquiryForStaff(inquiryId, scope.tenantIds)
+        if (!row) {
+          res.status(404).json({ message: '문의를 찾을 수 없습니다.' })
+          return
+        }
+        const hasAssigneeKey =
+          req.body?.assignedToUserId !== undefined ||
+          req.body?.assigned_to_user_id !== undefined ||
+          req.body?.assigneeUserId !== undefined
+        if (!hasAssigneeKey) {
+          res.status(400).json({ message: 'assignedToUserId가 필요합니다.' })
+          return
+        }
+        const rawAssignee =
+          req.body?.assignedToUserId ?? req.body?.assigned_to_user_id ?? req.body?.assigneeUserId
+        const validated = await validateGovernmentOperationalAssignee(pool, row.tenant_id, rawAssignee)
+        if (!validated.ok) {
+          res.status(validated.status).json({ message: validated.message })
+          return
+        }
+        const prevAssignee = row.assigned_to_user_id != null ? String(row.assigned_to_user_id) : null
+        const upd = await pool.query(
+          `
+          UPDATE gov_support_inquiries
+          SET assigned_to_user_id = $2, updated_at = NOW()
+          WHERE id = $1::bigint
+          RETURNING *
+          `,
+          [inquiryId, validated.assigneeUserId],
+        )
+        const updated = upd.rows[0]
+        const nextAssignee = updated.assigned_to_user_id != null ? String(updated.assigned_to_user_id) : null
+        if (nextAssignee && nextAssignee !== prevAssignee) {
+          await safeEmitGovNotification(pool, (p) =>
+            notifyInquiryAssigned(p, {
+              tenantId: row.tenant_id,
+              assigneeUserId: nextAssignee,
+              actorUserId: ctx.userId,
+              ownerUserId: String(row.owner_user_id ?? ''),
+              profileId: row.profile_id,
+              inquiryId,
+              inquiryTitle: String(row.title ?? ''),
+            }),
+          )
+        }
+        res.json({ success: true, data: mapGovInquiryRow(updated) })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
 }

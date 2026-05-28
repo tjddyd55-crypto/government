@@ -150,9 +150,15 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
         recentProfiles: [],
         unreadNotifications: 0,
         recentNotifications: [],
+        myAssignedOpenInquiries: 0,
+        myAssignedDocumentRequestsReview: 0,
+        unassignedOpenInquiries: 0,
+        unassignedDocumentRequestsReview: 0,
       },
     }
   }
+
+  const currentUserId = ctx.userId != null ? String(ctx.userId) : ''
 
   const [countsR, recentDocsR, recentInqR, recentSigR, recentUsersR, recentProfilesR, unreadResult, recentNotifResult] =
     await Promise.all([
@@ -192,9 +198,31 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
         WHERE m.tenant_id = ANY($1::bigint[])
           AND COALESCE(u.is_deleted, false) IS NOT TRUE) AS program_users_count,
       (SELECT COUNT(*)::int FROM gov_support_profiles p
-        WHERE p.tenant_id = ANY($1::bigint[])) AS profiles_count
+        WHERE p.tenant_id = ANY($1::bigint[])) AS profiles_count,
+      (SELECT COUNT(*)::int FROM gov_support_inquiries i
+        WHERE i.tenant_id = ANY($1::bigint[]) AND i.archived_at IS NULL AND i.status = 'open'
+          AND i.assigned_to_user_id = $3) AS my_assigned_open_inquiries,
+      (SELECT COUNT(*)::int FROM gov_support_inquiries i
+        WHERE i.tenant_id = ANY($1::bigint[]) AND i.archived_at IS NULL AND i.status = 'open'
+          AND i.assigned_to_user_id IS NULL) AS unassigned_open_inquiries,
+      (SELECT COUNT(*)::int FROM gov_support_document_requests r
+        WHERE r.tenant_id = ANY($1::bigint[]) AND r.archived_at IS NULL
+          AND r.assigned_to_user_id = $3
+          AND (r.status IN ('partial', 'completed')
+            OR EXISTS (
+              SELECT 1 FROM gov_support_document_request_items i
+              WHERE i.request_id = r.id AND i.status = '제출 완료'
+            ))) AS my_assigned_document_requests_review,
+      (SELECT COUNT(*)::int FROM gov_support_document_requests r
+        WHERE r.tenant_id = ANY($1::bigint[]) AND r.archived_at IS NULL
+          AND r.assigned_to_user_id IS NULL
+          AND (r.status IN ('partial', 'completed')
+            OR EXISTS (
+              SELECT 1 FROM gov_support_document_request_items i
+              WHERE i.request_id = r.id AND i.status = '제출 완료'
+            ))) AS unassigned_document_requests_review
     `,
-        [tenantIds, GOVERNMENT_PROGRAM_USER_ROLE],
+        [tenantIds, GOVERNMENT_PROGRAM_USER_ROLE, currentUserId],
       ),
       pool.query(
         `
@@ -284,6 +312,10 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
       recentProfiles: recentProfilesR.rows.map(mapRecentProfile),
       unreadNotifications,
       recentNotifications,
+      myAssignedOpenInquiries: Number(counts.my_assigned_open_inquiries ?? 0),
+      myAssignedDocumentRequestsReview: Number(counts.my_assigned_document_requests_review ?? 0),
+      unassignedOpenInquiries: Number(counts.unassigned_open_inquiries ?? 0),
+      unassignedDocumentRequestsReview: Number(counts.unassigned_document_requests_review ?? 0),
     },
   }
 }

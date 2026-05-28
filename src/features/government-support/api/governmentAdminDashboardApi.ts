@@ -69,6 +69,10 @@ export type GovernmentAdminDashboardSummary = {
   recentProfiles: GovernmentAdminDashboardRecentProfile[]
   unreadNotifications: number
   recentNotifications: GovernmentAdminDashboardRecentNotification[]
+  myAssignedOpenInquiries: number
+  myAssignedDocumentRequestsReview: number
+  unassignedOpenInquiries: number
+  unassignedDocumentRequestsReview: number
 }
 
 function unwrapSummary(raw: unknown): GovernmentAdminDashboardSummary | null {

@@ -354,6 +354,10 @@ export async function ensureGovernmentSupportSchema(executor) {
     ON gov_support_document_requests (owner_user_id, created_at DESC)
     WHERE archived_at IS NULL
   `)
+  await executor.query(`
+    ALTER TABLE gov_support_document_requests
+    ADD COLUMN IF NOT EXISTS assigned_to_user_id TEXT REFERENCES users(id) ON DELETE SET NULL
+  `)
 
   await executor.query(`
     CREATE TABLE IF NOT EXISTS gov_support_document_request_items (

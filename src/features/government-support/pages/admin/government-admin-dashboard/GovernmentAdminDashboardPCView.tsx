@@ -45,6 +45,10 @@ export function OperationalDashboardBody({
     { label: '전자서명 · 완료', value: summary.completedSignatures, hint: '서명 완료' },
     { label: '완료 PDF 확인', value: summary.completedSignaturesNeedingReview, hint: '최근 30일' },
     { label: '전자서명 · 취소/만료', value: summary.cancelledSignatures + summary.expiredSignatures, hint: '취소·만료 합계' },
+    { label: '내 담당 · 미답변 문의', value: summary.myAssignedOpenInquiries, hint: 'open · 나에게 배정' },
+    { label: '내 담당 · 제출 확인', value: summary.myAssignedDocumentRequestsReview, hint: '요청서류' },
+    { label: '미지정 · 미답변 문의', value: summary.unassignedOpenInquiries, hint: '담당자 없음' },
+    { label: '미지정 · 제출 확인', value: summary.unassignedDocumentRequestsReview, hint: '요청서류' },
     { label: '프로그램 이용자', value: summary.programUsersCount, hint: '내 대행사' },
     { label: '등록 사업장', value: summary.profilesCount, hint: '프로필 수' },
   ]

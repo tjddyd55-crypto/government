@@ -32,6 +32,8 @@ export const GOV_NOTIFICATION_EVENT_TYPES = Object.freeze([
   'inquiry_replied',
   'signature_completed',
   'program_user_joined',
+  'inquiry_assigned',
+  'document_request_assigned',
 ])
 
 const OPERATIONAL_ROLES = Object.freeze(['government_staff', 'government_agency_admin'])
@@ -479,5 +481,71 @@ export async function notifyProgramUserJoined(pool, params) {
     targetType: 'program_user',
     targetId: params.actorUserId,
     targetUrl: `/government/admin/program-users`,
+  })
+}
+
+/**
+ * @param {import('pg').Pool} pool
+ * @param {{
+ *   tenantId: string|number,
+ *   assigneeUserId: string,
+ *   actorUserId?: string|null,
+ *   ownerUserId?: string|null,
+ *   profileId?: string|number|null,
+ *   inquiryId: string|number,
+ *   inquiryTitle?: string,
+ * }} params
+ */
+export async function notifyInquiryAssigned(pool, params) {
+  const assigneeUserId = String(params.assigneeUserId ?? '').trim()
+  if (!assigneeUserId) {
+    return []
+  }
+  const title = String(params.inquiryTitle ?? '문의').trim()
+  return createGovSupportNotifications(pool, {
+    tenantId: params.tenantId,
+    actorUserId: params.actorUserId,
+    ownerUserId: params.ownerUserId,
+    profileId: params.profileId,
+    recipientUserIds: [assigneeUserId],
+    eventType: 'inquiry_assigned',
+    title: '문의 담당 지정',
+    message: `문의 담당자로 지정되었습니다: ${title}`,
+    targetType: 'inquiry',
+    targetId: params.inquiryId,
+    targetUrl: `/government/admin/inquiries`,
+  })
+}
+
+/**
+ * @param {import('pg').Pool} pool
+ * @param {{
+ *   tenantId: string|number,
+ *   assigneeUserId: string,
+ *   actorUserId?: string|null,
+ *   ownerUserId?: string|null,
+ *   profileId?: string|number|null,
+ *   requestId: string|number,
+ *   requestTitle?: string,
+ * }} params
+ */
+export async function notifyDocumentRequestAssigned(pool, params) {
+  const assigneeUserId = String(params.assigneeUserId ?? '').trim()
+  if (!assigneeUserId) {
+    return []
+  }
+  const title = String(params.requestTitle ?? '요청서류').trim()
+  return createGovSupportNotifications(pool, {
+    tenantId: params.tenantId,
+    actorUserId: params.actorUserId,
+    ownerUserId: params.ownerUserId,
+    profileId: params.profileId,
+    recipientUserIds: [assigneeUserId],
+    eventType: 'document_request_assigned',
+    title: '요청서류 담당 지정',
+    message: `요청서류 담당자로 지정되었습니다: ${title}`,
+    targetType: 'document_request',
+    targetId: params.requestId,
+    targetUrl: `/government/admin/document-requests`,
   })
 }

@@ -8,11 +8,16 @@ import {
   downloadGovAdminDocumentRequestFile,
   fetchGovAdminDocumentRequestDetail,
   fetchGovAdminDocumentRequests,
+  patchGovAdminDocumentRequestAssignee,
   type GovAdminDocumentRequestDetail,
   type GovAdminDocumentRequestFile,
   type GovAdminDocumentRequestListItem,
 } from '../../api/governmentDocumentRequestsAdminApi'
 import { fetchGovProfiles } from '../../api/governmentProfilesApi'
+import {
+  formatAssigneeLabel,
+  useGovernmentOperationalAssigneeOptions,
+} from '../../hooks/useGovernmentOperationalAssigneeOptions'
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 import '../../../claim-requests/claim-inbox.css'
 
@@ -71,6 +76,7 @@ export default function GovernmentAdminDocumentRequestsPage() {
   const [rows, setRows] = useState<GovAdminDocumentRequestListItem[]>([])
   const [profiles, setProfiles] = useState<GovSupportProfile[]>([])
   const [statusFilter, setStatusFilter] = useState('')
+  const [assigneeFilter, setAssigneeFilter] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<GovAdminDocumentRequestDetail | null>(null)
   const [loading, setLoading] = useState(false)
@@ -84,6 +90,9 @@ export default function GovernmentAdminDocumentRequestsPage() {
   const [composeTitle, setComposeTitle] = useState('요청 서류')
   const [composeMessage, setComposeMessage] = useState('')
   const [composeItems, setComposeItems] = useState(['사업자등록증', '재무제표'])
+  const [assigneeTarget, setAssigneeTarget] = useState('')
+  const [assignBusy, setAssignBusy] = useState(false)
+  const { filterOptions, assignOptions } = useGovernmentOperationalAssigneeOptions(token)
 
   const selectedRow = useMemo(() => rows.find((row) => row.id === selectedId) ?? null, [rows, selectedId])
   const openCount = useMemo(() => rows.filter((row) => row.status === 'open').length, [rows])
@@ -116,7 +125,10 @@ export default function GovernmentAdminDocumentRequestsPage() {
     setLoading(true)
     setError('')
     try {
-      const list = await fetchGovAdminDocumentRequests(token, statusFilter || undefined)
+      const list = await fetchGovAdminDocumentRequests(token, {
+        status: statusFilter || undefined,
+        assignee: assigneeFilter || undefined,
+      })
       setRows(list)
       setSelectedId((prev) => {
         if (prev && list.some((row) => row.id === prev)) return prev
@@ -127,7 +139,7 @@ export default function GovernmentAdminDocumentRequestsPage() {
     } finally {
       setLoading(false)
     }
-  }, [statusFilter, token])
+  }, [assigneeFilter, statusFilter, token])
 
   const loadDetail = useCallback(async () => {
     if (!token?.trim() || !selectedId) {
@@ -138,6 +150,7 @@ export default function GovernmentAdminDocumentRequestsPage() {
     try {
       const data = await fetchGovAdminDocumentRequestDetail(token, selectedId)
       setDetail(data)
+      setAssigneeTarget(data.assignedToUserId ?? '')
     } catch (e) {
       setError(e instanceof Error ? e.message : '요청서류 상세를 불러오지 못했습니다.')
     } finally {
@@ -207,6 +220,22 @@ export default function GovernmentAdminDocumentRequestsPage() {
     }
   }
 
+  const handleAssigneeSave = async () => {
+    if (!token?.trim() || !selectedId) return
+    setAssignBusy(true)
+    setError('')
+    try {
+      await patchGovAdminDocumentRequestAssignee(token, selectedId, assigneeTarget || null)
+      setNotice('담당자가 저장되었습니다.')
+      await loadRows()
+      await loadDetail()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '담당자 지정에 실패했습니다.')
+    } finally {
+      setAssignBusy(false)
+    }
+  }
+
   const renderDetail = () => {
     if (detailLoading) return <div className="claim-inbox__empty">상세를 불러오는 중…</div>
     if (!detail) return <div className="claim-inbox__empty">목록에서 요청서류를 선택해 주세요.</div>
@@ -224,6 +253,9 @@ export default function GovernmentAdminDocumentRequestsPage() {
             </div>
             <div className="claim-inbox__detail-meta">
               제출 {detail.submittedCount}/{detail.itemCount}
+            </div>
+            <div className="claim-inbox__detail-meta">
+              담당: {formatAssigneeLabel(detail.assignedToUserId, selectedRow?.assignedToDisplayName)}
             </div>
           </div>
           <span className={requestStatusClass(detail.status)}>{requestStatusLabel(detail.status)}</span>
@@ -269,6 +301,28 @@ export default function GovernmentAdminDocumentRequestsPage() {
               ))}
             </ul>
           )}
+        </div>
+
+        <div className="claim-inbox__detail-section claim-inbox__status-editor">
+          <h3>담당자</h3>
+          <div className="claim-inbox__status-editor-row">
+            <FieldWrapper label="담당 직원" className="admin-modal-field">
+              <FormSelect
+                value={assigneeTarget}
+                onChange={(e) => setAssigneeTarget(e.target.value)}
+                options={assignOptions}
+                aria-label="담당자"
+              />
+            </FieldWrapper>
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              onClick={() => void handleAssigneeSave()}
+              loading={assignBusy}
+            >
+              담당 저장
+            </FormButton>
+          </div>
         </div>
       </div>
     )
@@ -387,6 +441,15 @@ export default function GovernmentAdminDocumentRequestsPage() {
             aria-label="요청서류 상태"
           />
         </label>
+        <label className="claim-inbox__filter-label">
+          담당자
+          <FormSelect
+            value={assigneeFilter}
+            onChange={(e) => setAssigneeFilter(e.target.value)}
+            options={filterOptions}
+            aria-label="담당자 필터"
+          />
+        </label>
       </section>
 
       <div className={`claim-inbox__layout${isMobile ? ' claim-inbox__layout--mobile' : ''}`}>
@@ -406,8 +469,9 @@ export default function GovernmentAdminDocumentRequestsPage() {
                     <span className={requestStatusClass(row.status)}>{requestStatusLabel(row.status)}</span>
                   </div>
                   <div className="claim-inbox__list-item-meta">
-                    {row.profileDisplayName || '이용자'} · {row.submittedCount}/{row.itemCount} 제출 ·{' '}
-                    {formatDateTime(row.createdAt)}
+                    {row.profileDisplayName || '이용자'} ·{' '}
+                    {formatAssigneeLabel(row.assignedToUserId, row.assignedToDisplayName)} · {row.submittedCount}/
+                    {row.itemCount} 제출 · {formatDateTime(row.createdAt)}
                   </div>
                 </button>
               </li>
