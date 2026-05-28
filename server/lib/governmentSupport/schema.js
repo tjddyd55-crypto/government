@@ -460,4 +460,34 @@ export async function ensureGovernmentSupportSchema(executor) {
     ON gov_support_inquiry_files (inquiry_id, created_at DESC)
     WHERE archived_at IS NULL
   `)
+
+  await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_notifications (
+      id BIGSERIAL PRIMARY KEY,
+      tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      recipient_user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+      actor_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      owner_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      profile_id BIGINT REFERENCES gov_support_profiles(id) ON DELETE SET NULL,
+      event_type TEXT NOT NULL,
+      title TEXT NOT NULL DEFAULT '',
+      message TEXT NOT NULL DEFAULT '',
+      target_type TEXT NOT NULL DEFAULT '',
+      target_id TEXT NOT NULL DEFAULT '',
+      target_url TEXT NOT NULL DEFAULT '',
+      read_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_notifications_recipient
+    ON gov_support_notifications (recipient_user_id, read_at, created_at DESC)
+    WHERE archived_at IS NULL
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_notifications_tenant
+    ON gov_support_notifications (tenant_id, created_at DESC)
+    WHERE archived_at IS NULL
+  `)
 }

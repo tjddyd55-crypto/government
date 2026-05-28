@@ -38,6 +38,17 @@ export type GovernmentAdminDashboardRecentProfile = {
   createdAt: string
 }
 
+export type GovernmentAdminDashboardRecentNotification = {
+  id: string
+  tenantId: string
+  eventType: string
+  title: string
+  message: string
+  targetUrl: string
+  isRead: boolean
+  createdAt: string
+}
+
 export type GovernmentAdminDashboardSummary = {
   pendingDocumentRequests: number
   submittedDocumentRequests: number
@@ -56,6 +67,8 @@ export type GovernmentAdminDashboardSummary = {
   recentSignatures: GovernmentAdminDashboardRecentSignature[]
   recentProgramUsers: GovernmentAdminDashboardRecentProgramUser[]
   recentProfiles: GovernmentAdminDashboardRecentProfile[]
+  unreadNotifications: number
+  recentNotifications: GovernmentAdminDashboardRecentNotification[]
 }
 
 function unwrapSummary(raw: unknown): GovernmentAdminDashboardSummary | null {

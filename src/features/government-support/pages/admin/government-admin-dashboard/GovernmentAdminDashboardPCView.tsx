@@ -112,6 +112,44 @@ export function OperationalDashboardBody({
         </div>
       </section>
 
+      <section className="government-admin-dashboard__section" aria-labelledby="gov-admin-dash-notifications">
+        <div className="government-admin-dashboard__panel-head">
+          <h2 id="gov-admin-dash-notifications" className="government-admin-dashboard__section-title">
+            최근 알림
+            {summary.unreadNotifications > 0 ? (
+              <span className="government-admin-dashboard__badge">{summary.unreadNotifications}</span>
+            ) : null}
+          </h2>
+          <Link to="/government/admin/notifications" className="government-admin-dashboard__panel-link">
+            전체 보기
+          </Link>
+        </div>
+        {summary.recentNotifications.length === 0 ? (
+          <p className="government-admin-page__muted">최근 알림이 없습니다.</p>
+        ) : (
+          <ul className="government-admin-dashboard__list">
+            {summary.recentNotifications.map((row) => (
+              <li key={row.id}>
+                <Link
+                  to={row.targetUrl || '/government/admin/notifications'}
+                  className={[
+                    'government-admin-dashboard__list-link',
+                    !row.isRead ? 'government-admin-dashboard__list-link--unread' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <span className="government-admin-dashboard__list-title">{row.title || row.message}</span>
+                  <span className="government-admin-dashboard__list-meta">
+                    {row.message} · {formatDashboardDateTime(row.createdAt)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section className="government-admin-dashboard__section" aria-labelledby="gov-admin-dash-recent">
         <h2 id="gov-admin-dash-recent" className="government-admin-dashboard__section-title">
           최근 처리 대상

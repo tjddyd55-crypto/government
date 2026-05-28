@@ -25,6 +25,11 @@ import {
   buildGovernmentInquiryObjectKey,
 } from '../lib/governmentSupport/governmentInquiryStorage.js'
 import {
+  notifyInquiryCreated,
+  notifyInquiryReplied,
+  safeEmitGovNotification,
+} from '../lib/governmentSupport/governmentNotifications.js'
+import {
   consentGetSignedDownloadUrl,
   getR2InsurerAttachmentsCacheControl,
   isConsentR2Enabled,
@@ -210,6 +215,16 @@ export function registerGovernmentInquiriesApi(apiRouter, deps) {
           [inquiry.id, ctx.userId, content],
         )
         await client.query('COMMIT')
+        await safeEmitGovNotification(pool, (p) =>
+          notifyInquiryCreated(p, {
+            tenantId,
+            actorUserId: ctx.userId,
+            ownerUserId: ctx.userId,
+            profileId: inquiry.profile_id,
+            inquiryId: inquiry.id,
+            inquiryTitle: finalTitle,
+          }),
+        )
         res.status(201).json({ success: true, data: mapGovInquiryRow(inquiry) })
       } catch (e) {
         await client.query('ROLLBACK')
@@ -507,6 +522,15 @@ export function registerGovernmentInquiriesApi(apiRouter, deps) {
         WHERE id = $1::bigint
         `,
         [inquiryId, ctx.userId],
+      )
+      await safeEmitGovNotification(pool, (p) =>
+        notifyInquiryReplied(p, {
+          tenantId: row.tenant_id,
+          ownerUserId: String(row.owner_user_id ?? ''),
+          profileId: row.profile_id,
+          inquiryId,
+          inquiryTitle: String(row.title ?? ''),
+        }),
       )
       const withUser = await pool.query(
         `SELECT m.*, u.username AS sender_username FROM gov_support_inquiry_messages m

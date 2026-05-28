@@ -137,6 +137,7 @@ import GovernmentCustomerAppInquiriesPage from './features/government-support/cu
 import GovernmentCustomerAppInquiryComposePage from './features/government-support/customer-app/pages/GovernmentCustomerAppInquiryComposePage'
 import GovernmentCustomerAppInquiryDetailPage from './features/government-support/customer-app/pages/GovernmentCustomerAppInquiryDetailPage'
 import GovernmentAdminInquiriesPage from './features/government-support/pages/admin/GovernmentAdminInquiriesPage'
+import GovernmentAdminNotificationsPage from './features/government-support/pages/admin/GovernmentAdminNotificationsPage'
 import GovernmentAdminDocumentRequestsPage from './features/government-support/pages/admin/GovernmentAdminDocumentRequestsPage'
 import GovernmentUserMePage from './features/government-support/pages/user/GovernmentUserMePage'
 import GovernmentAdminLayout from './features/government-support/layouts/GovernmentAdminLayout'
@@ -299,6 +300,7 @@ export const appRouter = createBrowserRouter([
               { path: 'government/admin/resources', element: <GovernmentAdminResourcesPage /> },
               { path: 'government/admin/document-requests', element: <GovernmentAdminDocumentRequestsPage /> },
               { path: 'government/admin/inquiries', element: <GovernmentAdminInquiriesPage /> },
+              { path: 'government/admin/notifications', element: <GovernmentAdminNotificationsPage /> },
             ],
           },
         ],

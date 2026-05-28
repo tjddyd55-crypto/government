@@ -35,6 +35,10 @@ import {
   attachGovernmentProgramUserMembership,
   isGovernmentIndustrySignup,
 } from './lib/governmentSupport/governmentSignup.js'
+import {
+  notifyProgramUserJoined,
+  safeEmitGovNotification,
+} from './lib/governmentSupport/governmentNotifications.js'
 import { signInviteSignup, verifyInviteSignupSignature } from './lib/inviteSignupSignature.js'
 import { formatDbEngineMessage, formatServerListeningMessage } from './lib/appServerLabel.js'
 import { runScheduledSmsCleanup } from './services/smsCleanupScheduler.js'
@@ -85,6 +89,7 @@ import { registerGovernmentSupportApi } from './registerGovernmentSupportApi.js'
 import { registerGovernmentCustomerAppApi } from './apis/governmentCustomerAppApi.js'
 import { registerGovernmentInquiriesApi } from './apis/governmentInquiriesApi.js'
 import { registerGovernmentAdminDashboardApi } from './apis/governmentAdminDashboardApi.js'
+import { registerGovernmentNotificationsApi } from './apis/governmentNotificationsApi.js'
 import { registerGovernmentOperationsApi } from './registerGovernmentOperationsApi.js'
 import { registerGovernmentSignatureApi } from './registerGovernmentSignatureApi.js'
 import { registerContractPublicOtpApi } from './apis/contractPublicOtpApi.js'
@@ -1476,6 +1481,7 @@ registerGovernmentSupportApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentCustomerAppApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentInquiriesApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentAdminDashboardApi(apiRouter, { pool, requireAuth, handleDbError })
+registerGovernmentNotificationsApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentOperationsApi(apiRouter, { pool, requireAuth, handleDbError })
 registerGovernmentSignatureApi(apiRouter, { pool, requireAuth, handleDbError })
 
@@ -2185,6 +2191,17 @@ async function handleRegister(req, res) {
       throw e
     }
     client.release()
+
+    if (tenantRegSignup && isGovernmentIndustrySignup(industrySignup) && tenantRegMeta != null) {
+      await safeEmitGovNotification(pool, (p) =>
+        notifyProgramUserJoined(p, {
+          tenantId: tenantRegMeta.tenantPk,
+          actorUserId: id,
+          username: normalizedUsername,
+          displayName: displayName ?? '',
+        }),
+      )
+    }
 
     if (phoneNorm) {
       await pool.query(`DELETE FROM sms_verification_codes WHERE purpose = 'SIGNUP' AND phone_number = $1`, [

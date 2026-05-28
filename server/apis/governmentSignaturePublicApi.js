@@ -25,6 +25,10 @@ import {
   loadSendSessionAttachmentRow,
 } from '../services/governmentSignatureSendAttachments.js'
 import { listSendSessionConfirmationFieldValuesForPublic } from '../services/governmentSignatureSendSessionConfirmationFieldValues.js'
+import {
+  notifySignatureCompleted,
+  safeEmitGovNotification,
+} from '../lib/governmentSupport/governmentNotifications.js'
 
 const TERMINAL_SESSION = new Set(['expired', 'cancelled'])
 const COMPLETED_SESSION = new Set(['completed'])
@@ -549,21 +553,23 @@ async function maybeCompleteSendSession(client, sendSessionId) {
   const requiredRows = q.rows.filter((r) => r.required === 1 || r.required === true)
   const ok =
     requiredRows.length === 0 || requiredRows.every((r) => String(r.status ?? '') === 'completed')
-  if (ok) {
-    await client.query(
-      `
-      UPDATE gov_signature_send_sessions
-      SET
-        status = 'completed',
-        completed_at = COALESCE(completed_at, NOW()),
-        updated_at = NOW()
-      WHERE id = $1
-        AND status <> 'expired'
-        AND status <> 'cancelled'
-      `,
-      [sendSessionId],
-    )
+  if (!ok) {
+    return null
   }
+  const upd = await client.query(
+    `
+    UPDATE gov_signature_send_sessions
+    SET
+      status = 'completed',
+      completed_at = COALESCE(completed_at, NOW()),
+      updated_at = NOW()
+    WHERE id = $1
+      AND status NOT IN ('expired', 'cancelled', 'completed')
+    RETURNING id, tenant_id, profile_id, owner_user_id, sent_by_user_id
+    `,
+    [sendSessionId],
+  )
+  return upd.rows[0] ?? null
 }
 
 async function loadFileStorageKeyForId(pool, fileId) {
@@ -1514,7 +1520,7 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
           `,
           [session.id],
         )
-        await maybeCompleteSendSession(client, session.id)
+        const completedSession = await maybeCompleteSendSession(client, session.id)
         const evRow = await client.query(
           `
           SELECT evidence_hash, signed_at
@@ -1533,6 +1539,27 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
             ? `/api/government-support/public/signatures/${encodeURIComponent(signToken)}/documents/${encodeURIComponent(docId)}/signed-pdf`
             : null
         await client.query('COMMIT')
+        if (completedSession) {
+          const profileR = await pool.query(
+            `
+            SELECT COALESCE(NULLIF(TRIM(business_name), ''), customer_name, '') AS display_name
+            FROM gov_support_profiles
+            WHERE id = $1::bigint
+            LIMIT 1
+            `,
+            [completedSession.profile_id],
+          )
+          await safeEmitGovNotification(pool, (p) =>
+            notifySignatureCompleted(p, {
+              tenantId: completedSession.tenant_id,
+              actorUserId: completedSession.owner_user_id,
+              ownerUserId: completedSession.owner_user_id,
+              profileId: completedSession.profile_id,
+              sessionId: completedSession.id,
+              profileDisplayName: String(profileR.rows[0]?.display_name ?? ''),
+            }),
+          )
+        }
         res.status(200).json({
           success: true,
           data: {

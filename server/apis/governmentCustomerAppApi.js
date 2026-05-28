@@ -26,6 +26,10 @@ import {
   resolveGovProfileFileContentType,
 } from '../lib/governmentSupport/governmentProfileFiles.js'
 import {
+  notifyDocumentRequestSubmitted,
+  safeEmitGovNotification,
+} from '../lib/governmentSupport/governmentNotifications.js'
+import {
   assertGovernmentRequestDocumentObjectKey,
   buildGovernmentRequestDocumentObjectKey,
 } from '../lib/governmentSupport/governmentRequestDocumentStorage.js'
@@ -449,6 +453,31 @@ export function registerGovernmentCustomerAppApi(apiRouter, deps) {
           throw e
         } finally {
           client.release()
+        }
+        const metaR = await pool.query(
+          `
+          SELECT r.tenant_id, r.title AS request_title, i.label AS item_label,
+            r.profile_id, r.owner_user_id
+          FROM gov_support_document_requests r
+          INNER JOIN gov_support_document_request_items i ON i.request_id = r.id
+          WHERE r.id = $1::bigint AND i.id = $2::bigint
+          LIMIT 1
+          `,
+          [requestId, itemId],
+        )
+        const meta = metaR.rows[0]
+        if (meta) {
+          await safeEmitGovNotification(pool, (p) =>
+            notifyDocumentRequestSubmitted(p, {
+              tenantId: meta.tenant_id,
+              actorUserId: ctx.userId,
+              ownerUserId: String(meta.owner_user_id ?? ctx.userId),
+              profileId: meta.profile_id,
+              requestId,
+              requestTitle: String(meta.request_title ?? ''),
+              itemLabel: String(meta.item_label ?? ''),
+            }),
+          )
         }
         res.status(200).json({ success: true, data: mapGovDocumentRequestFileRow(fileRow) })
       } catch (e) {

@@ -9,6 +9,10 @@ import {
   isGovernmentSuperAdmin,
   resolveGovernmentTenantScopeForQuery,
 } from './governmentAccess.js'
+import {
+  countUnreadGovSupportNotifications,
+  loadGovSupportNotificationsForAdmin,
+} from './governmentNotifications.js'
 
 const RECENT_LIMIT = 5
 
@@ -144,12 +148,16 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
         recentSignatures: [],
         recentProgramUsers: [],
         recentProfiles: [],
+        unreadNotifications: 0,
+        recentNotifications: [],
       },
     }
   }
 
-  const countsR = await pool.query(
-    `
+  const [countsR, recentDocsR, recentInqR, recentSigR, recentUsersR, recentProfilesR, unreadResult, recentNotifResult] =
+    await Promise.all([
+      pool.query(
+        `
     SELECT
       (SELECT COUNT(*)::int FROM gov_support_document_requests r
         WHERE r.tenant_id = ANY($1::bigint[]) AND r.archived_at IS NULL AND r.status = 'open') AS pending_document_requests,
@@ -186,14 +194,10 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
       (SELECT COUNT(*)::int FROM gov_support_profiles p
         WHERE p.tenant_id = ANY($1::bigint[])) AS profiles_count
     `,
-    [tenantIds, GOVERNMENT_PROGRAM_USER_ROLE],
-  )
-
-  const counts = countsR.rows[0] ?? {}
-
-  const [recentDocsR, recentInqR, recentSigR, recentUsersR, recentProfilesR] = await Promise.all([
-    pool.query(
-      `
+        [tenantIds, GOVERNMENT_PROGRAM_USER_ROLE],
+      ),
+      pool.query(
+        `
       SELECT r.id, r.title, r.status, r.updated_at,
         COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name, '') AS profile_display_name
       FROM gov_support_document_requests r
@@ -202,10 +206,10 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
       ORDER BY r.updated_at DESC, r.id DESC
       LIMIT $2
       `,
-      [tenantIds, RECENT_LIMIT],
-    ),
-    pool.query(
-      `
+        [tenantIds, RECENT_LIMIT],
+      ),
+      pool.query(
+        `
       SELECT i.id, i.title, i.status, i.updated_at,
         COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name, '') AS profile_display_name
       FROM gov_support_inquiries i
@@ -214,10 +218,10 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
       ORDER BY i.updated_at DESC, i.id DESC
       LIMIT $2
       `,
-      [tenantIds, RECENT_LIMIT],
-    ),
-    pool.query(
-      `
+        [tenantIds, RECENT_LIMIT],
+      ),
+      pool.query(
+        `
       SELECT s.id, s.status, s.sent_at, s.completed_at, s.updated_at,
         COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name, '') AS profile_display_name
       FROM gov_signature_send_sessions s
@@ -226,10 +230,10 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
       ORDER BY COALESCE(s.completed_at, s.sent_at, s.updated_at) DESC, s.id DESC
       LIMIT $2
       `,
-      [tenantIds, RECENT_LIMIT],
-    ),
-    pool.query(
-      `
+        [tenantIds, RECENT_LIMIT],
+      ),
+      pool.query(
+        `
       SELECT u.id::text AS id, u.username, COALESCE(u.display_name, '') AS display_name, u.created_at
       FROM users u
       INNER JOIN user_memberships m ON m.user_id = u.id AND m.role = $2
@@ -238,19 +242,25 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
       ORDER BY u.created_at DESC, u.id DESC
       LIMIT $3
       `,
-      [tenantIds, GOVERNMENT_PROGRAM_USER_ROLE, RECENT_LIMIT],
-    ),
-    pool.query(
-      `
+        [tenantIds, GOVERNMENT_PROGRAM_USER_ROLE, RECENT_LIMIT],
+      ),
+      pool.query(
+        `
       SELECT p.id, COALESCE(NULLIF(TRIM(p.business_name), ''), p.customer_name, '') AS business_name, p.created_at
       FROM gov_support_profiles p
       WHERE p.tenant_id = ANY($1::bigint[])
       ORDER BY p.created_at DESC, p.id DESC
       LIMIT $2
       `,
-      [tenantIds, RECENT_LIMIT],
-    ),
-  ])
+        [tenantIds, RECENT_LIMIT],
+      ),
+      countUnreadGovSupportNotifications(pool, ctx),
+      loadGovSupportNotificationsForAdmin(pool, ctx, { limit: RECENT_LIMIT }),
+    ])
+
+  const counts = countsR.rows[0] ?? {}
+  const unreadNotifications = unreadResult.ok ? Number(unreadResult.count ?? 0) : 0
+  const recentNotifications = recentNotifResult.ok ? recentNotifResult.notifications : []
 
   return {
     ok: true,
@@ -272,6 +282,8 @@ export async function loadGovernmentAdminDashboardSummary(pool, ctx) {
       recentSignatures: recentSigR.rows.map(mapRecentSignature),
       recentProgramUsers: recentUsersR.rows.map(mapRecentProgramUser),
       recentProfiles: recentProfilesR.rows.map(mapRecentProfile),
+      unreadNotifications,
+      recentNotifications,
     },
   }
 }

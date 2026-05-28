@@ -87,6 +87,10 @@ function unwrapData(json) {
   return json
 }
 
+function notificationEventTypes(json) {
+  return (json?.notifications ?? []).map((n) => String(n.eventType ?? ''))
+}
+
 async function fetchHtml(path) {
   const res = await fetch(`${BASE}${path}`, { headers: { Accept: 'text/html' } })
   const html = await res.text()
@@ -1011,6 +1015,66 @@ async function main() {
     if (adminDocStaff.status === 200) pass('staff admin document-requests endpoint')
     else fail('staff admin document-requests endpoint', String(adminDocStaff.status))
 
+    const notifStaffList = await api('/government-support/admin/notifications', { token: tokenStaff })
+    const notifEvents = notificationEventTypes(notifStaffList.json)
+    if (notifStaffList.status === 200 && notifEvents.includes('document_request_submitted')) {
+      pass('document request submitted notification')
+    } else if (notifStaffList.status === 200) {
+      fail('document request submitted notification', notifEvents.join(','))
+    } else fail('document request submitted notification', String(notifStaffList.status))
+
+    if (notifStaffList.status === 200 && notifEvents.includes('inquiry_created')) {
+      pass('inquiry created notification')
+    } else if (notifStaffList.status === 200) {
+      fail('inquiry created notification', notifEvents.join(','))
+    }
+
+    if (notifStaffList.status === 200 && notifEvents.includes('inquiry_replied')) {
+      pass('inquiry replied notification')
+    } else if (notifStaffList.status === 200) {
+      fail('inquiry replied notification', notifEvents.join(','))
+    }
+
+    const unreadStaff = await api('/government-support/admin/notifications/unread-count', { token: tokenStaff })
+    if (unreadStaff.status === 200 && Number(unreadStaff.json?.count) >= 1) pass('staff notifications unread count')
+    else fail('staff notifications unread count', String(unreadStaff.status))
+
+    const firstUnread = (notifStaffList.json?.notifications ?? []).find((n) => !n.isRead)
+    if (firstUnread?.id) {
+      const readOne = await api(`/government-support/admin/notifications/${firstUnread.id}/read`, {
+        token: tokenStaff,
+        method: 'PATCH',
+        expectStatus: 200,
+      })
+      if (readOne.status === 200) pass('read notification')
+      else fail('read notification', String(readOne.status))
+    } else if (notifStaffList.status === 200) {
+      pass('read notification', 'SKIP — no unread')
+    }
+
+    const readAll = await api('/government-support/admin/notifications/read-all', {
+      token: tokenStaff,
+      method: 'PATCH',
+      expectStatus: 200,
+    })
+    if (readAll.status === 200) pass('read all notifications')
+    else fail('read all notifications', String(readAll.status))
+
+    const notifUserA = await api('/government-support/admin/notifications', { token: tokenA })
+    if (notifUserA.status === 403) pass('program user notifications 403')
+    else fail('program user notifications 403', String(notifUserA.status))
+
+    const notifIndustry = await api('/government-support/admin/notifications', { token: industry })
+    if (notifIndustry.status === 403) pass('industry admin notifications 403')
+    else fail('industry admin notifications 403', String(notifIndustry.status))
+
+    if (tenantA && notifStaffList.status === 200) {
+      const rows = notifStaffList.json?.notifications ?? []
+      const allSameTenant = rows.length === 0 || rows.every((n) => String(n.tenantId) === String(tenantA))
+      if (allSameTenant) pass('notifications tenant scoped')
+      else fail('notifications tenant scoped')
+    }
+
     const dashStaff = await api('/government-support/admin/dashboard/summary', { token: tokenStaff })
     const dashStaffData = dashStaff.json?.data
     const dashboardShapeOk =
@@ -1031,8 +1095,11 @@ async function main() {
         'recentInquiries',
         'recentProgramUsers',
         'recentProfiles',
+        'unreadNotifications',
+        'recentNotifications',
       ].every((key) => dashStaffData[key] !== undefined) &&
-      Array.isArray(dashStaffData.recentDocumentRequests)
+      Array.isArray(dashStaffData.recentDocumentRequests) &&
+      Array.isArray(dashStaffData.recentNotifications)
     if (dashboardShapeOk) pass('staff dashboard summary 200')
     else fail('staff dashboard summary 200', String(dashStaff.status))
 
@@ -1067,6 +1134,13 @@ async function main() {
       pass('GET /government/admin SPA dashboard')
     } else fail('GET /government/admin SPA dashboard')
 
+    const notifSpa = await fetchHtml('/government/admin/notifications')
+    if (notifSpa.status === 200 && notifSpa.js.includes('government-admin-notifications-page')) {
+      pass('GET /government/admin/notifications SPA')
+    } else if (notifSpa.status === 200 && notifSpa.js.includes('government-admin-layout')) {
+      pass('GET /government/admin/notifications SPA')
+    } else fail('GET /government/admin/notifications SPA', String(notifSpa.status))
+
     const myInqStaff = await api('/government-support/my/inquiries', { token: tokenStaff })
     if (myInqStaff.status === 403) pass('staff my inquiries 403')
     else fail('staff my inquiries 403', String(myInqStaff.status))
@@ -1096,6 +1170,16 @@ async function main() {
       'agency admin application list 403',
       'staff admin inquiries endpoint',
       'staff admin document-requests endpoint',
+      'document request submitted notification',
+      'inquiry created notification',
+      'inquiry replied notification',
+      'staff notifications unread count',
+      'read notification',
+      'read all notifications',
+      'program user notifications 403',
+      'industry admin notifications 403',
+      'notifications tenant scoped',
+      'GET /government/admin/notifications SPA',
       'staff my inquiries 403',
       'staff my document-requests 403',
       'agency admin my document-requests 403',
