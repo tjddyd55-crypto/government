@@ -13,6 +13,11 @@ export function maskprofileDisplayNameForTestConsole(name: string): string {
   return `${t[0]}${'*'.repeat(Math.min(4, t.length - 2))}${t[t.length - 1]}`
 }
 
+export function maskGovernmentPhone(phone: string): string {
+  return maskPhoneForTestConsole(phone)
+}
+
+/** @deprecated 내부 명칭 — maskGovernmentPhone 사용 */
 export function maskPhoneForTestConsole(phone: string): string {
   const d = String(phone ?? '').replace(/\D/g, '')
   if (d.length < 8) {

@@ -9,6 +9,7 @@ import {
   fetchContractPublicDocumentDetail,
   formatContractPublicActionError,
   formatContractPublicCompleteError,
+  formatContractPublicSessionError,
   postContractPublicDocumentComplete,
   postContractPublicDocumentSign,
   postContractPublicDocumentValues,
@@ -900,7 +901,7 @@ export default function GovernmentSignDocumentPage() {
           setError('문서를 찾을 수 없습니다.')
           return
         }
-        setError(e instanceof ApiError ? e.message : '문서를 불러오지 못했습니다.')
+        setError(formatContractPublicSessionError(e))
       } finally {
         if (!cancelled) {
           setLoading(false)
@@ -1205,13 +1206,7 @@ export default function GovernmentSignDocumentPage() {
       })
       setSuccessOpen(true)
     } catch (e) {
-      if (e instanceof ApiError && e.status === 409) {
-        const pack = e.data as { evidence?: { evidenceHashPrefix?: string | null } | null } | undefined
-        const prefix = pack?.evidence?.evidenceHashPrefix
-        setActionError(prefix ? `${e.message} (증빙 해시 일부: ${prefix})` : e.message)
-      } else {
-        setActionError(formatContractPublicCompleteError(e))
-      }
+      setActionError(formatContractPublicCompleteError(e))
     } finally {
       setSaving(false)
     }
@@ -1263,13 +1258,7 @@ export default function GovernmentSignDocumentPage() {
       })
       setSuccessOpen(true)
     } catch (e) {
-      if (e instanceof ApiError && e.status === 409) {
-        const pack = e.data as { evidence?: { evidenceHashPrefix?: string | null } | null } | undefined
-        const prefix = pack?.evidence?.evidenceHashPrefix
-        setActionError(prefix ? `${e.message} (증빙 해시 일부: ${prefix})` : e.message)
-      } else {
-        setActionError(formatContractPublicCompleteError(e))
-      }
+      setActionError(formatContractPublicCompleteError(e))
     } finally {
       setSaving(false)
     }

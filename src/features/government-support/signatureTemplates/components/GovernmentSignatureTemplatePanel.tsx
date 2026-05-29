@@ -2,7 +2,6 @@
 import { useConfirmDialog } from '../../../../components/dialog'
 import { FormButton, FormInput, FormSelect, FormTextarea } from '../../../../components/form'
 import { useMediaQuery } from '../../../../hooks/useMediaQuery'
-import { ApiError } from '../../../../lib/apiClient'
 import type { GovernmentSignatureTemplateDetail, GovernmentSignatureTemplateListItem } from '../governmentSignatureTemplateClient'
 import {
   createConfirmationOnlyGovernmentSignatureTemplate,
@@ -13,6 +12,7 @@ import {
   patchGovernmentSignatureTemplateFieldInputSettings,
   setGovernmentSignatureTemplateStatus,
 } from '../governmentSignatureTemplateClient'
+import { publicSignatureFieldLabel, mapGovernmentSignatureApiError, mapGovernmentSignatureErrorMessage } from '../../signatures/governmentSignatureUserDisplay'
 import { GovernmentSignatureTemplateConfirmationFieldsSection } from './GovernmentSignatureTemplateConfirmationFieldsSection'
 
 type FieldSettingDraft = {
@@ -60,24 +60,16 @@ function templateDeleteEligibility(trow: GovernmentSignatureTemplateListItem): {
   return { canDelete: true, blockReason: null }
 }
 
-function formatTemplateIdShort(id: string): string {
-  const s = String(id ?? '')
-  if (s.length <= 16) {
-    return s
-  }
-  return `${s.slice(0, 12)}…`
-}
-
 function statusLabelShort(status: string): string {
   switch (status) {
     case 'draft':
-      return 'draft'
+      return '초안'
     case 'active':
-      return 'active'
+      return '사용 중'
     case 'archived':
-      return 'archived'
+      return '보관됨'
     default:
-      return status
+      return '—'
   }
 }
 
@@ -177,7 +169,7 @@ export function GovernmentSignatureTemplatePanel({
         await fn()
         await onReload()
       } catch (e) {
-        onError(e instanceof ApiError ? e.message : '요청 처리에 실패했습니다.')
+        onError(mapGovernmentSignatureApiError(e, '요청 처리에 실패했습니다.'))
       } finally {
         onBusy(false)
       }
@@ -203,7 +195,7 @@ export function GovernmentSignatureTemplatePanel({
         }
       } catch (e) {
         if (!cancelled) {
-          onError(e instanceof ApiError ? e.message : '상세를 불러오지 못했습니다.')
+          onError(mapGovernmentSignatureApiError(e, '상세를 불러오지 못했습니다.'))
           setModal(null)
         }
       } finally {
@@ -257,7 +249,7 @@ export function GovernmentSignatureTemplatePanel({
       {confirmDialog}
       {error ? (
         <div className="contract-signature-console__inline-error" role="alert">
-          {error}
+          {mapGovernmentSignatureErrorMessage(error, '요청 처리 중 오류가 발생했습니다.')}
         </div>
       ) : null}
       <p className="contract-signature-console__body-text" style={{ marginTop: 0, marginBottom: '0.65rem' }}>
@@ -393,10 +385,6 @@ export function GovernmentSignatureTemplatePanel({
                     </span>
                   </div>
                   <div className="contract-signature-console__template-card-meta">
-                    <span className="contract-signature-console__template-card-label">ID</span>
-                    <code className="contract-signature-console__template-card-code">{formatTemplateIdShort(trow.id)}</code>
-                  </div>
-                  <div className="contract-signature-console__template-card-meta">
                     <span className="contract-signature-console__template-card-label">수정일</span>
                     <span>{formatUpdatedAt(trow.updatedAt)}</span>
                   </div>
@@ -521,7 +509,6 @@ export function GovernmentSignatureTemplatePanel({
               <col className="contract-signature-console__col-status" />
               <col className="contract-signature-console__col-mode" />
               <col className="contract-signature-console__col-pdf" />
-              <col className="contract-signature-console__col-id" />
               <col className="contract-signature-console__col-date" />
               <col className="contract-signature-console__col-actions" />
             </colgroup>
@@ -531,7 +518,6 @@ export function GovernmentSignatureTemplatePanel({
                 <th scope="col">상태</th>
                 <th scope="col">모드</th>
                 <th scope="col">연결 PDF</th>
-                <th scope="col">전자서명 템플릿 ID</th>
                 <th scope="col">수정일</th>
                 <th scope="col">동작</th>
               </tr>
@@ -539,7 +525,7 @@ export function GovernmentSignatureTemplatePanel({
             <tbody>
               {templates.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="contract-signature-console__empty-state-text" style={{ padding: '1rem' }}>
+                  <td colSpan={6} className="contract-signature-console__empty-state-text" style={{ padding: '1rem' }}>
                     표시할 템플릿이 없습니다. PDF 좌표형은 1번에서 PDF 선택 후 만들기, 무좌표 확인서는 「무좌표 확인서 템플릿 추가」로 만든 뒤 PDF
                     필터를 해제하면 목록에 표시됩니다.
                   </td>
@@ -574,14 +560,11 @@ export function GovernmentSignatureTemplatePanel({
                             <span>{trow.pdfEngineTitle ?? `PDF #${pid}`}</span>
                             {noSig ? (
                               <div className="contract-signature-console__hint--warning" style={{ marginTop: 4 }}>
-                                signature 필드 없음
+                                서명 필드 없음
                               </div>
                             ) : null}
                           </>
                         )}
-                      </td>
-                      <td>
-                        <code style={{ fontSize: 11 }}>{trow.id}</code>
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }}>{formatUpdatedAt(trow.updatedAt)}</td>
                       <td>
@@ -724,10 +707,6 @@ export function GovernmentSignatureTemplatePanel({
                 <dd>
                   {statusLabelShort(detail.status)} — {statusDescription(detail.status)}
                 </dd>
-                <dt>전자서명 템플릿 ID</dt>
-                <dd>
-                  <code>{detail.id}</code>
-                </dd>
                 <dt>연결 PDF</dt>
                 <dd>
                   {detail.pdfEngine?.title ?? (detail.pdfTemplateId != null ? `PDF #${detail.pdfTemplateId}` : '—')}
@@ -862,7 +841,7 @@ export function GovernmentSignatureTemplatePanel({
                           const isSig = meta?.fieldType === 'signature'
                           return (
                             <tr key={row.fieldKey}>
-                              <td>{meta?.label ?? row.fieldKey}</td>
+                              <td>{publicSignatureFieldLabel(meta?.label)}</td>
                               <td>{pdfFieldTypeLabel(meta?.fieldType ?? '')}</td>
                               <td>{meta?.required ? 'Y' : '—'}</td>
                               <td style={{ minWidth: 180 }}>

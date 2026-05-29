@@ -8,7 +8,7 @@ import '../../pdf-engine/pdf-engine.css'
 import '../signatureTemplates/government-signature-console.css'
 import './government-signature-send-mobile.css'
 import { useAuth } from '../../auth/AuthProvider'
-import { mapGovernmentSignatureApiError } from './governmentSignatureUserDisplay'
+import { formatGovernmentProfilePickMeta, formatSenderFieldLabel, mapGovernmentSignatureApiError } from './governmentSignatureUserDisplay'
 import { ApiError } from '../../../lib/apiClient'
 import { EvidenceStatusPanel } from '../signatureTemplates/components/EvidenceStatusPanel'
 import { SendSessionPanel } from '../signatureTemplates/components/SendSessionPanel'
@@ -770,12 +770,6 @@ export default function GovernmentSignatureSendPage() {
     const input = e.currentTarget
     const picked = Array.from(input.files ?? [])
     input.value = ''
-    if (import.meta.env.DEV && picked.length > 0) {
-      console.log(
-        '[contract attachments] file input changed',
-        picked.map((f) => ({ name: f.name, type: f.type, size: f.size })),
-      )
-    }
     void processPickedAttachmentFiles(picked)
   }
 
@@ -946,8 +940,7 @@ export default function GovernmentSignatureSendPage() {
                 <div className="contract-send-mobile-selected-customer__body">
                   <span className="contract-send-mobile-selected-customer__name">{selectedCustomer.name}</span>
                   <span className="contract-send-mobile-selected-customer__line">
-                    사업장 ID: {selectedCustomer.id}
-                    {selectedCustomer.customerCode?.trim() ? ` · 사업장번호 ${selectedCustomer.customerCode}` : ''}
+                    {formatGovernmentProfilePickMeta(selectedCustomer)}
                   </span>
                   <span className="contract-send-mobile-selected-customer__line">
                     {selectedCustomer.hasPhone ? selectedCustomer.maskedPhone : '휴대폰 —'}
@@ -1041,9 +1034,7 @@ export default function GovernmentSignatureSendPage() {
                         >
                           <span className="contract-send-mobile-customer-result-card__name">{c.name}</span>
                           <span className="contract-send-mobile-customer-result-card__meta">
-                            {c.customerCode?.trim()
-                              ? `사업장번호 ${c.customerCode} · 사업장 ID ${c.id}`
-                              : `사업장 ID: ${c.id}`}
+                            {formatGovernmentProfilePickMeta(c)}
                           </span>
                           <span className="contract-send-mobile-customer-result-card__meta">
                             {c.hasPhone ? c.maskedPhone : '휴대폰 —'}
@@ -1144,7 +1135,7 @@ export default function GovernmentSignatureSendPage() {
                             onChange={(ev) => setSenderVals((prev) => ({ ...prev, [fk]: ev.target.checked }))}
                           />
                           <span className="contract-send-mobile-sender-fields__checkbox-label">
-                            {d.label || fk}
+                            {formatSenderFieldLabel(d.label)}
                             {d.required ? <span className="contract-signature-console__hint--warning"> *</span> : null}
                           </span>
                         </label>
@@ -1157,7 +1148,7 @@ export default function GovernmentSignatureSendPage() {
                       return (
                         <div key={fk} className="contract-send-mobile-sender-fields__field">
                           <p className="contract-send-mobile-sender-fields__hint">
-                            {d.label || fk}
+                            {formatSenderFieldLabel(d.label)}
                             {d.required ? <span className="contract-signature-console__hint--warning"> *</span> : null}
                           </p>
                           <div className="contract-send-mobile-sender-fields__select-wrap">
@@ -1175,7 +1166,7 @@ export default function GovernmentSignatureSendPage() {
                     return (
                       <label key={fk} className="contract-send-mobile-sender-fields__field-label">
                         <span className="contract-send-mobile-sender-fields__hint">
-                          {d.label || fk}
+                          {formatSenderFieldLabel(d.label)}
                           {d.required ? <span className="contract-signature-console__hint--warning"> *</span> : null}
                         </span>
                         {multiline ? (
@@ -1381,8 +1372,7 @@ export default function GovernmentSignatureSendPage() {
                 {selectedCustomer.name}
               </div>
               <div className="contract-signature-console__hint" style={{ marginTop: 6 }}>
-                사업장 ID: {selectedCustomer.id}
-                {selectedCustomer.customerCode?.trim() ? ` · 사업장번호: ${selectedCustomer.customerCode}` : ''}
+                {formatGovernmentProfilePickMeta(selectedCustomer)}
               </div>
               <div className="contract-signature-console__hint">휴대폰: {selectedCustomer.hasPhone ? selectedCustomer.maskedPhone : '—'}</div>
               {!selectedCustomer.hasPhone ? (
@@ -1408,7 +1398,7 @@ export default function GovernmentSignatureSendPage() {
                   <tr>
                     <th>선택</th>
                     <th>이름</th>
-                    <th>사업장번호 · ID</th>
+                    <th>사업장번호</th>
                     <th>휴대폰(마스킹)</th>
                   </tr>
                 </thead>
@@ -1574,7 +1564,7 @@ export default function GovernmentSignatureSendPage() {
                         onChange={(ev) => setSenderVals((prev) => ({ ...prev, [fk]: ev.target.checked }))}
                       />
                       <span>
-                        {d.label || fk}
+                        {formatSenderFieldLabel(d.label)}
                         {d.required ? <span className="contract-signature-console__hint--warning"> *</span> : null}
                       </span>
                     </label>
@@ -1587,7 +1577,7 @@ export default function GovernmentSignatureSendPage() {
                   return (
                     <div key={fk} className="space-y-1">
                       <p className="contract-signature-console__hint" style={{ marginBottom: 4 }}>
-                        {d.label || fk}
+                        {formatSenderFieldLabel(d.label)}
                         {d.required ? <span className="contract-signature-console__hint--warning"> *</span> : null}
                       </p>
                       <FormSelect
@@ -1603,7 +1593,7 @@ export default function GovernmentSignatureSendPage() {
                 return (
                   <label key={fk} className="block space-y-1">
                     <span className="contract-signature-console__hint">
-                      {d.label || fk}
+                      {formatSenderFieldLabel(d.label)}
                       {d.required ? <span className="contract-signature-console__hint--warning"> *</span> : null}
                     </span>
                     {multiline ? (

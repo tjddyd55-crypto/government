@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import '../../pdf-engine/pdf-engine.css'
 import './government-signature-console.css'
 import { useAuth } from '../../auth/AuthProvider'
-import { ApiError } from '../../../lib/apiClient'
+import { mapGovernmentSignatureApiError } from '../signatures/governmentSignatureUserDisplay'
 import { FormButton } from '../../../components/form'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { GovernmentSignatureTemplatePanel } from './components/GovernmentSignatureTemplatePanel'
@@ -70,7 +70,7 @@ export default function GovernmentSignatureTemplatesPage() {
       const list = await listGovernmentSignatureTemplates(t, role, tenantGaId)
       setGovernmentSignatureTemplates(list)
     } catch (e) {
-      setContractPanelError(e instanceof ApiError ? e.message : '전자서명 템플릿 목록을 불러오지 못했습니다.')
+      setContractPanelError(mapGovernmentSignatureApiError(e, '전자서명 템플릿 목록을 불러오지 못했습니다.'))
     }
   }, [t, role, tenantGaId])
 
@@ -109,7 +109,7 @@ export default function GovernmentSignatureTemplatesPage() {
         }
       } catch (e) {
         if (!cancelled) {
-          setBootError(e instanceof ApiError ? e.message : 'PDF 템플릿 목록을 불러오지 못했습니다.')
+          setBootError(mapGovernmentSignatureApiError(e, 'PDF 템플릿 목록을 불러오지 못했습니다.'))
         }
       }
     }

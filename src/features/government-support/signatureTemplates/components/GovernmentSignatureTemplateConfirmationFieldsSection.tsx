@@ -1,7 +1,7 @@
 ﻿import { useCallback, useEffect, useState } from 'react'
 import { useConfirmDialog } from '../../../../components/dialog'
 import { FormButton, FormInput, FormSelect, FormTextarea } from '../../../../components/form'
-import { ApiError } from '../../../../lib/apiClient'
+import { mapGovernmentSignatureApiError } from '../../signatures/governmentSignatureUserDisplay'
 import {
   createGovernmentSignatureTemplateConfirmationField,
   deleteGovernmentSignatureTemplateConfirmationField,
@@ -13,6 +13,21 @@ import {
   type CreateGovernmentSignatureTemplateConfirmationFieldInput,
   type UpdateGovernmentSignatureTemplateConfirmationFieldInput,
 } from '../governmentSignatureTemplateConfirmationFieldsClient'
+
+function confirmationInputTypeLabel(inputType: string | null | undefined): string {
+  switch (String(inputType ?? '').toLowerCase()) {
+    case 'textarea':
+      return '여러 줄'
+    case 'number':
+      return '숫자'
+    case 'date':
+      return '날짜'
+    case 'text':
+      return '한 줄'
+    default:
+      return '한 줄'
+  }
+}
 
 type Props = {
   token: string
@@ -92,7 +107,7 @@ export function GovernmentSignatureTemplateConfirmationFieldsSection({
       const list = await listGovernmentSignatureTemplateConfirmationFields(token, role, templateId, tenantGaId)
       setItems(list)
     } catch (e) {
-      onError(e instanceof ApiError ? e.message : '확인 항목을 불러오지 못했습니다.')
+      onError(mapGovernmentSignatureApiError(e, '확인 항목을 불러오지 못했습니다.'))
     } finally {
       setLoading(false)
     }
@@ -159,7 +174,7 @@ export function GovernmentSignatureTemplateConfirmationFieldsSection({
                 />
               </label>
               <label className="contract-signature-console__conf-label">
-                fieldKey(선택, 비우면 자동 생성)
+                항목 코드(선택, 비우면 자동 부여)
                 <FormInput
                   value={createDraft.fieldKey ?? ''}
                   disabled={busy}
@@ -282,7 +297,7 @@ export function GovernmentSignatureTemplateConfirmationFieldsSection({
                       setCreateDraft(emptyCreateDraft())
                       await load()
                     } catch (e) {
-                      onError(e instanceof ApiError ? e.message : '항목을 추가하지 못했습니다.')
+                      onError(mapGovernmentSignatureApiError(e, '항목을 추가하지 못했습니다.'))
                     } finally {
                       setSubmitting(false)
                     }
@@ -302,10 +317,6 @@ export function GovernmentSignatureTemplateConfirmationFieldsSection({
                 <div className="contract-signature-console__conf-card">
                   <div className="contract-signature-console__conf-card-title">항목 수정</div>
                   <div className="contract-signature-console__conf-stack">
-                    <label className="contract-signature-console__conf-label">
-                      fieldKey(읽기 전용)
-                      <FormInput value={row.fieldKey} readOnly disabled className="field--readonly" />
-                    </label>
                     <label className="contract-signature-console__conf-label">
                       라벨(필수)
                       <FormInput
@@ -437,7 +448,7 @@ export function GovernmentSignatureTemplateConfirmationFieldsSection({
                             cancelEdit()
                             await load()
                           } catch (e) {
-                            onError(e instanceof ApiError ? e.message : '항목을 수정하지 못했습니다.')
+                            onError(mapGovernmentSignatureApiError(e, '항목을 수정하지 못했습니다.'))
                           } finally {
                             setSubmitting(false)
                           }
@@ -453,9 +464,7 @@ export function GovernmentSignatureTemplateConfirmationFieldsSection({
                   <div className="contract-signature-console__conf-item-summary">
                     <span className="contract-signature-console__conf-item-label">{row.label}</span>
                     <span className="contract-signature-console__conf-item-meta">
-                      <code>{row.fieldKey}</code>
-                      <span> · </span>
-                      <span>{row.inputType}</span>
+                      <span>{confirmationInputTypeLabel(row.inputType)}</span>
                       <span> · </span>
                       <span className="contract-signature-console__conf-role-chip">
                         {inputRoleLabel(row.inputRole)}
@@ -498,7 +507,7 @@ export function GovernmentSignatureTemplateConfirmationFieldsSection({
                             await deleteGovernmentSignatureTemplateConfirmationField(token, role, templateId, row.id, tenantGaId)
                             await load()
                           } catch (e) {
-                            onError(e instanceof ApiError ? e.message : '항목을 삭제하지 못했습니다.')
+                            onError(mapGovernmentSignatureApiError(e, '항목을 삭제하지 못했습니다.'))
                           } finally {
                             setSubmitting(false)
                           }

@@ -48,8 +48,11 @@ export function formatEvidenceHashForTable(prefix: string | null | undefined, ma
 
 export function staffDocumentStatusLabel(status: string): string {
   const s = String(status ?? '').trim()
-  if (s === 'pending' || s === 'sent') {
+  if (s === 'pending') {
     return '대기 중'
+  }
+  if (s === 'sent') {
+    return '발송됨'
   }
   if (s === 'viewed' || s === 'opened') {
     return '열람됨'

@@ -27,7 +27,7 @@ export function ContractTableHashCell({ prefix }: HashCellProps) {
     return <span className="contract-table-empty">—</span>
   }
   return (
-    <div className="contract-table-hash" title={String(prefix).trim()}>
+    <div className="contract-table-hash">
       {h}
     </div>
   )

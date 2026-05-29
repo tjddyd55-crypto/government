@@ -2,6 +2,7 @@
 import { buildGovSignaturePublicSignUrl } from '../../signatures/governmentSignatureHistoryClient'
 import { SendSessionStatusBadge } from '../../signatures/components/SendSessionStatusBadge'
 import { formatStaffSessionDate, staffDocumentStatusLabel } from '../../signatures/sendSessionStaffDisplay'
+import { mapGovernmentSignatureErrorMessage } from '../../signatures/governmentSignatureUserDisplay'
 import type { CreateSendSessionResult, SendSessionDetail } from '../governmentSignatureTemplateClient'
 import { downloadStaffEvidencePdfFile, downloadStaffSignedPdfFile } from '../governmentSignatureTemplateClient'
 
@@ -84,7 +85,7 @@ export function SendSessionPanel({
       <div>
         {error ? (
           <div className="contract-signature-console__inline-error" role="alert">
-            {error}
+            {mapGovernmentSignatureErrorMessage(error, '요청 처리 중 오류가 발생했습니다.')}
           </div>
         ) : null}
         {!canSend && inactiveTemplateHint ? (
@@ -248,7 +249,7 @@ export function SendSessionPanel({
     <div>
       {error ? (
         <div className="contract-signature-console__inline-error" role="alert">
-          {error}
+          {mapGovernmentSignatureErrorMessage(error, '요청 처리 중 오류가 발생했습니다.')}
         </div>
       ) : null}
       <FormButton htmlType="button" variant="primary" size="sm" disabled={!canSend || busy} onClick={onCreate}>
@@ -273,7 +274,7 @@ export function SendSessionPanel({
           </p>
           {session.createdAt ? (
             <p className="contract-signature-console__hint" style={{ marginTop: 4 }}>
-              생성일 {formatStaffSessionDate(session.createdAt)}
+              발송일 {formatStaffSessionDate(session.createdAt)}
             </p>
           ) : null}
           <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>

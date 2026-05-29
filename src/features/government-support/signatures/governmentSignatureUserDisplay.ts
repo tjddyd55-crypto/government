@@ -82,6 +82,17 @@ export function publicSignatureFieldLabel(label: string | null | undefined): str
   return t || '항목'
 }
 
+/** 발송·템플릿 폼 라벨 — label 없을 때 fieldKey 대신 일반 문구 */
+export function formatSenderFieldLabel(label: string | null | undefined): string {
+  return publicSignatureFieldLabel(label)
+}
+
+/** 사업장 선택 보조 문구 — profileId 노출 없이 사업장번호만 */
+export function formatGovernmentProfilePickMeta(profile: { customerCode?: string | null }): string {
+  const code = String(profile.customerCode ?? '').trim()
+  return code ? `사업장번호 ${code}` : '—'
+}
+
 export function formatIdentityStatusLabel(raw: string | null | undefined): string {
   const s = String(raw ?? '').trim().toLowerCase()
   if (!s) {

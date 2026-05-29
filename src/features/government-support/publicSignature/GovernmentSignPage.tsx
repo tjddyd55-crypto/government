@@ -16,16 +16,7 @@ import {
   type ContractPublicSessionPayload,
 } from './governmentSignaturePublicClient'
 
-function labelForDocStatus(st: string) {
-  if (st === 'completed') return '완료'
-  if (st === 'signed') return '서명 완료'
-  if (st === 'viewed' || st === 'opened') return '열람됨'
-  if (st === 'pending' || st === 'sent') return '대기 중'
-  if (st === 'cancelled') return '취소됨'
-  if (st === 'expired') return '만료됨'
-  if (st === 'failed') return '실패'
-  return '미완료'
-}
+import { staffDocumentStatusLabel } from '../signatures/sendSessionStaffDisplay'
 
 export default function GovernmentSignPage() {
   const { token: tokenParam } = useParams<{ token: string }>()
@@ -50,7 +41,7 @@ export default function GovernmentSignPage() {
 
   useEffect(() => {
     if (!signToken) {
-      setError('링크 코드가 없습니다.')
+      setError('유효하지 않거나 만료된 전자서명 링크입니다.')
       setLoading(false)
       return
     }
@@ -284,7 +275,7 @@ export default function GovernmentSignPage() {
                   )}
                   {d.title || '문서'}
                 </span>
-                <span className="contract-public-link-page__doc-status">{labelForDocStatus(d.status)}</span>
+                <span className="contract-public-link-page__doc-status">{staffDocumentStatusLabel(d.status)}</span>
               </Link>
             </li>
           ))}

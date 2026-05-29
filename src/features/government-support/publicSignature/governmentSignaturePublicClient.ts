@@ -1,4 +1,5 @@
 ﻿import { apiRequest, resolveApiUrl, ApiError } from '../../../lib/apiClient'
+import { publicSignatureFieldLabel } from '../signatures/governmentSignatureUserDisplay'
 
 function lc(code: string) {
   return encodeURIComponent(String(code ?? '').trim())
@@ -463,8 +464,8 @@ export function formatContractPublicCompleteError(e: unknown): string {
     const pack = e.data as { missingFields?: ContractPublicMissingField[] } | undefined
     const labels =
       pack?.missingFields
-        ?.map((m) => String(m.fieldLabel || m.fieldKey || m.fieldId || '').trim())
-        .filter((s) => s.length > 0) ?? []
+        ?.map((m) => publicSignatureFieldLabel(m.fieldLabel))
+        .filter((s) => s.length > 0 && s !== '항목' ? true : Boolean(String(m.fieldLabel ?? '').trim())) ?? []
     if (labels.length > 0) {
       return `누락된 항목: ${labels.join(', ')}`
     }

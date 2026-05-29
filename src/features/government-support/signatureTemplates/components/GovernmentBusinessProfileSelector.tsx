@@ -2,6 +2,7 @@
 import { ApiError } from '../../../../lib/apiClient'
 import { FormButton, FormInput } from '../../../../components/form'
 import type { CustomerRecord } from '../../../customers/domain/types'
+import { mapGovernmentSignatureApiError } from '../../signatures/governmentSignatureUserDisplay'
 import { maskprofileDisplayNameForTestConsole, maskPhoneForTestConsole } from '../governmentSignatureTemplateDisplay'
 
 const MIN_QUERY_LEN = 2
@@ -25,6 +26,11 @@ function isQueryAllowed(raw: string): boolean {
     return true
   }
   return /^\d+$/.test(t)
+}
+
+function formatCustomerCodeLabel(customerCode: string | null | undefined): string {
+  const code = String(customerCode ?? '').trim()
+  return code || '—'
 }
 
 export function GovernmentBusinessProfileSelector({
@@ -57,7 +63,7 @@ export function GovernmentBusinessProfileSelector({
       return
     }
     if (!isQueryAllowed(trimmed)) {
-      setSearchError(`검색어는 ${MIN_QUERY_LEN}글자 이상 입력해 주세요. (고객 ID만 숫자로 검색할 수 있습니다.)`)
+      setSearchError(`검색어는 ${MIN_QUERY_LEN}글자 이상 입력해 주세요.`)
       return
     }
     setSearchError(null)
@@ -68,8 +74,7 @@ export function GovernmentBusinessProfileSelector({
       setResults(rows)
     } catch (e) {
       setResults([])
-      const msg = e instanceof ApiError ? e.message : '고객 검색에 실패했습니다.'
-      setSearchError(msg)
+      setSearchError(mapGovernmentSignatureApiError(e, '사업장 검색에 실패했습니다.'))
     } finally {
       setLoading(false)
     }
@@ -84,7 +89,7 @@ export function GovernmentBusinessProfileSelector({
   }, [q])
 
   const phoneOk = (c: CustomerRecord) => {
-    const p = String(p.phone ?? p.phoneNumber ?? '').replace(/\D/g, '')
+    const p = String(c.phone ?? c.phoneNumber ?? '').replace(/\D/g, '')
     return p.length >= 10
   }
 
@@ -93,7 +98,7 @@ export function GovernmentBusinessProfileSelector({
   return (
     <div>
       <p className="contract-signature-console__hint" style={{ margin: '0 0 8px', fontSize: 13 }}>
-        기존 고객관리 메뉴에 등록된 고객을 검색해 선택하세요.
+        등록된 사업장을 검색해 선택하세요.
       </p>
       {searchBlockedMessage ? (
         <div className="contract-signature-console__inline-warning" role="status" style={{ marginBottom: 8 }}>
@@ -104,7 +109,7 @@ export function GovernmentBusinessProfileSelector({
         <FormInput
           className="form-control form-control-sm"
           style={{ maxWidth: 280 }}
-          placeholder="등록 고객 이름·전화번호 일부·고객번호 검색"
+          placeholder="사업장명·전화번호·사업장번호 검색"
           value={q}
           disabled={blockActive}
           onChange={(e) => setQ(e.target.value)}
@@ -127,16 +132,16 @@ export function GovernmentBusinessProfileSelector({
       {selected ? (
         <div className="contract-signature-console__selected-card">
           <div className="contract-signature-console__muted" style={{ fontWeight: 600, marginBottom: 6 }}>
-            선택 고객
+            선택 사업장
           </div>
-          <div>이름: {selected.name.trim() || '—'}</div>
+          <div>사업장명: {selected.name.trim() || '—'}</div>
           <div>
-            고객번호: <strong>{selected.customerCode?.trim() || `ID ${selected.id}`}</strong>
+            사업장번호: <strong>{formatCustomerCodeLabel(selected.customerCode)}</strong>
           </div>
           <div>휴대폰: {maskPhoneForTestConsole(selected.phone ?? selected.phoneNumber ?? '')}</div>
           {!phoneOk(selected) ? (
             <div className="contract-signature-console__inline-warning">
-              선택한 고객에게 등록된 휴대폰번호가 없어 전자서명 링크를 발송할 수 없습니다.
+              선택한 사업장에 등록된 휴대폰번호가 없어 전자서명 링크를 발송할 수 없습니다.
             </div>
           ) : null}
           <FormButton htmlType="button" variant="action" size="sm" className="p-0 mt-1" onClick={() => onSelect(null)}>
@@ -146,7 +151,7 @@ export function GovernmentBusinessProfileSelector({
       ) : null}
       {searched && !loading && !searchError && results.length === 0 ? (
         <p className="contract-signature-console__muted" style={{ margin: '8px 0 0' }}>
-          등록된 고객을 찾을 수 없습니다.
+          등록된 사업장을 찾을 수 없습니다.
         </p>
       ) : null}
       {results.length > 0 ? (
@@ -155,9 +160,10 @@ export function GovernmentBusinessProfileSelector({
             <li key={c.id} className="contract-signature-console__hit-item">
               <div style={{ fontSize: 13 }}>
                 <div>
-                  {c.customerCode?.trim() ? `${c.customerCode.trim()} · ` : ''}#{c.id} · {maskprofileDisplayNameForTestConsole(c.name)}
+                  {formatCustomerCodeLabel(c.customerCode) !== '—' ? `${formatCustomerCodeLabel(c.customerCode)} · ` : ''}
+                  {maskprofileDisplayNameForTestConsole(c.name)}
                 </div>
-                <div className="contract-signature-console__muted">{maskPhoneForTestConsole(p.phone ?? p.phoneNumber ?? '')}</div>
+                <div className="contract-signature-console__muted">{maskPhoneForTestConsole(c.phone ?? c.phoneNumber ?? '')}</div>
               </div>
               <FormButton
                 htmlType="button"

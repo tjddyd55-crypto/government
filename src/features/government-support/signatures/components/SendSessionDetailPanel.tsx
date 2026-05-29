@@ -7,7 +7,7 @@ import {
 } from '../../signatureTemplates/governmentSignatureTemplateClient'
 import { SendSessionStatusBadge } from './SendSessionStatusBadge'
 import { formatStaffSessionDate, staffDocumentStatusLabel } from '../sendSessionStaffDisplay'
-import { formatIdentityStatusLabel, mapGovernmentSignatureApiError } from '../governmentSignatureUserDisplay'
+import { formatIdentityStatusLabel, mapGovernmentSignatureApiError, mapGovernmentSignatureErrorMessage } from '../governmentSignatureUserDisplay'
 import { ContractTableDateCell } from './GovernmentSignatureTableCells'
 
 type Props = {
@@ -126,7 +126,7 @@ export function SendSessionDetailPanel({
         ) : null}
         {error ? (
           <div className="contract-signature-console__alert--danger" role="alert">
-            {error}
+            {mapGovernmentSignatureErrorMessage(error, '상세를 불러오지 못했습니다.')}
           </div>
         ) : null}
         {loading && !detail ? <p className="contract-signature-console__hint">불러오는 중…</p> : null}
