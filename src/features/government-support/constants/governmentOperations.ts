@@ -14,7 +14,6 @@ export const GOVERNMENT_NOTICE_STATUSES = [
 
 export const GOVERNMENT_RESOURCE_CATEGORIES = [
   { value: 'form', label: '신청 서식' },
-  { value: 'example', label: '작성 예시' },
   { value: 'guide', label: '안내문' },
   { value: 'manual', label: '매뉴얼' },
   { value: 'other', label: '기타' },

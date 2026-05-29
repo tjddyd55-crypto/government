@@ -177,32 +177,28 @@ async function main() {
     }
     noticeSeedTenantA = userTenantA
     noticeSeedTenantB = userTenantB
+    let agencyToken = null
+    try {
+      agencyToken = await login(uAgency)
+    } catch {
+      skip('notices seeded', 'agency admin login failed')
+      return
+    }
     await api('/government-support/admin/notices', {
-      token: industry,
+      token: agencyToken,
       method: 'POST',
       body: {
-        title: `E2E WS Global ${ts}`,
-        content: 'g',
-        category: 'important',
-        status: 'published',
-        scopeType: 'global',
-      },
-      expectStatus: 200,
-    })
-    await api('/government-support/admin/notices', {
-      token: industry,
-      method: 'POST',
-      body: {
-        title: `E2E WS Draft ${ts}`,
+        title: `E2E WS AgencyA Draft ${ts}`,
         content: 'd',
         category: 'general',
         status: 'draft',
-        scopeType: 'global',
+        scopeType: 'agency',
+        tenantId: userTenantA,
       },
       expectStatus: 200,
     })
     await api('/government-support/admin/notices', {
-      token: industry,
+      token: agencyToken,
       method: 'POST',
       body: {
         title: `E2E WS AgencyA ${ts}`,
@@ -215,7 +211,7 @@ async function main() {
       expectStatus: 200,
     })
     await api('/government-support/admin/notices', {
-      token: industry,
+      token: agencyToken,
       method: 'POST',
       body: {
         title: `E2E WS AgencyB ${ts}`,
@@ -225,12 +221,12 @@ async function main() {
         scopeType: 'agency',
         tenantId: userTenantB,
       },
-      expectStatus: 200,
+      expectStatus: 403,
     })
     pass('notices seeded')
 
     const presign = await api('/government-support/admin/resources/presign', {
-      token: industry,
+      token: agencyToken,
       method: 'POST',
       body: {
         scopeType: 'agency',
@@ -246,7 +242,7 @@ async function main() {
     const fileBody = `ws-e2e-${ts}`
     await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'application/pdf' }, body: fileBody })
     await api('/government-support/admin/resources', {
-      token: industry,
+      token: agencyToken,
       method: 'POST',
       body: {
         resourceId,
@@ -788,13 +784,13 @@ async function main() {
 
   if (industry) {
     const titlesA = ((await api('/government-support/notices', { token: tokenA })).json?.data ?? []).map((n) => n.title)
-    if (titlesA.some((t) => t.includes(`E2E WS Global ${ts}`))) pass('user A global notice')
-    else fail('user A global notice')
     if (titlesA.some((t) => t.includes(`E2E WS AgencyA ${ts}`))) pass('user A agency A notice')
     else fail('user A agency A notice')
+    if (titlesA.some((t) => t.includes(`E2E WS Global ${ts}`))) fail('user A global hidden')
+    else pass('user A global hidden')
     if (titlesA.some((t) => t.includes(`E2E WS AgencyB ${ts}`))) fail('user A agency B isolation')
     else pass('user A agency B isolation')
-    if (titlesA.some((t) => t.includes(`E2E WS Draft ${ts}`))) fail('user A draft hidden')
+    if (titlesA.some((t) => t.includes(`E2E WS AgencyA Draft ${ts}`))) fail('user A draft hidden')
     else pass('user A draft hidden')
 
     const resA = ((await api('/government-support/resources', { token: tokenA })).json?.data ?? []).map((r) => r.title)
@@ -804,7 +800,7 @@ async function main() {
     if (dl.status === 200 || dl.json?.data?.downloadUrl || dl.json?.data?.url) pass('user A download')
     else fail('user A download', String(dl.status))
   } else {
-    skip('user A global notice', 'admin seed skipped')
+    skip('user A global hidden', 'admin seed skipped')
     skip('user A agency A notice', 'admin seed skipped')
     skip('user A agency B isolation', 'admin seed skipped')
     skip('user A draft hidden', 'admin seed skipped')

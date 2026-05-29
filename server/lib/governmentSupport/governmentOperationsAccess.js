@@ -1,12 +1,9 @@
 /**
  * 공지/자료실 운영 접근 제어 (유저 사업장 데이터와 분리).
+ * 대행사 관리자·직원만 자기 tenant 범위에서 CRUD. global/industry admin 운영 CRUD 없음.
  * @module governmentOperationsAccess
  */
-import {
-  isGovernmentIndustryAdmin,
-  isGovernmentProgramUser,
-  isGovernmentSuperAdmin,
-} from './governmentAccess.js'
+import { isGovernmentProgramUser } from './governmentAccess.js'
 import { GOVERNMENT_SCOPE_AGENCY, GOVERNMENT_SCOPE_GLOBAL } from './governmentOperationsConstants.js'
 
 /**
@@ -15,9 +12,6 @@ import { GOVERNMENT_SCOPE_AGENCY, GOVERNMENT_SCOPE_GLOBAL } from './governmentOp
 export function canManageGovernmentOperations(ctx) {
   if (!ctx || isGovernmentProgramUser(ctx)) {
     return false
-  }
-  if (isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)) {
-    return true
   }
   return (
     (ctx.governmentAgencyAdminTenantIds?.length ?? 0) > 0 ||
@@ -29,27 +23,21 @@ export function canManageGovernmentOperations(ctx) {
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
  */
 export function isGovernmentAgencyAdmin(ctx) {
-  if (isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)) {
-    return true
-  }
   return (ctx.governmentAgencyAdminTenantIds?.length ?? 0) > 0
 }
 
 /**
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
  */
-export function canCreateGlobalScope(ctx) {
-  return isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)
+export function canCreateGlobalScope(_ctx) {
+  return false
 }
 
 /**
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
- * @returns {string[]|null} null = industry admin (전체)
+ * @returns {string[]}
  */
 export function getOperationalTenantIds(ctx) {
-  if (isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)) {
-    return null
-  }
   const ids = new Set([
     ...(ctx.governmentAgencyAdminTenantIds ?? []),
     ...(ctx.governmentStaffTenantIds ?? []),
@@ -59,19 +47,9 @@ export function getOperationalTenantIds(ctx) {
 
 /**
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
- */
-export function getProgramUserTenantIds(ctx) {
-  return (ctx.governmentProgramUserTenantIds ?? []).map(String)
-}
-
-/**
- * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
  * @param {{ tenant_id?: string|number|null, scope_type?: string|null, created_by_user_id?: string|null }} row
  */
 export function canDeleteOperationalRecord(ctx, row) {
-  if (isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)) {
-    return true
-  }
   const scopeType = String(row?.scope_type ?? GOVERNMENT_SCOPE_AGENCY)
   const tenantId = row?.tenant_id != null ? String(row.tenant_id) : null
   if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
@@ -91,16 +69,13 @@ export function canDeleteOperationalRecord(ctx, row) {
 export function canWriteOperationalScope(ctx, tenantId, scopeType) {
   const scope = String(scopeType ?? GOVERNMENT_SCOPE_AGENCY)
   if (scope === GOVERNMENT_SCOPE_GLOBAL) {
-    return canCreateGlobalScope(ctx)
+    return false
   }
   const tid = tenantId != null ? String(tenantId).trim() : ''
   if (!tid) {
     return false
   }
-  if (canCreateGlobalScope(ctx)) {
-    return true
-  }
-  const ids = getOperationalTenantIds(ctx) ?? []
+  const ids = getOperationalTenantIds(ctx)
   return ids.includes(tid)
 }
 
@@ -115,14 +90,12 @@ export function canReadOperationalRecord(ctx, row, opts = {}) {
   const scopeType = String(row?.scope_type ?? GOVERNMENT_SCOPE_AGENCY)
   const tenantId = row?.tenant_id != null ? String(row.tenant_id) : null
 
+  if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
+    return false
+  }
+
   if (managerView && canManageGovernmentOperations(ctx)) {
-    if (canCreateGlobalScope(ctx)) {
-      return true
-    }
-    if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
-      return true
-    }
-    const ids = getOperationalTenantIds(ctx) ?? []
+    const ids = getOperationalTenantIds(ctx)
     return tenantId != null && ids.includes(tenantId)
   }
 
@@ -130,23 +103,23 @@ export function canReadOperationalRecord(ctx, row, opts = {}) {
     return false
   }
 
-  if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
-    return isGovernmentProgramUser(ctx) || canManageGovernmentOperations(ctx)
-  }
-
   if (isGovernmentProgramUser(ctx)) {
     return tenantId != null && getProgramUserTenantIds(ctx).includes(tenantId)
   }
 
   if (canManageGovernmentOperations(ctx)) {
-    if (canCreateGlobalScope(ctx)) {
-      return true
-    }
-    const ids = getOperationalTenantIds(ctx) ?? []
+    const ids = getOperationalTenantIds(ctx)
     return tenantId != null && ids.includes(tenantId)
   }
 
   return false
+}
+
+/**
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ */
+export function getProgramUserTenantIds(ctx) {
+  return (ctx.governmentProgramUserTenantIds ?? []).map(String)
 }
 
 /**
@@ -162,18 +135,12 @@ export function buildOperationalListQuery(ctx, filters = {}, kind = 'notice', al
   const bodyCol = kind === 'notice' ? col('content') : col('description')
 
   if (managerView && canManageGovernmentOperations(ctx)) {
-    if (!canCreateGlobalScope(ctx)) {
-      const ids = getOperationalTenantIds(ctx) ?? []
-      params.push(ids)
-      where.push(
-        `(${col('scope_type')} = '${GOVERNMENT_SCOPE_GLOBAL}' OR ${col('tenant_id')}::text = ANY($${params.length}::text[]))`,
-      )
-    } else if (filters.tenantId) {
-      params.push(String(filters.tenantId))
-      where.push(
-        `(${col('scope_type')} = '${GOVERNMENT_SCOPE_GLOBAL}' OR ${col('tenant_id')} = $${params.length}::bigint)`,
-      )
+    const ids = getOperationalTenantIds(ctx)
+    if (ids.length === 0) {
+      return { ok: false, status: 403, message: '조회 권한이 없습니다.' }
     }
+    params.push(ids)
+    where.push(`${col('tenant_id')}::text = ANY($${params.length}::text[])`)
     if (filters.status) {
       params.push(String(filters.status))
       where.push(`${col('status')} = $${params.length}`)
@@ -183,10 +150,11 @@ export function buildOperationalListQuery(ctx, filters = {}, kind = 'notice', al
     where.push(`${col('status')} = $${params.length}`)
     if (isGovernmentProgramUser(ctx)) {
       const ids = getProgramUserTenantIds(ctx)
+      if (ids.length === 0) {
+        return { ok: false, status: 403, message: '조회 권한이 없습니다.' }
+      }
       params.push(ids)
-      where.push(
-        `(${col('scope_type')} = '${GOVERNMENT_SCOPE_GLOBAL}' OR ${col('tenant_id')}::text = ANY($${params.length}::text[]))`,
-      )
+      where.push(`${col('tenant_id')}::text = ANY($${params.length}::text[])`)
     } else {
       return { ok: false, status: 403, message: '조회 권한이 없습니다.' }
     }

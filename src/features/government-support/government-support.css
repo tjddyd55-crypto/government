@@ -985,3 +985,120 @@
   min-height: calc(100vh - 12rem);
 }
 
+/* —— 모바일 관리자 spacing (보험 admin-ga-management 패턴) —— */
+.government-page--mobile.government-admin-layout .government-admin-layout__content {
+  padding: 0.75rem 1rem 1.25rem;
+  box-sizing: border-box;
+}
+
+.government-page--mobile .admin-ga-management {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.government-page--mobile .admin-ga-management .page-header {
+  margin: 0 0 0.75rem;
+  padding: 0;
+}
+
+.government-page--mobile .admin-ga-management .page-header h1 {
+  font-size: 1.125rem;
+  margin: 0 0 0.35rem;
+}
+
+.government-page--mobile .admin-ga-management .page-header p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.government-page--mobile .admin-ga-management .admin-toolbar,
+.government-page--mobile .admin-ga-management .admin-ga-management__table-wrap {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.government-page--mobile .admin-ga-management .admin-toolbar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.government-page--mobile .admin-ga-management .admin-toolbar .field,
+.government-page--mobile .admin-ga-management .admin-toolbar .admin-modal-field {
+  min-width: 0;
+  width: 100%;
+}
+
+.government-page--mobile .admin-ga-management .admin-toolbar .field__hint {
+  max-width: none;
+}
+
+.government-page--mobile .admin-ga-management .admin-toolbar .button,
+.government-page--mobile .admin-ga-management .admin-toolbar button {
+  width: 100%;
+  min-height: 44px;
+}
+
+.government-page--mobile .admin-ga-management .admin-ga-management__table-wrap {
+  margin-top: 0;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.government-page--mobile .admin-ga-management .admin-responsive-card-list {
+  padding: 0.75rem;
+  gap: 0.75rem;
+}
+
+.government-page--mobile .admin-ga-management .admin-ga-card__actions .button,
+.government-page--mobile .admin-ga-management .admin-user-card__actions .button {
+  flex: 1 1 auto;
+  min-height: 40px;
+}
+
+.government-page--mobile .government-admin-users-page__filters {
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0 0.75rem;
+}
+
+.government-page--mobile .government-admin-users-page__cards {
+  padding: 0 0.75rem 0.75rem;
+  gap: 0.75rem;
+}
+
+.government-page--mobile .platform-admin-page--mobile {
+  padding: 0.75rem 1rem 1.25rem;
+}
+
+.government-page--mobile .platform-admin-page__head {
+  margin-bottom: 0.75rem;
+}
+
+.government-page--mobile .platform-admin-page__grid {
+  gap: 0.75rem;
+}
+
+.government-page--mobile .government-admin-dashboard__stats {
+  gap: 0.75rem;
+  padding: 0;
+}
+
+.government-page--mobile .government-admin-users-page__dialog-actions {
+  flex-direction: column-reverse;
+}
+
+.government-page--mobile .government-admin-users-page__dialog-actions .button {
+  width: 100%;
+  min-height: 44px;
+}
+

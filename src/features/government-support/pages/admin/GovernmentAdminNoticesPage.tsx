@@ -14,13 +14,13 @@ import { fetchGovAgencies } from '../../api/governmentProfilesApi'
 import {
   GOVERNMENT_NOTICE_CATEGORIES,
   GOVERNMENT_NOTICE_STATUSES,
-  GOVERNMENT_SCOPE_OPTIONS,
   formatOpsDate,
   labelForNoticeCategory,
   labelForStatus,
 } from '../../constants/governmentOperations'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import { canManageGovernmentNotices } from '../../lib/governmentHome'
+import { canManageGovernmentUsers } from '../../lib/governmentAccess'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 
@@ -48,7 +48,7 @@ export default function GovernmentAdminNoticesPage() {
   const { token } = useAuth()
   const { summary } = useGovernmentAccess(token)
   const { confirm, confirmDialog } = useConfirmDialog()
-  const canGlobal = Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
+  const isAgencyAdmin = canManageGovernmentUsers(summary)
   const defaultTenantId =
     summary?.governmentAgencyAdminTenantIds[0] ??
     summary?.governmentStaffTenantIds[0] ??
@@ -93,9 +93,9 @@ export default function GovernmentAdminNoticesPage() {
   }, [token, filterStatus, filterCategory, filterQ])
 
   useEffect(() => {
-    if (!token) return
+    if (!token || !isAgencyAdmin) return
     void fetchGovAgencies(token).then(setAgencies).catch(() => setAgencies([]))
-  }, [token])
+  }, [token, isAgencyAdmin])
 
   useEffect(() => {
     void load()
@@ -144,8 +144,8 @@ export default function GovernmentAdminNoticesPage() {
         content: form.content,
         category: form.category,
         status: form.status,
-        scopeType: form.scopeType,
-        tenantId: form.scopeType === 'global' ? null : form.tenantId,
+        scopeType: 'agency',
+        tenantId: form.tenantId || defaultTenantId,
         isPinned: form.isPinned,
       }
       if (editingId) {
@@ -177,7 +177,7 @@ export default function GovernmentAdminNoticesPage() {
   return (
     <GovernmentAdminPageShell
       title="공지/전달사항"
-      description="소속 대행사 이용자에게 전달할 공지·안내를 관리합니다. 사업장·신청 데이터와 분리되어 있습니다."
+      description="소속 대행사 이용자에게 전달할 공지·안내를 관리합니다."
       toolbar={
         <>
           <FormButton htmlType="button" variant="primary" className="button button--primary" onClick={openCreate}>
@@ -215,7 +215,7 @@ export default function GovernmentAdminNoticesPage() {
                 <th>제목</th>
                 <th>구분</th>
                 <th>상태</th>
-                <th>범위</th>
+                <th>대행사</th>
                 <th>작성자</th>
                 <th>등록일</th>
                 <th className="admin-table-cell--actions">관리</th>
@@ -229,7 +229,7 @@ export default function GovernmentAdminNoticesPage() {
                   </td>
                   <td>{labelForNoticeCategory(row.category)}</td>
                   <td>{labelForStatus(row.status)}</td>
-                  <td>{row.scopeType === 'global' ? '전체' : row.tenantName || '대행사'}</td>
+                  <td>{row.tenantName || '—'}</td>
                   <td>{row.createdByDisplayName || '—'}</td>
                   <td>{formatOpsDate(row.publishedAt ?? row.createdAt)}</td>
                   <td className="admin-table-cell--actions">
@@ -282,16 +282,7 @@ export default function GovernmentAdminNoticesPage() {
               options={[...GOVERNMENT_NOTICE_STATUSES]}
             />
           </FieldWrapper>
-          {canGlobal ? (
-            <FieldWrapper label="노출 범위">
-              <FormSelect
-                value={form.scopeType}
-                onChange={(e) => setForm((f) => ({ ...f, scopeType: e.target.value }))}
-                options={[...GOVERNMENT_SCOPE_OPTIONS]}
-              />
-            </FieldWrapper>
-          ) : null}
-          {form.scopeType === 'agency' ? (
+          {isAgencyAdmin && agencyOptions.length > 1 ? (
             <FieldWrapper label="대행사">
               <FormSelect
                 value={form.tenantId}

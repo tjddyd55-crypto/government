@@ -12,6 +12,7 @@ export default function GovernmentJoinPage() {
     <RegisterPage
       signupIndustry="government"
       initialRegistrationCode={initialCode || undefined}
+      redirectIfAuthenticated={false}
     />
   )
 }

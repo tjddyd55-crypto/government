@@ -5,6 +5,7 @@ import {
   canReadOperationalRecord,
   canDeleteOperationalRecord,
   canWriteOperationalScope,
+  canCreateGlobalScope,
 } from './governmentOperationsAccess.js'
 
 describe('governmentOperationsAccess', () => {
@@ -46,6 +47,10 @@ describe('governmentOperationsAccess', () => {
     assert.equal(canManageGovernmentOperations(agencyAdmin), true)
   })
 
+  it('industry admin cannot manage operations', () => {
+    assert.equal(canManageGovernmentOperations(industryAdmin), false)
+  })
+
   it('program user reads published agency notice in own tenant', () => {
     assert.equal(
       canReadOperationalRecord(programUser, {
@@ -65,7 +70,15 @@ describe('governmentOperationsAccess', () => {
     )
   })
 
-  it('program user cannot read draft notice', () => {
+  it('program user cannot read global or draft notice', () => {
+    assert.equal(
+      canReadOperationalRecord(programUser, {
+        tenant_id: null,
+        scope_type: 'global',
+        status: 'published',
+      }),
+      false,
+    )
     assert.equal(
       canReadOperationalRecord(programUser, {
         tenant_id: '10',
@@ -93,8 +106,10 @@ describe('governmentOperationsAccess', () => {
     )
   })
 
-  it('only industry admin can write global scope', () => {
-    assert.equal(canWriteOperationalScope(industryAdmin, null, 'global'), true)
+  it('global scope write is disabled for all roles', () => {
+    assert.equal(canCreateGlobalScope(industryAdmin), false)
+    assert.equal(canCreateGlobalScope(agencyAdmin), false)
+    assert.equal(canWriteOperationalScope(industryAdmin, null, 'global'), false)
     assert.equal(canWriteOperationalScope(agencyAdmin, null, 'global'), false)
     assert.equal(canWriteOperationalScope(staff, '10', 'agency'), true)
     assert.equal(canWriteOperationalScope(staff, '99', 'agency'), false)

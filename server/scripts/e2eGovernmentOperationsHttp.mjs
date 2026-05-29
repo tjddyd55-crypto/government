@@ -82,7 +82,7 @@ async function main() {
   }
 
   const ts = Date.now()
-  const globalPub = await api('/government-support/admin/notices', {
+  await api('/government-support/admin/notices', {
     token: industry,
     method: 'POST',
     body: {
@@ -91,24 +91,14 @@ async function main() {
       category: 'important',
       status: 'published',
       scopeType: 'global',
-      isPinned: true,
     },
-    expectStatus: 200,
+    expectStatus: 403,
   })
-  const globalDraft = await api('/government-support/admin/notices', {
-    token: industry,
-    method: 'POST',
-    body: {
-      title: `E2E Global Draft ${ts}`,
-      content: 'd',
-      category: 'general',
-      status: 'draft',
-      scopeType: 'global',
-    },
-    expectStatus: 200,
-  })
+  pass('industry admin notice create forbidden')
+
+  const aa = await login(uAA)
   const noticeA = await api('/government-support/admin/notices', {
-    token: industry,
+    token: aa,
     method: 'POST',
     body: {
       title: `E2E Agency A Published ${ts}`,
@@ -121,8 +111,21 @@ async function main() {
     expectStatus: 200,
   })
   const noticeAId = noticeA.json?.data?.id
+  const globalDraft = await api('/government-support/admin/notices', {
+    token: aa,
+    method: 'POST',
+    body: {
+      title: `E2E Agency A Draft ${ts}`,
+      content: 'd',
+      category: 'general',
+      status: 'draft',
+      scopeType: 'agency',
+      tenantId: tenantA,
+    },
+    expectStatus: 200,
+  })
   await api('/government-support/admin/notices', {
-    token: industry,
+    token: aa,
     method: 'POST',
     body: {
       title: `E2E Agency B Published ${ts}`,
@@ -132,12 +135,12 @@ async function main() {
       scopeType: 'agency',
       tenantId: tenantB,
     },
-    expectStatus: 200,
+    expectStatus: 403,
   })
-  pass('notices created')
+  pass('notices created by agency admin')
 
   const presign = await api('/government-support/admin/resources/presign', {
-    token: industry,
+    token: aa,
     method: 'POST',
     body: {
       scopeType: 'agency',
@@ -156,7 +159,7 @@ async function main() {
   if (put.status >= 200 && put.status < 300) pass('R2 PUT', String(put.status))
   else fail('R2 PUT', String(put.status))
   await api('/government-support/admin/resources', {
-    token: industry,
+    token: aa,
     method: 'POST',
     body: {
       resourceId,
@@ -175,9 +178,11 @@ async function main() {
   const userA = await login(programUserA)
   pass('program user A login', programUserA)
   const titlesA = ((await api('/government-support/notices', { token: userA })).json?.data ?? []).map((n) => n.title)
-  if (titlesA.some((t) => t.includes(`E2E Global Published ${ts}`))) pass('user A global notice')
-  else fail('user A global notice')
-  if (titlesA.some((t) => t.includes(`E2E Global Draft ${ts}`))) fail('user A draft hidden')
+  if (titlesA.some((t) => t.includes(`E2E Agency A Published ${ts}`))) pass('user A agency notice')
+  else fail('user A agency notice')
+  if (titlesA.some((t) => t.includes(`E2E Global Published ${ts}`))) fail('user A global hidden')
+  else pass('user A global hidden')
+  if (titlesA.some((t) => t.includes(`E2E Agency A Draft ${ts}`))) fail('user A draft hidden')
   else pass('user A draft hidden')
   if (titlesA.some((t) => t.includes(`E2E Agency B Published ${ts}`))) fail('user A B isolation')
   else pass('user A B isolation')
@@ -194,17 +199,16 @@ async function main() {
 
   const userB = await login(programUserB)
   const titlesB = ((await api('/government-support/notices', { token: userB })).json?.data ?? []).map((n) => n.title)
-  if (titlesB.some((t) => t.includes(`E2E Agency B Published ${ts}`))) pass('user B own tenant notice')
-  else fail('user B own tenant notice')
+  if (titlesB.some((t) => t.includes(`E2E Agency B Published ${ts}`))) fail('user B missing own notice (none seeded)')
+  else pass('user B tenant isolation ok')
   if (titlesB.some((t) => t.includes(`E2E Agency A Published ${ts}`))) fail('user B A isolation')
   else pass('user B A isolation')
 
-  const aa = await login(uAA)
   await api('/government-support/admin/notices', {
     token: aa,
     method: 'POST',
     body: {
-      title: `E2E AA ${ts}`,
+      title: `E2E AA extra ${ts}`,
       content: 'x',
       status: 'published',
       scopeType: 'agency',
@@ -250,7 +254,7 @@ async function main() {
   await api(`/government-support/admin/notices/${stId}`, { token: st1, method: 'DELETE', expectStatus: 200 })
   pass('staff1 delete own')
 
-  await api(`/government-support/admin/notices/${noticeAId}`, { token: industry, method: 'DELETE', expectStatus: 200 })
+  await api(`/government-support/admin/notices/${noticeAId}`, { token: aa, method: 'DELETE', expectStatus: 200 })
   const after = ((await api('/government-support/notices', { token: userA })).json?.data ?? []).map((n) => n.title)
   if (after.some((t) => t.includes(`E2E Agency A Published ${ts}`))) fail('archived hidden')
   else pass('archived hidden')
@@ -259,10 +263,13 @@ async function main() {
   if (staffProfiles.status === 200 && (staffProfiles.json?.data ?? []).length === 0) pass('staff profiles empty')
   else fail('staff profiles empty')
 
-  const mgr = await api('/government-support/notices?managerView=true', { token: industry })
+  const mgr = await api('/government-support/notices?managerView=true', { token: aa })
   const ids = new Set((mgr.json?.data ?? []).map((n) => String(n.id)))
   if (ids.has(String(globalDraft.json?.data?.id))) pass('manager draft visible')
   else fail('manager draft visible')
+
+  await api('/government-support/notices?managerView=true', { token: industry, expectStatus: 403 })
+  pass('industry admin manager view forbidden')
 
   const failed = summary()
   process.exit(failed > 0 ? 1 : 0)

@@ -121,7 +121,12 @@ export default function GovernmentAdminAgenciesPage() {
                   <td>{r.name}</td>
                   <td>{r.status}</td>
                   <td>
-                    <Link to={`/government/join/${r.agencyCode}`} className="dark-link">
+                    <Link
+                      to={`/government/join/${r.agencyCode}`}
+                      className="dark-link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       /government/join/{r.agencyCode}
                     </Link>
                   </td>
@@ -132,7 +137,7 @@ export default function GovernmentAdminAgenciesPage() {
         </table>
       </div>
 
-      <div className="admin-responsive-card-list" style={{ padding: 12 }}>
+      <div className="admin-responsive-card-list">
         {rows.length === 0 && !loading ? (
           <EmptyState message="등록된 수행기관/대행사가 없습니다." className="m-0 px-1 py-2 text-[var(--text-sub)]" />
         ) : (
@@ -151,7 +156,12 @@ export default function GovernmentAdminAgenciesPage() {
                 <span className="admin-ga-card__value">{r.status}</span>
               </div>
               <div className="admin-ga-card__actions">
-                <Link to={`/government/join/${r.agencyCode}`} className="button button--secondary dark-link">
+                <Link
+                  to={`/government/join/${r.agencyCode}`}
+                  className="button button--secondary dark-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   가입 URL
                 </Link>
               </div>

@@ -16,7 +16,6 @@ import { fetchGovAgencies } from '../../api/governmentProfilesApi'
 import {
   GOVERNMENT_RESOURCE_CATEGORIES,
   GOVERNMENT_RESOURCE_STATUSES,
-  GOVERNMENT_SCOPE_OPTIONS,
   formatFileSize,
   formatOpsDate,
   labelForResourceCategory,
@@ -24,6 +23,7 @@ import {
 } from '../../constants/governmentOperations'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import { canManageGovernmentNotices } from '../../lib/governmentHome'
+import { canManageGovernmentUsers } from '../../lib/governmentAccess'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 
@@ -51,7 +51,7 @@ export default function GovernmentAdminResourcesPage() {
   const { token } = useAuth()
   const { summary } = useGovernmentAccess(token)
   const { confirm, confirmDialog } = useConfirmDialog()
-  const canGlobal = Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
+  const isAgencyAdmin = canManageGovernmentUsers(summary)
   const defaultTenantId =
     summary?.governmentAgencyAdminTenantIds[0] ??
     summary?.governmentStaffTenantIds[0] ??
@@ -96,9 +96,9 @@ export default function GovernmentAdminResourcesPage() {
   }, [token, filterStatus, filterCategory, filterQ])
 
   useEffect(() => {
-    if (!token) return
+    if (!token || !isAgencyAdmin) return
     void fetchGovAgencies(token).then(setAgencies).catch(() => setAgencies([]))
-  }, [token])
+  }, [token, isAgencyAdmin])
 
   useEffect(() => {
     void load()
@@ -144,8 +144,8 @@ export default function GovernmentAdminResourcesPage() {
         description: form.description,
         category: form.category,
         status: form.status,
-        scopeType: form.scopeType,
-        tenantId: form.scopeType === 'global' ? null : form.tenantId,
+        scopeType: 'agency',
+        tenantId: form.tenantId || defaultTenantId,
       }
       if (editing && !form.file) {
         await updateGovernmentResource(token, editing.id, meta)
@@ -202,7 +202,7 @@ export default function GovernmentAdminResourcesPage() {
   return (
     <GovernmentAdminPageShell
       title="자료실/서식함"
-      description="신청 서식·안내문 등 대행사 이용자용 자료를 관리합니다."
+      description="소속 대행사 이용자용 신청 서식·안내문 등을 관리합니다."
       toolbar={
         <>
           <FormButton htmlType="button" variant="primary" className="button button--primary" onClick={openCreate}>
@@ -315,16 +315,7 @@ export default function GovernmentAdminResourcesPage() {
               options={[...GOVERNMENT_RESOURCE_STATUSES]}
             />
           </FieldWrapper>
-          {canGlobal ? (
-            <FieldWrapper label="노출 범위">
-              <FormSelect
-                value={form.scopeType}
-                onChange={(e) => setForm((f) => ({ ...f, scopeType: e.target.value }))}
-                options={[...GOVERNMENT_SCOPE_OPTIONS]}
-              />
-            </FieldWrapper>
-          ) : null}
-          {form.scopeType === 'agency' ? (
+          {isAgencyAdmin && agencyOptions.length > 1 ? (
             <FieldWrapper label="대행사">
               <FormSelect
                 value={form.tenantId}

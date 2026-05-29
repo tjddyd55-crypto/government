@@ -126,14 +126,12 @@ export async function createGovernmentNotice(pool, ctx, body) {
     return { ok: false, status: 403, message: '공지 작성 권한이 없습니다.' }
   }
   const scopeType = parseScopeType(body.scopeType ?? body.scope_type ?? body.targetScope)
+  if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
+    return { ok: false, status: 403, message: '전체 공지는 지원하지 않습니다. 소속 대행사 공지만 작성할 수 있습니다.' }
+  }
   const tenantIdRaw = body.tenantId ?? body.tenant_id ?? null
-  const tenantId =
-    scopeType === GOVERNMENT_SCOPE_GLOBAL
-      ? null
-      : tenantIdRaw != null
-        ? String(tenantIdRaw).trim()
-        : null
-  if (scopeType === GOVERNMENT_SCOPE_AGENCY && !tenantId) {
+  const tenantId = tenantIdRaw != null ? String(tenantIdRaw).trim() : null
+  if (!tenantId) {
     return { ok: false, status: 400, message: '대행사 공지는 tenantId가 필요합니다.' }
   }
   if (!canWriteOperationalScope(ctx, tenantId, scopeType)) {
@@ -185,12 +183,13 @@ export async function updateGovernmentNotice(pool, ctx, id, body) {
   const scopeType = body.scopeType != null || body.scope_type != null
     ? parseScopeType(body.scopeType ?? body.scope_type)
     : existing.data.scopeType
+  if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
+    return { ok: false, status: 403, message: '전체 공지는 지원하지 않습니다.' }
+  }
   const tenantId =
-    scopeType === GOVERNMENT_SCOPE_GLOBAL
-      ? null
-      : body.tenantId != null || body.tenant_id != null
-        ? String(body.tenantId ?? body.tenant_id).trim()
-        : existing.data.tenantId
+    body.tenantId != null || body.tenant_id != null
+      ? String(body.tenantId ?? body.tenant_id).trim()
+      : existing.data.tenantId
   if (!canWriteOperationalScope(ctx, tenantId, scopeType)) {
     return { ok: false, status: 403, message: '해당 범위의 공지를 수정할 수 없습니다.' }
   }

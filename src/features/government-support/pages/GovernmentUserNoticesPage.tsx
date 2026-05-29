@@ -49,7 +49,7 @@ export default function GovernmentUserNoticesPage() {
   return (
     <section className="government-user-section government-user-notices-page">
       <h1 className="government-page__title">공지사항</h1>
-      <p className="government-page__muted">소속 대행사 및 전체 공지를 확인할 수 있습니다.</p>
+      <p className="government-page__muted">소속 대행사 공지를 확인할 수 있습니다.</p>
 
       <section className="government-admin-users-page__filters">
         <FieldWrapper label="검색">

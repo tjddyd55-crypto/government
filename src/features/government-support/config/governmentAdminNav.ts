@@ -15,12 +15,10 @@ const SETTINGS_NAV: GovernmentAdminNavItem = {
   label: '설정',
 }
 
-/** 업종 관리자 — 대행사·설정·운영 현황 (문의/요청서류 전체 목록 노출 없음) */
+/** 업종 관리자 — 대행사·설정·운영 현황 (공지/자료는 대행사 귀속, 업종 관리자 메뉴 없음) */
 export const GOVERNMENT_INDUSTRY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: '/government/admin', label: '대시보드', end: true },
   { to: '/government/admin/agencies', label: '대행사 관리' },
-  { to: '/government/admin/notices', label: '공지/전달사항' },
-  RESOURCES_NAV,
   SETTINGS_NAV,
 ]
 

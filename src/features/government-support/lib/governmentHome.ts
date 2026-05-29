@@ -10,9 +10,12 @@ export function isGovernmentOperationalAccount(summary: GovernmentAccessSummary 
   return false
 }
 
-/** 공지·전달사항 등 운영 업무 메뉴 */
+/** 공지·전달사항·자료실 — 대행사 관리자·직원만 */
 export function canManageGovernmentNotices(summary: GovernmentAccessSummary | null): boolean {
-  return isGovernmentOperationalAccount(summary)
+  if (!summary || isGovernmentProgramUser(summary)) return false
+  if ((summary.governmentAgencyAdminTenantIds?.length ?? 0) > 0) return true
+  if ((summary.governmentStaffTenantIds?.length ?? 0) > 0) return true
+  return false
 }
 
 /** 사업장/고객/신청 워크스페이스 — 프로그램 이용자만 */

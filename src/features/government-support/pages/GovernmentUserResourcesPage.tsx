@@ -63,7 +63,7 @@ export default function GovernmentUserResourcesPage() {
   return (
     <section className="government-user-section government-user-resources-page">
       <h1 className="government-page__title">자료실/서식함</h1>
-      <p className="government-page__muted">소속 대행사 및 전체 자료를 다운로드할 수 있습니다.</p>
+      <p className="government-page__muted">소속 대행사 자료를 다운로드할 수 있습니다.</p>
 
       <section className="government-admin-users-page__filters">
         <FieldWrapper label="검색">

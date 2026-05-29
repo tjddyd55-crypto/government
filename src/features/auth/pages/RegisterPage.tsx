@@ -37,10 +37,13 @@ export type SignupIndustry = 'insurance' | 'gym' | 'government'
 export function RegisterPage({
   signupIndustry = 'insurance',
   initialRegistrationCode,
+  redirectIfAuthenticated = true,
 }: {
   signupIndustry?: SignupIndustry
   /** /government/join/:agencyCode 등에서 전달 */
   initialRegistrationCode?: string
+  /** false면 로그인 상태에서도 가입 화면 유지 (정부지원 join/signup) */
+  redirectIfAuthenticated?: boolean
 }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -76,7 +79,7 @@ export function RegisterPage({
   const [debugCodeHint, setDebugCodeHint] = useState('')
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !redirectIfAuthenticated) {
       return
     }
     if (signupIndustry === 'government') {
@@ -84,7 +87,7 @@ export function RegisterPage({
       return
     }
     navigate('/dashboard', { replace: true })
-  }, [isAuthenticated, navigate, signupIndustry])
+  }, [isAuthenticated, navigate, redirectIfAuthenticated, signupIndustry])
 
   useEffect(() => {
     const ga = searchParams.get('ga')?.trim()
@@ -480,7 +483,8 @@ export function RegisterPage({
     return null
   }
 
-  const signupSubmitDisabled = isSubmitting || (needsPhoneAuth && !isVerified)
+  const signupSubmitDisabled =
+    isSubmitting || (needsPhoneAuth && !isVerified) || (isAuthenticated && signupIndustry === 'government' && !redirectIfAuthenticated)
 
   const smsRequestDisabled = smsSubmitting || resendLeft > 0 || isVerified
   const smsConfirmDisabled = smsSubmitting || smsCode.trim().length !== 6 || isVerified
@@ -496,7 +500,17 @@ export function RegisterPage({
           : '회원가입'}
         </h1>
 
+        {isAuthenticated && signupIndustry === 'government' && !redirectIfAuthenticated ? (
+          <p className="status status--error" style={{ marginBottom: '1rem' }}>
+            이미 로그인된 계정입니다. 신규 가입은 로그아웃 후 진행하거나, 시크릿 창·새 탭에서 가입 URL을 열어 주세요.
+          </p>
+        ) : null}
+
         <form className="auth-form auth-form--register" onSubmit={(e) => void handleSignup(e)}>
+          <fieldset
+            disabled={isAuthenticated && signupIndustry === 'government' && !redirectIfAuthenticated}
+            style={{ border: 'none', margin: 0, padding: 0, minWidth: 0 }}
+          >
           <FormInput type="hidden" name="invite_ref_user_id" value={inviteRefUserId} aria-hidden />
           <FormInput type="hidden" name="invite_sig" value={inviteSig} aria-hidden />
           <FormInput type="hidden" name="invite_ts" value={inviteTs} aria-hidden />
@@ -689,6 +703,7 @@ export function RegisterPage({
           >
             {isSubmitting ? '가입 중…' : '가입'}
           </FormButton>
+          </fieldset>
         </form>
 
         <div className="switch-text">
