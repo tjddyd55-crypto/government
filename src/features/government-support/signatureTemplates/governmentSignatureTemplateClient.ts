@@ -2,13 +2,11 @@
  * 전자서명 테스트 콘솔 — 기존 관리자 계약 API만 어댑트. 비즈니스 로직 복사 없음.
  */
 import { ApiError, apiRequest, resolveApiUrl } from '../../../lib/apiClient'
-import {
-  getAdminPdfTemplate,
-  getPdfTemplate,
-  listAdminPdfTemplates,
-  listPdfTemplates,
-} from '../../pdf-engine/api/pdfTemplateApi'
 import type { PdfTemplateDetail, PdfTemplateSummary } from '../../pdf-engine/types'
+import {
+  getGovSignaturePdfTemplate,
+  listGovSignaturePdfTemplates,
+} from './governmentSignaturePdfTemplateClient'
 import { searchCustomers } from '../../customers/api/customersApi'
 import type { CustomerRecord } from '../../customers/domain/types'
 
@@ -179,26 +177,24 @@ function tenantBody(tenantGaId: number | null, isSuper: boolean): Record<string,
 
 export async function listPdfTemplatesForGovSignature(
   token: string,
-  role: string | undefined,
+  _role: string | undefined,
 ): Promise<{ templates: PdfTemplateSummary[]; source: 'admin' | 'user' }> {
-  if (role === 'SUPER_ADMIN') {
-    const { templates } = await listAdminPdfTemplates(token)
-    return { templates, source: 'admin' }
-  }
-  const { templates } = await listPdfTemplates(token)
+  const { templates } = await listGovSignaturePdfTemplates(token)
   return { templates, source: 'user' }
 }
 
 export async function getPdfTemplateDetailForGovSignature(
   token: string,
-  role: string | undefined,
+  _role: string | undefined,
   id: number,
 ): Promise<PdfTemplateDetail> {
-  if (role === 'SUPER_ADMIN') {
-    return getAdminPdfTemplate(token, id)
-  }
-  return getPdfTemplate(token, id)
+  return getGovSignaturePdfTemplate(token, id)
 }
+
+export {
+  listGovSignaturePdfTemplates,
+  getGovSignaturePdfTemplate,
+} from './governmentSignaturePdfTemplateClient'
 
 export function countPdfFieldStats(detail: PdfTemplateDetail): {
   fieldCount: number

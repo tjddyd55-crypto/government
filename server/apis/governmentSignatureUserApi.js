@@ -1,7 +1,14 @@
 ﻿import { createHash, randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { consentGetBuffer, consentPutObject } from '../lib/consentStorage.js'
-import { getAuthUserId, resolveGovSignatureOwnerUserId } from '../lib/governmentSignatures/access.js'
+import {
+  assertGovProfileForSignatureSend,
+  buildSignatureSendSessionAccessWhere,
+  buildSignatureSendSessionListWhere,
+  getAuthUserId,
+  resolveGovSignatureOwnerUserId,
+  resolveGovernmentSignatureAccessScope,
+} from '../lib/governmentSignatures/access.js'
 import { normalizeKrMobile, validateKrMobileDigits } from '../lib/phoneNormalize.js'
 import { maskKrMobileForDisplay } from '../utils/maskKrMobile.js'
 import {
@@ -205,30 +212,15 @@ function mapSendSessionCreateError(err) {
 }
 
 async function assertCustomerForUserSend(client, profileId, req) {
-  const ownerUserId = getAuthUserId(req)
-  const uid = getAuthUserId(req)
-  if (!uid) {
-    return { error: '로그인이 필요합니다.', status: 401 }
+  const acc = await assertGovProfileForSignatureSend(client, profileId, req)
+  if (acc.error) {
+    return acc
   }
-  if (ownerUserId == null) {
-    return { error: '프로그램 이용자 권한이 필요합니다.', status: 403 }
-  }
-  const r = await client.query(
-    `
-    SELECT id, phone, owner_user_id, tenant_id
-    FROM gov_support_profiles
-    WHERE id = $1 AND owner_user_id = $2
-    `,
-    [profileId, ownerUserId],
-  )
-  if (r.rowCount === 0) {
-    return { error: '고객을 찾을 수 없습니다.', status: 404 }
-  }
-  const row = r.rows[0]
+  const row = acc.row
   const digits = normalizeKrMobile(row.phone)
   const v = validateKrMobileDigits(digits)
   if (v) {
-    return { error: '고객 휴대폰 번호가 없거나 형식이 올바르지 않습니다.', status: 400 }
+    return { error: '사업장 휴대폰 번호가 없거나 형식이 올바르지 않습니다.', status: 400 }
   }
   return { row, digits }
 }
@@ -372,24 +364,25 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
     pool,
     requireAuth,
     attachPlatformContext,
-    requireGovernmentProgramUserSignature,
+    requireGovernmentSignatureAccount,
     attachGovernmentSignatureContext,
     handleDbError,
   } = ctx
   const chain = [
     requireAuth,
     attachPlatformContext,
-    requireGovernmentProgramUserSignature,
+    requireGovernmentSignatureAccount,
     attachGovernmentSignatureContext,
   ]
 
   apiRouter.get('/government-support/signatures/send/templates', ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
-      if (ownerUserId == null) {
-        res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
         return
       }
+      const ownerUserId = scope.userId
       const r = await pool.query(
         `
         SELECT
@@ -502,12 +495,12 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
   /** 발송 화면용: confirmation_only 템플릿의 확인서 항목 정의 조회(읽기 전용). coordinate_pdf이면 409. */
   apiRouter.get('/government-support/signature-templates/:templateId/confirmation-fields', ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
-      if (ownerUserId == null) {
-        res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
         return
       }
-      const templateId = String(req.params.templateId ?? '').trim()
+      const ownerUserId = scope.userId
       if (!templateId) {
         res.status(404).json({ ok: false, message: '템플릿을 찾을 수 없습니다.' })
         return
@@ -545,14 +538,9 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/signatures/profiles/search', ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
-      const uid = getAuthUserId(req)
-      if (!uid) {
-        res.status(401).json({ ok: false, message: '로그인이 필요합니다.' })
-        return
-      }
-      if (ownerUserId == null) {
-        res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
         return
       }
       const q = String(req.query.q ?? '').trim()
@@ -566,25 +554,49 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       const pattern = `%${escapeIlikePattern(q)}%`
       const rawId = /^\d+$/.test(q) ? Number(q) : null
       const idParam = rawId != null && Number.isInteger(rawId) && rawId > 0 ? rawId : null
-      const r = await pool.query(
-        `
-        SELECT
-          p.id,
-          COALESCE(NULLIF(trim(p.business_name), ''), NULLIF(trim(p.customer_name), ''), '사업장') AS name,
-          p.phone
-        FROM gov_support_profiles p
-        WHERE p.owner_user_id = $1
-          AND (
-            p.customer_name ILIKE $2 ESCAPE '\\'
-            OR p.business_name ILIKE $2 ESCAPE '\\'
-            OR p.phone ILIKE $2 ESCAPE '\\'
-            OR ($3::bigint IS NOT NULL AND p.id = $3::bigint)
-          )
-        ORDER BY p.updated_at DESC, p.id DESC
-        LIMIT $4
-        `,
-        [ownerUserId, pattern, idParam, limit],
-      )
+
+      let r
+      if (scope.mode === 'program') {
+        r = await pool.query(
+          `
+          SELECT
+            p.id,
+            COALESCE(NULLIF(trim(p.business_name), ''), NULLIF(trim(p.customer_name), ''), '사업장') AS name,
+            p.phone
+          FROM gov_support_profiles p
+          WHERE p.owner_user_id = $1
+            AND (
+              p.customer_name ILIKE $2 ESCAPE '\\'
+              OR p.business_name ILIKE $2 ESCAPE '\\'
+              OR p.phone ILIKE $2 ESCAPE '\\'
+              OR ($3::bigint IS NOT NULL AND p.id = $3::bigint)
+            )
+          ORDER BY p.updated_at DESC, p.id DESC
+          LIMIT $4
+          `,
+          [scope.userId, pattern, idParam, limit],
+        )
+      } else {
+        r = await pool.query(
+          `
+          SELECT
+            p.id,
+            COALESCE(NULLIF(trim(p.business_name), ''), NULLIF(trim(p.customer_name), ''), '사업장') AS name,
+            p.phone
+          FROM gov_support_profiles p
+          WHERE p.tenant_id::text = ANY($1::text[])
+            AND (
+              p.customer_name ILIKE $2 ESCAPE '\\'
+              OR p.business_name ILIKE $2 ESCAPE '\\'
+              OR p.phone ILIKE $2 ESCAPE '\\'
+              OR ($3::bigint IS NOT NULL AND p.id = $3::bigint)
+            )
+          ORDER BY p.updated_at DESC, p.id DESC
+          LIMIT $4
+          `,
+          [scope.tenantIds, pattern, idParam, limit],
+        )
+      }
 
       const customers = r.rows.map((row) => {
         const digits = normalizeKrMobile(row.phone)
@@ -621,12 +633,13 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       activeTemplateCheckPassed: null,
     }
     try {
-      const ownerUserId = getAuthUserId(req)
-      debugCtx.ownerUserId = ownerUserId
-      if (ownerUserId == null) {
-        res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
         return
       }
+      const ownerUserId = scope.userId
+      debugCtx.ownerUserId = ownerUserId
       if (
         req.body?.phone != null ||
         req.body?.targetPhone != null ||
@@ -869,7 +882,7 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         [
           sendId,
           profileId,
-          ownerUserId,
+          cust.row.owner_user_id ?? ownerUserId,
           cust.row.tenant_id ?? null,
           signToken,
           snapshot.target_phone_encrypted,
@@ -996,16 +1009,12 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
     },
     async (req, res) => {
       try {
-        const ownerUserId = getAuthUserId(req)
-        const uid = getAuthUserId(req)
-        if (!uid) {
-          res.status(401).json({ ok: false, message: '로그인이 필요합니다.' })
+        const scope = resolveGovernmentSignatureAccessScope(req)
+        if (!scope) {
+          res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
           return
         }
-        if (ownerUserId == null) {
-          res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
-          return
-        }
+        const uid = scope.userId
         const f = req.file
         if (!f || !f.buffer || f.buffer.length === 0) {
           res.status(400).json({ ok: false, message: '업로드할 파일이 없습니다.' })
@@ -1089,14 +1098,9 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/signatures', ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
-      const uid = getAuthUserId(req)
-      if (!uid) {
-        res.status(401).json({ ok: false, message: '로그인이 필요합니다.' })
-        return
-      }
-      if (ownerUserId == null) {
-        res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
         return
       }
 
@@ -1106,7 +1110,8 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100)
       const offset = Math.max(Number(req.query.offset) || 0, 0)
 
-      const baseParams = [uid]
+      const listScope = buildSignatureSendSessionListWhere(scope)
+      const baseParams = [...listScope.params]
       let searchClause = ''
       if (qSearch) {
         const pattern = `%${escapeIlikePattern(qSearch)}%`
@@ -1148,8 +1153,7 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         SELECT COUNT(*)::int AS total
         FROM gov_signature_send_sessions s
         INNER JOIN gov_support_profiles p ON p.id = s.profile_id
-        WHERE s.sent_by_user_id = $1
-          AND p.owner_user_id = $1
+        WHERE ${listScope.sql}
           ${whereRest}
       `
       const countR = await pool.query(countSql, baseParams)
@@ -1207,8 +1211,7 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           ORDER BY created_at DESC
           LIMIT 1
         ) evpfx ON true
-        WHERE s.sent_by_user_id = $1
-          AND p.owner_user_id = $1
+        WHERE ${listScope.sql}
           ${whereRest}
         ORDER BY ${orderSql}
         LIMIT $${li} OFFSET $${oi}
@@ -1229,14 +1232,9 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
   apiRouter.patch('/government-support/signatures/:id/cancel', ...chain, async (req, res) => {
     const client = await pool.connect()
     try {
-      const ownerUserId = getAuthUserId(req)
-      const uid = getAuthUserId(req)
-      if (!uid) {
-        res.status(401).json({ ok: false, message: '로그인이 필요합니다.' })
-        return
-      }
-      if (ownerUserId == null) {
-        res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
         return
       }
       const sid = String(req.params.id ?? '').trim()
@@ -1244,19 +1242,18 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         res.status(400).json({ ok: false, message: '발송 세션 id가 필요합니다.' })
         return
       }
+      const access = buildSignatureSendSessionAccessWhere(scope)
       await client.query('BEGIN')
       const lock = await client.query(
         `
         SELECT s.id, s.status
         FROM gov_signature_send_sessions s
         JOIN gov_support_profiles p ON p.id = s.profile_id
-        WHERE s.id = $1
-          AND s.sent_by_user_id = $2
-          AND p.owner_user_id = $2
+        WHERE ${access.sql}
         FOR UPDATE OF s
         LIMIT 1
         `,
-        [sid, uid],
+        access.params(sid),
       )
       if (lock.rowCount === 0) {
         await client.query('ROLLBACK')
@@ -1337,16 +1334,12 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/signatures/:id', ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
-      const uid = getAuthUserId(req)
-      if (!uid) {
-        res.status(401).json({ ok: false, message: '로그인이 필요합니다.' })
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
         return
       }
-      if (ownerUserId == null) {
-        res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
-        return
-      }
+      const access = buildSignatureSendSessionAccessWhere(scope)
       const r = await pool.query(
         `
         SELECT
@@ -1358,12 +1351,10 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         FROM gov_signature_send_sessions s
         JOIN gov_support_profiles p ON p.id = s.profile_id
         LEFT JOIN gov_signature_identity_sessions ivs ON ivs.id = s.identity_session_id
-        WHERE s.id = $1
-          AND s.sent_by_user_id = $2
-          AND p.owner_user_id = $2
+        WHERE ${access.sql}
         LIMIT 1
         `,
-        [req.params.id, uid],
+        access.params(String(req.params.id ?? '').trim()),
       )
       if (r.rowCount === 0) {
         res.status(404).json({ ok: false, message: '발송 세션을 찾을 수 없습니다.' })
@@ -1439,29 +1430,23 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
     ...chain,
     async (req, res) => {
       try {
-        const ownerUserId = getAuthUserId(req)
-        const uid = getAuthUserId(req)
-        if (!uid) {
-          res.status(401).json({ ok: false, message: '로그인이 필요합니다.' })
-          return
-        }
-        if (ownerUserId == null) {
-          res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
+        const scope = resolveGovernmentSignatureAccessScope(req)
+        if (!scope) {
+          res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
           return
         }
         const sid = String(req.params.sendSessionId ?? '').trim()
         const docId = String(req.params.documentInstanceId ?? '').trim()
+        const access = buildSignatureSendSessionAccessWhere(scope)
         const r = await pool.query(
           `
           SELECT s.id
           FROM gov_signature_send_sessions s
           JOIN gov_support_profiles p ON p.id = s.profile_id
-          WHERE s.id = $1
-            AND s.sent_by_user_id = $2
-            AND p.owner_user_id = $2
+          WHERE ${access.sql}
           LIMIT 1
           `,
-          [sid, uid],
+          access.params(sid),
         )
         if (r.rowCount === 0) {
           res.status(404).json({ ok: false, message: '발송 세션을 찾을 수 없습니다.' })
@@ -1527,28 +1512,22 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/signatures/:sendSessionId/evidence.pdf', ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
-      const uid = getAuthUserId(req)
-      if (!uid) {
-        res.status(401).json({ ok: false, message: '로그인이 필요합니다.' })
-        return
-      }
-      if (ownerUserId == null) {
-        res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
         return
       }
       const sid = String(req.params.sendSessionId ?? '').trim()
+      const access = buildSignatureSendSessionAccessWhere(scope)
       const own = await pool.query(
         `
         SELECT s.id
         FROM gov_signature_send_sessions s
         JOIN gov_support_profiles p ON p.id = s.profile_id
-        WHERE s.id = $1
-          AND s.sent_by_user_id = $2
-          AND p.owner_user_id = $2
+        WHERE ${access.sql}
         LIMIT 1
         `,
-        [sid, uid],
+        access.params(sid),
       )
       if (own.rowCount === 0) {
         res.status(404).json({ ok: false, message: '발송 세션을 찾을 수 없습니다.' })

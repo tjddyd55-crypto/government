@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider'
 import { canManageGovernmentUsers, isGovernmentProgramUser, resolveGovernmentAccessState } from '../lib/governmentAccess'
-import { isGovernmentOperationalAccount, resolveGovernmentHomePath } from '../lib/governmentHome'
+import { isGovernmentOperationalAccount, canManageGovernmentSignatures, resolveGovernmentHomePath } from '../lib/governmentHome'
 import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
 
 type GovernmentProtectedRouteProps = {
@@ -12,6 +12,8 @@ type GovernmentProtectedRouteProps = {
   requireUserManager?: boolean
   /** 대행사 운영(공지·전달) — 업종/대행사 관리자·직원 */
   requireOperational?: boolean
+  /** 대행사 전자서명 템플릿·발송 — 업종 관리자 제외 */
+  requireSignatureOperational?: boolean
   /** 프로그램 이용자 워크스페이스(사업장/고객 소유 데이터) */
   requireProgramUserWorkspace?: boolean
 }
@@ -24,6 +26,7 @@ export default function GovernmentProtectedRoute({
   requireAdminDashboard = false,
   requireUserManager = false,
   requireOperational = false,
+  requireSignatureOperational = false,
   requireProgramUserWorkspace = false,
 }: GovernmentProtectedRouteProps) {
   const { token, isAuthenticated } = useAuth()
@@ -73,6 +76,9 @@ export default function GovernmentProtectedRoute({
     return <Navigate to={resolveGovernmentHomePath(summary)} replace />
   }
   if (requireOperational && !isGovernmentOperationalAccount(summary)) {
+    return <Navigate to={resolveGovernmentHomePath(summary)} replace />
+  }
+  if (requireSignatureOperational && !canManageGovernmentSignatures(summary)) {
     return <Navigate to={resolveGovernmentHomePath(summary)} replace />
   }
   if (requireProgramUserWorkspace && summary && !summary.isGovernmentProgramUser) {

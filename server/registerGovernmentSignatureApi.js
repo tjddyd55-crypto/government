@@ -9,7 +9,7 @@ import { registerGovernmentSignaturePdfTemplateApi } from './apis/governmentSign
 import { createAttachPlatformContext } from './lib/platformRbac.js'
 import {
   attachGovernmentSignatureContext,
-  requireGovernmentProgramUserSignature,
+  requireGovernmentSignatureAccount,
 } from './lib/governmentSignatures/access.js'
 
 /**
@@ -22,7 +22,7 @@ export function registerGovernmentSignatureApi(apiRouter, ctx) {
   const chain = [
     requireAuth,
     attachPlatformContext,
-    requireGovernmentProgramUserSignature,
+    requireGovernmentSignatureAccount,
     attachGovernmentSignatureContext,
   ]
 
@@ -31,7 +31,7 @@ export function registerGovernmentSignatureApi(apiRouter, ctx) {
     pool,
     requireAuth,
     attachPlatformContext,
-    requireGovernmentProgramUserSignature,
+    requireGovernmentSignatureAccount,
     attachGovernmentSignatureContext,
     handleDbError,
   })
@@ -39,7 +39,7 @@ export function registerGovernmentSignatureApi(apiRouter, ctx) {
     pool,
     requireAuth,
     attachPlatformContext,
-    requireGovernmentProgramUserSignature,
+    requireGovernmentSignatureAccount,
     attachGovernmentSignatureContext,
     handleDbError,
   })

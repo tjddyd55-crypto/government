@@ -1,0 +1,97 @@
+import { ApiError, apiRequest, resolveApiUrl } from '../../../lib/apiClient'
+import type { PdfFieldSpec, PdfTemplateDetail, PdfTemplateSummary } from '../../pdf-engine/types'
+
+const BASE = '/api/government-support/signature-templates/pdf'
+
+function authHeader(token: string): HeadersInit {
+  return { Authorization: `Bearer ${token}` }
+}
+
+export async function listGovSignaturePdfTemplates(token: string): Promise<{ templates: PdfTemplateSummary[] }> {
+  const body = await apiRequest<{ templates?: PdfTemplateSummary[] }>(BASE, { method: 'GET', token })
+  const raw = body as { templates?: PdfTemplateSummary[] }
+  if (!raw?.templates || !Array.isArray(raw.templates)) {
+    throw new ApiError('PDF 템플릿 목록 응답 형식이 올바르지 않습니다.', 500)
+  }
+  return { templates: raw.templates }
+}
+
+export async function getGovSignaturePdfTemplate(token: string, id: number): Promise<PdfTemplateDetail> {
+  const body = await apiRequest<{ template?: PdfTemplateSummary; fields?: PdfFieldSpec[] }>(
+    `${BASE}/${id}`,
+    { method: 'GET', token },
+  )
+  const raw = body as { template?: PdfTemplateSummary; fields?: PdfFieldSpec[] }
+  if (!raw?.template?.id) {
+    throw new ApiError('PDF 템플릿을 찾을 수 없습니다.', 404)
+  }
+  return {
+    template: raw.template,
+    fields: Array.isArray(raw.fields) ? raw.fields : [],
+  }
+}
+
+export async function uploadGovSignaturePdfTemplateFile(
+  token: string,
+  file: File,
+): Promise<{ storageKey: string; pageCount: number; code: string }> {
+  const fd = new FormData()
+  fd.append('pdf', file)
+  const body = await apiRequest<{ storageKey?: string; pageCount?: number; code?: string }>(
+    `${BASE}/upload`,
+    { method: 'POST', token, body: fd },
+  )
+  const raw = body as { storageKey?: string; pageCount?: number; code?: string }
+  if (!raw?.storageKey) {
+    throw new ApiError('PDF 업로드 응답이 올바르지 않습니다.', 500)
+  }
+  return {
+    storageKey: raw.storageKey,
+    pageCount: Number(raw.pageCount) || 1,
+    code: String(raw.code ?? ''),
+  }
+}
+
+export async function createGovSignaturePdfTemplate(
+  token: string,
+  payload: { title: string; description?: string; storageKey: string; pageCount: number },
+): Promise<{ template: PdfTemplateSummary }> {
+  const body = await apiRequest<{ template?: PdfTemplateSummary }>(BASE, {
+    method: 'POST',
+    token,
+    body: JSON.stringify({
+      title: payload.title,
+      description: payload.description ?? '',
+      storageKey: payload.storageKey,
+      pageCount: payload.pageCount,
+    }),
+  })
+  const raw = body as { template?: PdfTemplateSummary }
+  if (!raw?.template?.id) {
+    throw new ApiError('PDF 템플릿 생성 응답이 올바르지 않습니다.', 500)
+  }
+  return { template: raw.template }
+}
+
+export async function saveGovSignaturePdfTemplateFields(
+  token: string,
+  id: number,
+  fields: PdfFieldSpec[],
+): Promise<{ fields: PdfFieldSpec[] }> {
+  const body = await apiRequest<{ fields?: PdfFieldSpec[] }>(`${BASE}/${id}/fields`, {
+    method: 'PUT',
+    token,
+    body: JSON.stringify({ fields }),
+  })
+  const raw = body as { fields?: PdfFieldSpec[] }
+  return { fields: Array.isArray(raw.fields) ? raw.fields : [] }
+}
+
+export async function fetchGovSignaturePdfTemplateFile(token: string, id: number): Promise<ArrayBuffer> {
+  const url = resolveApiUrl(`${BASE}/${id}/file`)
+  const res = await fetch(url, { method: 'GET', headers: authHeader(token) })
+  if (!res.ok) {
+    throw new ApiError('PDF 파일을 불러오지 못했습니다.', res.status)
+  }
+  return res.arrayBuffer()
+}

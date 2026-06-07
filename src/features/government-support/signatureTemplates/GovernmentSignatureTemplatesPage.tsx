@@ -2,6 +2,7 @@
  * 전자서명 템플릿 관리 — SUPER_ADMIN / GA_ADMIN. 실제 고객 발송은 전자서명 발송 메뉴에서 진행.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import '../../pdf-engine/pdf-engine.css'
 import './government-signature-console.css'
 import { useAuth } from '../../auth/AuthProvider'
@@ -14,9 +15,10 @@ import { PdfTemplateSelector } from './components/PdfTemplateSelector'
 import {
   countPdfFieldStats,
   createGovernmentSignatureTemplateFromPdfTemplate,
-  getPdfTemplateDetailForGovSignature,
+  fetchGovernmentSignatureTemplateDetail,
+  getGovSignaturePdfTemplate,
+  listGovSignaturePdfTemplates,
   listGovernmentSignatureTemplates,
-  listPdfTemplatesForGovSignature,
   type GovernmentSignatureTemplateListItem,
 } from './governmentSignatureTemplateClient'
 
@@ -28,6 +30,9 @@ function resolveTenantGaId(role: string | undefined, ownerUserId: number): numbe
 }
 
 export default function GovernmentSignatureTemplatesPage() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const isAdminRoute = location.pathname.startsWith('/government/admin/signature-templates')
   const { token, user } = useAuth()
   const t = token?.trim() ?? ''
   const role = user?.role
@@ -82,7 +87,7 @@ export default function GovernmentSignatureTemplatesPage() {
       }
       setBootError(null)
       try {
-        const { templates } = await listPdfTemplatesForGovSignature(t, role)
+        const { templates } = await listGovSignaturePdfTemplates(t)
         if (cancelled) {
           return
         }
@@ -96,7 +101,7 @@ export default function GovernmentSignatureTemplatesPage() {
         const enriched = await Promise.all(
           templates.map(async (s) => {
             try {
-              const detail = await getPdfTemplateDetailForGovSignature(t, role, s.id)
+              const detail = await getGovSignaturePdfTemplate(t, s.id)
               const { fieldCount, signatureCount } = countPdfFieldStats(detail)
               return { ...s, fieldCount, signatureCount, loadingDetail: false } satisfies PdfPickRow
             } catch {
@@ -148,8 +153,9 @@ export default function GovernmentSignatureTemplatesPage() {
     setSelectedPdfId(id)
   }
 
-  const resolveCoordinateEditorHref =
-    role === 'SUPER_ADMIN' ? (pdfTemplateId: number) => `/government/signature-templates/pdf/${pdfTemplateId}` : undefined
+  const resolveCoordinateEditorHref = isAdminRoute
+    ? (pdfTemplateId: number) => `/government/admin/signature-templates/pdf/${pdfTemplateId}`
+    : undefined
 
   return (
     <main
@@ -182,6 +188,18 @@ export default function GovernmentSignatureTemplatesPage() {
 
         <section className="contract-signature-console__section">
           <h2 className="contract-signature-console__section-title">1. PDF 템플릿 선택</h2>
+          {isAdminRoute ? (
+            <div className="contract-signature-console__toolbar" style={{ marginBottom: 10 }}>
+              <FormButton
+                htmlType="button"
+                variant="primary"
+                size="sm"
+                onClick={() => navigate('/government/admin/signature-templates/pdf/new')}
+              >
+                PDF 업로드 · 좌표 편집
+              </FormButton>
+            </div>
+          ) : null}
           <PdfTemplateSelector
             rows={pdfRows}
             selectedId={selectedPdfId}

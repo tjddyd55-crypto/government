@@ -10,6 +10,21 @@ const RESOURCES_NAV: GovernmentAdminNavItem = {
   label: '자료실/서식함',
 }
 
+const SIGNATURE_HISTORY_NAV: GovernmentAdminNavItem = {
+  to: '/government/admin/signatures',
+  label: '전자서명 발송 내역',
+}
+
+const SIGNATURE_SEND_NAV: GovernmentAdminNavItem = {
+  to: '/government/admin/signatures/send',
+  label: '전자서명 발송',
+}
+
+const SIGNATURE_TEMPLATES_NAV: GovernmentAdminNavItem = {
+  to: '/government/admin/signature-templates',
+  label: '전자서명 템플릿',
+}
+
 const SETTINGS_NAV: GovernmentAdminNavItem = {
   to: '/government/admin/settings',
   label: '설정',
@@ -30,6 +45,9 @@ export const GOVERNMENT_AGENCY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: '/government/admin/document-requests', label: '요청서류 관리' },
   { to: '/government/admin/inquiries', label: '문의 관리' },
   { to: '/government/admin/notifications', label: '알림' },
+  SIGNATURE_HISTORY_NAV,
+  SIGNATURE_SEND_NAV,
+  SIGNATURE_TEMPLATES_NAV,
   { to: '/government/admin/notices', label: '공지/전달사항' },
   RESOURCES_NAV,
   SETTINGS_NAV,
@@ -41,6 +59,9 @@ export const GOVERNMENT_STAFF_NAV: GovernmentAdminNavItem[] = [
   { to: '/government/admin/document-requests', label: '요청서류 관리' },
   { to: '/government/admin/inquiries', label: '문의 관리' },
   { to: '/government/admin/notifications', label: '알림' },
+  SIGNATURE_HISTORY_NAV,
+  SIGNATURE_SEND_NAV,
+  SIGNATURE_TEMPLATES_NAV,
   { to: '/government/admin/notices', label: '공지/전달사항' },
   RESOURCES_NAV,
   { to: '/government/admin/settings', label: '내 정보' },

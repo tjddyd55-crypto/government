@@ -351,14 +351,14 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
     pool,
     requireAuth,
     attachPlatformContext,
-    requireGovernmentProgramUserSignature,
+    requireGovernmentSignatureAccount,
     attachGovernmentSignatureContext,
     handleDbError,
   } = ctx
   const chain = [
     requireAuth,
     attachPlatformContext,
-    requireGovernmentProgramUserSignature,
+    requireGovernmentSignatureAccount,
     attachGovernmentSignatureContext,
   ]
 
@@ -372,7 +372,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
       let where = 'WHERE 1=1'
       if (!(isSuper && ownerUserId == null)) {
         if (ownerUserId == null) {
-          res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
+          res.status(403).json({ ok: false, message: '전자서명 권한이 필요합니다.' })
           return
         }
         params.push(ownerUserId)
@@ -1371,7 +1371,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
       let where = 'WHERE 1=1'
       if (!(isSuper && ownerUserId == null)) {
         if (ownerUserId == null) {
-          res.status(403).json({ ok: false, message: '프로그램 이용자 권한이 필요합니다.' })
+          res.status(403).json({ ok: false, message: '전자서명 권한이 필요합니다.' })
           return
         }
         params.push(ownerUserId)

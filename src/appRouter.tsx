@@ -159,6 +159,7 @@ import GovernmentSignatureSendPage from './features/government-support/signature
 import GovernmentSignatureHistoryPage from './features/government-support/signatures/GovernmentSignatureHistoryPage'
 import { GovernmentSignatureTemplateRoute } from './features/government-support/signatureTemplates/GovernmentSignatureTemplateRoute'
 import GovernmentSignatureTemplatesPage from './features/government-support/signatureTemplates/GovernmentSignatureTemplatesPage'
+import GovernmentPdfTemplateEditorPage from './features/government-support/signatureTemplates/GovernmentPdfTemplateEditorPage'
 
 export const appRouter = createBrowserRouter([
   {
@@ -301,6 +302,24 @@ export const appRouter = createBrowserRouter([
               { path: 'government/admin/document-requests', element: <GovernmentAdminDocumentRequestsPage /> },
               { path: 'government/admin/inquiries', element: <GovernmentAdminInquiriesPage /> },
               { path: 'government/admin/notifications', element: <GovernmentAdminNotificationsPage /> },
+            ],
+          },
+        ],
+      },
+      {
+        element: <GovernmentProtectedRoute requireSignatureOperational />,
+        children: [
+          {
+            element: <GovernmentAdminLayout />,
+            children: [
+              { path: 'government/admin/signatures', element: <GovernmentSignatureHistoryPage /> },
+              { path: 'government/admin/signatures/send', element: <GovernmentSignatureSendPage /> },
+              { path: 'government/admin/signatures/:id', element: <GovernmentSignatureHistoryPage /> },
+              { path: 'government/admin/signature-templates', element: <GovernmentSignatureTemplatesPage /> },
+              { path: 'government/admin/signature-templates/new', element: <GovernmentSignatureTemplatesPage /> },
+              { path: 'government/admin/signature-templates/:id/edit', element: <GovernmentSignatureTemplatesPage /> },
+              { path: 'government/admin/signature-templates/pdf/new', element: <GovernmentPdfTemplateEditorPage /> },
+              { path: 'government/admin/signature-templates/pdf/:id', element: <GovernmentPdfTemplateEditorPage /> },
             ],
           },
         ],
