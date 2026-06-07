@@ -84,6 +84,70 @@ function reportUserSeed(users) {
   }
 }
 
+async function createGovSignatureTemplatePair(token, label) {
+  const pdfUp = await uploadPdfTemplate(token)
+  if (pdfUp.status !== 201 || !pdfUp.json?.storageKey) {
+    return { ok: false, error: `pdf upload ${pdfUp.status}` }
+  }
+  const pdfMeta = await api('/government-support/signature-templates/pdf', {
+    token,
+    method: 'POST',
+    body: {
+      storageKey: pdfUp.json.storageKey,
+      title: `E2E PDF ${label}`,
+      pageCount: pdfUp.json.pageCount ?? 1,
+    },
+  })
+  const pdfTemplateId = pdfMeta.json?.template?.id ?? null
+  if (pdfMeta.status !== 201 || pdfTemplateId == null) {
+    return { ok: false, error: `pdf meta ${pdfMeta.status}` }
+  }
+  const fields = await api(`/government-support/signature-templates/pdf/${pdfTemplateId}/fields`, {
+    token,
+    method: 'PUT',
+    body: {
+      fields: [
+        {
+          fieldKey: 'signer_name',
+          label: '이름',
+          fieldType: 'text',
+          required: true,
+          orderIndex: 0,
+          inputRole: 'customer',
+          placements: [{ pageIndex: 0, x: 50, y: 120, width: 200, height: 24 }],
+        },
+        {
+          fieldKey: 'signature_main',
+          label: '서명',
+          fieldType: 'signature',
+          required: true,
+          orderIndex: 1,
+          inputRole: 'customer',
+          placements: [{ pageIndex: 0, x: 50, y: 60, width: 120, height: 40 }],
+        },
+      ],
+    },
+  })
+  if (fields.status !== 200) {
+    return { ok: false, error: `pdf fields ${fields.status}` }
+  }
+  const govTpl = await api('/government-support/signature-templates', {
+    token,
+    method: 'POST',
+    body: {
+      title: `E2E Gov Sig ${label}`,
+      pdfTemplateId,
+      templateMode: 'coordinate_pdf',
+      status: 'active',
+    },
+  })
+  const govTemplateId = govTpl.json?.data?.id ?? govTpl.json?.id ?? null
+  if (govTpl.status !== 201 || !govTemplateId) {
+    return { ok: false, error: `gov template ${govTpl.status}` }
+  }
+  return { ok: true, pdfTemplateId, govTemplateId }
+}
+
 async function main() {
   const health = await fetch(`${BASE}/backend/health`)
   if (health.status === 200) pass('health 200')
@@ -96,7 +160,7 @@ async function main() {
   for (const m of [
     '/government/signatures',
     '/government/signatures/send',
-    '/government/signature-templates',
+    'government/admin/signature-templates',
     'signature-templates',
     '전자서명',
   ]) {
@@ -482,6 +546,7 @@ async function main() {
 
     const agencies = (await api('/government-support/admin/agencies', { token: industryToken })).json?.data ?? []
     const tenantA = agencies[0]?.id
+    const tenantB = agencies[1]?.id
     const staffPass = hasPassword ? resolveE2eStaffPassword(PASS) : generateStaffPassword()
     if (tenantA) {
       try {
@@ -504,12 +569,12 @@ async function main() {
         const tokenStaff = staffLogin.json?.token
         if (tokenStaff) {
           const stTpl = await api('/government-support/signature-templates', { token: tokenStaff })
-          if (stTpl.status === 403) pass('staff blocked signature-templates', '403')
-          else failWrap('staff blocked signature-templates', String(stTpl.status))
+          if (stTpl.status === 200) pass('staff can list signature-templates', '200')
+          else failWrap('staff can list signature-templates', String(stTpl.status))
 
           const stSig = await api('/government-support/signatures', { token: tokenStaff })
-          if (stSig.status === 403) pass('staff blocked signatures list', '403')
-          else failWrap('staff blocked signatures list', String(stSig.status))
+          if (stSig.status === 200) pass('staff can list signatures', '200')
+          else failWrap('staff can list signatures', String(stSig.status))
         } else {
           failWrap('staff login after create', String(staffLogin.status))
         }
@@ -531,12 +596,81 @@ async function main() {
           body: { username: uAgency, password: staffPass },
         })
         const tokenAgency = agencyLogin.json?.token
+        let agencyTemplateId = null
         if (tokenAgency) {
           const agTpl = await api('/government-support/signature-templates', { token: tokenAgency })
-          if (agTpl.status === 403) pass('agency admin blocked signature-templates', '403')
-          else failWrap('agency admin blocked signature-templates', String(agTpl.status))
+          if (agTpl.status === 200) pass('agency admin can list signature-templates', '200')
+          else failWrap('agency admin can list signature-templates', String(agTpl.status))
+
+          const created = await createGovSignatureTemplatePair(tokenAgency, `agency_${tag}`)
+          if (created.ok) {
+            agencyTemplateId = created.govTemplateId
+            pass('agency admin creates tenant template', agencyTemplateId)
+          } else {
+            failWrap('agency admin creates tenant template', created.error ?? '')
+          }
         } else {
           failWrap('agency admin login after create', String(agencyLogin.status))
+        }
+
+        if (tokenStaff && agencyTemplateId) {
+          const staffList = await api('/government-support/signature-templates', { token: tokenStaff })
+          const staffItems = staffList.json?.templates ?? staffList.json?.data ?? []
+          const shared =
+            Array.isArray(staffItems) &&
+            staffItems.some((t) => String(t.id) === String(agencyTemplateId))
+          if (shared) pass('staff sees agency tenant template', agencyTemplateId)
+          else failWrap('staff sees agency tenant template', 'not in list')
+
+          const staffDetail = await api(
+            `/government-support/signature-templates/${encodeURIComponent(agencyTemplateId)}`,
+            { token: tokenStaff },
+          )
+          if (staffDetail.status === 200) pass('staff can read agency tenant template detail', '200')
+          else failWrap('staff can read agency tenant template detail', String(staffDetail.status))
+
+          const staffSendTpl = await api('/government-support/signatures/send/templates', { token: tokenStaff })
+          const sendItems = staffSendTpl.json?.templates ?? []
+          const sendable =
+            Array.isArray(sendItems) &&
+            sendItems.some((t) => String(t.id) === String(agencyTemplateId))
+          if (sendable) pass('staff send templates include agency template', agencyTemplateId)
+          else failWrap('staff send templates include agency template', 'missing')
+        }
+
+        if (tenantB && agencyTemplateId) {
+          const uStaffB = `e2e_st_sig_b_${tag}`
+          await api('/government-support/admin/users', {
+            token: industryToken,
+            method: 'POST',
+            body: {
+              username: uStaffB,
+              password: staffPass,
+              role: 'government_staff',
+              tenantId: tenantB,
+              displayName: uStaffB,
+            },
+          })
+          const staffBLogin = await api('/auth/login', {
+            method: 'POST',
+            body: { username: uStaffB, password: staffPass },
+          })
+          const tokenStaffB = staffBLogin.json?.token
+          if (tokenStaffB) {
+            const cross = await api(
+              `/government-support/signature-templates/${encodeURIComponent(agencyTemplateId)}`,
+              { token: tokenStaffB },
+            )
+            if (cross.status === 403 || cross.status === 404) {
+              pass('other tenant staff blocked from template', String(cross.status))
+            } else {
+              failWrap('other tenant staff blocked from template', String(cross.status))
+            }
+          } else {
+            failWrap('other tenant staff login', String(staffBLogin.status))
+          }
+        } else if (agencyTemplateId) {
+          skip('other tenant staff blocked from template', 'single agency in develop')
         }
       } catch (e) {
         failWrap('staff access setup', e instanceof Error ? e.message : String(e))
@@ -545,8 +679,8 @@ async function main() {
       failWrap('staff access setup', 'no tenant')
     }
   } else {
-    skip('industry admin login', 'E2E_GOVERNMENT_PASSWORD 없음 — staff/admin 차단 테스트 생략')
-    skip('staff/agency admin blocked', 'admin credentials unavailable')
+    skip('industry admin login', 'E2E_GOVERNMENT_PASSWORD 없음 — tenant sharing 테스트 생략')
+    skip('staff/agency admin tenant sharing', 'admin credentials unavailable')
   }
 
   const insContracts = await fetch(`${API}/contracts/templates`, { headers: { Accept: 'application/json' } })

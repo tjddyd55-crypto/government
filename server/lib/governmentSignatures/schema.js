@@ -12,9 +12,18 @@ export async function ensureGovSignatureSchema(executor) {
     ADD COLUMN IF NOT EXISTS gov_owner_user_id TEXT REFERENCES users(id) ON DELETE CASCADE
   `)
   await executor.query(`
+    ALTER TABLE pdf_templates
+    ADD COLUMN IF NOT EXISTS gov_tenant_id BIGINT REFERENCES tenants(id) ON DELETE SET NULL
+  `)
+  await executor.query(`
     CREATE INDEX IF NOT EXISTS idx_pdf_templates_gov_owner
     ON pdf_templates (gov_owner_user_id, is_active)
     WHERE gov_owner_user_id IS NOT NULL
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_pdf_templates_gov_tenant
+    ON pdf_templates (gov_tenant_id, is_active)
+    WHERE gov_tenant_id IS NOT NULL
   `)
 
   await executor.query(`
@@ -74,6 +83,13 @@ export async function ensureGovSignatureSchema(executor) {
     CREATE INDEX IF NOT EXISTS idx_gov_signature_templates_owner_status
     ON gov_signature_templates(owner_user_id, status)
   `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_signature_templates_tenant_status
+    ON gov_signature_templates(tenant_id, status)
+    WHERE tenant_id IS NOT NULL
+  `)
+
+  await backfillGovSignatureTenantIds(executor)
 
   await executor.query(`
     CREATE TABLE IF NOT EXISTS gov_signature_template_confirmation_fields (
@@ -335,5 +351,86 @@ export async function ensureGovSignatureSchema(executor) {
   await executor.query(`
     ALTER TABLE files
     ADD COLUMN IF NOT EXISTS profile_id BIGINT REFERENCES gov_support_profiles(id) ON DELETE SET NULL
+  `)
+}
+
+/**
+ * 기존 owner_user_id / gov_owner_user_id 기준 데이터에 tenant_id를 채운다 (삭제·변경 없음).
+ * @param {import('pg').Pool | { query: Function }} executor
+ */
+export async function backfillGovSignatureTenantIds(executor) {
+  await executor.query(`
+    UPDATE gov_signature_templates t
+    SET tenant_id = resolved.tid, updated_at = NOW()
+    FROM (
+      SELECT
+        t2.id,
+        COALESCE(
+          (
+            SELECT um.tenant_id
+            FROM user_memberships um
+            WHERE um.user_id = t2.owner_user_id
+              AND um.status = 'active'
+              AND um.role IN ('government_agency_admin', 'government_staff', 'government_user')
+            ORDER BY
+              CASE um.role
+                WHEN 'government_agency_admin' THEN 1
+                WHEN 'government_staff' THEN 2
+                ELSE 3
+              END,
+              um.id ASC
+            LIMIT 1
+          ),
+          (
+            SELECT p.tenant_id
+            FROM gov_support_profiles p
+            WHERE p.owner_user_id = t2.owner_user_id
+            ORDER BY p.id ASC
+            LIMIT 1
+          )
+        ) AS tid
+      FROM gov_signature_templates t2
+      WHERE t2.tenant_id IS NULL
+    ) resolved
+    WHERE t.id = resolved.id
+      AND resolved.tid IS NOT NULL
+  `)
+
+  await executor.query(`
+    UPDATE pdf_templates pt
+    SET gov_tenant_id = resolved.tid
+    FROM (
+      SELECT
+        pt2.id,
+        COALESCE(
+          (
+            SELECT um.tenant_id
+            FROM user_memberships um
+            WHERE um.user_id = pt2.gov_owner_user_id
+              AND um.status = 'active'
+              AND um.role IN ('government_agency_admin', 'government_staff', 'government_user')
+            ORDER BY
+              CASE um.role
+                WHEN 'government_agency_admin' THEN 1
+                WHEN 'government_staff' THEN 2
+                ELSE 3
+              END,
+              um.id ASC
+            LIMIT 1
+          ),
+          (
+            SELECT p.tenant_id
+            FROM gov_support_profiles p
+            WHERE p.owner_user_id = pt2.gov_owner_user_id
+            ORDER BY p.id ASC
+            LIMIT 1
+          )
+        ) AS tid
+      FROM pdf_templates pt2
+      WHERE pt2.gov_owner_user_id IS NOT NULL
+        AND pt2.gov_tenant_id IS NULL
+    ) resolved
+    WHERE pt.id = resolved.id
+      AND resolved.tid IS NOT NULL
   `)
 }

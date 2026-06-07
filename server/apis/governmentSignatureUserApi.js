@@ -3,16 +3,16 @@ import path from 'node:path'
 import { consentGetBuffer, consentPutObject } from '../lib/consentStorage.js'
 import {
   assertGovProfileForSignatureSend,
+  assertGovernmentSignatureTemplateAccess,
+  buildGovSignatureTemplateListWhere,
   buildSignatureSendSessionAccessWhere,
   buildSignatureSendSessionListWhere,
   getAuthUserId,
-  resolveGovSignatureOwnerUserId,
   resolveGovernmentSignatureAccessScope,
 } from '../lib/governmentSignatures/access.js'
 import { normalizeKrMobile, validateKrMobileDigits } from '../lib/phoneNormalize.js'
 import { maskKrMobileForDisplay } from '../utils/maskKrMobile.js'
 import {
-  assertGovernmentSignatureTemplateAccess,
   assertGovConfirmationOnlyTemplateRow,
   mapConfirmationFieldRow,
   buildTargetPhoneSnapshot,
@@ -382,7 +382,7 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
         return
       }
-      const ownerUserId = scope.userId
+      const listWhere = buildGovSignatureTemplateListWhere(scope, 't')
       const r = await pool.query(
         `
         SELECT
@@ -407,11 +407,11 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           t.updated_at
         FROM gov_signature_templates t
         LEFT JOIN pdf_templates p ON p.id = t.pdf_template_id
-        WHERE t.owner_user_id = $1 AND t.status = 'active'
+        WHERE ${listWhere.sql} AND t.status = 'active'
         ORDER BY t.updated_at DESC
         LIMIT 200
         `,
-        [ownerUserId],
+        listWhere.params,
       )
       const pdfIds = [
         ...new Set(
@@ -500,12 +500,14 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
         return
       }
-      const ownerUserId = scope.userId
+      const templateId = String(req.params.templateId ?? '').trim()
       if (!templateId) {
         res.status(404).json({ ok: false, message: '템플릿을 찾을 수 없습니다.' })
         return
       }
-      const { row, error, status } = await assertGovernmentSignatureTemplateAccess(pool, templateId, ownerUserId, false)
+      const { row, error, status } = await assertGovernmentSignatureTemplateAccess(pool, templateId, req, {
+        allowDraft: false,
+      })
       if (error) {
         res.status(status ?? 400).json({ ok: false, message: error })
         return
@@ -703,7 +705,7 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       /** @type {{ row: Record<string, unknown>, id: string }[]} */
       const templateAccs = []
       for (const tid of parsed.ids) {
-        const tacc = await assertGovernmentSignatureTemplateAccess(client, tid, ownerUserId, false)
+        const tacc = await assertGovernmentSignatureTemplateAccess(client, tid, req, { allowDraft: false })
         if (tacc.error) {
           await client.query('ROLLBACK')
           res.status(tacc.status ?? 400).json({ ok: false, message: tacc.error })

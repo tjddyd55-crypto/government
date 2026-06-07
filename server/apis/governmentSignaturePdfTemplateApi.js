@@ -11,12 +11,16 @@ import {
   deleteTemplate,
   getTemplateById,
   listFields,
-  listTemplates,
   replaceTemplateFields,
 } from '../pdf-engine/repository/pdfTemplateRepo.js'
 import { reconcileGovSignatureFieldSettingsAfterPdfSave } from '../services/governmentSignatureTemplateFieldSettings.js'
-import { getTemplateObject, putTemplateObject, deleteTemplateObject } from '../pdf-engine/storage/pdfTemplateStorage.js'
-import { getAuthUserId } from '../lib/governmentSignatures/access.js'
+import { getTemplateObject, putTemplateObject } from '../pdf-engine/storage/pdfTemplateStorage.js'
+import {
+  canAccessGovPdfTemplateRow,
+  getAuthUserId,
+  resolveGovSignatureTemplateTenantId,
+  resolveGovernmentSignatureAccessScope,
+} from '../lib/governmentSignatures/access.js'
 
 const uploadPdf = multer({
   storage: multer.memoryStorage(),
@@ -62,9 +66,13 @@ function fieldRowToDto(row) {
   }
 }
 
-function assertGovPdfTemplateAccess(template, ownerUserId) {
-  if (!template) return false
-  return String(template.gov_owner_user_id ?? '') === String(ownerUserId ?? '')
+async function loadGovPdfRow(pool, id) {
+  const r = await pool.query(
+    `SELECT id, title, storage_key, page_count, is_active, code, description, created_at, updated_at, gov_owner_user_id, gov_tenant_id
+     FROM pdf_templates WHERE id = $1 LIMIT 1`,
+    [id],
+  )
+  return r.rows[0] ?? null
 }
 
 /**
@@ -113,9 +121,15 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
 
   apiRouter.post(`${base}`, ...chain, async (req, res) => {
     try {
+      const scope = resolveGovernmentSignatureAccessScope(req)
       const ownerUserId = getAuthUserId(req)
-      if (!ownerUserId) {
-        res.status(401).json({ message: '로그인이 필요합니다.' })
+      if (!scope || !ownerUserId) {
+        res.status(403).json({ message: '전자서명 권한이 필요합니다.' })
+        return
+      }
+      const tenantId = resolveGovSignatureTemplateTenantId(req)
+      if (scope.mode === 'operational' && !tenantId) {
+        res.status(400).json({ message: '대행사 tenant 정보가 없습니다.' })
         return
       }
       const body = req.body ?? {}
@@ -134,8 +148,9 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
         pageCount,
         createdByUserId: ownerUserId,
       })
-      await pool.query(`UPDATE pdf_templates SET gov_owner_user_id = $1 WHERE id = $2`, [
+      await pool.query(`UPDATE pdf_templates SET gov_owner_user_id = $1, gov_tenant_id = $2 WHERE id = $3`, [
         ownerUserId,
+        tenantId != null ? Number(tenantId) : null,
         created.id,
       ])
       const full = await pool.query(`SELECT * FROM pdf_templates WHERE id = $1`, [created.id])
@@ -147,14 +162,40 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
 
   apiRouter.get(`${base}`, ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
-      if (!ownerUserId) {
-        res.status(401).json({ message: '로그인이 필요합니다.' })
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ message: '전자서명 권한이 필요합니다.' })
         return
       }
-      const rows = await listTemplates(pool, { gaId: null, includeInactive: true })
-      const filtered = rows.filter((r) => String(r.gov_owner_user_id ?? '') === ownerUserId)
-      res.json({ ok: true, templates: filtered.map(templateToDto) })
+      let r
+      if (scope.mode === 'operational') {
+        if (scope.tenantIds.length === 0) {
+          res.json({ ok: true, templates: [] })
+          return
+        }
+        r = await pool.query(
+          `
+          SELECT id, code, title, description, page_count, is_active, created_at, updated_at
+          FROM pdf_templates
+          WHERE gov_tenant_id::text = ANY($1::text[])
+          ORDER BY updated_at DESC
+          LIMIT 500
+          `,
+          [scope.tenantIds],
+        )
+      } else {
+        r = await pool.query(
+          `
+          SELECT id, code, title, description, page_count, is_active, created_at, updated_at
+          FROM pdf_templates
+          WHERE gov_owner_user_id = $1
+          ORDER BY updated_at DESC
+          LIMIT 500
+          `,
+          [scope.userId],
+        )
+      }
+      res.json({ ok: true, templates: r.rows.map(templateToDto) })
     } catch (e) {
       handleDbError(e, req, res)
     }
@@ -162,24 +203,18 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
 
   apiRouter.get(`${base}/:id`, ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
       const id = parseTemplateId(req.params.id)
-      if (!ownerUserId || id == null) {
+      if (id == null) {
         res.status(400).json({ message: '잘못된 요청입니다.' })
         return
       }
-      const template = await getTemplateById(pool, id)
-      const govRow = await pool.query(
-        `SELECT gov_owner_user_id FROM pdf_templates WHERE id = $1 LIMIT 1`,
-        [id],
-      )
-      const merged = template ? { ...template, gov_owner_user_id: govRow.rows[0]?.gov_owner_user_id } : null
-      if (!assertGovPdfTemplateAccess(merged, ownerUserId)) {
+      const merged = await loadGovPdfRow(pool, id)
+      if (!merged || !canAccessGovPdfTemplateRow(req, merged)) {
         res.status(404).json({ message: 'PDF 템플릿을 찾을 수 없습니다.' })
         return
       }
       const fields = await listFields(pool, id)
-      res.json({ ok: true, template: templateToDto(template), fields: fields.map(fieldRowToDto) })
+      res.json({ ok: true, template: templateToDto(merged), fields: fields.map(fieldRowToDto) })
     } catch (e) {
       handleDbError(e, req, res)
     }
@@ -187,19 +222,13 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
 
   apiRouter.put(`${base}/:id/fields`, ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
       const id = parseTemplateId(req.params.id)
-      if (!ownerUserId || id == null) {
+      if (id == null) {
         res.status(400).json({ message: '잘못된 요청입니다.' })
         return
       }
-      const template = await getTemplateById(pool, id)
-      const govRow = await pool.query(
-        `SELECT gov_owner_user_id FROM pdf_templates WHERE id = $1 LIMIT 1`,
-        [id],
-      )
-      const merged = template ? { ...template, gov_owner_user_id: govRow.rows[0]?.gov_owner_user_id } : null
-      if (!assertGovPdfTemplateAccess(merged, ownerUserId)) {
+      const merged = await loadGovPdfRow(pool, id)
+      if (!merged || !canAccessGovPdfTemplateRow(req, merged)) {
         res.status(404).json({ message: 'PDF 템플릿을 찾을 수 없습니다.' })
         return
       }
@@ -220,23 +249,17 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
 
   apiRouter.get(`${base}/:id/file`, ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
       const id = parseTemplateId(req.params.id)
-      if (!ownerUserId || id == null) {
+      if (id == null) {
         res.status(400).json({ message: '잘못된 요청입니다.' })
         return
       }
-      const template = await getTemplateById(pool, id)
-      const govRow = await pool.query(
-        `SELECT gov_owner_user_id FROM pdf_templates WHERE id = $1 LIMIT 1`,
-        [id],
-      )
-      const merged = template ? { ...template, gov_owner_user_id: govRow.rows[0]?.gov_owner_user_id } : null
-      if (!assertGovPdfTemplateAccess(merged, ownerUserId)) {
+      const merged = await loadGovPdfRow(pool, id)
+      if (!merged || !canAccessGovPdfTemplateRow(req, merged)) {
         res.status(404).json({ message: 'PDF 템플릿을 찾을 수 없습니다.' })
         return
       }
-      const buf = await getTemplateObject(template.storage_key)
+      const buf = await getTemplateObject(merged.storage_key)
       res.setHeader('Content-Type', 'application/pdf')
       res.send(buf)
     } catch (e) {
@@ -246,24 +269,15 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
 
   apiRouter.delete(`${base}/:id`, ...chain, async (req, res) => {
     try {
-      const ownerUserId = getAuthUserId(req)
       const id = parseTemplateId(req.params.id)
-      if (!ownerUserId || id == null) {
+      if (id == null) {
         res.status(400).json({ message: '잘못된 요청입니다.' })
         return
       }
-      const template = await getTemplateById(pool, id)
-      const govRow = await pool.query(
-        `SELECT gov_owner_user_id FROM pdf_templates WHERE id = $1 LIMIT 1`,
-        [id],
-      )
-      const merged = template ? { ...template, gov_owner_user_id: govRow.rows[0]?.gov_owner_user_id } : null
-      if (!assertGovPdfTemplateAccess(merged, ownerUserId)) {
+      const merged = await loadGovPdfRow(pool, id)
+      if (!merged || !canAccessGovPdfTemplateRow(req, merged)) {
         res.status(404).json({ message: 'PDF 템플릿을 찾을 수 없습니다.' })
         return
-      }
-      if (template.storage_key) {
-        await deleteTemplateObject(template.storage_key)
       }
       await deleteTemplate(pool, id)
       res.json({ ok: true })

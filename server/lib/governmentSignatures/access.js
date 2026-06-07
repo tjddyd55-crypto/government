@@ -1,7 +1,7 @@
 /**
  * 정부지원 전자서명 접근 제어.
- * - program user: 본인 사업장·본인 템플릿
- * - 대행사 관리자/직원: tenant 범위 사업장 발송·내역, 본인이 만든 템플릿/PDF
+ * - program user: 본인 사업장·본인 템플릿(owner_user_id)
+ * - 대행사 관리자/직원: tenant 범위 공용 템플릿·PDF·발송·내역
  * @module governmentSignatures/access
  */
 
@@ -10,7 +10,11 @@ import {
   isGovernmentProgramUser,
   isGovernmentSuperAdmin,
 } from '../governmentSupport/governmentAccess.js'
-import { canManageGovernmentOperations, getOperationalTenantIds } from '../governmentSupport/governmentOperationsAccess.js'
+import {
+  canManageGovernmentOperations,
+  getOperationalTenantIds,
+  getProgramUserTenantIds,
+} from '../governmentSupport/governmentOperationsAccess.js'
 
 /**
  * @param {import('express').Request} req
@@ -81,6 +85,143 @@ export function resolveGovernmentSignatureAccessScope(req) {
 }
 
 /**
+ * 템플릿/PDF 생성 시 저장할 tenant_id (operational·program 공통).
+ * @param {import('express').Request} req
+ * @returns {string | null}
+ */
+export function resolveGovSignatureTemplateTenantId(req) {
+  const scope = resolveGovernmentSignatureAccessScope(req)
+  if (!scope) {
+    return null
+  }
+  if (scope.mode === 'operational') {
+    if (scope.tenantIds.length === 1) {
+      return scope.tenantIds[0]
+    }
+    const raw = req.body?.tenantId ?? req.body?.tenant_id ?? req.query?.tenantId ?? req.query?.tenant_id
+    if (raw != null && String(raw).trim()) {
+      const tid = String(raw).trim()
+      if (scope.tenantIds.includes(tid)) {
+        return tid
+      }
+    }
+    return scope.tenantIds[0] ?? null
+  }
+  const ctx = getGovernmentSignaturePlatformContext(req)
+  const programTenants = getProgramUserTenantIds(ctx)
+  return programTenants[0] ?? null
+}
+
+/**
+ * @param {{ mode: 'program'; userId: string } | { mode: 'operational'; userId: string; tenantIds: string[] }} scope
+ * @param {string} [alias]
+ */
+export function buildGovSignatureTemplateListWhere(scope, alias = 't') {
+  if (!scope) {
+    return { sql: 'FALSE', params: [] }
+  }
+  if (scope.mode === 'program') {
+    return { sql: `${alias}.owner_user_id = $1`, params: [scope.userId] }
+  }
+  if (scope.tenantIds.length === 0) {
+    return { sql: 'FALSE', params: [] }
+  }
+  return { sql: `${alias}.tenant_id::text = ANY($1::text[])`, params: [scope.tenantIds] }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {{ owner_user_id?: unknown, tenant_id?: unknown }} row
+ */
+export function canAccessGovSignatureTemplateRow(req, row) {
+  const scope = resolveGovernmentSignatureAccessScope(req)
+  if (!scope || !row) {
+    return false
+  }
+  if (scope.mode === 'program') {
+    return String(row.owner_user_id ?? '') === scope.userId
+  }
+  const tid = row.tenant_id != null ? String(row.tenant_id) : ''
+  if (tid && scope.tenantIds.includes(tid)) {
+    return true
+  }
+  return String(row.owner_user_id ?? '') === scope.userId
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {{ gov_owner_user_id?: unknown, gov_tenant_id?: unknown }} row
+ */
+export function canAccessGovPdfTemplateRow(req, row) {
+  const scope = resolveGovernmentSignatureAccessScope(req)
+  if (!scope || !row) {
+    return false
+  }
+  if (row.gov_owner_user_id == null && row.gov_tenant_id == null) {
+    return false
+  }
+  if (scope.mode === 'program') {
+    return String(row.gov_owner_user_id ?? '') === scope.userId
+  }
+  const tid = row.gov_tenant_id != null ? String(row.gov_tenant_id) : ''
+  if (tid && scope.tenantIds.includes(tid)) {
+    return true
+  }
+  return String(row.gov_owner_user_id ?? '') === scope.userId
+}
+
+/**
+ * @param {import('pg').Pool | import('pg').PoolClient} executor
+ * @param {number|string} pdfTemplateId
+ */
+export async function loadGovPdfTemplateRow(executor, pdfTemplateId) {
+  const id = Number(pdfTemplateId)
+  if (!Number.isInteger(id) || id < 1) {
+    return null
+  }
+  const r = await executor.query(
+    `
+    SELECT id, title, storage_key, page_count, is_active, gov_owner_user_id, gov_tenant_id
+    FROM pdf_templates
+    WHERE id = $1
+    LIMIT 1
+    `,
+    [id],
+  )
+  return r.rows[0] ?? null
+}
+
+/**
+ * @param {import('pg').Pool | import('pg').PoolClient} executor
+ * @param {string} templateId
+ * @param {import('express').Request} req
+ * @param {{ allowDraft?: boolean }} [opts]
+ */
+export async function assertGovernmentSignatureTemplateAccess(executor, templateId, req, opts = {}) {
+  const scope = resolveGovernmentSignatureAccessScope(req)
+  if (!scope) {
+    return { row: null, error: '전자서명 권한이 없습니다.', status: 403 }
+  }
+  const tid = String(templateId ?? '').trim()
+  if (!tid) {
+    return { row: null, error: '템플릿을 찾을 수 없습니다.', status: 404 }
+  }
+  const r = await executor.query(`SELECT * FROM gov_signature_templates WHERE id = $1 LIMIT 1`, [tid])
+  const row = r.rows[0]
+  if (!row) {
+    return { row: null, error: '템플릿을 찾을 수 없습니다.', status: 404 }
+  }
+  if (!canAccessGovSignatureTemplateRow(req, row)) {
+    return { row: null, error: '템플릿에 접근할 수 없습니다.', status: 403 }
+  }
+  const allowDraft = opts.allowDraft !== false
+  if (!allowDraft && String(row.status) !== 'active') {
+    return { row: null, error: '활성 템플릿만 사용할 수 있습니다.', status: 403 }
+  }
+  return { row, error: null, status: 200 }
+}
+
+/**
  * @param {{ mode: 'program'; userId: string } | { mode: 'operational'; userId: string; tenantIds: string[] }} scope
  * @param {string} [aliasS]
  * @param {string} [aliasP]
@@ -138,24 +279,12 @@ export async function resolveGovSignatureOwnerUserId(_pool, req) {
  * @param {string} ownerUserId
  * @param {boolean} allowDraft
  */
-export async function assertGovSignatureTemplateAccess(pool, templateId, ownerUserId, allowDraft = true) {
-  const tid = String(templateId ?? '').trim()
-  const uid = String(ownerUserId ?? '').trim()
-  if (!tid || !uid) {
-    return { row: null, error: '템플릿을 찾을 수 없습니다.', status: 404 }
+export async function assertGovSignatureTemplateAccess(pool, templateId, req, allowDraft = true) {
+  const acc = await assertGovernmentSignatureTemplateAccess(pool, templateId, req, { allowDraft })
+  if (acc.error) {
+    return { row: null, error: acc.error, status: acc.status ?? 404 }
   }
-  const r = await pool.query(
-    `SELECT * FROM gov_signature_templates WHERE id = $1 AND owner_user_id = $2 LIMIT 1`,
-    [tid, uid],
-  )
-  const row = r.rows[0]
-  if (!row) {
-    return { row: null, error: '템플릿을 찾을 수 없습니다.', status: 404 }
-  }
-  if (!allowDraft && String(row.status) !== 'active') {
-    return { row: null, error: '활성 템플릿만 사용할 수 있습니다.', status: 403 }
-  }
-  return { row, error: null, status: 200 }
+  return { row: acc.row, error: null, status: 200 }
 }
 
 /**

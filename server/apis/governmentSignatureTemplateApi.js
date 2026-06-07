@@ -1,5 +1,14 @@
 ﻿import { createHash, randomBytes, randomUUID } from 'node:crypto'
-import { getAuthUserId, resolveGovSignatureOwnerUserId } from '../lib/governmentSignatures/access.js'
+import {
+  assertGovernmentSignatureTemplateAccess,
+  buildGovSignatureTemplateListWhere,
+  canAccessGovPdfTemplateRow,
+  getAuthUserId,
+  loadGovPdfTemplateRow,
+  resolveGovSignatureTemplateTenantId,
+  resolveGovernmentSignatureAccessScope,
+  resolveGovSignatureOwnerUserId,
+} from '../lib/governmentSignatures/access.js'
 import { normalizeKrMobile, validateKrMobileDigits } from '../lib/phoneNormalize.js'
 import { maskKrMobileForDisplay } from '../utils/maskKrMobile.js'
 import { getGovernmentSignatureOtpPepper, isRunningInProduction } from '../lib/governmentSignatureOtpConfig.js'
@@ -208,30 +217,6 @@ export async function assertProfileForGovSignatureSend(client, profileId, ownerU
   return { row, digits }
 }
 
-async function loadPdfTemplateRow(client, pdfTemplateId) {
-  const id = Number(pdfTemplateId)
-  if (!Number.isInteger(id) || id < 1) {
-    return null
-  }
-  const r = await client.query(
-    `
-    SELECT id, title, storage_key, page_count, is_active, gov_owner_user_id
-    FROM pdf_templates
-    WHERE id = $1
-    LIMIT 1
-    `,
-    [id],
-  )
-  return r.rows[0] ?? null
-}
-
-function pdfTemplateOwnerOk(pdfRow, ownerUserId) {
-  if (pdfRow.gov_owner_user_id == null) {
-    return false
-  }
-  return String(pdfRow.gov_owner_user_id) === String(ownerUserId ?? '')
-}
-
 async function countPdfEngineFields(client, pdfTemplateId) {
   const r = await client.query(
     `SELECT COUNT(*)::int AS c FROM pdf_template_fields WHERE template_id = $1`,
@@ -240,28 +225,7 @@ async function countPdfEngineFields(client, pdfTemplateId) {
   return Number(r.rows[0]?.c ?? 0)
 }
 
-export async function assertGovernmentSignatureTemplateAccess(client, templateId, ownerUserIdId, isSuper) {
-  const r = await client.query(
-    `SELECT * FROM gov_signature_templates WHERE id = $1 LIMIT 1`,
-    [templateId],
-  )
-  const row = r.rows[0]
-  if (!row) {
-    return { error: '템플릿을 찾을 수 없습니다.', status: 404 }
-  }
-  if (!isSuper) {
-    if (row.owner_user_id == null) {
-      return { error: '템플릿에 접근할 수 없습니다.', status: 403 }
-    }
-    if (ownerUserIdId == null) {
-      return { error: 'GA 컨텍스트가 없습니다.', status: 400 }
-    }
-    if (String(row.owner_user_id ?? '') !== String(ownerUserIdId ?? '')) {
-      return { error: '템플릿에 접근할 수 없습니다.', status: 403 }
-    }
-  }
-  return { row }
-}
+export { assertGovernmentSignatureTemplateAccess } from '../lib/governmentSignatures/access.js'
 
 async function assertPackageAccess(client, packageId, ownerUserIdId, isSuper) {
   const r = await client.query(`SELECT * FROM gov_signature_packages WHERE id = $1 LIMIT 1`, [packageId])
@@ -364,20 +328,16 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/signature-templates', ...chain, async (req, res) => {
     try {
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 필요합니다.' })
+        return
+      }
       const status = String(req.query?.status ?? '').trim()
       const category = String(req.query?.category ?? '').trim()
-      const params = /** @type {unknown[]} */ ([])
-      let where = 'WHERE 1=1'
-      if (!(isSuper && ownerUserId == null)) {
-        if (ownerUserId == null) {
-          res.status(403).json({ ok: false, message: '전자서명 권한이 필요합니다.' })
-          return
-        }
-        params.push(ownerUserId)
-        where += ` AND t.owner_user_id = $${params.length}`
-      }
+      const listWhere = buildGovSignatureTemplateListWhere(scope, 't')
+      const params = [...listWhere.params]
+      let where = `WHERE ${listWhere.sql}`
       if (status && ALLOWED_TEMPLATE_STATUS.has(status)) {
         params.push(status)
         where += ` AND t.status = $${params.length}`
@@ -439,14 +399,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/signature-templates/:id', ...chain, async (req, res) => {
     try {
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
-      const { row, error, status } = await assertGovernmentSignatureTemplateAccess(
-        pool,
-        req.params.id,
-        ownerUserId,
-        isSuper,
-      )
+      const { row, error, status } = await assertGovernmentSignatureTemplateAccess(pool, req.params.id, req)
       if (error) {
         res.status(status ?? 400).json({ ok: false, message: error })
         return
@@ -529,9 +482,15 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
   apiRouter.post('/government-support/signature-templates', ...chain, async (req, res) => {
     const client = await pool.connect()
     try {
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      if (ownerUserId == null) {
-        res.status(400).json({ ok: false, message: 'GA가 필요합니다. tenant_owner_user_id(슈퍼관리자) 또는 소속 GA를 확인하세요.' })
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      const ownerUserId = getAuthUserId(req)
+      if (!scope || !ownerUserId) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 필요합니다.' })
+        return
+      }
+      const tenantId = resolveGovSignatureTemplateTenantId(req)
+      if (scope.mode === 'operational' && !tenantId) {
+        res.status(400).json({ ok: false, message: '대행사 tenant 정보가 없습니다.' })
         return
       }
       const title = String(req.body?.title ?? '').trim()
@@ -550,7 +509,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
       }
       let pdfRow = null
       if (pdfTemplateId != null) {
-        pdfRow = await loadPdfTemplateRow(client, pdfTemplateId)
+        pdfRow = await loadGovPdfTemplateRow(client, pdfTemplateId)
         if (!pdfRow) {
           res.status(400).json({ ok: false, message: 'pdfTemplateId에 해당하는 PDF 템플릿이 없습니다.' })
           return
@@ -559,7 +518,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
           res.status(400).json({ ok: false, message: '비활성 PDF 템플릿은 연결할 수 없습니다.' })
           return
         }
-        if (!pdfTemplateOwnerOk(pdfRow, ownerUserId)) {
+        if (!canAccessGovPdfTemplateRow(req, pdfRow)) {
           res.status(403).json({ ok: false, message: '해당 GA에서 사용할 수 없는 PDF 템플릿입니다.' })
           return
         }
@@ -590,9 +549,9 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
         `
         INSERT INTO gov_signature_templates (
           id, title, description, category, pdf_template_id, pdf_file_path, page_count,
-          template_mode, status, version, created_by_user_id, owner_user_id, created_at, updated_at
+          template_mode, status, version, created_by_user_id, owner_user_id, tenant_id, created_at, updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1, $10, $11, NOW(), NOW())
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1, $10, $11, $12, NOW(), NOW())
         `,
         [
           id,
@@ -606,6 +565,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
           statusRaw,
           uid || null,
           ownerUserId,
+          tenantId != null ? Number(tenantId) : null,
         ],
       )
       if (pdfTemplateId != null && Number.isInteger(pdfTemplateId)) {
@@ -626,9 +586,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
   apiRouter.patch('/government-support/signature-templates/:id', ...chain, async (req, res) => {
     const client = await pool.connect()
     try {
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
-      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, ownerUserId, isSuper)
+      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, req)
       if (acc.error) {
         res.status(acc.status ?? 400).json({ ok: false, message: acc.error })
         return
@@ -675,7 +633,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
             res.status(400).json({ ok: false, message: 'pdfTemplateId가 올바르지 않습니다.' })
             return
           }
-          const pdfRow = await loadPdfTemplateRow(client, pid)
+          const pdfRow = await loadGovPdfTemplateRow(client, pid)
           if (!pdfRow) {
             res.status(400).json({ ok: false, message: 'pdfTemplateId에 해당하는 PDF 템플릿이 없습니다.' })
             return
@@ -684,7 +642,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
             res.status(400).json({ ok: false, message: '비활성 PDF 템플릿은 연결할 수 없습니다.' })
             return
           }
-          if (!pdfTemplateOwnerOk(pdfRow, row.owner_user_id != null ? Number(row.owner_user_id) : ownerUserId)) {
+          if (!canAccessGovPdfTemplateRow(req, pdfRow)) {
             res.status(403).json({ ok: false, message: '해당 GA에서 사용할 수 없는 PDF 템플릿입니다.' })
             return
           }
@@ -723,9 +681,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
   apiRouter.patch('/government-support/signature-templates/:id/status', ...chain, async (req, res) => {
     const client = await pool.connect()
     try {
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
-      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, ownerUserId, isSuper)
+      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, req)
       if (acc.error) {
         res.status(acc.status ?? 400).json({ ok: false, message: acc.error })
         return
@@ -784,9 +740,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
     const client = await pool.connect()
     try {
       await client.query('BEGIN')
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
-      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, ownerUserId, isSuper)
+      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, req)
       if (acc.error) {
         await client.query('ROLLBACK')
         res.status(acc.status ?? 400).json({ ok: false, message: acc.error })
@@ -795,15 +749,22 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
       const src = acc.row
       const newTid = newId(GST_PREFIX)
       const uid = getAuthUserId(req)
-      const baseTitle = String(src.title ?? '').trim() || '계약서 템플릿'
+      const ownerUserId = uid
+      const tenantId =
+        src.tenant_id != null
+          ? src.tenant_id
+          : resolveGovSignatureTemplateTenantId(req) != null
+            ? Number(resolveGovSignatureTemplateTenantId(req))
+            : null
+      const baseTitle = String(src.title ?? '').trim() || '전자서명 템플릿'
       const copyTitle = `${baseTitle} (복사)`
       await client.query(
         `
         INSERT INTO gov_signature_templates (
           id, title, description, category, pdf_file_id, pdf_file_path, pdf_hash, page_count,
-          pdf_template_id, template_mode, status, version, created_by_user_id, owner_user_id, created_at, updated_at
+          pdf_template_id, template_mode, status, version, created_by_user_id, owner_user_id, tenant_id, created_at, updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'draft', 1, $11, $12, NOW(), NOW())
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'draft', 1, $11, $12, $13, NOW(), NOW())
         `,
         [
           newTid,
@@ -819,7 +780,8 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
             ? String(src.template_mode).trim()
             : 'coordinate_pdf',
           uid || null,
-          srp.tenant_id ?? null,
+          ownerUserId,
+          tenantId,
         ],
       )
       const fieldsR = await client.query(`SELECT * FROM gov_signature_template_fields WHERE template_id = $1`, [
@@ -919,9 +881,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
   apiRouter.patch('/government-support/signature-templates/:id/field-input-settings', ...chain, async (req, res) => {
     const client = await pool.connect()
     try {
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
-      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, ownerUserId, isSuper)
+      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, req)
       if (acc.error) {
         res.status(acc.status ?? 400).json({ ok: false, message: acc.error })
         return
@@ -999,14 +959,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
 
   apiRouter.get('/government-support/signature-templates/:id/confirmation-fields', ...chain, async (req, res) => {
     try {
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
-      const { row, error, status } = await assertGovernmentSignatureTemplateAccess(
-        pool,
-        req.params.id,
-        ownerUserId,
-        isSuper,
-      )
+      const { row, error, status } = await assertGovernmentSignatureTemplateAccess(pool, req.params.id, req)
       if (error) {
         res.status(status ?? 400).json({ ok: false, message: error })
         return
@@ -1034,9 +987,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
   apiRouter.post('/government-support/signature-templates/:id/confirmation-fields', ...chain, async (req, res) => {
     const client = await pool.connect()
     try {
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
-      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, ownerUserId, isSuper)
+      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, req)
       if (acc.error) {
         res.status(acc.status ?? 400).json({ ok: false, message: acc.error })
         return
@@ -1170,9 +1121,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
         res.status(400).json({ ok: false, message: 'fieldKey는 변경할 수 없습니다.' })
         return
       }
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
-      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, ownerUserId, isSuper)
+      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, req)
       if (acc.error) {
         res.status(acc.status ?? 400).json({ ok: false, message: acc.error })
         return
@@ -1287,9 +1236,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
   apiRouter.delete('/government-support/signature-templates/:id/confirmation-fields/:fieldId', ...chain, async (req, res) => {
     const client = await pool.connect()
     try {
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
-      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, ownerUserId, isSuper)
+      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, req)
       if (acc.error) {
         res.status(acc.status ?? 400).json({ ok: false, message: acc.error })
         return
@@ -1324,9 +1271,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
   apiRouter.delete('/government-support/signature-templates/:id', ...chain, async (req, res) => {
     const client = await pool.connect()
     try {
-      const ownerUserId = await resolveGovSignatureOwnerUserId(pool, req)
-      const isSuper = false
-      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, ownerUserId, isSuper)
+      const acc = await assertGovernmentSignatureTemplateAccess(client, req.params.id, req)
       if (acc.error) {
         res.status(acc.status ?? 400).json({ ok: false, message: acc.error })
         return
@@ -1491,7 +1436,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
           res.status(400).json({ ok: false, message: 'items[].templateId가 올바르지 않습니다.' })
           return
         }
-        const tacc = await assertGovernmentSignatureTemplateAccess(client, tid, ownerUserId, isSuper)
+        const tacc = await assertGovernmentSignatureTemplateAccess(client, tid, req)
         if (tacc.error) {
           await client.query('ROLLBACK')
           res.status(tacc.status ?? 400).json({ ok: false, message: tacc.error })
@@ -1566,7 +1511,7 @@ export function registerGovernmentSignatureTemplateApi(apiRouter, ctx) {
             res.status(400).json({ ok: false, message: 'items[].templateId가 올바르지 않습니다.' })
             return
           }
-          const tacc = await assertGovernmentSignatureTemplateAccess(client, tid, ownerUserId, isSuper)
+          const tacc = await assertGovernmentSignatureTemplateAccess(client, tid, req)
           if (tacc.error) {
             await client.query('ROLLBACK')
             res.status(tacc.status ?? 400).json({ ok: false, message: tacc.error })
