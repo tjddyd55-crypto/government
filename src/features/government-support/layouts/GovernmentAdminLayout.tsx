@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import useIsMobile from '../../../hooks/useIsMobile'
@@ -18,21 +18,33 @@ import { canAccessUserOwnedWorkspace } from '../lib/governmentHome'
 import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
 import '../government-support.css'
 
+function isAdminNavItemActive(pathname: string, item: GovernmentAdminNavItem): boolean {
+  if (item.matchPrefix) {
+    return pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`)
+  }
+  if (item.end) {
+    return pathname === item.to
+  }
+  return pathname === item.to || pathname.startsWith(`${item.to}/`)
+}
+
 function AdminNav({ items, className }: { items: GovernmentAdminNavItem[]; className?: string }) {
+  const { pathname } = useLocation()
   return (
     <nav className={className} aria-label="관리 메뉴">
-      {items.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          end={item.end}
-          className={({ isActive }) =>
-            `government-admin-layout__nav-link${isActive ? ' government-admin-layout__nav-link--active' : ''}`
-          }
-        >
-          {item.label}
-        </NavLink>
-      ))}
+      {items.map((item) => {
+        const active = isAdminNavItemActive(pathname, item)
+        return (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            className={`government-admin-layout__nav-link${active ? ' government-admin-layout__nav-link--active' : ''}`}
+          >
+            {item.label}
+          </NavLink>
+        )
+      })}
     </nav>
   )
 }

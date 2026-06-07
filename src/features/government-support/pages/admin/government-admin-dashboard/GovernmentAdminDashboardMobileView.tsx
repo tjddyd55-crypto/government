@@ -19,7 +19,17 @@ export default function GovernmentAdminDashboardMobileView(props: GovernmentAdmi
       {isPlatform ? (
         <PlatformHubSection cards={props.platformCards} />
       ) : (
-        <OperationalDashboardBody {...props} />
+        <>
+          {props.signatureSetupCards.length > 0 ? (
+            <section className="government-admin-dashboard__section" aria-labelledby="gov-admin-dash-signature-setup">
+              <h2 id="gov-admin-dash-signature-setup" className="government-admin-dashboard__section-title">
+                전자서명 준비
+              </h2>
+              <PlatformHubSection cards={props.signatureSetupCards} />
+            </section>
+          ) : null}
+          <OperationalDashboardBody {...props} />
+        </>
       )}
     </main>
   )

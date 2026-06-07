@@ -2,6 +2,8 @@ import type { GaTenantDashboardMenuEntry } from '../../dashboard/gaTenantMenu'
 import type { GovernmentAccessSummary } from '../api/governmentSupportApi'
 import { canManageGovernmentUsers, isGovernmentProgramUser } from '../lib/governmentAccess'
 import {
+  GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+  GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
   GOVERNMENT_AGENCY_ADMIN_NAV,
   GOVERNMENT_INDUSTRY_ADMIN_NAV,
   GOVERNMENT_STAFF_NAV,
@@ -64,6 +66,16 @@ export function buildGovernmentUserMobileMenu(): GaTenantDashboardMenuEntry[] {
 }
 
 export function isGovernmentMobileMenuPathActive(pathname: string, itemPath: string): boolean {
+  if (itemPath === GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH) {
+    return (
+      pathname === itemPath ||
+      pathname === `${itemPath}/new` ||
+      /^\/government\/admin\/signature-templates\/[^/]+\/edit$/.test(pathname)
+    )
+  }
+  if (itemPath === GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH) {
+    return pathname.startsWith(`${GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH}/pdf`)
+  }
   if (itemPath === '/government/workspace') {
     return pathname === '/government/workspace'
   }

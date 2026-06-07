@@ -304,7 +304,21 @@ export default function GovernmentAdminDashboardPCView(props: GovernmentAdminDas
             : '요청서류·문의·전자서명·이용자 요약을 한 화면에서 확인합니다. 상세는 각 관리 메뉴에서 처리하세요.'}
         </p>
       </header>
-      {isPlatform ? <PlatformHubSection cards={props.platformCards} /> : <OperationalDashboardBody {...props} />}
+      {isPlatform ? (
+        <PlatformHubSection cards={props.platformCards} />
+      ) : (
+        <>
+          {props.signatureSetupCards.length > 0 ? (
+            <section className="government-admin-dashboard__section" aria-labelledby="gov-admin-dash-signature-setup">
+              <h2 id="gov-admin-dash-signature-setup" className="government-admin-dashboard__section-title">
+                전자서명 준비
+              </h2>
+              <PlatformHubSection cards={props.signatureSetupCards} />
+            </section>
+          ) : null}
+          <OperationalDashboardBody {...props} />
+        </>
+      )}
     </main>
   )
 }

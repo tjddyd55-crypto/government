@@ -2,27 +2,30 @@
 export type GovernmentAdminNavItem = {
   to: string
   label: string
+  /** NavLink end — 정확히 to 와 일치할 때만 active */
   end?: boolean
+  /** NavLink active — pathname 이 이 prefix 로 시작할 때 active (end 보다 우선) */
+  matchPrefix?: string
 }
+
+export const GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH = '/government/admin/signature-templates'
+export const GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH = '/government/admin/signature-templates/pdf/new'
 
 const RESOURCES_NAV: GovernmentAdminNavItem = {
   to: '/government/admin/resources',
   label: '자료실/서식함',
 }
 
-const SIGNATURE_HISTORY_NAV: GovernmentAdminNavItem = {
-  to: '/government/admin/signatures',
-  label: '전자서명 발송 내역',
-}
-
-const SIGNATURE_SEND_NAV: GovernmentAdminNavItem = {
-  to: '/government/admin/signatures/send',
-  label: '전자서명 발송',
-}
-
 const SIGNATURE_TEMPLATES_NAV: GovernmentAdminNavItem = {
-  to: '/government/admin/signature-templates',
+  to: GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
   label: '전자서명 템플릿',
+  end: true,
+}
+
+const SIGNATURE_PDF_COORDINATES_NAV: GovernmentAdminNavItem = {
+  to: GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+  label: 'PDF 좌표 설정',
+  matchPrefix: `${GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH}/pdf`,
 }
 
 const SETTINGS_NAV: GovernmentAdminNavItem = {
@@ -45,9 +48,8 @@ export const GOVERNMENT_AGENCY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: '/government/admin/document-requests', label: '요청서류 관리' },
   { to: '/government/admin/inquiries', label: '문의 관리' },
   { to: '/government/admin/notifications', label: '알림' },
-  SIGNATURE_HISTORY_NAV,
-  SIGNATURE_SEND_NAV,
   SIGNATURE_TEMPLATES_NAV,
+  SIGNATURE_PDF_COORDINATES_NAV,
   { to: '/government/admin/notices', label: '공지/전달사항' },
   RESOURCES_NAV,
   SETTINGS_NAV,
@@ -59,9 +61,8 @@ export const GOVERNMENT_STAFF_NAV: GovernmentAdminNavItem[] = [
   { to: '/government/admin/document-requests', label: '요청서류 관리' },
   { to: '/government/admin/inquiries', label: '문의 관리' },
   { to: '/government/admin/notifications', label: '알림' },
-  SIGNATURE_HISTORY_NAV,
-  SIGNATURE_SEND_NAV,
   SIGNATURE_TEMPLATES_NAV,
+  SIGNATURE_PDF_COORDINATES_NAV,
   { to: '/government/admin/notices', label: '공지/전달사항' },
   RESOURCES_NAV,
   { to: '/government/admin/settings', label: '내 정보' },

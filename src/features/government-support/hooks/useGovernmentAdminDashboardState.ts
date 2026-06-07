@@ -7,7 +7,11 @@ import {
 import { fetchGovAgencies } from '../api/governmentProfilesApi'
 import { fetchGovernmentAdminUsers } from '../api/governmentAdminUsersApi'
 import { canManageGovernmentUsers } from '../lib/governmentAccess'
-import { isGovernmentOperationalAccount } from '../lib/governmentHome'
+import { canManageGovernmentSignatures, isGovernmentOperationalAccount } from '../lib/governmentHome'
+import {
+  GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+  GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
+} from '../config/governmentAdminNav'
 
 export type GovernmentAdminDashboardHubCard = {
   to: string
@@ -22,6 +26,8 @@ export type GovernmentAdminDashboardViewProps = {
   summary: GovernmentAdminDashboardSummary | null
   platformCards: GovernmentAdminDashboardHubCard[]
   showUserMgmt: boolean
+  canManageSignatures: boolean
+  signatureSetupCards: GovernmentAdminDashboardHubCard[]
 }
 
 export function useGovernmentAdminDashboardState(
@@ -29,6 +35,7 @@ export function useGovernmentAdminDashboardState(
   accessSummary: GovernmentAccessSummary | null,
 ): GovernmentAdminDashboardViewProps {
   const showUserMgmt = canManageGovernmentUsers(accessSummary)
+  const canManageSignatures = canManageGovernmentSignatures(accessSummary)
   const variant: 'platform' | 'operational' = useMemo(() => {
     if (!accessSummary) return 'platform'
     if (accessSummary.isSuperAdmin || accessSummary.isGovernmentIndustryAdmin) {
@@ -120,6 +127,22 @@ export function useGovernmentAdminDashboardState(
     return list
   }, [agencyCount, programUserCount, showUserMgmt])
 
+  const signatureSetupCards = useMemo((): GovernmentAdminDashboardHubCard[] => {
+    if (!canManageSignatures) return []
+    return [
+      {
+        to: GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
+        title: '전자서명 템플릿',
+        description: '전자서명 문서 템플릿을 생성·수정합니다.',
+      },
+      {
+        to: GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+        title: 'PDF 좌표 설정',
+        description: 'PDF를 업로드하고 서명·입력 좌표를 설정합니다.',
+      },
+    ]
+  }, [canManageSignatures])
+
   return {
     variant,
     loading,
@@ -127,5 +150,7 @@ export function useGovernmentAdminDashboardState(
     summary,
     platformCards,
     showUserMgmt,
+    canManageSignatures,
+    signatureSetupCards,
   }
 }

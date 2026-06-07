@@ -152,6 +152,7 @@ import GovernmentUserNoticesPage from './features/government-support/pages/Gover
 import GovernmentUserResourcesPage from './features/government-support/pages/GovernmentUserResourcesPage'
 import GovernmentPlaceholderPage from './features/government-support/components/GovernmentPlaceholderPage'
 import GovernmentProtectedRoute from './features/government-support/routes/GovernmentProtectedRoute'
+import { GovernmentSignatureAdminRoute } from './features/government-support/routes/GovernmentSignatureAdminRoute'
 import GovernmentSignPage from './features/government-support/publicSignature/GovernmentSignPage'
 import GovernmentSignDocumentPage from './features/government-support/publicSignature/GovernmentSignDocumentPage'
 import { GovernmentSignatureUserSendRoute } from './features/government-support/signatures/GovernmentSignatureUserSendRoute'
@@ -279,13 +280,7 @@ export const appRouter = createBrowserRouter([
               },
               {
                 path: 'government/admin/pdf-templates',
-                element: (
-                  <GovernmentPlaceholderPage
-                    title="PDF 좌표 템플릿"
-                    description="기존 PDF 엔진 템플릿을 government 필드 매핑과 함께 사용합니다."
-                    backTo="/government/admin"
-                  />
-                ),
+                element: <Navigate to="/government/admin/signature-templates/pdf/new" replace />,
               },
             ],
           },
@@ -302,24 +297,28 @@ export const appRouter = createBrowserRouter([
               { path: 'government/admin/document-requests', element: <GovernmentAdminDocumentRequestsPage /> },
               { path: 'government/admin/inquiries', element: <GovernmentAdminInquiriesPage /> },
               { path: 'government/admin/notifications', element: <GovernmentAdminNotificationsPage /> },
-            ],
-          },
-        ],
-      },
-      {
-        element: <GovernmentProtectedRoute requireSignatureOperational />,
-        children: [
-          {
-            element: <GovernmentAdminLayout />,
-            children: [
-              { path: 'government/admin/signatures', element: <GovernmentSignatureHistoryPage /> },
-              { path: 'government/admin/signatures/send', element: <GovernmentSignatureSendPage /> },
-              { path: 'government/admin/signatures/:id', element: <GovernmentSignatureHistoryPage /> },
-              { path: 'government/admin/signature-templates', element: <GovernmentSignatureTemplatesPage /> },
-              { path: 'government/admin/signature-templates/new', element: <GovernmentSignatureTemplatesPage /> },
-              { path: 'government/admin/signature-templates/:id/edit', element: <GovernmentSignatureTemplatesPage /> },
-              { path: 'government/admin/signature-templates/pdf/new', element: <GovernmentPdfTemplateEditorPage /> },
-              { path: 'government/admin/signature-templates/pdf/:id', element: <GovernmentPdfTemplateEditorPage /> },
+              {
+                element: <GovernmentSignatureAdminRoute />,
+                children: [
+                  { path: 'government/admin/signatures', element: <GovernmentSignatureHistoryPage /> },
+                  { path: 'government/admin/signatures/send', element: <GovernmentSignatureSendPage /> },
+                  { path: 'government/admin/signatures/:id', element: <GovernmentSignatureHistoryPage /> },
+                  { path: 'government/admin/signature-templates', element: <GovernmentSignatureTemplatesPage /> },
+                  { path: 'government/admin/signature-templates/new', element: <GovernmentSignatureTemplatesPage /> },
+                  {
+                    path: 'government/admin/signature-templates/pdf/new',
+                    element: <GovernmentPdfTemplateEditorPage />,
+                  },
+                  {
+                    path: 'government/admin/signature-templates/pdf/:id',
+                    element: <GovernmentPdfTemplateEditorPage />,
+                  },
+                  {
+                    path: 'government/admin/signature-templates/:id/edit',
+                    element: <GovernmentSignatureTemplatesPage />,
+                  },
+                ],
+              },
             ],
           },
         ],
