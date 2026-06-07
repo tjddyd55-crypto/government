@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from './features/auth/AuthProvider'
 import { resolveAuthLandingPath } from './features/auth/landing'
 import useIsMobile from './hooks/useIsMobile'
+import { isGovernmentProductApp } from './config/appProduct'
 import { useGovernmentAccess } from './features/government-support/hooks/useGovernmentAccess'
 import { resolveGovernmentHomePath } from './features/government-support/lib/governmentHome'
 import { isGovernmentGaSession } from './features/government-support/lib/isGovernmentGaSession'
@@ -9,7 +10,7 @@ import { isGovernmentGaSession } from './features/government-support/lib/isGover
 /**
  * 루트(`/`) 인덱스 라우트 진입 처리.
  *
- * - 비로그인: `/login?required=1`
+ * - 비로그인: `/government/login`(정부지원 제품) 또는 `/login?required=1`
  * - 정부지원 GA 세션: `resolveGovernmentHomePath`
  * - 그 외: `resolveAuthLandingPath(isMobile, user.role)`
  */
@@ -20,7 +21,8 @@ export function PublicHomeEntry() {
   const { summary, loading } = useGovernmentAccess(isGovernmentGa ? token : null)
 
   if (!isAuthenticated) {
-    return <Navigate to="/login?required=1" replace />
+    const loginPath = isGovernmentProductApp() ? '/government/login' : '/login?required=1'
+    return <Navigate to={loginPath} replace />
   }
 
   if (isGovernmentGa) {

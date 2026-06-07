@@ -230,6 +230,23 @@ async function main() {
   if (signupHtml.js.includes('회원가입 · 정부지원')) pass('signup SPA contains register form')
   else fail('signup SPA contains register form')
 
+  const loginHtml = await fetchSpaHtml('/login?required=1')
+  if (loginHtml.status === 200) pass('GET /login SPA', loginHtml.bundle ?? '')
+  else fail('GET /login SPA', String(loginHtml.status))
+
+  if (loginHtml.js.includes('정부지원 CRM')) pass('login SPA contains government brand title')
+  else fail('login SPA contains government brand title')
+
+  if (!loginHtml.js.includes('Insurance CRM')) pass('login SPA without Insurance CRM sidebar brand')
+  else fail('login SPA without Insurance CRM sidebar brand', 'Insurance CRM still in bundle')
+
+  const govLoginHtml = await fetchSpaHtml('/government/login')
+  if (govLoginHtml.status === 200) pass('GET /government/login SPA', govLoginHtml.bundle ?? '')
+  else fail('GET /government/login SPA', String(govLoginHtml.status))
+
+  if (govLoginHtml.js.includes('정부지원 CRM')) pass('government/login SPA contains government brand')
+  else fail('government/login SPA contains government brand')
+
   const userJoin = `e2e_join_link_${tag}`
   try {
     const reg = await registerGovernmentProgramUserViaHttp(API, {

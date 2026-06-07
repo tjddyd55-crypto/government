@@ -1,6 +1,9 @@
 import ResponsiveLayout from '../../../components/ResponsiveLayout'
+import GovernmentLoginPage from '../../government-support/pages/GovernmentLoginPage'
 import LoginPageMobileView from './Login/LoginPageMobileView'
 import LoginPagePCView from './Login/LoginPagePCView'
+
+const IS_GOVERNMENT_PRODUCT = __APP_PRODUCT__ === 'government'
 
 /**
  * [Container] 로그인 페이지.
@@ -23,5 +26,8 @@ import LoginPagePCView from './Login/LoginPagePCView'
  * 관련 규칙: AGENTS.md §8, .cursor/rules/ui-pc-mobile-separation.mdc
  */
 export function LoginPage() {
+  if (IS_GOVERNMENT_PRODUCT) {
+    return <GovernmentLoginPage />
+  }
   return <ResponsiveLayout PC={LoginPagePCView} Mobile={LoginPageMobileView} />
 }

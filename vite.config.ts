@@ -10,10 +10,13 @@ const insurancePkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8'),
 ) as { version: string }
 
+const appProduct = String(process.env.VITE_APP_PRODUCT ?? process.env.APP_PRODUCT ?? '').trim()
+
 // https://vite.dev/config/
 export default defineConfig({
   define: {
     __INSURANCE_WEB_APP_VERSION__: JSON.stringify(insurancePkg.version),
+    __APP_PRODUCT__: JSON.stringify(appProduct),
   },
   // Web (Railway/Express): absolute /assets/... so deep routes like /customer/register work.
   // Desktop packaged build: use `npm run build:web -- --base ./` (see build:desktop script).
