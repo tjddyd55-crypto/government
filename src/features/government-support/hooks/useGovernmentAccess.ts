@@ -4,13 +4,17 @@ import {
   type GovernmentAccessSummary,
 } from '../api/governmentSupportApi'
 
+function hasGovernmentAccessToken(token?: string | null): boolean {
+  return typeof token === 'string' && token.trim() !== ''
+}
+
 export function useGovernmentAccess(token?: string | null) {
-  const [loading, setLoading] = useState(false)
+  const trimmed = typeof token === 'string' ? token.trim() : ''
+  const [loading, setLoading] = useState(() => hasGovernmentAccessToken(token))
   const [error, setError] = useState<unknown>(null)
   const [summary, setSummary] = useState<GovernmentAccessSummary | null>(null)
 
   const load = useCallback(async () => {
-    const trimmed = typeof token === 'string' ? token.trim() : ''
     if (!trimmed) return
     setLoading(true)
     setError(null)
@@ -22,10 +26,9 @@ export function useGovernmentAccess(token?: string | null) {
     } finally {
       setLoading(false)
     }
-  }, [token])
+  }, [trimmed])
 
   useEffect(() => {
-    const trimmed = typeof token === 'string' ? token.trim() : ''
     if (!trimmed) {
       setSummary(null)
       setError(null)
@@ -33,7 +36,7 @@ export function useGovernmentAccess(token?: string | null) {
       return
     }
     void load()
-  }, [token, load])
+  }, [trimmed, load])
 
   return { loading, error, summary, reload: load }
 }

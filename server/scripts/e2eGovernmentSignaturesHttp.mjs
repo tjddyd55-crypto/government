@@ -168,6 +168,20 @@ async function main() {
     else failWrap(`bundle contains ${m}`)
   }
 
+  for (const adminPath of [
+    '/government/admin/signature-templates',
+    '/government/admin/signature-templates/pdf/new',
+  ]) {
+    const adminSigHtml = await fetchHtml(adminPath)
+    if (adminSigHtml.status === 200) pass(`GET ${adminPath} SPA`, adminSigHtml.bundle ?? '')
+    else failWrap(`GET ${adminPath} SPA`, String(adminSigHtml.status))
+    if (adminSigHtml.js.includes('government/admin/signature-templates')) {
+      pass(`${adminPath} bundle has admin signature route`)
+    } else {
+      failWrap(`${adminPath} bundle has admin signature route`)
+    }
+  }
+
   let users
   try {
     users = await resolveE2eProgramUsers(API, {
@@ -186,6 +200,15 @@ async function main() {
   const accessA = await api('/government-support/me/access', { token: tokenA })
   if (accessA.json?.data?.isGovernmentProgramUser === true) pass('user A is program user')
   else failWrap('user A is program user')
+  const accessAData = accessA.json?.data ?? accessA.json ?? {}
+  if (
+    (accessAData.governmentStaffTenantIds?.length ?? 0) === 0 &&
+    (accessAData.governmentAgencyAdminTenantIds?.length ?? 0) === 0
+  ) {
+    pass('program user lacks admin signature tenant ids')
+  } else {
+    failWrap('program user lacks admin signature tenant ids', JSON.stringify(accessAData))
+  }
 
   const tplList = await api('/government-support/signature-templates', { token: tokenA })
   if (tplList.status === 200 && tplList.json?.ok !== false) pass('GET signature-templates')
@@ -568,6 +591,22 @@ async function main() {
         })
         const tokenStaff = staffLogin.json?.token
         if (tokenStaff) {
+          const staffAccess = await api('/government-support/me/access', { token: tokenStaff })
+          const staffData = staffAccess.json?.data ?? staffAccess.json ?? {}
+          if ((staffData.governmentStaffTenantIds?.length ?? 0) > 0) {
+            pass('staff access summary includes staff tenant')
+          } else {
+            failWrap('staff access summary includes staff tenant', JSON.stringify(staffData))
+          }
+
+          const staffAdminSpa = await fetchHtml('/government/admin/signature-templates')
+          if (staffAdminSpa.status === 200) pass('staff admin signature-templates SPA 200')
+          else failWrap('staff admin signature-templates SPA 200', String(staffAdminSpa.status))
+
+          const staffPdfSpa = await fetchHtml('/government/admin/signature-templates/pdf/new')
+          if (staffPdfSpa.status === 200) pass('staff admin signature pdf/new SPA 200')
+          else failWrap('staff admin signature pdf/new SPA 200', String(staffPdfSpa.status))
+
           const stTpl = await api('/government-support/signature-templates', { token: tokenStaff })
           if (stTpl.status === 200) pass('staff can list signature-templates', '200')
           else failWrap('staff can list signature-templates', String(stTpl.status))
@@ -598,6 +637,22 @@ async function main() {
         const tokenAgency = agencyLogin.json?.token
         let agencyTemplateId = null
         if (tokenAgency) {
+          const agencyAccess = await api('/government-support/me/access', { token: tokenAgency })
+          const agencyData = agencyAccess.json?.data ?? agencyAccess.json ?? {}
+          if ((agencyData.governmentAgencyAdminTenantIds?.length ?? 0) > 0) {
+            pass('agency admin access summary includes agency admin tenant')
+          } else {
+            failWrap('agency admin access summary includes agency admin tenant', JSON.stringify(agencyData))
+          }
+
+          const agencyAdminSpa = await fetchHtml('/government/admin/signature-templates')
+          if (agencyAdminSpa.status === 200) pass('agency admin signature-templates SPA 200')
+          else failWrap('agency admin signature-templates SPA 200', String(agencyAdminSpa.status))
+
+          const agencyPdfSpa = await fetchHtml('/government/admin/signature-templates/pdf/new')
+          if (agencyPdfSpa.status === 200) pass('agency admin signature pdf/new SPA 200')
+          else failWrap('agency admin signature pdf/new SPA 200', String(agencyPdfSpa.status))
+
           const agTpl = await api('/government-support/signature-templates', { token: tokenAgency })
           if (agTpl.status === 200) pass('agency admin can list signature-templates', '200')
           else failWrap('agency admin can list signature-templates', String(agTpl.status))
