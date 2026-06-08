@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { EmptyState, LoadingState } from '../../../../components/feedback'
 import { FieldWrapper, FormButton, FormInput } from '../../../../components/form'
+import { copyTextToClipboard } from '../../../../lib/clipboard'
 import { useAuth } from '../../../auth/AuthProvider'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import { createGovAgency, fetchGovAgencies } from '../../api/governmentProfilesApi'
+import {
+  buildGovernmentAgencyJoinPath,
+  buildGovernmentAgencyJoinUrl,
+} from '../../lib/governmentAgencyJoinUrl'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 
 export default function GovernmentAdminAgenciesPage() {
@@ -15,6 +19,8 @@ export default function GovernmentAdminAgenciesPage() {
   const [agencyCode, setAgencyCode] = useState('')
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
+  const [copyMsg, setCopyMsg] = useState<string | null>(null)
+  const [copyErr, setCopyErr] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!token) return
@@ -96,6 +102,8 @@ export default function GovernmentAdminAgenciesPage() {
     >
       {msg ? <p style={{ padding: '12px 16px', color: 'var(--success)' }}>{msg}</p> : null}
       {err ? <p style={{ padding: '12px 16px', color: 'var(--danger)' }}>{err}</p> : null}
+      {copyMsg ? <p style={{ padding: '12px 16px', color: 'var(--success)' }}>{copyMsg}</p> : null}
+      {copyErr ? <p style={{ padding: '12px 16px', color: 'var(--danger)' }}>{copyErr}</p> : null}
 
       <div className="table-container table-container--desktop">
         <table className="admin-data-table">
@@ -121,14 +129,22 @@ export default function GovernmentAdminAgenciesPage() {
                   <td>{r.name}</td>
                   <td>{r.status}</td>
                   <td>
-                    <Link
-                      to={`/government/join/${r.agencyCode}`}
-                      className="dark-link"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      /government/join/{r.agencyCode}
-                    </Link>
+                    <div className="government-agency-join-cell">
+                      <span className="government-agency-join-cell__path">{buildGovernmentAgencyJoinPath(r.agencyCode)}</span>
+                      <FormButton
+                        htmlType="button"
+                        variant="secondary"
+                        size="sm"
+                        className="button button--secondary"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          void onCopyJoinLink(r.agencyCode)
+                        }}
+                      >
+                        링크 복사
+                      </FormButton>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -155,15 +171,26 @@ export default function GovernmentAdminAgenciesPage() {
                 <span className="admin-ga-card__label">상태</span>
                 <span className="admin-ga-card__value">{r.status}</span>
               </div>
+              <div className="admin-ga-card__row">
+                <span className="admin-ga-card__label">가입 URL</span>
+                <span className="admin-ga-card__value government-agency-join-cell__path">
+                  {buildGovernmentAgencyJoinPath(r.agencyCode)}
+                </span>
+              </div>
+              <p className="government-agency-join-card__hint">가입 링크를 복사해 이용자에게 전달하세요.</p>
               <div className="admin-ga-card__actions">
-                <Link
-                  to={`/government/join/${r.agencyCode}`}
-                  className="button button--secondary dark-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <FormButton
+                  htmlType="button"
+                  variant="secondary"
+                  className="button button--secondary"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    void onCopyJoinLink(r.agencyCode)
+                  }}
                 >
-                  가입 URL
-                </Link>
+                  링크 복사
+                </FormButton>
               </div>
             </article>
           ))

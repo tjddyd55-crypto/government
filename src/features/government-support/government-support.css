@@ -145,6 +145,27 @@
   max-width: 220px;
 }
 
+.admin-ga-management .government-agency-join-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.admin-ga-management .government-agency-join-cell__path {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  word-break: break-all;
+}
+
+.admin-ga-management .government-agency-join-card__hint {
+  margin: 0;
+  padding: 0 0 0.25rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
 .government-form-grid label {
   display: flex;
   flex-direction: column;
