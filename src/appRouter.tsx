@@ -152,7 +152,14 @@ import GovernmentUserNoticesPage from './features/government-support/pages/Gover
 import GovernmentUserResourcesPage from './features/government-support/pages/GovernmentUserResourcesPage'
 import GovernmentPlaceholderPage from './features/government-support/components/GovernmentPlaceholderPage'
 import GovernmentProtectedRoute from './features/government-support/routes/GovernmentProtectedRoute'
-import { GovernmentSignatureAdminRoute } from './features/government-support/routes/GovernmentSignatureAdminRoute'
+import { GovernmentAdminAccessShell } from './features/government-support/routes/GovernmentAdminAccessShell'
+import {
+  GovernmentAdminIndustryRoute,
+  GovernmentAdminNoticesRoute,
+  GovernmentAdminOperationalRoute,
+  GovernmentAdminSignatureRoute,
+  GovernmentAdminUserManagerRoute,
+} from './features/government-support/routes/GovernmentAdminSectionRoute'
 import GovernmentSignPage from './features/government-support/publicSignature/GovernmentSignPage'
 import GovernmentSignDocumentPage from './features/government-support/publicSignature/GovernmentSignDocumentPage'
 import { GovernmentSignatureUserSendRoute } from './features/government-support/signatures/GovernmentSignatureUserSendRoute'
@@ -238,102 +245,99 @@ export const appRouter = createBrowserRouter([
         element: <GovernmentProtectedRoute requireAdminDashboard />,
         children: [
           {
-            element: <GovernmentAdminLayout />,
-            children: [{ path: 'government/admin', element: <GovernmentAdminDashboardPage /> }],
-          },
-        ],
-      },
-      {
-        element: <GovernmentProtectedRoute requireAdmin />,
-        children: [
-          {
-            element: <GovernmentAdminLayout />,
+            element: <GovernmentAdminAccessShell />,
             children: [
-              { path: 'government/admin/agencies', element: <GovernmentAdminAgenciesPage /> },
               {
-                path: 'government/admin/profiles',
-                element: <Navigate to="/government/admin/program-users" replace />,
-              },
-              {
-                path: 'government/admin/memberships',
-                element: <Navigate to="/government/admin" replace />,
-              },
-              {
-                path: 'government/admin/settings',
-                element: (
-                  <GovernmentPlaceholderPage
-                    title="설정"
-                    description="정부지원 CRM 설정 (준비 중)"
-                    backTo="/government/admin"
-                  />
-                ),
-              },
-              {
-                path: 'government/admin/templates',
-                element: (
-                  <GovernmentPlaceholderPage
-                    title="고객관리 템플릿"
-                    description="government-support는 코드형 CRM입니다. 동적 빌더 템플릿은 보험 플랫폼과 별도입니다."
-                    backTo="/government/admin"
-                  />
-                ),
-              },
-              {
-                path: 'government/admin/pdf-templates',
-                element: <Navigate to="/government/admin/signature-templates/pdf/new" replace />,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        element: <GovernmentProtectedRoute requireOperational />,
-        children: [
-          {
-            element: <GovernmentAdminLayout />,
-            children: [
-              { path: 'government/admin/notices', element: <GovernmentAdminNoticesPage /> },
-              { path: 'government/admin/resources', element: <GovernmentAdminResourcesPage /> },
-              { path: 'government/admin/document-requests', element: <GovernmentAdminDocumentRequestsPage /> },
-              { path: 'government/admin/inquiries', element: <GovernmentAdminInquiriesPage /> },
-              { path: 'government/admin/notifications', element: <GovernmentAdminNotificationsPage /> },
-              {
-                element: <GovernmentSignatureAdminRoute />,
+                element: <GovernmentAdminLayout />,
                 children: [
-                  { path: 'government/admin/signatures', element: <GovernmentSignatureHistoryPage /> },
-                  { path: 'government/admin/signatures/send', element: <GovernmentSignatureSendPage /> },
-                  { path: 'government/admin/signatures/:id', element: <GovernmentSignatureHistoryPage /> },
-                  { path: 'government/admin/signature-templates', element: <GovernmentSignatureTemplatesPage /> },
-                  { path: 'government/admin/signature-templates/new', element: <GovernmentSignatureTemplatesPage /> },
+                  { path: 'government/admin', element: <GovernmentAdminDashboardPage /> },
                   {
-                    path: 'government/admin/signature-templates/pdf/new',
-                    element: <GovernmentPdfTemplateEditorPage />,
+                    element: <GovernmentAdminIndustryRoute />,
+                    children: [
+                      { path: 'government/admin/agencies', element: <GovernmentAdminAgenciesPage /> },
+                      {
+                        path: 'government/admin/profiles',
+                        element: <Navigate to="/government/admin/program-users" replace />,
+                      },
+                      {
+                        path: 'government/admin/memberships',
+                        element: <Navigate to="/government/admin" replace />,
+                      },
+                      {
+                        path: 'government/admin/settings',
+                        element: (
+                          <GovernmentPlaceholderPage
+                            title="설정"
+                            description="정부지원 CRM 설정 (준비 중)"
+                            backTo="/government/admin"
+                          />
+                        ),
+                      },
+                      {
+                        path: 'government/admin/templates',
+                        element: (
+                          <GovernmentPlaceholderPage
+                            title="고객관리 템플릿"
+                            description="government-support는 코드형 CRM입니다. 동적 빌더 템플릿은 보험 플랫폼과 별도입니다."
+                            backTo="/government/admin"
+                          />
+                        ),
+                      },
+                    ],
                   },
                   {
-                    path: 'government/admin/signature-templates/pdf/:id',
-                    element: <GovernmentPdfTemplateEditorPage />,
+                    path: 'government/admin/pdf-templates',
+                    element: <Navigate to="/government/admin/signature-templates/pdf/new" replace />,
                   },
                   {
-                    path: 'government/admin/signature-templates/:id/edit',
-                    element: <GovernmentSignatureTemplatesPage />,
+                    element: <GovernmentAdminUserManagerRoute />,
+                    children: [
+                      { path: 'government/admin/users', element: <GovernmentAdminUsersPage /> },
+                      { path: 'government/admin/program-users', element: <GovernmentAdminProgramUsersPage /> },
+                      {
+                        path: 'government/admin/program-users/:userId',
+                        element: <GovernmentAdminProgramUserDetailPage />,
+                      },
+                    ],
+                  },
+                  {
+                    element: <GovernmentAdminOperationalRoute />,
+                    children: [
+                      { path: 'government/admin/document-requests', element: <GovernmentAdminDocumentRequestsPage /> },
+                      { path: 'government/admin/inquiries', element: <GovernmentAdminInquiriesPage /> },
+                      { path: 'government/admin/notifications', element: <GovernmentAdminNotificationsPage /> },
+                    ],
+                  },
+                  {
+                    element: <GovernmentAdminNoticesRoute />,
+                    children: [
+                      { path: 'government/admin/notices', element: <GovernmentAdminNoticesPage /> },
+                      { path: 'government/admin/resources', element: <GovernmentAdminResourcesPage /> },
+                    ],
+                  },
+                  {
+                    element: <GovernmentAdminSignatureRoute />,
+                    children: [
+                      { path: 'government/admin/signatures', element: <GovernmentSignatureHistoryPage /> },
+                      { path: 'government/admin/signatures/send', element: <GovernmentSignatureSendPage /> },
+                      { path: 'government/admin/signatures/:id', element: <GovernmentSignatureHistoryPage /> },
+                      {
+                        path: 'government/admin/signature-templates/pdf/new',
+                        element: <GovernmentPdfTemplateEditorPage />,
+                      },
+                      {
+                        path: 'government/admin/signature-templates/pdf/:id',
+                        element: <GovernmentPdfTemplateEditorPage />,
+                      },
+                      { path: 'government/admin/signature-templates/new', element: <GovernmentSignatureTemplatesPage /> },
+                      {
+                        path: 'government/admin/signature-templates/:id/edit',
+                        element: <GovernmentSignatureTemplatesPage />,
+                      },
+                      { path: 'government/admin/signature-templates', element: <GovernmentSignatureTemplatesPage /> },
+                    ],
                   },
                 ],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        element: <GovernmentProtectedRoute requireUserManager />,
-        children: [
-          {
-            element: <GovernmentAdminLayout />,
-            children: [
-              { path: 'government/admin/users', element: <GovernmentAdminUsersPage /> },
-              { path: 'government/admin/program-users', element: <GovernmentAdminProgramUsersPage /> },
-              {
-                path: 'government/admin/program-users/:userId',
-                element: <GovernmentAdminProgramUserDetailPage />,
               },
             ],
           },

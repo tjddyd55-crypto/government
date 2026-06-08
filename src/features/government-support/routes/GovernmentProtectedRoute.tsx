@@ -2,7 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider'
 import { canManageGovernmentUsers, isGovernmentProgramUser, resolveGovernmentAccessState } from '../lib/governmentAccess'
 import { isGovernmentOperationalAccount, canManageGovernmentSignatures, resolveGovernmentHomePath } from '../lib/governmentHome'
-import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
+import { useGovernmentAccessShared } from '../context/GovernmentAccessContext'
 
 type GovernmentProtectedRouteProps = {
   requireAdmin?: boolean
@@ -30,7 +30,7 @@ export default function GovernmentProtectedRoute({
   requireProgramUserWorkspace = false,
 }: GovernmentProtectedRouteProps) {
   const { token, isAuthenticated } = useAuth()
-  const { loading, summary } = useGovernmentAccess(token)
+  const { loading, summary } = useGovernmentAccessShared(token)
   const state = resolveGovernmentAccessState(summary, loading, Boolean(isAuthenticated && token))
 
   if (!isAuthenticated || !token) {

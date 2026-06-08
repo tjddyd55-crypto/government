@@ -6,6 +6,8 @@ import useIsMobile from '../../../hooks/useIsMobile'
 import { useAuth } from '../../auth/AuthProvider'
 import FormButton from '../../../components/form/FormButton'
 import {
+  GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+  GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
   GOVERNMENT_AGENCY_ADMIN_NAV,
   GOVERNMENT_INDUSTRY_ADMIN_NAV,
   GOVERNMENT_STAFF_NAV,
@@ -14,8 +16,8 @@ import {
 import { buildGovernmentAdminMobileMenu } from '../config/governmentAppMenu'
 import GovernmentMobileWorkspaceShell from '../components/GovernmentMobileWorkspaceShell'
 import { canManageGovernmentUsers, isGovernmentProgramUser } from '../lib/governmentAccess'
-import { canAccessUserOwnedWorkspace } from '../lib/governmentHome'
-import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
+import { canAccessUserOwnedWorkspace, canManageGovernmentSignatures } from '../lib/governmentHome'
+import { useGovernmentAccessShared } from '../context/GovernmentAccessContext'
 import '../government-support.css'
 
 function isAdminNavItemActive(pathname: string, item: GovernmentAdminNavItem): boolean {
@@ -49,7 +51,17 @@ function AdminNav({ items, className }: { items: GovernmentAdminNavItem[]; class
   )
 }
 
-function useGovernmentAdminNavItems(summary: ReturnType<typeof useGovernmentAccess>['summary']) {
+function filterSignatureNavItems(items: GovernmentAdminNavItem[], allowSignatureSetup: boolean) {
+  if (allowSignatureSetup) return items
+  return items.filter(
+    (item) =>
+      item.to !== GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH &&
+      item.to !== GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+  )
+}
+
+function useGovernmentAdminNavItems(summary: ReturnType<typeof useGovernmentAccessShared>['summary']) {
+  const allowSignatureSetup = canManageGovernmentSignatures(summary)
   return useMemo(() => {
     const items: GovernmentAdminNavItem[] = []
     const isIndustry = Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
@@ -64,27 +76,27 @@ function useGovernmentAdminNavItems(summary: ReturnType<typeof useGovernmentAcce
       items.push(...GOVERNMENT_INDUSTRY_ADMIN_NAV)
     }
     if (isAgencyAdmin) {
-      for (const item of GOVERNMENT_AGENCY_ADMIN_NAV) {
+      for (const item of filterSignatureNavItems(GOVERNMENT_AGENCY_ADMIN_NAV, allowSignatureSetup)) {
         if (!items.some((x) => x.to === item.to)) {
           items.push(item)
         }
       }
     }
     if (isStaffOnly) {
-      for (const item of GOVERNMENT_STAFF_NAV) {
+      for (const item of filterSignatureNavItems(GOVERNMENT_STAFF_NAV, allowSignatureSetup)) {
         if (!items.some((x) => x.to === item.to)) {
           items.push(item)
         }
       }
     }
     return items
-  }, [summary])
+  }, [summary, allowSignatureSetup])
 }
 
 export default function GovernmentAdminLayout() {
   useDocumentTitle(`${GOVERNMENT_APP_TITLE} · 관리`)
   const { token, logout } = useAuth()
-  const { summary } = useGovernmentAccess(token)
+  const { summary } = useGovernmentAccessShared(token)
   const isMobile = useIsMobile()
   const showWorkspaceLink = canAccessUserOwnedWorkspace(summary)
   const navItems = useGovernmentAdminNavItems(summary)

@@ -1,6 +1,7 @@
 import type { GaTenantDashboardMenuEntry } from '../../dashboard/gaTenantMenu'
 import type { GovernmentAccessSummary } from '../api/governmentSupportApi'
 import { canManageGovernmentUsers, isGovernmentProgramUser } from '../lib/governmentAccess'
+import { canManageGovernmentSignatures } from '../lib/governmentHome'
 import {
   GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
   GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
@@ -10,6 +11,15 @@ import {
   type GovernmentAdminNavItem,
 } from './governmentAdminNav'
 import { GOVERNMENT_USER_NAV } from './governmentUserNav'
+
+function filterSignatureNavItems(items: GovernmentAdminNavItem[], allowSignatureSetup: boolean) {
+  if (allowSignatureSetup) return items
+  return items.filter(
+    (item) =>
+      item.to !== GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH &&
+      item.to !== GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+  )
+}
 
 function navToMenuEntries(items: GovernmentAdminNavItem[]): GaTenantDashboardMenuEntry[] {
   return items.map((item) => ({
@@ -28,6 +38,7 @@ export function buildGovernmentAdminMobileMenu(
   }
 
   const items: GovernmentAdminNavItem[] = []
+  const allowSignatureSetup = canManageGovernmentSignatures(summary)
   const isIndustry = Boolean(summary.isSuperAdmin || summary.isGovernmentIndustryAdmin)
   const isAgencyAdmin = canManageGovernmentUsers(summary)
   const isStaffOnly =
@@ -39,14 +50,14 @@ export function buildGovernmentAdminMobileMenu(
     items.push(...GOVERNMENT_INDUSTRY_ADMIN_NAV)
   }
   if (isAgencyAdmin) {
-    for (const item of GOVERNMENT_AGENCY_ADMIN_NAV) {
+    for (const item of filterSignatureNavItems(GOVERNMENT_AGENCY_ADMIN_NAV, allowSignatureSetup)) {
       if (!items.some((x) => x.to === item.to)) {
         items.push(item)
       }
     }
   }
   if (isStaffOnly) {
-    for (const item of GOVERNMENT_STAFF_NAV) {
+    for (const item of filterSignatureNavItems(GOVERNMENT_STAFF_NAV, allowSignatureSetup)) {
       if (!items.some((x) => x.to === item.to)) {
         items.push(item)
       }
