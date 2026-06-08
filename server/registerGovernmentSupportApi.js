@@ -78,6 +78,7 @@ import {
 } from './lib/consentStorage.js'
 import { normalizeTenantRegistrationCodeRaw } from './lib/tenantRegistrationCodes.js'
 import { ensureGovernmentTenantRegistrationCode } from './lib/governmentSupport/ensureGovernmentTenantRegistrationCode.js'
+import { buildGovernmentDocumentObjectKey, sanitizeGovernmentDocumentFileName } from './lib/governmentSupport/governmentDocumentStorage.js'
 
 /**
  * @param {import('express').Router} router
@@ -923,6 +924,50 @@ export function registerGovernmentSupportApi(router, deps) {
           storageKey: row.storage_key != null ? String(row.storage_key) : null,
         })),
       })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.post('/government-support/documents/:docId/presign', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      const docId = String(req.params.docId ?? '').trim()
+      const b = req.body ?? {}
+      const fileNameRaw = String(b.fileName ?? b.file_name ?? 'file').trim()
+      const contentType = String(b.contentType ?? b.content_type ?? 'application/octet-stream').trim()
+      const sizeBytes = Number(b.sizeBytes ?? b.size ?? b.size_bytes ?? 0)
+      if (!fileNameRaw) {
+        res.status(400).json({ message: 'fileName이 필요합니다.' })
+        return
+      }
+      if (!Number.isFinite(sizeBytes) || sizeBytes < 1 || sizeBytes > 50 * 1024 * 1024) {
+        res.status(400).json({ message: '파일 크기는 1바이트 이상 50MB 이하여야 합니다.' })
+        return
+      }
+      const accessRow = await loadProfileAccessRowByDocumentId(pool, docId)
+      if (!accessRow) {
+        res.status(404).json({ message: '서류 항목을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canAccessGovernmentProfile(ctx, accessRow)) {
+        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+        return
+      }
+      const meta = await pool.query(
+        `SELECT tenant_id, profile_id FROM gov_support_document_items WHERE id = $1::bigint`,
+        [docId],
+      )
+      const tenantId = meta.rows[0].tenant_id
+      const profileId = meta.rows[0].profile_id
+      sanitizeGovernmentDocumentFileName(fileNameRaw)
+      const objectKey = buildGovernmentDocumentObjectKey(tenantId, profileId, docId, fileNameRaw)
+      const uploadUrl = await r2GetPresignedPutUrl(objectKey, contentType, 900, { cacheControl: null })
+      if (!uploadUrl) {
+        res.status(503).json({ message: '업로드 URL을 만들 수 없습니다. R2 설정을 확인하세요.' })
+        return
+      }
+      res.json({ success: true, data: { uploadUrl, objectKey, storageKey: objectKey } })
     } catch (e) {
       handleDbError(e, req, res)
     }

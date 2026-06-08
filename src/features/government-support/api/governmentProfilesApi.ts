@@ -1,5 +1,12 @@
 import { apiRequest } from '../../../lib/apiClient'
-import type { GovAgencyRow, GovApplicationCase, GovPriorLoan, GovSupportProfile } from '../types/governmentProfile.types'
+import type {
+  GovAgencyRow,
+  GovApplicationCase,
+  GovDocumentItem,
+  GovEdocLinkRow,
+  GovPriorLoan,
+  GovSupportProfile,
+} from '../types/governmentProfile.types'
 
 function unwrapData<T>(raw: unknown): T | null {
   if (!raw || typeof raw !== 'object') return null
@@ -122,4 +129,61 @@ export async function patchGovApplicationCase(token: string, caseId: string, bod
     body: JSON.stringify(body),
   })
   return unwrapData<{ id: string; progressStatus: string }>(raw)
+}
+
+export async function fetchGovDocuments(token: string, profileId: string): Promise<GovDocumentItem[]> {
+  const raw = await apiRequest<unknown>(`/api/government-support/profiles/${profileId}/documents`, {
+    method: 'GET',
+    token,
+  })
+  return unwrapList<GovDocumentItem>(raw)
+}
+
+export async function patchGovDocument(
+  token: string,
+  docId: string,
+  body: { status?: string; storageKey?: string | null },
+) {
+  const raw = await apiRequest<unknown>(`/api/government-support/documents/${docId}`, {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify(body),
+  })
+  return unwrapData<{ id: string; status: string }>(raw)
+}
+
+export async function presignGovDocument(
+  token: string,
+  docId: string,
+  body: { fileName: string; contentType: string; sizeBytes: number },
+) {
+  const raw = await apiRequest<unknown>(`/api/government-support/documents/${docId}/presign`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify(body),
+  })
+  const row = unwrapData<{ uploadUrl: string; objectKey: string; storageKey: string }>(raw)
+  if (!row?.uploadUrl) throw new Error('업로드 URL을 받지 못했습니다.')
+  return row
+}
+
+export async function fetchGovEdocLinks(token: string, profileId: string): Promise<GovEdocLinkRow[]> {
+  const raw = await apiRequest<unknown>(`/api/government-support/profiles/${profileId}/edoc-links`, {
+    method: 'GET',
+    token,
+  })
+  return unwrapList<GovEdocLinkRow>(raw)
+}
+
+export async function createGovEdocLink(
+  token: string,
+  profileId: string,
+  body: { documentName: string; recipient: string; applicationCaseId?: string | null },
+) {
+  const raw = await apiRequest<unknown>(`/api/government-support/profiles/${profileId}/edoc-links`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify(body),
+  })
+  return unwrapData<{ id: string }>(raw)
 }

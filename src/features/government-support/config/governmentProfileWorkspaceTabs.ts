@@ -2,6 +2,8 @@
 export type GovernmentProfileWorkspaceTab =
   | 'basic'
   | 'files'
+  | 'documents'
+  | 'edoc'
   | 'consultations'
   | 'memos'
   | 'progress'
@@ -11,6 +13,8 @@ export type GovernmentProfileWorkspaceTab =
 export const GOVERNMENT_PROFILE_WORKSPACE_TABS: { id: GovernmentProfileWorkspaceTab; label: string }[] = [
   { id: 'basic', label: '기본정보' },
   { id: 'files', label: '서류/파일' },
+  { id: 'documents', label: '서류관리' },
+  { id: 'edoc', label: '전자문서' },
   { id: 'consultations', label: '상담 이력' },
   { id: 'memos', label: '메모' },
   { id: 'progress', label: '진행상황' },

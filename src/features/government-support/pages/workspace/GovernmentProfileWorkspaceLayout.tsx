@@ -127,6 +127,8 @@ export default function GovernmentProfileWorkspaceLayout() {
     activeTab,
     onClickBasic: () => moveToTab('basic'),
     onClickFiles: () => moveToTab('files'),
+    onClickDocuments: () => moveToTab('documents'),
+    onClickEdoc: () => moveToTab('edoc'),
     onClickConsultations: () => moveToTab('consultations'),
     onClickMemos: () => moveToTab('memos'),
     onClickProgress: () => moveToTab('progress'),

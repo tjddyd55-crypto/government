@@ -25,6 +25,12 @@ function rightTitle(pathname: string): string {
   if (pathname.includes('/files')) {
     return '서류/파일'
   }
+  if (pathname.includes('/documents')) {
+    return '서류관리'
+  }
+  if (pathname.includes('/edoc')) {
+    return '전자문서'
+  }
   return '작업 영역'
 }
 
@@ -36,6 +42,8 @@ export default function GovernmentProfileWorkspaceLayoutPC({
   activeTab,
   onClickBasic,
   onClickFiles,
+  onClickDocuments,
+  onClickEdoc,
   onClickConsultations,
   onClickMemos,
   onClickProgress,
@@ -79,6 +87,24 @@ export default function GovernmentProfileWorkspaceLayoutPC({
             onClick={onClickFiles}
           >
             서류/파일
+          </FormButton>
+          <FormButton
+            htmlType="button"
+            variant="action"
+            className={`filter-button${activeTab === 'documents' ? ' filter-button--workspace-active' : ''}`}
+            disabled={!selectedProfileId}
+            onClick={onClickDocuments}
+          >
+            서류관리
+          </FormButton>
+          <FormButton
+            htmlType="button"
+            variant="action"
+            className={`filter-button${activeTab === 'edoc' ? ' filter-button--workspace-active' : ''}`}
+            disabled={!selectedProfileId}
+            onClick={onClickEdoc}
+          >
+            전자문서
           </FormButton>
           <FormButton
             htmlType="button"
