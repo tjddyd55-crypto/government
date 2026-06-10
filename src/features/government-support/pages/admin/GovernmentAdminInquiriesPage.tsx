@@ -315,7 +315,7 @@ export default function GovernmentAdminInquiriesPage() {
   }
 
   return (
-    <main className="claim-inbox content-wrapper">
+    <main className="page page--with-back claim-inbox content-wrapper">
       <StatusMessage message={error} tone="error" />
       <StatusMessage message={notice} tone="success" />
 

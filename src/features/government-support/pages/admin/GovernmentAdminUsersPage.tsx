@@ -277,6 +277,7 @@ export default function GovernmentAdminUsersPage() {
 
   return (
     <GovernmentAdminPageShell
+      managementKind="user"
       title="대행사 직원"
       description={
         <>
@@ -633,7 +634,7 @@ function UsersTable(props: {
           </tbody>
         </table>
       </div>
-      <div className="government-admin-users-page__cards">
+      <div className="admin-responsive-card-list">
         {props.rows.map((r) => (
           <UserMobileCard key={r.id} row={r} onEdit={props.onEdit} onReset={props.onReset} />
         ))}
@@ -648,7 +649,7 @@ function UserRowActions(props: {
   onReset: (row: GovernmentAdminUserRow) => void
 }) {
   return (
-    <div className="government-admin-users-page__actions">
+    <div className="admin-table-actions">
       <FormButton htmlType="button" variant="secondary" onClick={() => props.onEdit(props.row)}>
         수정
       </FormButton>
@@ -666,17 +667,19 @@ function UserMobileCard(props: {
 }) {
   const r = props.row
   return (
-    <article className="government-admin-users-page__card">
-      <div className="government-admin-users-page__card-row">
-        <span className="government-admin-users-page__card-label">아이디</span>
-        <span>{r.username}</span>
+    <article className="admin-user-card">
+      <div className="admin-user-card__row">
+        <span className="admin-user-card__label">아이디</span>
+        <span className="admin-user-card__value">{r.username}</span>
       </div>
-      <div className="government-admin-users-page__card-row">
-        <span className="government-admin-users-page__card-label">이름</span>
-        <span>{r.displayName || '—'}</span>
+      <div className="admin-user-card__row">
+        <span className="admin-user-card__label">이름</span>
+        <span className="admin-user-card__value">{r.displayName || '—'}</span>
       </div>
       <GovernmentAdminUsersCardMeta row={r} />
-      <UserRowActions row={r} onEdit={props.onEdit} onReset={props.onReset} />
+      <div className="admin-user-card__actions">
+        <UserRowActions row={r} onEdit={props.onEdit} onReset={props.onReset} />
+      </div>
     </article>
   )
 }
@@ -684,21 +687,21 @@ function UserMobileCard(props: {
 function GovernmentAdminUsersCardMeta({ row: r }: { row: GovernmentAdminUserRow }) {
   return (
     <>
-      <div className="government-admin-users-page__card-row">
-        <span className="government-admin-users-page__card-label">권한</span>
-        <span>{GOVERNMENT_ROLE_LABELS[r.role] ?? r.role}</span>
+      <div className="admin-user-card__row">
+        <span className="admin-user-card__label">권한</span>
+        <span className="admin-user-card__value">{GOVERNMENT_ROLE_LABELS[r.role] ?? r.role}</span>
       </div>
-      <div className="government-admin-users-page__card-row">
-        <span className="government-admin-users-page__card-label">소속</span>
-        <span>{tenantLabel(r)}</span>
+      <div className="admin-user-card__row">
+        <span className="admin-user-card__label">소속</span>
+        <span className="admin-user-card__value">{tenantLabel(r)}</span>
       </div>
-      <div className="government-admin-users-page__card-row">
-        <span className="government-admin-users-page__card-label">상태</span>
-        <span>{r.status}</span>
+      <div className="admin-user-card__row">
+        <span className="admin-user-card__label">상태</span>
+        <span className="admin-user-card__value">{r.status}</span>
       </div>
-      <div className="government-admin-users-page__card-row">
-        <span className="government-admin-users-page__card-label">등록일</span>
-        <span>{formatDate(r.createdAt)}</span>
+      <div className="admin-user-card__row">
+        <span className="admin-user-card__label">등록일</span>
+        <span className="admin-user-card__value">{formatDate(r.createdAt)}</span>
       </div>
     </>
   )

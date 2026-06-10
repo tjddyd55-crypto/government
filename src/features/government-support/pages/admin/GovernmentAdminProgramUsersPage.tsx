@@ -87,6 +87,7 @@ export default function GovernmentAdminProgramUsersPage() {
 
   return (
     <GovernmentAdminPageShell
+      managementKind="user"
       title="이용자 관리"
       description="기관 코드로 가입한 프로그램 이용자 계정·상태만 확인합니다. 사업장·신청 데이터는 이용자 본인 워크스페이스에서 관리합니다."
       toolbar={
@@ -124,47 +125,85 @@ export default function GovernmentAdminProgramUsersPage() {
         <EmptyState message="등록된 이용자가 없습니다. 대행사 코드로 회원가입하면 목록에 표시됩니다." />
       ) : null}
       {!loading && rows.length > 0 ? (
-        <div className="table-container table-container--desktop">
-          <table className="admin-data-table">
-            <thead>
-              <tr>
-                <th>아이디</th>
-                <th>이름</th>
-                <th>소속 대행사</th>
-                <th>가입일</th>
-                <th>상태</th>
-                <th className="admin-table-cell--actions">관리</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id}>
-                  <td>{row.username}</td>
-                  <td>{row.displayName || '—'}</td>
-                  <td>{tenantLabel(row)}</td>
-                  <td>{formatDate(row.createdAt)}</td>
-                  <td>
-                    {row.status === 'active'
-                      ? '정상'
-                      : row.status === 'blocked'
-                        ? '접근금지'
-                        : row.status === 'inactive'
-                          ? '비활성'
-                          : row.status}
-                  </td>
-                  <td className="admin-table-cell--actions">
-                    <Link
-                      to={`/government/admin/program-users/${row.id}`}
-                      className="button button--secondary dark-link"
-                    >
-                      상세
-                    </Link>
-                  </td>
+        <>
+          <div className="table-container table-container--desktop">
+            <table className="admin-data-table">
+              <thead>
+                <tr>
+                  <th>아이디</th>
+                  <th>이름</th>
+                  <th>소속 대행사</th>
+                  <th>가입일</th>
+                  <th>상태</th>
+                  <th className="admin-table-cell--actions">관리</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id}>
+                    <td>{row.username}</td>
+                    <td>{row.displayName || '—'}</td>
+                    <td>{tenantLabel(row)}</td>
+                    <td>{formatDate(row.createdAt)}</td>
+                    <td>
+                      {row.status === 'active'
+                        ? '정상'
+                        : row.status === 'blocked'
+                          ? '접근금지'
+                          : row.status === 'inactive'
+                            ? '비활성'
+                            : row.status}
+                    </td>
+                    <td className="admin-table-cell--actions">
+                      <div className="admin-table-actions">
+                        <Link
+                          to={`/government/admin/program-users/${row.id}`}
+                          className="button button--secondary dark-link"
+                        >
+                          상세
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="admin-responsive-card-list">
+            {rows.map((row) => (
+              <article key={row.id} className="admin-user-card">
+                <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">아이디</span>
+                  <span className="admin-user-card__value">{row.username}</span>
+                </div>
+                <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">이름</span>
+                  <span className="admin-user-card__value">{row.displayName || '—'}</span>
+                </div>
+                <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">소속 대행사</span>
+                  <span className="admin-user-card__value">{tenantLabel(row)}</span>
+                </div>
+                <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">가입일</span>
+                  <span className="admin-user-card__value">{formatDate(row.createdAt)}</span>
+                </div>
+                <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">상태</span>
+                  <span className="admin-user-card__value">{row.status}</span>
+                </div>
+                <div className="admin-user-card__actions">
+                  <Link
+                    to={`/government/admin/program-users/${row.id}`}
+                    className="button button--secondary dark-link"
+                  >
+                    상세
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
       ) : null}
     </GovernmentAdminPageShell>
   )

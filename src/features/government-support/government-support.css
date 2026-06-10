@@ -288,6 +288,118 @@
   padding: 1.25rem 1.5rem;
 }
 
+/* —— 보험 AppWorkspaceLayout + PCTopNavigation 동일 상단 크롬 —— */
+.government-workspace-chrome__header {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-default, #1e293b) 82%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated, #111827) 94%, #000 6%);
+}
+
+.government-workspace-chrome__brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0.65rem 1rem;
+}
+
+.government-workspace-chrome__brand-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.government-workspace-chrome__brand {
+  color: var(--text-primary, #f8fafc);
+  font-size: 1rem;
+}
+
+.government-workspace-chrome__workspace-link {
+  color: var(--brand-primary, #60a5fa);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.government-workspace-chrome__content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 1.25rem 1.5rem;
+}
+
+.government-horizontal-nav {
+  border-top: 1px solid color-mix(in srgb, var(--border-default, #1e293b) 72%, transparent);
+}
+
+.government-horizontal-nav__items {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.government-horizontal-nav__item {
+  flex: 0 0 auto;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 11px;
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--text-primary, #f8fafc) 84%, transparent);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.government-horizontal-nav__item:hover {
+  background: color-mix(in srgb, var(--brand-primary, #60a5fa) 14%, transparent);
+  color: var(--text-primary, #fff);
+}
+
+.government-horizontal-nav__item--active {
+  background: color-mix(in srgb, var(--brand-primary, #60a5fa) 24%, transparent);
+  color: var(--text-primary, #fff);
+}
+
+.government-admin-layout--insurance-shell,
+.government-user-layout--insurance-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.government-admin-layout--insurance-shell .government-admin-layout__sidebar,
+.government-user-layout--insurance-shell .government-user-layout__sidebar {
+  display: none;
+}
+
+.admin-ga-management__toolbar.card.auth-card,
+.admin-user-management__toolbar.card.auth-card {
+  max-width: none;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-ga-management__table-wrap.card,
+.admin-user-management__table-wrap.card {
+  max-width: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
 .government-admin-layout__mobile {
   display: flex;
   flex-direction: column;

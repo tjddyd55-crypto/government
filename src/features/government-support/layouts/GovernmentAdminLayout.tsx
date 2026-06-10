@@ -1,10 +1,9 @@
 import { useMemo } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import useIsMobile from '../../../hooks/useIsMobile'
 import { useAuth } from '../../auth/AuthProvider'
-import FormButton from '../../../components/form/FormButton'
 import {
   GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
   GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
@@ -15,41 +14,11 @@ import {
 } from '../config/governmentAdminNav'
 import { buildGovernmentAdminMobileMenu } from '../config/governmentAppMenu'
 import GovernmentMobileWorkspaceShell from '../components/GovernmentMobileWorkspaceShell'
+import GovernmentWorkspaceChrome from '../components/GovernmentWorkspaceChrome'
 import { canManageGovernmentUsers, isGovernmentProgramUser } from '../lib/governmentAccess'
 import { canAccessUserOwnedWorkspace, canManageGovernmentSignatures } from '../lib/governmentHome'
 import { useGovernmentAccessShared } from '../context/GovernmentAccessContext'
 import '../government-support.css'
-
-function isAdminNavItemActive(pathname: string, item: GovernmentAdminNavItem): boolean {
-  if (item.matchPrefix) {
-    return pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`)
-  }
-  if (item.end) {
-    return pathname === item.to
-  }
-  return pathname === item.to || pathname.startsWith(`${item.to}/`)
-}
-
-function AdminNav({ items, className }: { items: GovernmentAdminNavItem[]; className?: string }) {
-  const { pathname } = useLocation()
-  return (
-    <nav className={className} aria-label="관리 메뉴">
-      {items.map((item) => {
-        const active = isAdminNavItemActive(pathname, item)
-        return (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={`government-admin-layout__nav-link${active ? ' government-admin-layout__nav-link--active' : ''}`}
-          >
-            {item.label}
-          </NavLink>
-        )
-      })}
-    </nav>
-  )
-}
 
 function filterSignatureNavItems(items: GovernmentAdminNavItem[], allowSignatureSetup: boolean) {
   if (allowSignatureSetup) return items
@@ -127,30 +96,18 @@ export default function GovernmentAdminLayout() {
 
   return (
     <main
-      className={`page government-page government-admin-layout ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
+      className={`page government-page government-admin-layout government-admin-layout--insurance-shell ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
     >
-      <header className="government-admin-layout__header">
-        <div>
-          <strong className="government-admin-layout__brand">정부지원 CRM · 관리</strong>
-          {showWorkspaceLink ? (
-            <Link to="/government/my-applications" className="government-admin-layout__workspace-link">
-              내 사업장/신청
-            </Link>
-          ) : null}
-        </div>
-        <FormButton htmlType="button" variant="secondary" onClick={() => logout()}>
-          로그아웃
-        </FormButton>
-      </header>
-
-      <div className="government-admin-layout__body">
-        <aside className="government-admin-layout__sidebar">
-          <AdminNav items={navItems} className="government-admin-layout__nav" />
-        </aside>
-        <div className="government-admin-layout__content">
-          <Outlet />
-        </div>
-      </div>
+      <GovernmentWorkspaceChrome
+        brand={`${GOVERNMENT_APP_TITLE} · 관리`}
+        navItems={navItems}
+        onLogout={() => logout()}
+        workspaceLink={
+          showWorkspaceLink ? { to: '/government/my-applications', label: '내 사업장/신청' } : null
+        }
+      >
+        <Outlet />
+      </GovernmentWorkspaceChrome>
     </main>
   )
 }
