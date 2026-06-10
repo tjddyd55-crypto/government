@@ -388,6 +388,50 @@
   padding: 0;
 }
 
+.admin-ga-management .admin-responsive-card-list {
+  padding: 12px;
+}
+
+.admin-ga-management .admin-data-table__empty-cell {
+  padding: 20px 14px;
+  color: var(--text-sub);
+}
+
+.admin-ga-management__alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px 0;
+}
+
+.admin-ga-management .admin-ga-management__status-success {
+  color: var(--success);
+}
+
+.admin-ga-management .admin-entity-status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-ga-management .admin-entity-status-badge--active {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 20%, transparent);
+}
+
+.admin-ga-management .admin-entity-status-badge--blocked {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 20%, transparent);
+}
+
+.admin-ga-management .admin-entity-status-badge--inactive {
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--text-secondary) 18%, transparent);
+}
+
 .government-admin-page__toolbar {
   display: flex;
   align-items: center;
