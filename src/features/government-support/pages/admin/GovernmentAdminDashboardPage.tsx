@@ -7,6 +7,7 @@ import {
 } from '../../hooks/useGovernmentAdminDashboardState'
 import GovernmentAdminDashboardMobileView from './government-admin-dashboard/GovernmentAdminDashboardMobileView'
 import GovernmentAdminDashboardPCView from './government-admin-dashboard/GovernmentAdminDashboardPCView'
+import '../../government-support.css'
 
 export default function GovernmentAdminDashboardPage() {
   const { token } = useAuth()

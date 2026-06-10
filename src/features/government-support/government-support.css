@@ -517,149 +517,63 @@
   margin: 0.5rem 0 0;
 }
 
-.government-admin-dashboard__stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0;
+/* Government admin dashboard — platform-admin-page layout extensions */
+.government-admin-dashboard-page.platform-admin-page .platform-admin-page__section {
+  margin-bottom: 24px;
 }
 
-.government-admin-dashboard__stat-card {
-  background: #111827;
-  border: 1px solid #1e293b;
-  border-radius: 10px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+.government-admin-dashboard-page.platform-admin-page .platform-admin-page__section:last-child {
+  margin-bottom: 0;
 }
 
-.government-admin-dashboard__stat-label {
-  color: #94a3b8;
-  font-size: 0.8rem;
-}
-
-.government-admin-dashboard__stat-card strong {
-  color: #f8fafc;
-  font-size: 1.5rem;
-}
-
-.government-admin-dashboard-page--pc .government-admin-dashboard__stats {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.government-admin-dashboard-page--mobile .government-admin-dashboard__stats {
-  grid-template-columns: 1fr;
-}
-
-.government-admin-dashboard__section {
-  margin: 1.5rem 0 2rem;
-}
-
-.government-admin-dashboard__section-title {
-  color: #f8fafc;
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin: 0 0 0.75rem;
-}
-
-.government-admin-dashboard__stat-hint {
-  color: #64748b;
-  font-size: 0.75rem;
-}
-
-.government-admin-dashboard__panels {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.government-admin-dashboard__panel {
-  background: #111827;
-  border: 1px solid #1e293b;
-  border-radius: 10px;
-  padding: 1rem;
-}
-
-.government-admin-dashboard__panel-head {
+.government-admin-dashboard-page .platform-admin-page__head-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
-.government-admin-dashboard__panel-title {
-  color: #f8fafc;
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.government-admin-dashboard__panel-link {
+.government-admin-dashboard-page .platform-admin-page__head-link {
+  font-size: 13px;
   color: #60a5fa;
-  font-size: 0.8rem;
   text-decoration: none;
+  white-space: nowrap;
 }
 
-.government-admin-dashboard__panel-link:hover {
+.government-admin-dashboard-page .platform-admin-page__head-link:hover {
   text-decoration: underline;
 }
 
-.government-admin-dashboard__subheading {
-  color: #cbd5e1;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin: 1rem 0 0.5rem;
-}
-
-.government-admin-dashboard__list {
-  list-style: none;
+.government-admin-dashboard-page .platform-admin-page__subhead--inline {
   margin: 0;
-  padding: 0;
 }
 
-.government-admin-dashboard__list li + li {
-  margin-top: 0.5rem;
+.government-admin-dashboard-page .platform-admin-page__subhead--nested {
+  margin: 16px 0 8px;
+  font-size: 13px;
 }
 
-.government-admin-dashboard__list-link {
+.government-admin-dashboard-page a.platform-admin-page__stack-card {
   display: block;
-  padding: 0.55rem 0.65rem;
-  border: 1px solid #1e293b;
-  border-radius: 8px;
-  background: #0b111a;
   text-decoration: none;
   color: inherit;
 }
 
-.government-admin-dashboard__list-link:hover {
-  border-color: #334155;
+.government-admin-dashboard-page .platform-admin-page__stack-card--highlight {
+  border-color: rgba(37, 99, 235, 0.45);
+  background: rgba(37, 99, 235, 0.08);
 }
 
-.government-admin-dashboard__list-link--static {
-  cursor: default;
+.government-admin-dashboard-page .platform-admin-page__panel {
+  margin-bottom: 0;
 }
 
-.government-admin-dashboard__list-title {
-  display: block;
-  color: #e5e7eb;
-  font-size: 0.875rem;
-  font-weight: 600;
+.government-admin-dashboard-page--pc .platform-admin-page__summary-grid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
 
-.government-admin-dashboard__list-meta {
-  display: block;
-  color: #94a3b8;
-  font-size: 0.75rem;
-  margin-top: 0.2rem;
-}
-
-.government-admin-dashboard-page--mobile .government-admin-dashboard__panels {
-  grid-template-columns: 1fr;
-}
-
-.government-admin-dashboard-page--mobile .platform-admin-page__grid {
+.government-admin-dashboard-page--mobile .platform-admin-page__summary-grid {
   grid-template-columns: 1fr;
 }
 
@@ -677,10 +591,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   vertical-align: middle;
-}
-
-.government-admin-dashboard__list-link--unread {
-  background: rgba(37, 99, 235, 0.08);
 }
 
 .government-admin-notifications-page__read-all {
@@ -710,10 +620,6 @@
   padding: 0.6rem 0.75rem;
   border-bottom: 1px solid #1e293b;
   color: #e5e7eb;
-}
-
-.government-page--mobile .government-admin-dashboard__stats {
-  grid-template-columns: 1fr;
 }
 
 .government-page--mobile .government-admin-layout__sidebar {
@@ -1279,9 +1185,12 @@
   gap: 0.75rem;
 }
 
-.government-page--mobile .government-admin-dashboard__stats {
+.government-page--mobile .government-admin-dashboard-page .platform-admin-page__summary-grid {
   gap: 0.75rem;
-  padding: 0;
+}
+
+.government-page--mobile .government-admin-dashboard-page .platform-admin-page__grid-two {
+  gap: 0.75rem;
 }
 
 .government-page--mobile .government-admin-users-page__dialog-actions {
