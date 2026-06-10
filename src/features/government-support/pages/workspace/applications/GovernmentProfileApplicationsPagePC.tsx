@@ -14,7 +14,7 @@ export default function GovernmentProfileApplicationsPagePC(props: GovernmentPro
     <main className="page claim-requests-page claim-requests-page--pc page--with-back content-wrapper">
       <StatusMessage message={props.error} tone="error" />
 
-      <section className="claim-requests-page__card" style={{ marginBottom: 16 }}>
+      <section className="claim-requests-page__card government-profile-applications__create-card">
         <div className="claim-requests-page__section-header">
           <div>
             <h2 className="claim-requests-page__section-title">신청 등록</h2>
@@ -22,7 +22,7 @@ export default function GovernmentProfileApplicationsPagePC(props: GovernmentPro
           </div>
         </div>
         <form onSubmit={props.onSubmitCreate}>
-          <div className="claim-requests-page__status-form-row" style={{ flexWrap: 'wrap', gap: 8 }}>
+          <div className="claim-requests-page__status-form-row claim-requests-page__status-form-row--wrap">
             <FormInput
               className="claim-requests-page__status-select"
               value={props.createTitle}
@@ -48,7 +48,7 @@ export default function GovernmentProfileApplicationsPagePC(props: GovernmentPro
             placeholder="신청 내용"
             maxLength={GOVERNMENT_PROFILE_APPLICATION_CONTENT_MAX}
           />
-          <FormButton htmlType="submit" variant="primary" disabled={props.busy} style={{ marginTop: 8 }}>
+          <FormButton htmlType="submit" variant="primary" disabled={props.busy} className="customer-workspace-tab-submit">
             {props.busy ? '저장 중…' : '신청 추가'}
           </FormButton>
         </form>

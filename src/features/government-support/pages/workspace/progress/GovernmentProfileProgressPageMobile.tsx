@@ -1,7 +1,10 @@
 import { EmptyState, StatusMessage } from '../../../../../components/feedback'
 import { FormButton, FormInput, FormTextarea } from '../../../../../components/form'
 import GovernmentProfileProgressSummarySection from '../../../components/GovernmentProfileProgressSummarySection'
-import { GOVERNMENT_PROFILE_PROGRESS_INPUT_MAX, GOVERNMENT_PROFILE_PROGRESS_TITLE_MAX } from '../../../constants/governmentProfileProgress.config'
+import {
+  GOVERNMENT_PROFILE_PROGRESS_INPUT_MAX,
+  GOVERNMENT_PROFILE_PROGRESS_TITLE_MAX,
+} from '../../../constants/governmentProfileProgress.config'
 import { progressStatusBadgeTone } from '../../../utils/governmentProfileProgressSummary'
 import type { GovernmentProfileProgressViewProps } from './governmentProfileProgressViewProps'
 
@@ -26,30 +29,23 @@ export default function GovernmentProfileProgressPageMobile(props: GovernmentPro
 
   return (
     <div className="content-wrapper page-shell">
-      <StatusMessage message={error} tone="error" className="!mt-0" />
+      <StatusMessage message={error} tone="error" className="status-message--flush-top" />
 
       <GovernmentProfileProgressSummarySection summary={summary} />
 
-      <section style={{ marginTop: 24 }}>
-        <h2 style={{ fontSize: '1.05rem' }}>진행 이력</h2>
-        <form onSubmit={onSubmit} style={{ marginBottom: 20 }}>
-          <label style={{ display: 'block', marginBottom: 8 }}>
+      <section className="customer-workspace-tab-section">
+        <h2 className="customer-workspace-tab-section__title">진행 이력</h2>
+        <form onSubmit={onSubmit} className="customer-workspace-tab-form">
+          <label className="customer-workspace-tab-field">
             진행 일자{' '}
             <FormInput type="date" value={eventDate} onChange={(ev) => onSetEventDate(ev.target.value)} />
           </label>
-          <label style={{ display: 'block', marginBottom: 8 }}>
+          <label className="customer-workspace-tab-field">
             접수 상태{' '}
             <select
               value={status}
               onChange={(e) => onSetStatus(e.target.value)}
-              style={{
-                width: '100%',
-                background: '#020617',
-                color: '#f8fafc',
-                border: '1px solid #334155',
-                borderRadius: 8,
-                padding: '0.5rem',
-              }}
+              className="customer-workspace-tab-select"
             >
               <option value="">상태 선택</option>
               {statusOptions.map((s) => (
@@ -59,7 +55,7 @@ export default function GovernmentProfileProgressPageMobile(props: GovernmentPro
               ))}
             </select>
           </label>
-          <label style={{ display: 'block', marginBottom: 8 }}>
+          <label className="customer-workspace-tab-field">
             제목 (선택){' '}
             <FormInput
               value={title}
@@ -72,40 +68,27 @@ export default function GovernmentProfileProgressPageMobile(props: GovernmentPro
             value={content}
             onChange={(ev) => onSetContent(ev.target.value)}
             rows={4}
-            style={{ width: '100%', padding: 8 }}
+            className="customer-workspace-tab-textarea"
             placeholder="처리 메모"
             maxLength={GOVERNMENT_PROFILE_PROGRESS_INPUT_MAX}
           />
-          <FormButton htmlType="submit" variant="action" disabled={busy} style={{ marginTop: 8 }}>
+          <FormButton htmlType="submit" variant="action" disabled={busy} className="customer-workspace-tab-submit">
             {busy ? '저장 중…' : '진행 이력 추가'}
           </FormButton>
         </form>
         {rows.length === 0 ? (
-          <EmptyState message="등록된 진행 이력이 없습니다." className="!my-0 !text-left" />
+          <EmptyState message="등록된 진행 이력이 없습니다." className="customer-workspace-empty-state" />
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0 }}>
+          <ul className="customer-workspace-record-list">
             {rows.map((r) => {
               const tone = progressStatusBadgeTone(r.status)
               return (
-                <li
-                  key={r.id}
-                  style={{
-                    borderBottom: '1px solid var(--border-default)',
-                    padding: '12px 0',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                      marginBottom: 6,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <div style={{ fontWeight: 600 }}>{r.eventDate || r.createdAt.slice(0, 10)}</div>
+                <li key={r.id} className="customer-workspace-record-item">
+                  <div className="customer-workspace-record-item__head">
+                    <div className="customer-workspace-record-item__meta">
+                      <div className="customer-workspace-record-item__date">
+                        {r.eventDate || r.createdAt.slice(0, 10)}
+                      </div>
                       {r.status ? (
                         <span
                           className={`government-status-summary-card__badge government-status-summary-card__badge--${tone}`}
@@ -124,8 +107,8 @@ export default function GovernmentProfileProgressPageMobile(props: GovernmentPro
                       삭제
                     </FormButton>
                   </div>
-                  {r.title ? <div style={{ fontWeight: 600, marginBottom: 4 }}>{r.title}</div> : null}
-                  <div style={{ whiteSpace: 'pre-wrap', marginTop: 6 }}>{r.content || '—'}</div>
+                  {r.title ? <div className="customer-workspace-record-item__title">{r.title}</div> : null}
+                  <div className="customer-workspace-record-item__body">{r.content || '—'}</div>
                 </li>
               )
             })}

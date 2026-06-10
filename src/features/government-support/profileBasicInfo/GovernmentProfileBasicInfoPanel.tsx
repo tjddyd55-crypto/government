@@ -77,7 +77,7 @@ export default function GovernmentProfileBasicInfoPanel() {
 
       {!editing ? (
         <>
-          <div className="customer-edit-actions" style={{ marginBottom: '0.75rem' }}>
+          <div className="customer-edit-actions government-profile-basic-info-panel__edit-actions">
             <FormButton htmlType="button" variant="primary" onClick={handleStartEdit}>
               기본정보 수정
             </FormButton>

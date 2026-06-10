@@ -18,6 +18,7 @@ import {
 } from './governmentProfileWorkspaceContext'
 import type { GovernmentProfileWorkspaceLayoutViewProps } from './governmentProfileWorkspaceViewProps'
 import type { GovernmentProfileWorkspaceTab } from '../../config/governmentProfileWorkspaceTabs'
+import '../../government-support.css'
 
 function parseProfileIdFromPath(pathname: string): string | null {
   const m = pathname.match(/^\/government\/my-applications\/([^/]+)/)
@@ -139,7 +140,7 @@ export default function GovernmentProfileWorkspaceLayout() {
 
   return (
     <GovernmentProfileWorkspaceContext.Provider value={contextValue}>
-      <div className="customer-workspace-layout">
+      <div className="customer-workspace-layout government-profile-workspace">
         <aside className="customer-workspace-layout__left" aria-label="사업장 작업공간">
           <GovernmentProfileListPanel />
         </aside>

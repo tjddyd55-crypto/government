@@ -50,7 +50,7 @@ export default function GovernmentDocumentsTab({ token, documents, onReload, onF
   }
 
   return (
-    <div>
+    <div className="government-profile-documents-tab">
       <input
         ref={uploadRef}
         type="file"
@@ -60,31 +60,17 @@ export default function GovernmentDocumentsTab({ token, documents, onReload, onF
       <p className="government-page__muted">
         정부지원 전용 R2 경로에 저장합니다. 보험 `/api/storage` API와 연결하지 않습니다.
       </p>
-      <ul style={{ marginTop: '0.75rem', listStyle: 'none', padding: 0 }}>
+      <ul className="government-profile-documents-tab__list">
         {documents.map((doc) => (
-          <li
-            key={doc.id}
-            style={{
-              border: '1px solid #334155',
-              borderRadius: 8,
-              padding: '0.75rem',
-              marginBottom: '0.5rem',
-            }}
-          >
-            <div style={{ color: '#f8fafc', fontWeight: 600 }}>{doc.docType}</div>
-            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <li key={doc.id} className="government-profile-documents-tab__item">
+            <div className="government-profile-documents-tab__title">{doc.docType}</div>
+            <div className="government-profile-documents-tab__actions">
               <select
                 value={doc.status}
                 onChange={(e) =>
                   void patchGovDocument(token, doc.id, { status: e.target.value }).then(() => onReload())
                 }
-                style={{
-                  background: '#020617',
-                  color: '#f8fafc',
-                  border: '1px solid #334155',
-                  borderRadius: 8,
-                  padding: '0.35rem',
-                }}
+                className="customer-workspace-tab-select government-profile-documents-tab__select"
               >
                 {GOVERNMENT_DOCUMENT_STATUSES.map((s) => (
                   <option key={s} value={s}>
@@ -97,7 +83,7 @@ export default function GovernmentDocumentsTab({ token, documents, onReload, onF
               </FormButton>
             </div>
             {doc.storageKey ? (
-              <p className="government-page__muted" style={{ marginTop: '0.35rem', fontSize: '0.85rem' }}>
+              <p className="government-page__muted government-profile-documents-tab__storage-key">
                 저장됨: {doc.storageKey}
               </p>
             ) : null}

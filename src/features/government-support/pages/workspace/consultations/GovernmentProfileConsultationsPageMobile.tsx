@@ -18,12 +18,12 @@ export default function GovernmentProfileConsultationsPageMobile({
 }: GovernmentProfileConsultationsViewProps) {
   return (
     <div className="content-wrapper page-shell">
-      <StatusMessage message={error} tone="error" className="!mt-0" />
+      <StatusMessage message={error} tone="error" className="status-message--flush-top" />
 
-      <section style={{ marginTop: 24 }}>
-        <h2 style={{ fontSize: '1.05rem' }}>상담 기록</h2>
-        <form onSubmit={onSubmit} style={{ marginBottom: 20 }}>
-          <label style={{ display: 'block', marginBottom: 8 }}>
+      <section className="customer-workspace-tab-section">
+        <h2 className="customer-workspace-tab-section__title">상담 기록</h2>
+        <form onSubmit={onSubmit} className="customer-workspace-tab-form">
+          <label className="customer-workspace-tab-field">
             상담 일자{' '}
             <FormInput type="date" value={consultDate} onChange={(ev) => onSetConsultDate(ev.target.value)} />
           </label>
@@ -31,18 +31,18 @@ export default function GovernmentProfileConsultationsPageMobile({
             value={body}
             onChange={(ev) => onSetBody(ev.target.value)}
             rows={4}
-            style={{ width: '100%', padding: 8 }}
+            className="customer-workspace-tab-textarea"
             placeholder="상담 내용"
             maxLength={GOVERNMENT_PROFILE_CONSULTATION_INPUT_MAX}
           />
-          <FormButton htmlType="submit" variant="action" disabled={busy} style={{ marginTop: 8 }}>
+          <FormButton htmlType="submit" variant="action" disabled={busy} className="customer-workspace-tab-submit">
             {busy ? '저장 중…' : '상담 추가'}
           </FormButton>
         </form>
         {rows.length === 0 ? (
-          <EmptyState message="등록된 상담이 없습니다." className="!my-0 !text-left" />
+          <EmptyState message="등록된 상담이 없습니다." className="customer-workspace-empty-state" />
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0 }}>
+          <ul className="customer-workspace-record-list">
             {rows.map((r) => {
               const { dateLabel, text } = parseConsultationStoredBody(
                 r.body,
@@ -50,25 +50,10 @@ export default function GovernmentProfileConsultationsPageMobile({
                 r.consultationDate ?? null,
               )
               return (
-                <li
-                  key={r.id}
-                  style={{
-                    borderBottom: '1px solid var(--border-default)',
-                    padding: '12px 0',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                      marginBottom: 6,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <div style={{ fontWeight: 600 }}>{dateLabel}</div>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <li key={r.id} className="customer-workspace-record-item">
+                  <div className="customer-workspace-record-item__head">
+                    <div className="customer-workspace-record-item__date">{dateLabel}</div>
+                    <div className="customer-workspace-record-item__actions">
                       <FormButton
                         htmlType="button"
                         variant="action"
@@ -91,7 +76,7 @@ export default function GovernmentProfileConsultationsPageMobile({
                       ) : null}
                     </div>
                   </div>
-                  <div style={{ whiteSpace: 'pre-wrap', marginTop: 6 }}>{text || '—'}</div>
+                  <div className="customer-workspace-record-item__body">{text || '—'}</div>
                 </li>
               )
             })}

@@ -51,7 +51,7 @@ export default function GovernmentProfileApplicationsPageMobile(props: Governmen
         </form>
       </section>
 
-      <div className="claim-requests-page__panel-head-tools" style={{ margin: '12px 0' }}>
+      <div className="claim-requests-page__panel-head-tools government-profile-applications__list-tools">
         <FormButton htmlType="button" variant="secondary" onClick={() => void props.onReloadList()} disabled={props.loading}>
           새로고침
         </FormButton>

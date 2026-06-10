@@ -78,7 +78,7 @@ export function GovernmentProfileApplicationDetailBody({
 
       <div className="claim-requests-page__detail-section">
         <div className="claim-requests-page__detail-subtitle">신청 내용 수정</div>
-        <label className="claim-requests-page__detail-meta" style={{ display: 'block', marginBottom: 8 }}>
+        <label className="claim-requests-page__detail-meta claim-requests-page__detail-field">
           제목
           <FormInput
             className="claim-requests-page__status-select"
@@ -87,7 +87,7 @@ export function GovernmentProfileApplicationDetailBody({
             maxLength={GOVERNMENT_PROFILE_APPLICATION_TITLE_MAX}
           />
         </label>
-        <label className="claim-requests-page__detail-meta" style={{ display: 'block', marginBottom: 8 }}>
+        <label className="claim-requests-page__detail-meta claim-requests-page__detail-field">
           유형
           <FormSelect
             className="claim-requests-page__status-select"
@@ -107,7 +107,7 @@ export function GovernmentProfileApplicationDetailBody({
           placeholder="신청 내용"
           maxLength={GOVERNMENT_PROFILE_APPLICATION_CONTENT_MAX}
         />
-        <div className="claim-requests-page__status-form-row" style={{ marginTop: 8 }}>
+        <div className="claim-requests-page__status-form-row customer-workspace-tab-submit-row">
           <FormButton htmlType="button" variant="primary" onClick={() => void onSaveDetail()} loading={actionBusy}>
             내용 저장
           </FormButton>

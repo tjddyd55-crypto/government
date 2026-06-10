@@ -36,24 +36,18 @@ export default function GovernmentEdocTab({ token, profileId, links, onReload, o
   }
 
   return (
-    <div>
+    <div className="government-profile-edoc-tab">
       <p className="government-page__muted">
-        보험 `/contracts/signatures` 모듈과 분리된 정부지원 전자문서 이력입니다. 실제 서명 발송 연동은 government 전용 모듈로 확장합니다.
+        보험 `/contracts/signatures` 모듈과 분리된 정부지원 전자문서 이력입니다. 실제 서명 발송 연동은 government 전용
+        모듈로 확장합니다.
       </p>
-      <div className="government-form-grid" style={{ marginTop: '0.75rem', maxWidth: 480 }}>
-        <label>
+      <div className="government-form-grid government-profile-edoc-tab__form">
+        <label className="customer-workspace-tab-field">
           문서 종류
           <select
             value={documentName}
             onChange={(e) => setDocumentName(e.target.value)}
-            style={{
-              width: '100%',
-              background: '#020617',
-              color: '#f8fafc',
-              border: '1px solid #334155',
-              borderRadius: 8,
-              padding: '0.35rem',
-            }}
+            className="customer-workspace-tab-select"
           >
             {GOVERNMENT_EDOC_TEMPLATES.map((name) => (
               <option key={name} value={name}>
@@ -67,9 +61,9 @@ export default function GovernmentEdocTab({ token, profileId, links, onReload, o
           이력 등록
         </FormButton>
       </div>
-      <table style={{ width: '100%', marginTop: '1rem', borderCollapse: 'collapse' }}>
+      <table className="government-profile-edoc-tab__table">
         <thead>
-          <tr style={{ color: '#94a3b8', textAlign: 'left' }}>
+          <tr>
             <th>문서명</th>
             <th>수신자</th>
             <th>서명상태</th>
@@ -78,8 +72,8 @@ export default function GovernmentEdocTab({ token, profileId, links, onReload, o
         </thead>
         <tbody>
           {links.map((row) => (
-            <tr key={row.id} style={{ borderTop: '1px solid #1e293b' }}>
-              <td style={{ padding: '0.5rem 0' }}>{row.documentName}</td>
+            <tr key={row.id}>
+              <td className="government-profile-edoc-tab__cell">{row.documentName}</td>
               <td>{row.recipient}</td>
               <td>{row.signStatus}</td>
               <td>{row.sentAt ? String(row.sentAt).slice(0, 10) : '-'}</td>
