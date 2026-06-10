@@ -16,7 +16,9 @@ import {
 import { reconcileGovSignatureFieldSettingsAfterPdfSave } from '../services/governmentSignatureTemplateFieldSettings.js'
 import { getTemplateObject, putTemplateObject } from '../pdf-engine/storage/pdfTemplateStorage.js'
 import {
+  buildGovPdfTemplateListWhere,
   canAccessGovPdfTemplateRow,
+  canManageGovPdfTemplateRow,
   getAuthUserId,
   resolveGovSignatureTemplateTenantId,
   resolveGovernmentSignatureAccessScope,
@@ -167,34 +169,21 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
         res.status(403).json({ message: '전자서명 권한이 필요합니다.' })
         return
       }
-      let r
-      if (scope.mode === 'operational') {
-        if (scope.tenantIds.length === 0) {
-          res.json({ ok: true, templates: [] })
-          return
-        }
-        r = await pool.query(
-          `
-          SELECT id, code, title, description, page_count, is_active, created_at, updated_at
-          FROM pdf_templates
-          WHERE gov_tenant_id::text = ANY($1::text[])
-          ORDER BY updated_at DESC
-          LIMIT 500
-          `,
-          [scope.tenantIds],
-        )
-      } else {
-        r = await pool.query(
-          `
-          SELECT id, code, title, description, page_count, is_active, created_at, updated_at
-          FROM pdf_templates
-          WHERE gov_owner_user_id = $1
-          ORDER BY updated_at DESC
-          LIMIT 500
-          `,
-          [scope.userId],
-        )
+      const listWhere = buildGovPdfTemplateListWhere(scope)
+      if (listWhere.sql === 'FALSE') {
+        res.json({ ok: true, templates: [] })
+        return
       }
+      const r = await pool.query(
+        `
+        SELECT id, code, title, description, page_count, is_active, created_at, updated_at
+        FROM pdf_templates
+        WHERE ${listWhere.sql}
+        ORDER BY updated_at DESC
+        LIMIT 500
+        `,
+        listWhere.params,
+      )
       res.json({ ok: true, templates: r.rows.map(templateToDto) })
     } catch (e) {
       handleDbError(e, req, res)
@@ -228,7 +217,7 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
         return
       }
       const merged = await loadGovPdfRow(pool, id)
-      if (!merged || !canAccessGovPdfTemplateRow(req, merged)) {
+      if (!merged || !canManageGovPdfTemplateRow(req, merged)) {
         res.status(404).json({ message: 'PDF 템플릿을 찾을 수 없습니다.' })
         return
       }
@@ -275,7 +264,7 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
         return
       }
       const merged = await loadGovPdfRow(pool, id)
-      if (!merged || !canAccessGovPdfTemplateRow(req, merged)) {
+      if (!merged || !canManageGovPdfTemplateRow(req, merged)) {
         res.status(404).json({ message: 'PDF 템플릿을 찾을 수 없습니다.' })
         return
       }

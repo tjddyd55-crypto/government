@@ -1,6 +1,6 @@
 /**
  * 정부지원 전자서명 접근 제어.
- * - program user: 본인 사업장·본인 템플릿(owner_user_id)
+ * - program user: 본인 사업장·본인/소속 tenant 템플릿·PDF(발송용 read)
  * - 대행사 관리자/직원: tenant 범위 공용 템플릿·PDF·발송·내역
  * @module governmentSignatures/access
  */
@@ -162,10 +162,39 @@ export function canAccessGovSignatureTemplateRow(req, row) {
 }
 
 /**
+ * PDF 템플릿 read(조회·발송 검증·파일 다운로드) — program user는 소속 tenant 공용 PDF 포함.
  * @param {import('express').Request} req
  * @param {{ gov_owner_user_id?: unknown, gov_tenant_id?: unknown }} row
  */
 export function canAccessGovPdfTemplateRow(req, row) {
+  const scope = resolveGovernmentSignatureAccessScope(req)
+  if (!scope || !row) {
+    return false
+  }
+  if (row.gov_owner_user_id == null && row.gov_tenant_id == null) {
+    return false
+  }
+  if (scope.mode === 'program') {
+    if (String(row.gov_owner_user_id ?? '') === scope.userId) {
+      return true
+    }
+    const tid = row.gov_tenant_id != null ? String(row.gov_tenant_id) : ''
+    const tenantIds = scope.tenantIds ?? getProgramUserTenantIds(getGovernmentSignaturePlatformContext(req) ?? {})
+    return Boolean(tid && tenantIds.includes(tid))
+  }
+  const tid = row.gov_tenant_id != null ? String(row.gov_tenant_id) : ''
+  if (tid && scope.tenantIds.includes(tid)) {
+    return true
+  }
+  return String(row.gov_owner_user_id ?? '') === scope.userId
+}
+
+/**
+ * PDF 템플릿 write(생성·좌표 저장·삭제) — program user는 본인 owner PDF만, tenant 공용 PDF는 operational만.
+ * @param {import('express').Request} req
+ * @param {{ gov_owner_user_id?: unknown, gov_tenant_id?: unknown }} row
+ */
+export function canManageGovPdfTemplateRow(req, row) {
   const scope = resolveGovernmentSignatureAccessScope(req)
   if (!scope || !row) {
     return false
@@ -181,6 +210,29 @@ export function canAccessGovPdfTemplateRow(req, row) {
     return true
   }
   return String(row.gov_owner_user_id ?? '') === scope.userId
+}
+
+/**
+ * @param {{ mode: 'program'; userId: string; tenantIds?: string[] } | { mode: 'operational'; userId: string; tenantIds: string[] }} scope
+ */
+export function buildGovPdfTemplateListWhere(scope) {
+  if (!scope) {
+    return { sql: 'FALSE', params: [] }
+  }
+  if (scope.mode === 'program') {
+    const tenantIds = scope.tenantIds ?? []
+    if (tenantIds.length === 0) {
+      return { sql: 'gov_owner_user_id = $1', params: [scope.userId] }
+    }
+    return {
+      sql: '(gov_owner_user_id = $1 OR gov_tenant_id::text = ANY($2::text[]))',
+      params: [scope.userId, tenantIds],
+    }
+  }
+  if (scope.tenantIds.length === 0) {
+    return { sql: 'FALSE', params: [] }
+  }
+  return { sql: 'gov_tenant_id::text = ANY($1::text[])', params: [scope.tenantIds] }
 }
 
 /**

@@ -148,6 +148,110 @@ async function createGovSignatureTemplatePair(token, label) {
   return { ok: true, pdfTemplateId, govTemplateId }
 }
 
+const PNG_SIG_E2E =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+
+/**
+ * @param {string} signToken
+ * @param {string} sendSessionId
+ * @param {string} tokenOwner
+ * @param {number} pdfTemplateIdForFields
+ */
+async function completePublicSignatureFlow(signToken, sendSessionId, tokenOwner, pdfTemplateIdForFields) {
+  const otpSend = await api(`/government-support/public/signatures/${encodeURIComponent(signToken)}/otp/send`, {
+    method: 'POST',
+    body: {},
+  })
+  if (otpSend.status !== 200) {
+    return { ok: false, error: `otp send ${otpSend.status}` }
+  }
+  const otpCode = String(process.env.E2E_GOVERNMENT_SIGNATURE_OTP ?? otpSend.json?.data?.debugCode ?? otpSend.json?.debugCode ?? '').trim()
+  if (!otpCode) {
+    return { ok: false, error: 'otp code unavailable' }
+  }
+  const otpVerify = await api(`/government-support/public/signatures/${encodeURIComponent(signToken)}/otp/verify`, {
+    method: 'POST',
+    body: { code: otpCode },
+  })
+  if (otpVerify.status !== 200) {
+    return { ok: false, error: `otp verify ${otpVerify.status}` }
+  }
+
+  const ownerDetail = await api(`/government-support/signatures/${encodeURIComponent(sendSessionId)}`, {
+    token: tokenOwner,
+  })
+  const docInstanceId = ownerDetail.json?.sendSession?.documents?.[0]?.id ?? null
+  if (!docInstanceId) {
+    return { ok: false, error: 'doc instance missing' }
+  }
+
+  const pdfDetail = await api(`/government-support/signature-templates/pdf/${pdfTemplateIdForFields}`, { token: tokenOwner })
+  const fields = pdfDetail.json?.fields ?? []
+  const textField = fields.find((f) => String(f.field_key ?? f.fieldKey) === 'signer_name')
+  const sigField = fields.find((f) => String(f.field_type ?? f.fieldType) === 'signature')
+
+  if (textField?.id) {
+    const vals = await api(
+      `/government-support/public/signatures/${encodeURIComponent(signToken)}/documents/${encodeURIComponent(docInstanceId)}/values`,
+      {
+        method: 'POST',
+        body: {
+          values: [{ fieldId: String(textField.id), fieldKey: 'signer_name', value: 'E2E Agency 수신자' }],
+        },
+      },
+    )
+    if (vals.status !== 200) {
+      return { ok: false, error: `field values ${vals.status}` }
+    }
+  }
+
+  if (sigField?.id) {
+    const signRes = await api(
+      `/government-support/public/signatures/${encodeURIComponent(signToken)}/documents/${encodeURIComponent(docInstanceId)}/sign`,
+      {
+        method: 'POST',
+        body: {
+          fieldId: String(sigField.id),
+          signatureImageData: PNG_SIG_E2E,
+          electronicSignAcknowledged: true,
+        },
+      },
+    )
+    if (signRes.status !== 200) {
+      return { ok: false, error: `sign ${signRes.status}` }
+    }
+  }
+
+  const complete = await api(
+    `/government-support/public/signatures/${encodeURIComponent(signToken)}/documents/${encodeURIComponent(docInstanceId)}/complete`,
+    {
+      method: 'POST',
+      body: {
+        finalPreviewConfirmed: true,
+        finalSubmitAcknowledged: true,
+        acknowledgeElectronicContract: true,
+      },
+    },
+  )
+  if (complete.status !== 200) {
+    return { ok: false, error: `complete ${complete.status}` }
+  }
+
+  const dl = await fetch(
+    `${API}/government-support/signatures/${encodeURIComponent(sendSessionId)}/documents/${encodeURIComponent(docInstanceId)}/signed-pdf`,
+    { headers: { Authorization: `Bearer ${tokenOwner}`, Accept: 'application/pdf' } },
+  )
+  const ct = dl.headers.get('content-type') ?? ''
+  if (dl.status !== 200 || !ct.includes('pdf')) {
+    return { ok: false, error: `pdf download ${dl.status}` }
+  }
+  const buf = Buffer.from(await dl.arrayBuffer())
+  if (buf.length < 100) {
+    return { ok: false, error: 'pdf too small' }
+  }
+  return { ok: true, docInstanceId, pdfBytes: buf.length }
+}
+
 async function main() {
   const health = await fetch(`${BASE}/backend/health`)
   if (health.status === 200) pass('health 200')
@@ -487,9 +591,6 @@ async function main() {
       else failWrap('send session detail documents', String(ownerDetail.status))
     }
 
-    const PNG_SIG =
-      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
-
     if (docInstanceId && pdfTemplateId != null && otpVerified) {
       const pdfDetail = await api(`/government-support/signature-templates/pdf/${pdfTemplateId}`, { token: tokenA })
       const fields = pdfDetail.json?.fields ?? pdfDetail.json?.data?.fields ?? []
@@ -517,7 +618,7 @@ async function main() {
             method: 'POST',
             body: {
               fieldId: String(sigField.id),
-              signatureImageData: PNG_SIG,
+              signatureImageData: PNG_SIG_E2E,
               electronicSignAcknowledged: true,
             },
           },
@@ -687,6 +788,7 @@ async function main() {
         })
         const tokenAgency = agencyLogin.json?.token
         let agencyTemplateId = null
+        let agencyPdfTemplateId = null
         if (tokenAgency) {
           const agencyAccess = await api('/government-support/me/access', { token: tokenAgency })
           const agencyData = agencyAccess.json?.data ?? agencyAccess.json ?? {}
@@ -708,15 +810,118 @@ async function main() {
           if (agTpl.status === 200) pass('agency admin can list signature-templates', '200')
           else failWrap('agency admin can list signature-templates', String(agTpl.status))
 
-          const created = await createGovSignatureTemplatePair(tokenAgency, `agency_${tag}`)
-          if (created.ok) {
-            agencyTemplateId = created.govTemplateId
+          const agencyCreated = await createGovSignatureTemplatePair(tokenAgency, `agency_${tag}`)
+          if (agencyCreated.ok) {
+            agencyTemplateId = agencyCreated.govTemplateId
+            agencyPdfTemplateId = agencyCreated.pdfTemplateId
             pass('agency admin creates tenant template', agencyTemplateId)
           } else {
-            failWrap('agency admin creates tenant template', created.error ?? '')
+            failWrap('agency admin creates tenant template', agencyCreated.error ?? '')
           }
         } else {
           failWrap('agency admin login after create', String(agencyLogin.status))
+        }
+
+        if (agencyTemplateId && agencyPdfTemplateId && profileId) {
+          const progTenantIds = (accessAData.governmentProgramUserTenantIds ?? []).map(String)
+          const tenantAStr = tenantA != null ? String(tenantA) : ''
+          if (tenantAStr && progTenantIds.includes(tenantAStr)) {
+            const progSendTpl = await api('/government-support/signatures/send/templates', { token: tokenA })
+            const progTplRows = progSendTpl.json?.templates ?? []
+            const seesAgency =
+              progSendTpl.status === 200 &&
+              Array.isArray(progTplRows) &&
+              progTplRows.some((t) => String(t.id) === String(agencyTemplateId))
+            if (seesAgency) pass('program user send templates include agency tenant template', agencyTemplateId)
+            else failWrap('program user send templates include agency tenant template', String(progSendTpl.status))
+
+            const progPdfRead = await api(`/government-support/signature-templates/pdf/${agencyPdfTemplateId}`, {
+              token: tokenA,
+            })
+            if (progPdfRead.status === 200) pass('program user read agency tenant PDF template')
+            else failWrap('program user read agency tenant PDF template', String(progPdfRead.status))
+
+            const progPdfEdit = await api(
+              `/government-support/signature-templates/pdf/${agencyPdfTemplateId}/fields`,
+              { token: tokenA, method: 'PUT', body: { fields: [] } },
+            )
+            if (progPdfEdit.status === 403 || progPdfEdit.status === 404) {
+              pass('program user blocked from editing agency tenant PDF', String(progPdfEdit.status))
+            } else {
+              failWrap('program user blocked from editing agency tenant PDF', String(progPdfEdit.status))
+            }
+
+            const agencySend = await api('/government-support/signatures/send', {
+              token: tokenA,
+              method: 'POST',
+              body: { profileId, templateIds: [agencyTemplateId] },
+            })
+            const agencySessionId =
+              agencySend.json?.sendSession?.id ?? agencySend.json?.data?.sendSession?.id ?? null
+            const agencySignToken =
+              agencySend.json?.sendSession?.signToken ?? agencySend.json?.data?.sendSession?.signToken ?? null
+            if (agencySend.status === 201 && agencySessionId && agencySignToken) {
+              pass('program user sends with agency tenant template', agencySessionId)
+              const agencyFlow = await completePublicSignatureFlow(
+                agencySignToken,
+                agencySessionId,
+                tokenA,
+                agencyPdfTemplateId,
+              )
+              if (agencyFlow.ok) {
+                pass('agency tenant template public sign complete', `${agencyFlow.pdfBytes} bytes`)
+              } else {
+                failWrap('agency tenant template public sign complete', agencyFlow.error ?? '')
+              }
+            } else {
+              failWrap(
+                'program user sends with agency tenant template',
+                `${agencySend.status} ${agencySend.json?.message ?? ''}`,
+              )
+            }
+          } else {
+            skip(
+              'program user same tenant as agency admin',
+              `prog=${progTenantIds.join(',')} agency=${tenantAStr}`,
+            )
+          }
+
+          const progBSendTpl = await api('/government-support/signatures/send/templates', { token: tokenB })
+          const progBRows = progBSendTpl.json?.templates ?? []
+          const bSeesAgency =
+            Array.isArray(progBRows) && progBRows.some((t) => String(t.id) === String(agencyTemplateId))
+          if (!bSeesAgency) pass('program user B cannot list other tenant agency template')
+          else failWrap('program user B cannot list other tenant agency template', 'found in list')
+
+          const bAgencyTpl = await api(
+            `/government-support/signature-templates/${encodeURIComponent(agencyTemplateId)}`,
+            { token: tokenB },
+          )
+          if (bAgencyTpl.status === 403 || bAgencyTpl.status === 404) {
+            pass('program user B blocked from other tenant template', String(bAgencyTpl.status))
+          } else {
+            failWrap('program user B blocked from other tenant template', String(bAgencyTpl.status))
+          }
+
+          const bAgencyPdf = await api(`/government-support/signature-templates/pdf/${agencyPdfTemplateId}`, {
+            token: tokenB,
+          })
+          if (bAgencyPdf.status === 403 || bAgencyPdf.status === 404) {
+            pass('program user B blocked from other tenant PDF', String(bAgencyPdf.status))
+          } else {
+            failWrap('program user B blocked from other tenant PDF', String(bAgencyPdf.status))
+          }
+
+          const bAgencySend = await api('/government-support/signatures/send', {
+            token: tokenB,
+            method: 'POST',
+            body: { profileId, templateIds: [agencyTemplateId] },
+          })
+          if (bAgencySend.status === 403 || bAgencySend.status === 404) {
+            pass('program user B blocked from other tenant template send', String(bAgencySend.status))
+          } else {
+            failWrap('program user B blocked from other tenant template send', String(bAgencySend.status))
+          }
         }
 
         if (tokenStaff && agencyTemplateId) {
@@ -787,6 +992,8 @@ async function main() {
   } else {
     skip('industry admin login', 'E2E_GOVERNMENT_PASSWORD 없음 — tenant sharing 테스트 생략')
     skip('staff/agency admin tenant sharing', 'admin credentials unavailable')
+    skip('program user agency tenant PDF send', 'admin credentials unavailable')
+    skip('program user B other tenant PDF isolation', 'admin credentials unavailable')
   }
 
   const insContracts = await fetch(`${API}/contracts/templates`, { headers: { Accept: 'application/json' } })
