@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { EmptyState } from '../../../../components/feedback'
 import type { GovernmentProfileWorkspaceTab } from '../../config/governmentProfileWorkspaceTabs'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
@@ -9,6 +8,7 @@ import GovernmentProfileFilesPanel from './GovernmentProfileFilesPanel'
 import GovernmentProfileDocumentsPanel from './GovernmentProfileDocumentsPanel'
 import GovernmentProfileEdocPanel from './GovernmentProfileEdocPanel'
 import GovernmentProfileApplicationsPanel from './GovernmentProfileApplicationsPanel'
+import GovernmentProfileSignaturesPanel from './GovernmentProfileSignaturesPanel'
 import GovernmentProfileBasicInfoPanel from '../../profileBasicInfo/GovernmentProfileBasicInfoPanel'
 
 type GovernmentProfileDetailPanelsProps = {
@@ -51,22 +51,7 @@ export default function GovernmentProfileDetailPanels({ tab }: GovernmentProfile
   }
 
   if (tab === 'signatures') {
-    return (
-      <div>
-        <p className="government-page__muted">
-          전자서명 발송·내역은 전자서명 메뉴에서 이어서 처리합니다.
-        </p>
-        <p style={{ marginTop: '1rem' }}>
-          <Link to="/government/signatures/send" className="dark-link">
-            전자서명 발송
-          </Link>
-          {' · '}
-          <Link to="/government/signatures" className="dark-link">
-            발송 내역
-          </Link>
-        </p>
-      </div>
-    )
+    return <GovernmentProfileSignaturesPanel />
   }
 
   if (tab === 'applications') {

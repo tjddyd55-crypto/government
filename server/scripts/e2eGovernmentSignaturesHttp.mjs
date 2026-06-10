@@ -378,13 +378,64 @@ async function main() {
 
   if (sendSessionId) {
     const sentList = await api('/government-support/signatures', { token: tokenA })
-    const sentRows = sentList.json?.data ?? sentList.json?.sessions ?? []
+    const sentRows = sentList.json?.sendSessions ?? sentList.json?.data ?? sentList.json?.sessions ?? []
     const inList =
       Array.isArray(sentRows) &&
       sentRows.some((s) => String(s.id ?? s.sendSessionId) === String(sendSessionId))
     if (inList) pass('send session in list')
     else if (sentList.status === 200) pass('send session list OK', 'session id match optional')
     else failWrap('send session in list', String(sentList.status))
+  }
+
+  if (profileId != null && govTemplateId) {
+    const wsHtml = await fetchHtml(`/government/my-applications/${profileId}/signatures`)
+    if (wsHtml.status === 200) pass('GET profile workspace signatures tab SPA', wsHtml.bundle ?? '')
+    else failWrap('GET profile workspace signatures tab SPA', String(wsHtml.status))
+
+    for (const m of ['government-profile-signatures-panel', '전자서명 발송', '발송 내역']) {
+      if (wsHtml.js.includes(m)) pass(`workspace signatures bundle contains ${m}`)
+      else failWrap(`workspace signatures bundle contains ${m}`)
+    }
+
+    const profileSendTpl = await api('/government-support/signatures/send/templates', { token: tokenA })
+    const profileTplRows = profileSendTpl.json?.templates ?? []
+    const profileHasTpl =
+      profileSendTpl.status === 200 &&
+      Array.isArray(profileTplRows) &&
+      profileTplRows.some((row) => String(row.id) === String(govTemplateId))
+    if (profileHasTpl) pass('profile workspace send templates include created template')
+    else failWrap('profile workspace send templates', String(profileSendTpl.status))
+
+    if (sendSessionId) {
+      const scopedList = await api(`/government-support/signatures?profileId=${profileId}`, { token: tokenA })
+      const scopedRows = scopedList.json?.sendSessions ?? []
+      const inScoped =
+        scopedList.status === 200 &&
+        Array.isArray(scopedRows) &&
+        scopedRows.some((row) => String(row.id) === String(sendSessionId))
+      if (inScoped) pass('profile scoped signature list contains session')
+      else failWrap('profile scoped signature list', String(scopedList.status))
+
+      if (tokenB) {
+        const blockedSend = await api('/government-support/signatures/send', {
+          token: tokenB,
+          method: 'POST',
+          body: { profileId, templateIds: [govTemplateId] },
+        })
+        if (blockedSend.status === 403 || blockedSend.status === 404) {
+          pass('user B blocked from user A profile signature send')
+        } else {
+          failWrap('user B blocked from user A profile signature send', String(blockedSend.status))
+        }
+
+        const blockedScoped = await api(`/government-support/signatures?profileId=${profileId}`, { token: tokenB })
+        if (blockedScoped.status === 403 || blockedScoped.status === 404) {
+          pass('user B blocked from user A profile signature list')
+        } else {
+          failWrap('user B blocked from user A profile signature list', String(blockedScoped.status))
+        }
+      }
+    }
   }
 
   let otpVerified = false

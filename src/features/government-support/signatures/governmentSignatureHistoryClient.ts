@@ -46,9 +46,13 @@ export async function listUserSendSessions(
     sort?: 'sent_desc' | 'completed_desc'
     limit?: number
     offset?: number
+    profileId?: number
   },
 ): Promise<ListUserSendSessionsResult> {
   const qs = new URLSearchParams()
+  if (params.profileId != null && Number.isFinite(params.profileId) && params.profileId > 0) {
+    qs.set('profileId', String(params.profileId))
+  }
   if (params.q?.trim()) {
     qs.set('q', params.q.trim())
   }

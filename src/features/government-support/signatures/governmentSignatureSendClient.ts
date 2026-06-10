@@ -255,7 +255,7 @@ export async function createUserGovernmentSignatureSendSession(
   const body = await apiRequest<{
     sendSession?: CreateSendSessionResult
     confirmationItems?: { id: string; label: string; required: boolean }[]
-  }>('/api/government-support/signatures', {
+  }>('/api/government-support/signatures/send', {
     method: 'POST',
     token,
     body: JSON.stringify({

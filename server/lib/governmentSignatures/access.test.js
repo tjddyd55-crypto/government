@@ -6,8 +6,15 @@ import {
   canAccessGovSignatureTemplateRow,
 } from './access.js'
 
-test('buildGovSignatureTemplateListWhere — program user는 owner_user_id', () => {
-  const w = buildGovSignatureTemplateListWhere({ mode: 'program', userId: 'u1' })
+test('buildGovSignatureTemplateListWhere — program user는 owner 또는 소속 tenant', () => {
+  const w = buildGovSignatureTemplateListWhere({ mode: 'program', userId: 'u1', tenantIds: ['42'] })
+  assert.match(w.sql, /owner_user_id/)
+  assert.match(w.sql, /tenant_id/)
+  assert.deepEqual(w.params, ['u1', ['42']])
+})
+
+test('buildGovSignatureTemplateListWhere — program user tenant 없으면 owner만', () => {
+  const w = buildGovSignatureTemplateListWhere({ mode: 'program', userId: 'u1', tenantIds: [] })
   assert.match(w.sql, /owner_user_id/)
   assert.deepEqual(w.params, ['u1'])
 })
@@ -16,6 +23,20 @@ test('buildGovSignatureTemplateListWhere — operational은 tenant_id', () => {
   const w = buildGovSignatureTemplateListWhere({ mode: 'operational', userId: 'u1', tenantIds: ['10', '20'] })
   assert.match(w.sql, /tenant_id/)
   assert.deepEqual(w.params, [['10', '20']])
+})
+
+test('canAccessGovSignatureTemplateRow — program user는 소속 tenant 템플릿 조회', () => {
+  const req = {
+    user: { id: 'prog1' },
+    platformContext: {
+      userId: 'prog1',
+      governmentStaffTenantIds: [],
+      governmentAgencyAdminTenantIds: [],
+      governmentProgramUserTenantIds: ['42'],
+    },
+  }
+  const row = { owner_user_id: 'admin1', tenant_id: 42 }
+  assert.equal(canAccessGovSignatureTemplateRow(req, row), true)
 })
 
 test('canAccessGovSignatureTemplateRow — operational tenant 공유', () => {

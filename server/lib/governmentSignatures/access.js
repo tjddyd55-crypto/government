@@ -75,7 +75,8 @@ export function resolveGovernmentSignatureAccessScope(req) {
     return null
   }
   if (isGovernmentProgramUser(ctx)) {
-    return { mode: 'program', userId }
+    const tenantIds = getProgramUserTenantIds(ctx)
+    return { mode: 'program', userId, tenantIds }
   }
   const tenantIds = getOperationalTenantIds(ctx)
   if (tenantIds.length === 0) {
@@ -121,7 +122,14 @@ export function buildGovSignatureTemplateListWhere(scope, alias = 't') {
     return { sql: 'FALSE', params: [] }
   }
   if (scope.mode === 'program') {
-    return { sql: `${alias}.owner_user_id = $1`, params: [scope.userId] }
+    const tenantIds = scope.tenantIds ?? []
+    if (tenantIds.length === 0) {
+      return { sql: `${alias}.owner_user_id = $1`, params: [scope.userId] }
+    }
+    return {
+      sql: `(${alias}.owner_user_id = $1 OR ${alias}.tenant_id::text = ANY($2::text[]))`,
+      params: [scope.userId, tenantIds],
+    }
   }
   if (scope.tenantIds.length === 0) {
     return { sql: 'FALSE', params: [] }
@@ -139,7 +147,12 @@ export function canAccessGovSignatureTemplateRow(req, row) {
     return false
   }
   if (scope.mode === 'program') {
-    return String(row.owner_user_id ?? '') === scope.userId
+    if (String(row.owner_user_id ?? '') === scope.userId) {
+      return true
+    }
+    const tid = row.tenant_id != null ? String(row.tenant_id) : ''
+    const tenantIds = scope.tenantIds ?? getProgramUserTenantIds(getGovernmentSignaturePlatformContext(req) ?? {})
+    return Boolean(tid && tenantIds.includes(tid))
   }
   const tid = row.tenant_id != null ? String(row.tenant_id) : ''
   if (tid && scope.tenantIds.includes(tid)) {

@@ -1111,9 +1111,22 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       const sortRaw = String(req.query.sort ?? 'sent_desc').trim().toLowerCase()
       const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100)
       const offset = Math.max(Number(req.query.offset) || 0, 0)
+      const profileIdFilter = Number(req.query.profileId ?? req.query.profile_id)
 
       const listScope = buildSignatureSendSessionListWhere(scope)
       const baseParams = [...listScope.params]
+      let profileClause = ''
+      if (Number.isInteger(profileIdFilter) && profileIdFilter > 0) {
+        if (scope.mode === 'program') {
+          const acc = await assertGovProfileForSignatureSend(pool, profileIdFilter, req)
+          if (acc.error) {
+            res.status(acc.status ?? 403).json({ ok: false, message: acc.error })
+            return
+          }
+        }
+        baseParams.push(profileIdFilter)
+        profileClause = ` AND s.profile_id = $${baseParams.length} `
+      }
       let searchClause = ''
       if (qSearch) {
         const pattern = `%${escapeIlikePattern(qSearch)}%`
@@ -1149,7 +1162,7 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           ? 's.completed_at DESC NULLS LAST, s.created_at DESC'
           : 's.created_at DESC'
 
-      const whereRest = `${searchClause}${filterClause}`
+      const whereRest = `${profileClause}${searchClause}${filterClause}`
 
       const countSql = `
         SELECT COUNT(*)::int AS total
