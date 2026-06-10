@@ -9,7 +9,6 @@ import {
   type GovCustomerSignatureItem,
 } from '../api/governmentCustomerAppApi'
 import { mapGovernmentSignatureApiError } from '../../signatures/governmentSignatureUserDisplay'
-import '../../../customer-app/customer-app-claims.css'
 
 function formatDateTime(iso: string | null): string {
   if (!iso) return '—'
@@ -81,7 +80,7 @@ export default function GovernmentCustomerAppSignaturesPage() {
                   <span className={signatureStatusClass(row.displayStatus)}>{row.displayStatus}</span>
                 </div>
                 {row.hasSignedPdf ? (
-                  <div style={{ marginTop: 8 }}>
+                  <div className="customer-app-claim-actions government-customer-app-card-actions">
                     <FormButton
                       htmlType="button"
                       variant="secondary"

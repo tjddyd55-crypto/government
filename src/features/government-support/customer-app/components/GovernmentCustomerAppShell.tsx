@@ -19,6 +19,7 @@ const TABS = [
 
 export default function GovernmentCustomerAppShell({ children, title = '정부지원 고객앱' }: Props) {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const hideInquiryCta = Boolean(useMatch('/government/app/inquiries/new'))
   const { token } = useAuth()
   const { summary } = useGovernmentAccess(token)
@@ -74,15 +75,19 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
             </div>
           ) : null}
           <nav className="customer-app-tabbar" aria-label="고객앱 주요 메뉴">
-            {TABS.map((tab) => (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                className={({ isActive }) => `customer-app-tabbar__item${isActive ? ' is-active' : ''}`}
-              >
-                {tab.label}
-              </NavLink>
-            ))}
+            {TABS.map((tab) => {
+              const active = tab.match(pathname)
+              return (
+                <NavLink
+                  key={tab.to}
+                  to={tab.to}
+                  className={`customer-app-tabbar__item${active ? ' is-active' : ''}`}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  {tab.label}
+                </NavLink>
+              )
+            })}
           </nav>
         </div>
       </div>

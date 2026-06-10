@@ -9,8 +9,6 @@ import {
   createGovCustomerInquiry,
   presignGovCustomerInquiryFile,
 } from '../api/governmentCustomerAppApi'
-import '../../../customer-app/customer-app-claims.css'
-
 interface UploadReadyFile {
   id: string
   file: File
@@ -95,7 +93,7 @@ export default function GovernmentCustomerAppInquiryComposePage() {
   }
 
   return (
-    <div className="customer-app-claim-page">
+    <div className="customer-app-claim-page government-customer-app-compose">
       <StatusMessage message={error} tone="error" />
       <StatusMessage message={result} tone="success" />
 
@@ -104,7 +102,7 @@ export default function GovernmentCustomerAppInquiryComposePage() {
         <p className="customer-app-claim-section-description">
           궁금한 사항이나 요청사항을 남겨 주시면 담당자가 확인 후 답변드립니다.
         </p>
-        <div className="customer-app-claim-field" style={{ marginTop: 12 }}>
+        <div className="customer-app-claim-field">
           <span className="customer-app-claim-field__label">제목 (선택)</span>
           <FormInput
             className="customer-app-claim-input"
@@ -114,7 +112,7 @@ export default function GovernmentCustomerAppInquiryComposePage() {
             maxLength={200}
           />
         </div>
-        <div className="customer-app-claim-field" style={{ marginTop: 12 }}>
+        <div className="customer-app-claim-field">
           <span className="customer-app-claim-field__label">내용</span>
           <FormTextarea
             className="customer-app-claim-textarea"
@@ -129,7 +127,7 @@ export default function GovernmentCustomerAppInquiryComposePage() {
       <section className="customer-app-claim-card">
         <h2 className="customer-app-claim-section-title">첨부 파일</h2>
         <p className="customer-app-claim-section-description">관련 자료가 있으면 이미지 또는 PDF를 첨부할 수 있습니다.</p>
-        <div style={{ marginTop: 12 }}>
+        <div className="government-customer-app-uploader-wrap">
           <FileUploader
             accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
             validateFile={validateFile}

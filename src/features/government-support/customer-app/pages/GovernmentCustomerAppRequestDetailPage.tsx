@@ -13,8 +13,6 @@ import {
   type GovCustomerDocumentRequestDetail,
   type GovCustomerDocumentRequestItem,
 } from '../api/governmentCustomerAppApi'
-import '../../../customer-app/customer-app-claims.css'
-
 function formatFileSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 1) return '0 KB'
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`
@@ -74,14 +72,14 @@ function DocumentRequestItemUpload({ token, requestId, item, onChanged }: ItemUp
   }
 
   return (
-    <section className="customer-app-claim-card" style={{ marginTop: 12 }}>
+    <section className="customer-app-claim-card government-customer-app-detail-card">
       <div className="customer-app-claim-detail-header">
         <h3 className="customer-app-claim-section-title">{item.label || item.docType}</h3>
         <span className={itemStatusClass(item.status)}>{item.status}</span>
       </div>
       <StatusMessage message={error} tone="error" className="!mt-2" />
       {item.files.length > 0 ? (
-        <ul className="customer-app-claim-file-list" style={{ marginTop: 8 }}>
+        <ul className="customer-app-claim-file-list">
           {item.files.map((file) => (
             <li key={file.id} className="customer-app-claim-file-row">
               <span className="customer-app-claim-file-row__icon">FILE</span>
@@ -92,7 +90,7 @@ function DocumentRequestItemUpload({ token, requestId, item, onChanged }: ItemUp
               <FormButton
                 htmlType="button"
                 variant="secondary"
-                className="!h-8 !px-3 text-[12px]"
+                className="government-customer-app-file-btn"
                 disabled={busy}
                 onClick={() => {
                   void (async () => {
@@ -106,7 +104,7 @@ function DocumentRequestItemUpload({ token, requestId, item, onChanged }: ItemUp
               <FormButton
                 htmlType="button"
                 variant="secondary"
-                className="!h-8 !px-3 text-[12px]"
+                className="government-customer-app-file-btn"
                 disabled={busy}
                 onClick={() => {
                   void (async () => {
@@ -126,7 +124,7 @@ function DocumentRequestItemUpload({ token, requestId, item, onChanged }: ItemUp
           ))}
         </ul>
       ) : null}
-      <div style={{ marginTop: 12 }}>
+      <div className="government-customer-app-uploader-wrap">
         <FileUploader
           accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
           validateFile={validateFile}
@@ -177,7 +175,7 @@ export default function GovernmentCustomerAppRequestDetailPage() {
   }, [loadDetail, navigate, token])
 
   return (
-    <div className="customer-app-claim-page">
+    <div className="customer-app-claim-page government-customer-app-detail">
       <StatusMessage message={error} tone="error" />
       {!detail && loading ? <div className="customer-app-claim-empty">불러오는 중…</div> : null}
       {detail ? (

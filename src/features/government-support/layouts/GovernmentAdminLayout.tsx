@@ -80,12 +80,14 @@ export default function GovernmentAdminLayout() {
           title="정부지원 CRM · 관리"
           menuItems={mobileMenuItems}
           onLogout={logout}
+          headerExtra={
+            showWorkspaceLink ? (
+              <Link to="/government/my-applications" className="government-mobile-workspace-shell__workspace-link">
+                내 사업장
+              </Link>
+            ) : null
+          }
         >
-          {showWorkspaceLink ? (
-            <div className="government-admin-layout__mobile-workspace-link">
-              <Link to="/government/my-applications">내 사업장/신청</Link>
-            </div>
-          ) : null}
           <div className="government-admin-layout__content">
             <Outlet />
           </div>

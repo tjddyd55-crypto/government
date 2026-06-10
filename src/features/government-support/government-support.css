@@ -256,13 +256,6 @@
   gap: 0.15rem;
 }
 
-.government-admin-layout__nav--mobile {
-  flex-direction: row;
-  flex-wrap: wrap;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #1e293b;
-}
-
 .government-admin-layout__nav-link {
   display: block;
   padding: 0.5rem 1rem;
@@ -275,11 +268,6 @@
   background: #1f2937;
   color: #f8fafc;
   border-left: 3px solid #2563eb;
-}
-
-.government-admin-layout__nav--mobile .government-admin-layout__nav-link--active {
-  border-left: none;
-  border-bottom: 2px solid #2563eb;
 }
 
 .government-admin-layout__content {
@@ -400,13 +388,6 @@
   padding: 0;
 }
 
-.government-admin-layout__mobile {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
 .government-admin-page__toolbar {
   display: flex;
   align-items: center;
@@ -427,6 +408,11 @@
 
 .government-admin-page__error {
   color: #ef4444;
+  margin: 0.5rem 0 0;
+}
+
+.government-admin-page__muted {
+  color: #94a3b8;
   margin: 0.5rem 0 0;
 }
 
@@ -455,12 +441,6 @@
 .government-admin-dashboard__stat-card strong {
   color: #f8fafc;
   font-size: 1.5rem;
-}
-
-.government-admin-dashboard__links {
-  margin: 0;
-  padding-left: 1.25rem;
-  line-height: 2;
 }
 
 .government-admin-dashboard-page--pc .government-admin-dashboard__stats {
@@ -602,88 +582,8 @@
   background: rgba(37, 99, 235, 0.08);
 }
 
-.government-admin-notifications-page {
-  color: #e5e7eb;
-}
-
-.government-admin-notifications-page__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.75rem 1rem;
-  margin-bottom: 1rem;
-}
-
-.government-admin-notifications-page__title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #f8fafc;
-}
-
-.government-admin-notifications-page__lede {
-  flex: 1 1 100%;
-  margin: 0;
-  color: #94a3b8;
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
 .government-admin-notifications-page__read-all {
   margin-left: auto;
-}
-
-.government-admin-notifications-page__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border: 1px solid #1e293b;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #111827;
-}
-
-.government-admin-notifications-page__row {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 0.85rem 1rem;
-  border: none;
-  border-bottom: 1px solid #1e293b;
-  border-radius: 0;
-  background: transparent;
-  color: #e5e7eb;
-  cursor: pointer;
-}
-
-.government-admin-notifications-page__row:last-child {
-  border-bottom: none;
-}
-
-.government-admin-notifications-page__row--unread {
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.government-admin-notifications-page__row-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #f8fafc;
-}
-
-.government-admin-notifications-page__row-message {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: #cbd5e1;
-}
-
-.government-admin-notifications-page__row-meta {
-  margin-top: 0.35rem;
-  font-size: 0.75rem;
-  color: #94a3b8;
-}
-
-.government-admin-notifications-page--mobile .government-admin-notifications-page__title {
-  font-size: 1.125rem;
 }
 
 .government-admin-table-wrap {
@@ -962,17 +862,6 @@
   padding: 0 0.5rem;
 }
 
-.government-user-layout__nav--mobile {
-  flex-direction: row;
-  overflow-x: auto;
-  flex-wrap: nowrap;
-  gap: 0.35rem;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #1e293b;
-  background: #111827;
-  -webkit-overflow-scrolling: touch;
-}
-
 .government-user-layout__nav-link {
   display: block;
   padding: 0.55rem 0.75rem;
@@ -988,23 +877,11 @@
   color: #f8fafc;
 }
 
-.government-user-layout__nav--mobile .government-user-layout__nav-link--active {
-  background: #2563eb;
-  color: #ffffff;
-}
-
 .government-user-layout__content {
   flex: 1;
   min-width: 0;
   overflow: auto;
   background: #0b111a;
-}
-
-.government-user-layout__mobile {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
 }
 
 .government-user-section {
@@ -1323,12 +1200,97 @@
   max-width: 100%;
 }
 
-.government-page--mobile.government-admin-layout .government-admin-layout__mobile-workspace-link {
-  margin-bottom: 0.5rem;
-}
-
 .government-page--mobile.government-admin-layout .government-admin-notifications-page__read-all {
   margin-left: 0;
   width: 100%;
+}
+
+/* —— 모바일 셸: 보험 AppWorkspaceLayout 패턴 보완 —— */
+.government-mobile-workspace-shell .mobile-topbar .title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.government-mobile-workspace-shell__workspace-link {
+  flex-shrink: 0;
+  color: #60a5fa;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.government-mobile-workspace-shell__workspace-link:hover {
+  text-decoration: underline;
+}
+
+/* —— 모바일 이용자 full-width (관리자와 동일 축) —— */
+.government-page--mobile.government-user-layout.page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.government-page--mobile.government-user-layout .government-mobile-workspace-shell__content.content-wrapper {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0.75rem max(0.875rem, env(safe-area-inset-left, 0px)) 1.25rem
+    max(0.875rem, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+}
+
+.government-page--mobile.government-user-layout .government-user-layout__content {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.government-page--mobile.government-user-layout .government-user-layout__content > .page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.government-page--mobile.government-user-layout .government-mobile-workspace-shell,
+.government-page--mobile.government-user-layout .government-user-layout__content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* —— 정부 고객앱: 보험 customer-app-claims 간격 보완 (원본 CSS 미수정) —— */
+.government-customer-app-detail .government-customer-app-detail-card + .government-customer-app-detail-card,
+.government-customer-app-detail .customer-app-claim-card + .customer-app-claim-card {
+  margin-top: 12px;
+}
+
+.government-customer-app-detail .customer-app-claim-card .customer-app-claim-file-list,
+.government-customer-app-uploader-wrap,
+.government-customer-app-compose-actions {
+  margin-top: 12px;
+}
+
+.government-customer-app-compose .customer-app-claim-section-description + .customer-app-claim-field,
+.government-customer-app-compose .customer-app-claim-card .customer-app-claim-field + .customer-app-claim-field {
+  margin-top: 12px;
+}
+
+.government-customer-app-card-actions {
+  margin-top: 8px;
+  grid-template-columns: 1fr;
+}
+
+.government-customer-app-file-btn {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
 }
 

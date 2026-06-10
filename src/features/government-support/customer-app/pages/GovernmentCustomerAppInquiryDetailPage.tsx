@@ -8,8 +8,6 @@ import {
   postGovCustomerInquiryMessage,
   type GovCustomerInquiryDetail,
 } from '../api/governmentCustomerAppApi'
-import '../../../customer-app/customer-app-claims.css'
-
 function formatDateTime(iso: string | null): string {
   if (!iso) return '—'
   const date = new Date(iso)
@@ -84,7 +82,7 @@ export default function GovernmentCustomerAppInquiryDetailPage() {
   const statusMeta = detail ? inquiryStatusMeta(detail.status) : null
 
   return (
-    <div className="customer-app-claim-page">
+    <div className="customer-app-claim-page government-customer-app-detail">
       <StatusMessage message={error} tone="error" />
       {!detail && loading ? <div className="customer-app-claim-empty">불러오는 중…</div> : null}
       {detail ? (
@@ -135,7 +133,7 @@ export default function GovernmentCustomerAppInquiryDetailPage() {
               onChange={(e) => setReply(e.target.value)}
               placeholder="추가로 전달할 내용을 입력해 주세요."
             />
-            <div className="customer-app-claim-actions" style={{ marginTop: 12 }}>
+            <div className="customer-app-claim-actions government-customer-app-compose-actions">
               <FormButton htmlType="button" variant="primary" onClick={() => void handleReply()} loading={replyBusy}>
                 메시지 보내기
               </FormButton>

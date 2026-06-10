@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { StatusMessage } from '../../../../components/feedback'
 import { useAuth } from '../../../auth/AuthProvider'
 import { fetchGovCustomerInquiries, type GovCustomerInquiryListItem } from '../api/governmentCustomerAppApi'
-import '../../../customer-app/customer-app-claims.css'
-
 function formatDateTime(iso: string | null): string {
   if (!iso) return '—'
   const date = new Date(iso)

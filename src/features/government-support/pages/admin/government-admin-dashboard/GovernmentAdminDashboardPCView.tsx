@@ -7,9 +7,12 @@ import {
   signatureStatusLabel,
 } from './governmentAdminDashboardViewProps'
 
-export function PlatformHubSection({ cards }: Pick<GovernmentAdminDashboardViewProps, 'platformCards'>) {
+export function PlatformHubSection({
+  cards,
+  mobile,
+}: Pick<GovernmentAdminDashboardViewProps, 'platformCards'> & { mobile?: boolean }) {
   return (
-    <div className="platform-admin-page__grid">
+    <div className={`platform-admin-page__grid${mobile ? ' platform-admin-page__grid--mobile' : ''}`}>
       {cards.map((c) => (
         <Link key={c.to} to={c.to} className="platform-admin-page__card">
           <h2 className="platform-admin-page__card-title">{c.title}</h2>
@@ -25,7 +28,10 @@ export function OperationalDashboardBody({
   error,
   summary,
   showUserMgmt,
-}: Pick<GovernmentAdminDashboardViewProps, 'loading' | 'error' | 'summary' | 'showUserMgmt'>) {
+  mobile,
+}: Pick<GovernmentAdminDashboardViewProps, 'loading' | 'error' | 'summary' | 'showUserMgmt'> & {
+  mobile?: boolean
+}) {
   if (loading) {
     return <p className="government-admin-page__msg">오늘 처리할 업무를 불러오는 중…</p>
   }
@@ -106,7 +112,7 @@ export function OperationalDashboardBody({
         <h2 id="gov-admin-dash-shortcuts" className="government-admin-dashboard__section-title">
           바로가기
         </h2>
-        <div className="platform-admin-page__grid">
+        <div className={`platform-admin-page__grid${mobile ? ' platform-admin-page__grid--mobile' : ''}`}>
           {shortcutCards.map((c) => (
             <Link key={c.to} to={c.to} className="platform-admin-page__card">
               <h3 className="platform-admin-page__card-title">{c.title}</h3>

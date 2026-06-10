@@ -55,9 +55,9 @@ export default function GovernmentMobileWorkspaceShell({
         onLogout={onLogout}
       />
 
-      <div className="mobile-workspace-content content-wrapper content-wrapper--mobile government-mobile-workspace-shell__content">
+      <main className="mobile-workspace-content content-wrapper content-wrapper--mobile government-mobile-workspace-shell__content">
         {children}
-      </div>
+      </main>
     </div>
   )
 }
