@@ -259,7 +259,7 @@ export function GovernmentSignatureTemplatePanel({
         {pdfTemplateId != null ? (
           <>
             <span className="contract-signature-console__body-text">
-              현재 &lsquo;{pdfTitle?.trim() ? pdfTitle : `PDF #${pdfTemplateId}`}&rsquo; PDF 기반 템플릿만 표시 중입니다.
+              현재 &lsquo;{pdfTitle?.trim() || '선택한 PDF'}&rsquo; PDF 기반 템플릿만 표시 중입니다.
             </span>
             <FormButton
               htmlType="button"
@@ -374,7 +374,7 @@ export function GovernmentSignatureTemplatePanel({
                         <span className="contract-signature-console__muted">—</span>
                       ) : (
                         <>
-                          {trow.pdfEngineTitle ?? `PDF #${pid}`}
+                          {trow.pdfEngineTitle ?? '연결 PDF'}
                           {noSig ? (
                             <div className="contract-signature-console__hint--warning" style={{ marginTop: 6 }}>
                               서명(signature) 필드 없음 — 발송 단계에서 제한될 수 있습니다.
@@ -557,7 +557,7 @@ export function GovernmentSignatureTemplatePanel({
                           <span className="contract-signature-console__muted">—</span>
                         ) : (
                           <>
-                            <span>{trow.pdfEngineTitle ?? `PDF #${pid}`}</span>
+                            <span>{trow.pdfEngineTitle ?? '연결 PDF'}</span>
                             {noSig ? (
                               <div className="contract-signature-console__hint--warning" style={{ marginTop: 4 }}>
                                 서명 필드 없음
@@ -709,7 +709,7 @@ export function GovernmentSignatureTemplatePanel({
                 </dd>
                 <dt>연결 PDF</dt>
                 <dd>
-                  {detail.pdfEngine?.title ?? (detail.pdfTemplateId != null ? `PDF #${detail.pdfTemplateId}` : '—')}
+                  {detail.pdfEngine?.title ?? (detail.pdfTemplateId != null ? '연결 PDF' : '—')}
                 </dd>
                 <dt>필드 수(전자서명 템플릿 필드)</dt>
                 <dd>{detail.governmentSignatureTemplateFieldsCount}</dd>

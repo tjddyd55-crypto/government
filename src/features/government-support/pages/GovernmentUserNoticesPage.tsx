@@ -9,7 +9,7 @@ import {
   formatOpsDate,
   labelForNoticeCategory,
 } from '../constants/governmentOperations'
-import '../government-support.css'
+import '../../claim-requests/claim-inbox.css'
 
 export default function GovernmentUserNoticesPage() {
   useDocumentTitle('정부지원 CRM · 공지사항')
@@ -45,13 +45,18 @@ export default function GovernmentUserNoticesPage() {
 
   const pinned = rows.filter((r) => r.isPinned)
   const normal = rows.filter((r) => !r.isPinned)
+  const ordered = [...pinned, ...normal]
 
   return (
-    <section className="government-user-section government-user-notices-page">
-      <h1 className="government-page__title">공지사항</h1>
-      <p className="government-page__muted">소속 대행사 공지를 확인할 수 있습니다.</p>
+    <main className="page page--with-back claim-inbox content-wrapper government-user-notices-page">
+      <section className="claim-inbox__hero">
+        <div>
+          <h1 className="claim-inbox__title">공지사항</h1>
+          <p className="claim-inbox__subtitle">소속 대행사 공지를 확인할 수 있습니다.</p>
+        </div>
+      </section>
 
-      <section className="government-admin-users-page__filters">
+      <section className="claim-inbox__toolbar">
         <FieldWrapper label="검색">
           <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="제목·내용" />
         </FieldWrapper>
@@ -64,40 +69,51 @@ export default function GovernmentUserNoticesPage() {
         </FieldWrapper>
       </section>
 
-      {error ? <StatusMessage message={error} tone="error" className="m-3" /> : null}
+      {error ? <StatusMessage message={error} tone="error" className="m-0 mb-3" /> : null}
       {loading ? <LoadingState message="불러오는 중…" /> : null}
       {!loading && rows.length === 0 ? <EmptyState message="표시할 공지가 없습니다." /> : null}
 
       {!loading && rows.length > 0 ? (
-        <div className="government-user-ops-layout">
-          <aside className="government-user-ops-list">
-            {[...pinned, ...normal].map((row) => (
-              <button
-                key={row.id}
-                type="button"
-                className={`government-list-item ${selected?.id === row.id ? 'government-list-item--active' : ''}`}
-                onClick={() => setSelected(row)}
-              >
-                <div className="government-list-item__title">
-                  {row.isPinned ? <span className="government-ops-badge">중요</span> : null} {row.title}
-                </div>
-                <div className="government-list-item__meta">
-                  {labelForNoticeCategory(row.category)} · {formatOpsDate(row.publishedAt ?? row.createdAt)}
-                </div>
-              </button>
-            ))}
-          </aside>
+        <div className="claim-inbox__layout">
+          <section className="claim-inbox__list-panel">
+            <ul className="claim-inbox__list">
+              {ordered.map((row) => (
+                <li key={row.id}>
+                  <button
+                    type="button"
+                    className={`claim-inbox__list-item${selected?.id === row.id ? ' claim-inbox__list-item--active' : ''}`}
+                    onClick={() => setSelected(row)}
+                  >
+                    <div className="claim-inbox__list-item-top">
+                      <strong>
+                        {row.isPinned ? <span className="government-ops-badge">중요</span> : null} {row.title}
+                      </strong>
+                    </div>
+                    <div className="claim-inbox__list-item-meta">
+                      {labelForNoticeCategory(row.category)} · {formatOpsDate(row.publishedAt ?? row.createdAt)}
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
           {selected ? (
-            <article className="government-user-ops-detail">
-              <h2 className="government-page__title">{selected.title}</h2>
-              <p className="government-page__muted">
-                {labelForNoticeCategory(selected.category)} · {formatOpsDate(selected.publishedAt ?? selected.createdAt)}
-              </p>
-              <div className="government-user-ops-detail__body">{selected.content}</div>
-            </article>
+            <section className="claim-inbox__detail-panel">
+              <div className="claim-inbox__detail">
+                <div className="claim-inbox__detail-head">
+                  <div>
+                    <div className="claim-inbox__detail-title">{selected.title}</div>
+                    <div className="claim-inbox__detail-meta">
+                      {labelForNoticeCategory(selected.category)} · {formatOpsDate(selected.publishedAt ?? selected.createdAt)}
+                    </div>
+                  </div>
+                </div>
+                <div className="claim-inbox__detail-memo">{selected.content}</div>
+              </div>
+            </section>
           ) : null}
         </div>
       ) : null}
-    </section>
+    </main>
   )
 }

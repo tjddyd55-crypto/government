@@ -1031,40 +1031,10 @@
   margin: 0;
 }
 
-.government-user-home__lead {
-  margin: 0.35rem 0 1.25rem;
-}
-
-.government-user-home__cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
-  gap: 0.75rem;
-}
-
-.government-user-home__card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 1rem;
-  border-radius: 10px;
-  border: 1px solid #1e293b;
-  background: #111827;
-  color: #e5e7eb;
-  text-decoration: none;
-}
-
-.government-user-home__card:hover {
-  border-color: #334155;
-  background: #1f2937;
-}
-
-.government-user-home__card-label {
-  color: #f8fafc;
-  font-weight: 600;
-}
-
-.government-user-home__card-hint {
-  font-size: 0.8125rem;
+/* 이용자 홈 — dashboard menu-card (index.css) 재사용 */
+.government-user-home-page__lede {
+  margin: 0.35rem 0 0;
+  max-width: 28rem;
 }
 
 .government-user-me__list {

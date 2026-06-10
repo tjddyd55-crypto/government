@@ -189,7 +189,7 @@ export default function GovernmentSignatureTemplatesPage() {
         <section className="contract-signature-console__section">
           <h2 className="contract-signature-console__section-title">1. PDF 템플릿 선택</h2>
           {isAdminRoute ? (
-            <div className="contract-signature-console__toolbar" style={{ marginBottom: 10 }}>
+            <div className="contract-signature-console__toolbar">
               <FormButton
                 htmlType="button"
                 variant="primary"
@@ -208,7 +208,7 @@ export default function GovernmentSignatureTemplatesPage() {
             resolveCoordinateEditorHref={resolveCoordinateEditorHref}
           />
           {selectedPdfId != null ? (
-            <div className="contract-signature-console__toolbar" style={{ marginTop: 10 }}>
+            <div className="contract-signature-console__toolbar">
               <FormButton
                 htmlType="button"
                 variant="secondary"

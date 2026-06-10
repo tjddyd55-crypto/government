@@ -208,8 +208,9 @@ export default function GovernmentAdminNoticesPage() {
       {!loading && rows.length === 0 ? <EmptyState message="등록된 공지가 없습니다." /> : null}
 
       {!loading && rows.length > 0 ? (
-        <div className="table-container table-container--desktop">
-          <table className="admin-data-table">
+        <>
+          <div className="table-container table-container--desktop table-wrap">
+            <table className="admin-data-table">
             <thead>
               <tr>
                 <th>제목</th>
@@ -249,6 +250,42 @@ export default function GovernmentAdminNoticesPage() {
             </tbody>
           </table>
         </div>
+
+          <div className="admin-responsive-card-list">
+            {rows.map((row) => (
+              <article key={row.id} className="admin-user-card">
+                <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">제목</span>
+                  <span className="admin-user-card__value">
+                    {row.isPinned ? <span className="government-ops-badge">중요</span> : null} {row.title}
+                  </span>
+                </div>
+                <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">구분</span>
+                  <span className="admin-user-card__value">{labelForNoticeCategory(row.category)}</span>
+                </div>
+                <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">상태</span>
+                  <span className="admin-user-card__value">{labelForStatus(row.status)}</span>
+                </div>
+                <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">등록일</span>
+                  <span className="admin-user-card__value">{formatOpsDate(row.publishedAt ?? row.createdAt)}</span>
+                </div>
+                <div className="admin-user-card__actions">
+                  <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => openEdit(row)}>
+                    수정
+                  </FormButton>
+                  {row.status !== 'archived' ? (
+                    <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => void handleArchive(row)}>
+                      보관
+                    </FormButton>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
       ) : null}
 
       <FormDialog

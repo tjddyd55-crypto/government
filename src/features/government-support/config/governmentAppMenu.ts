@@ -10,7 +10,6 @@ import {
   GOVERNMENT_STAFF_NAV,
   type GovernmentAdminNavItem,
 } from './governmentAdminNav'
-import { GOVERNMENT_USER_NAV } from './governmentUserNav'
 
 function filterSignatureNavItems(items: GovernmentAdminNavItem[], allowSignatureSetup: boolean) {
   if (allowSignatureSetup) return items
@@ -69,11 +68,21 @@ export function buildGovernmentAdminMobileMenu(
 
 /** 정부지원 program user 모바일 드로어 메뉴 */
 export function buildGovernmentUserMobileMenu(): GaTenantDashboardMenuEntry[] {
-  return GOVERNMENT_USER_NAV.map((item) => ({
-    type: 'link' as const,
-    label: item.label,
-    path: item.to,
-  }))
+  return buildGovernmentUserHomeMenu()
+}
+
+/** 이용자 홈(/government/workspace) — 보험 DashboardPage menu-card SSOT 패턴 */
+export function buildGovernmentUserHomeMenu(): GaTenantDashboardMenuEntry[] {
+  return [
+    { type: 'link', label: '내 사업장/신청', path: '/government/my-applications' },
+    { type: 'link', label: '요청서류', path: '/government/app/requests' },
+    { type: 'link', label: '문의', path: '/government/app/inquiries' },
+    { type: 'link', label: '전자서명', path: '/government/app/signatures' },
+    { type: 'divider', label: '' },
+    { type: 'link', label: '공지사항', path: '/government/notices' },
+    { type: 'link', label: '자료실', path: '/government/resources' },
+    { type: 'link', label: '내 정보', path: '/government/me' },
+  ]
 }
 
 export function isGovernmentMobileMenuPathActive(pathname: string, itemPath: string): boolean {
@@ -92,6 +101,24 @@ export function isGovernmentMobileMenuPathActive(pathname: string, itemPath: str
   }
   if (itemPath === '/government/my-applications') {
     return pathname === '/government/my-applications' || pathname.startsWith('/government/my-applications/')
+  }
+  if (itemPath === '/government/app/requests') {
+    return pathname === '/government/app/requests' || pathname.startsWith('/government/app/requests/')
+  }
+  if (itemPath === '/government/app/inquiries') {
+    return pathname === '/government/app/inquiries' || pathname.startsWith('/government/app/inquiries/')
+  }
+  if (itemPath === '/government/app/signatures') {
+    return pathname === '/government/app/signatures' || pathname.startsWith('/government/app/signatures/')
+  }
+  if (itemPath === '/government/notices') {
+    return pathname === '/government/notices' || pathname.startsWith('/government/notices/')
+  }
+  if (itemPath === '/government/resources') {
+    return pathname === '/government/resources' || pathname.startsWith('/government/resources/')
+  }
+  if (itemPath === '/government/me') {
+    return pathname === '/government/me' || pathname.startsWith('/government/me/')
   }
   return pathname === itemPath || pathname.startsWith(`${itemPath}/`)
 }

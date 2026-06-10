@@ -14,7 +14,7 @@ import {
   formatOpsDate,
   labelForResourceCategory,
 } from '../constants/governmentOperations'
-import '../government-support.css'
+import '../../claim-requests/claim-inbox.css'
 
 export default function GovernmentUserResourcesPage() {
   useDocumentTitle('정부지원 CRM · 자료실')
@@ -61,11 +61,15 @@ export default function GovernmentUserResourcesPage() {
   }
 
   return (
-    <section className="government-user-section government-user-resources-page">
-      <h1 className="government-page__title">자료실/서식함</h1>
-      <p className="government-page__muted">소속 대행사 자료를 다운로드할 수 있습니다.</p>
+    <main className="page page--with-back claim-inbox content-wrapper government-user-resources-page">
+      <section className="claim-inbox__hero">
+        <div>
+          <h1 className="claim-inbox__title">자료실/서식함</h1>
+          <p className="claim-inbox__subtitle">소속 대행사 자료를 다운로드할 수 있습니다.</p>
+        </div>
+      </section>
 
-      <section className="government-admin-users-page__filters">
+      <section className="claim-inbox__toolbar">
         <FieldWrapper label="검색">
           <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="제목·설명" />
         </FieldWrapper>
@@ -78,51 +82,40 @@ export default function GovernmentUserResourcesPage() {
         </FieldWrapper>
       </section>
 
-      {error ? <StatusMessage message={error} tone="error" className="m-3" /> : null}
+      {error ? <StatusMessage message={error} tone="error" className="m-0 mb-3" /> : null}
       {loading ? <LoadingState message="불러오는 중…" /> : null}
       {!loading && rows.length === 0 ? <EmptyState message="표시할 자료가 없습니다." /> : null}
 
       {!loading && rows.length > 0 ? (
-        <div className="government-user-ops-cards">
-          {rows.map((row) => (
-            <div key={row.id} className="government-admin-users-page__card">
-              <div className="government-admin-users-page__card-row">
-                <span className="government-admin-users-page__card-label">제목</span>
-                <span>{row.title}</span>
-              </div>
-              <div className="government-admin-users-page__card-row">
-                <span className="government-admin-users-page__card-label">카테고리</span>
-                <span>{labelForResourceCategory(row.category)}</span>
-              </div>
-              <div className="government-admin-users-page__card-row">
-                <span className="government-admin-users-page__card-label">파일</span>
-                <span>
-                  {row.fileName} ({formatFileSize(row.fileSize)})
-                </span>
-              </div>
-              <div className="government-admin-users-page__card-row">
-                <span className="government-admin-users-page__card-label">등록일</span>
-                <span>{formatOpsDate(row.publishedAt ?? row.createdAt)}</span>
-              </div>
-              {row.description ? (
-                <p className="government-page__muted" style={{ marginTop: '0.5rem' }}>
-                  {row.description}
-                </p>
-              ) : null}
-              <div className="government-admin-users-page__card-actions">
-                <FormButton
-                  htmlType="button"
-                  variant="primary"
-                  disabled={downloadingId === row.id}
-                  onClick={() => void handleDownload(row)}
-                >
-                  다운로드
-                </FormButton>
-              </div>
-            </div>
-          ))}
-        </div>
+        <section className="claim-inbox__list-panel">
+          <ul className="claim-inbox__list">
+            {rows.map((row) => (
+              <li key={row.id}>
+                <article className="claim-inbox__list-item claim-inbox__detail">
+                  <div className="claim-inbox__list-item-top">
+                    <strong>{row.title}</strong>
+                    <span className="claim-inbox__status">{labelForResourceCategory(row.category)}</span>
+                  </div>
+                  <div className="claim-inbox__list-item-meta">
+                    {row.fileName} ({formatFileSize(row.fileSize)}) · {formatOpsDate(row.publishedAt ?? row.createdAt)}
+                  </div>
+                  {row.description ? <p className="claim-inbox__detail-memo">{row.description}</p> : null}
+                  <div className="claim-inbox__detail-actions">
+                    <FormButton
+                      htmlType="button"
+                      variant="primary"
+                      disabled={downloadingId === row.id}
+                      onClick={() => void handleDownload(row)}
+                    >
+                      다운로드
+                    </FormButton>
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
-    </section>
+    </main>
   )
 }
