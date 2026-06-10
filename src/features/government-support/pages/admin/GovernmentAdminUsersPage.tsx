@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FormDialog, useConfirmDialog } from '../../../../components/dialog'
 import { EmptyState, LoadingState, StatusMessage } from '../../../../components/feedback'
@@ -36,14 +36,41 @@ const STATUS_FILTER_OPTIONS = [
 
 const STATUS_EDIT_OPTIONS = STATUS_FILTER_OPTIONS.filter((o) => o.value !== '')
 
+const STATUS_LABEL: Record<GovernmentUserEntityStatus, string> = {
+  active: '정상',
+  blocked: '접근금지',
+  inactive: '비활성',
+}
+
 const PASSWORD_MIN_LENGTH = 8
 const PASSWORD_HELPER = `${PASSWORD_MIN_LENGTH}자 이상 입력`
 
-function formatDate(iso: string | null): string {
-  if (!iso) return '—'
+function normalizeUserStatus(s: string | undefined): GovernmentUserEntityStatus {
+  const v = String(s ?? '').toLowerCase()
+  if (v === 'blocked' || v === 'inactive') {
+    return v
+  }
+  return 'active'
+}
+
+function UserStatusBadge({ status }: { status: GovernmentUserEntityStatus }) {
+  const st = normalizeUserStatus(status)
+  return (
+    <span className={`admin-entity-status-badge admin-entity-status-badge--${st}`}>
+      {STATUS_LABEL[st]}
+    </span>
+  )
+}
+
+function formatCreatedAt(iso: string | null): string {
+  if (!iso) {
+    return '—'
+  }
   const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleDateString('ko-KR')
+  if (Number.isNaN(d.getTime())) {
+    return iso.slice(0, 10)
+  }
+  return d.toISOString().slice(0, 10)
 }
 
 function tenantLabel(row: GovernmentAdminUserRow): string {
@@ -82,7 +109,7 @@ export default function GovernmentAdminUsersPage() {
   const [agencies, setAgencies] = useState<GovAgencyRow[]>([])
   const [rows, setRows] = useState<GovernmentAdminUserRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState('')
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
   const [filterRole, setFilterRole] = useState('')
@@ -96,7 +123,7 @@ export default function GovernmentAdminUsersPage() {
   const [createPassword, setCreatePassword] = useState('')
   const [createRole, setCreateRole] = useState<GovernmentStaffManageableRole>('government_staff')
   const [createTenantId, setCreateTenantId] = useState('')
-  const [createError, setCreateError] = useState<string | null>(null)
+  const [createError, setCreateError] = useState('')
   const [createSaving, setCreateSaving] = useState(false)
 
   const [editing, setEditing] = useState<GovernmentAdminUserRow | null>(null)
@@ -104,12 +131,12 @@ export default function GovernmentAdminUsersPage() {
   const [editRole, setEditRole] = useState<GovernmentStaffManageableRole>('government_staff')
   const [editTenantId, setEditTenantId] = useState('')
   const [editStatus, setEditStatus] = useState<GovernmentUserEntityStatus>('active')
-  const [editError, setEditError] = useState<string | null>(null)
+  const [editError, setEditError] = useState('')
   const [editSaving, setEditSaving] = useState(false)
 
   const [resetTarget, setResetTarget] = useState<GovernmentAdminUserRow | null>(null)
   const [resetPassword, setResetPassword] = useState('')
-  const [resetError, setResetError] = useState<string | null>(null)
+  const [resetError, setResetError] = useState('')
   const [resetSaving, setResetSaving] = useState(false)
 
   const tenantFilterOptions = useMemo(
@@ -141,7 +168,7 @@ export default function GovernmentAdminUsersPage() {
   const loadUsers = useCallback(async () => {
     if (!token) return
     setLoading(true)
-    setLoadError(null)
+    setLoadError('')
     try {
       let list = await fetchGovernmentAdminUsers(token, {
         role: filterRole || undefined,
@@ -169,7 +196,7 @@ export default function GovernmentAdminUsersPage() {
   }, [loadUsers])
 
   const openCreate = () => {
-    setCreateError(null)
+    setCreateError('')
     setCreateUsername('')
     setCreateDisplayName('')
     setCreatePassword('')
@@ -178,9 +205,10 @@ export default function GovernmentAdminUsersPage() {
     setCreateOpen(true)
   }
 
-  const submitCreate = async () => {
+  const submitCreate = async (e: FormEvent) => {
+    e.preventDefault()
     if (!token) return
-    setCreateError(null)
+    setCreateError('')
     setCreateSaving(true)
     try {
       await createGovernmentAdminUser(token, {
@@ -193,17 +221,17 @@ export default function GovernmentAdminUsersPage() {
           : {}),
       })
       setCreateOpen(false)
-      setSuccessMsg('사용자를 추가했습니다.')
+      setSuccessMsg('직원을 등록했습니다.')
       await loadUsers()
-    } catch (e) {
-      setCreateError(e instanceof Error ? e.message : '사용자 추가에 실패했습니다.')
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : '직원 등록에 실패했습니다.')
     } finally {
       setCreateSaving(false)
     }
   }
 
   const openEdit = (row: GovernmentAdminUserRow) => {
-    setEditError(null)
+    setEditError('')
     setEditing(row)
     setEditDisplayName(row.displayName)
     setEditRole(
@@ -212,15 +240,16 @@ export default function GovernmentAdminUsersPage() {
         : (row.role as GovernmentStaffManageableRole),
     )
     setEditTenantId(row.tenantId ?? '')
-    setEditStatus(row.status)
+    setEditStatus(normalizeUserStatus(row.status))
   }
 
   const editingIsProgramUser = editing?.role === 'government_user'
   const editRoleLocked = editingIsProgramUser && !isFullAccess
 
-  const submitEdit = async () => {
+  const submitEdit = async (e: FormEvent) => {
+    e.preventDefault()
     if (!token || !editing) return
-    setEditError(null)
+    setEditError('')
     setEditSaving(true)
     try {
       const updated = await patchGovernmentAdminUser(token, editing.id, {
@@ -238,20 +267,21 @@ export default function GovernmentAdminUsersPage() {
       setRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
       setEditing(null)
       setSuccessMsg('저장되었습니다.')
-    } catch (e) {
-      setEditError(e instanceof Error ? e.message : '저장에 실패했습니다.')
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : '저장에 실패했습니다.')
     } finally {
       setEditSaving(false)
     }
   }
 
   const openReset = (row: GovernmentAdminUserRow) => {
-    setResetError(null)
+    setResetError('')
     setResetPassword('')
     setResetTarget(row)
   }
 
-  const submitReset = async () => {
+  const submitReset = async (e: FormEvent) => {
+    e.preventDefault()
     if (!token || !resetTarget) return
     const ok = await confirm({
       title: '비밀번호 초기화',
@@ -259,14 +289,14 @@ export default function GovernmentAdminUsersPage() {
       tone: 'danger',
     })
     if (!ok) return
-    setResetError(null)
+    setResetError('')
     setResetSaving(true)
     try {
       await resetGovernmentAdminUserPassword(token, resetTarget.id, resetPassword)
       setResetTarget(null)
       setSuccessMsg('비밀번호가 변경되었습니다. 새 비밀번호로 로그인할 수 있습니다.')
-    } catch (e) {
-      setResetError(e instanceof Error ? e.message : '비밀번호 변경에 실패했습니다.')
+    } catch (err) {
+      setResetError(err instanceof Error ? err.message : '비밀번호 변경에 실패했습니다.')
     } finally {
       setResetSaving(false)
     }
@@ -275,185 +305,256 @@ export default function GovernmentAdminUsersPage() {
   const createNeedsTenant = createRole !== 'government_industry_admin'
   const editNeedsTenant = editRole !== 'government_industry_admin'
 
+  const defaultDescription = (
+    <>
+      대행사 직원·관리자 계정만 이 화면에서 추가합니다. 프로그램 이용자는{' '}
+      <Link to="/government/admin/program-users" className="dark-link">
+        이용자 관리
+      </Link>
+      에서 확인하세요.
+    </>
+  )
+
   return (
     <GovernmentAdminPageShell
       managementKind="user"
       title="대행사 직원"
-      description={
-        <>
-          대행사 직원·관리자 계정만 이 화면에서 추가합니다. 프로그램 이용자는{' '}
-          <Link to="/government/admin/program-users" className="dark-link">
-            이용자 관리
-          </Link>
-          에서 확인하세요.
-        </>
-      }
+      description={loadError || defaultDescription}
       toolbar={
         <>
-          <FormButton htmlType="button" variant="primary" className="button button--primary" onClick={openCreate}>
-            대행사 직원 추가
+          <FormButton
+            htmlType="button"
+            variant="primary"
+            className="button button--primary"
+            onClick={openCreate}
+            disabled={loading}
+          >
+            등록
           </FormButton>
-          <FieldWrapper label="검색">
-            <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="아이디·이름" />
+          <FieldWrapper label="검색" className="admin-modal-field admin-user-management__filter-field">
+            <FormInput
+              className="admin-form-input"
+              value={filterQ}
+              onChange={(e) => setFilterQ(e.target.value)}
+              placeholder="아이디·이름"
+              disabled={loading}
+            />
           </FieldWrapper>
-          <FieldWrapper label="권한">
+          <FieldWrapper label="권한" className="admin-modal-field admin-user-management__filter-field">
             <FormSelect
+              className="admin-form-input"
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
               options={filterRoleOptions}
+              disabled={loading}
               aria-label="권한"
             />
           </FieldWrapper>
-          <FieldWrapper label="소속">
+          <FieldWrapper label="소속" className="admin-modal-field admin-user-management__filter-field">
             <FormSelect
+              className="admin-form-input"
               value={filterTenant}
               onChange={(e) => setFilterTenant(e.target.value)}
               options={tenantFilterOptions}
+              disabled={loading}
               aria-label="소속 수행기관/대행사"
             />
           </FieldWrapper>
-          <FieldWrapper label="상태">
+          <FieldWrapper label="상태" className="admin-modal-field admin-user-management__filter-field">
             <FormSelect
+              className="admin-form-input"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               options={STATUS_FILTER_OPTIONS}
+              disabled={loading}
               aria-label="상태"
             />
           </FieldWrapper>
+          {loading ? <LoadingState message="불러오는 중…" className="m-0 text-sm text-[var(--text-sub)]" /> : null}
         </>
       }
     >
-      {loadError ? <p style={{ padding: '12px 16px', color: 'var(--danger)' }}>{loadError}</p> : null}
-      {successMsg ? <p style={{ padding: '12px 16px', color: 'var(--success)' }}>{successMsg}</p> : null}
-      {loading ? <LoadingState message="불러오는 중…" /> : null}
-      {!loading && rows.length === 0 ? (
-        <EmptyState message="등록된 사용자가 없습니다.「사용자 추가」로 첫 사용자를 등록하세요." />
-      ) : null}
-      {!loading && rows.length > 0 ? (
-        <UsersTable rows={rows} onEdit={openEdit} onReset={openReset} />
+      {successMsg ? (
+        <div className="admin-user-management__alerts">
+          <p className="status admin-user-management__status-success m-0">{successMsg}</p>
+        </div>
       ) : null}
 
-      <FormDialog
-        open={createOpen}
-        onClose={() => !createSaving && setCreateOpen(false)}
-        title="사용자 추가"
-        closeOnBackdrop={false}
-        closeOnEsc={!createSaving}
-      >
-        <StatusMessage message={createError} tone="error" className="m-0 mb-3" />
-        <UsersCreateForm
-          createUsername={createUsername}
-          setCreateUsername={setCreateUsername}
-          createDisplayName={createDisplayName}
-          setCreateDisplayName={setCreateDisplayName}
-          createPassword={createPassword}
-          setCreatePassword={setCreatePassword}
-          createRole={createRole}
-          setCreateRole={setCreateRole}
-          createTenantId={createTenantId}
-          setCreateTenantId={setCreateTenantId}
-          createNeedsTenant={createNeedsTenant}
-          roleOptions={staffRoleOptions}
-          agencySelectOptions={agencySelectOptions}
-        />
-        <DialogActions
-          onCancel={() => setCreateOpen(false)}
-          onSubmit={() => void submitCreate()}
-          saving={createSaving}
-          submitLabel="추가"
-        />
-      </FormDialog>
+      <UsersTable rows={rows} isLoading={loading} onEdit={openEdit} onReset={openReset} />
+
+      {createOpen ? (
+        <FormDialog
+          open={createOpen}
+          onClose={() => {
+            if (!createSaving) {
+              setCreateOpen(false)
+            }
+          }}
+          title="직원 등록"
+          panelClassName="admin-modal-panel"
+          overlayClassName="admin-modal-backdrop"
+          closeOnBackdrop={!createSaving}
+          closeOnEsc={!createSaving}
+        >
+          <form className="admin-modal-content" onSubmit={(e) => void submitCreate(e)}>
+            <StatusMessage message={createError} tone="error" className="m-0" />
+            <UsersCreateForm
+              createUsername={createUsername}
+              setCreateUsername={setCreateUsername}
+              createDisplayName={createDisplayName}
+              setCreateDisplayName={setCreateDisplayName}
+              createPassword={createPassword}
+              setCreatePassword={setCreatePassword}
+              createRole={createRole}
+              setCreateRole={setCreateRole}
+              createTenantId={createTenantId}
+              setCreateTenantId={setCreateTenantId}
+              createNeedsTenant={createNeedsTenant}
+              createSaving={createSaving}
+              roleOptions={staffRoleOptions}
+              agencySelectOptions={agencySelectOptions}
+            />
+            <div className="admin-modal-actions">
+              <FormButton
+                htmlType="button"
+                variant="secondary"
+                className="button button--secondary"
+                onClick={() => setCreateOpen(false)}
+                disabled={createSaving}
+              >
+                취소
+              </FormButton>
+              <FormButton
+                htmlType="submit"
+                variant="primary"
+                className="button button--primary"
+                loading={createSaving}
+                loadingText="저장 중…"
+              >
+                저장
+              </FormButton>
+            </div>
+          </form>
+        </FormDialog>
+      ) : null}
 
       {editing ? (
         <FormDialog
           open
-          onClose={() => !editSaving && setEditing(null)}
-          title="사용자 수정"
-          closeOnBackdrop={false}
+          onClose={() => {
+            if (!editSaving) {
+              setEditing(null)
+            }
+          }}
+          title="직원 수정"
+          panelClassName="admin-modal-panel"
+          overlayClassName="admin-modal-backdrop"
+          closeOnBackdrop={!editSaving}
           closeOnEsc={!editSaving}
         >
-          <StatusMessage message={editError} tone="error" className="m-0 mb-3" />
-          <UsersEditForm
-            editUsername={editing.username}
-            editDisplayName={editDisplayName}
-            setEditDisplayName={setEditDisplayName}
-            editRole={editRole}
-            setEditRole={setEditRole}
-            editTenantId={editTenantId}
-            setEditTenantId={setEditTenantId}
-            editStatus={editStatus}
-            setEditStatus={setEditStatus}
-            editNeedsTenant={editNeedsTenant}
-            roleOptions={staffRoleOptions}
-            roleSelectDisabled={editRoleLocked}
-            agencySelectOptions={agencySelectOptions}
-          />
-          <DialogActions
-            onCancel={() => setEditing(null)}
-            onSubmit={() => void submitEdit()}
-            saving={editSaving}
-            submitLabel="저장"
-          />
+          <form className="admin-modal-content" onSubmit={(e) => void submitEdit(e)}>
+            <p className="admin-user-management__edit-context m-0">
+              소속: <strong>{tenantLabel(editing)}</strong> · 권한:{' '}
+              {GOVERNMENT_ROLE_LABELS[editing.role as GovernmentMembershipRole] ?? editing.role}
+            </p>
+            <StatusMessage message={editError} tone="error" className="m-0" />
+            <UsersEditForm
+              editUsername={editing.username}
+              editDisplayName={editDisplayName}
+              setEditDisplayName={setEditDisplayName}
+              editRole={editRole}
+              setEditRole={setEditRole}
+              editTenantId={editTenantId}
+              setEditTenantId={setEditTenantId}
+              editStatus={editStatus}
+              setEditStatus={setEditStatus}
+              editNeedsTenant={editNeedsTenant}
+              editSaving={editSaving}
+              roleOptions={staffRoleOptions}
+              roleSelectDisabled={editRoleLocked}
+              agencySelectOptions={agencySelectOptions}
+            />
+            <div className="admin-modal-actions">
+              <FormButton
+                htmlType="button"
+                variant="secondary"
+                className="button button--secondary"
+                onClick={() => setEditing(null)}
+                disabled={editSaving}
+              >
+                취소
+              </FormButton>
+              <FormButton
+                htmlType="submit"
+                variant="primary"
+                className="button button--primary"
+                loading={editSaving}
+                loadingText="저장 중…"
+              >
+                저장
+              </FormButton>
+            </div>
+          </form>
         </FormDialog>
       ) : null}
 
       {resetTarget ? (
         <FormDialog
           open
-          onClose={() => !resetSaving && setResetTarget(null)}
+          onClose={() => {
+            if (!resetSaving) {
+              setResetTarget(null)
+            }
+          }}
           title="비밀번호 초기화"
-          closeOnBackdrop={false}
+          panelClassName="admin-modal-panel"
+          overlayClassName="admin-modal-backdrop"
+          closeOnBackdrop={!resetSaving}
           closeOnEsc={!resetSaving}
         >
-          <StatusMessage message={resetError} tone="error" className="m-0 mb-3" />
-          <p className="government-page__muted">
-            선택한 사용자(<strong>{resetTarget.username}</strong>)의 비밀번호를 새 값으로 변경합니다.
-          </p>
-          <FieldWrapper label="새 비밀번호" helperText={PASSWORD_HELPER} className="admin-modal-field">
-            <FormInput
-              type="password"
-              value={resetPassword}
-              onChange={(e) => setResetPassword(e.target.value)}
-              placeholder={PASSWORD_HELPER}
-              autoComplete="new-password"
-              className="admin-form-input"
-            />
-          </FieldWrapper>
-          <DialogActions
-            onCancel={() => setResetTarget(null)}
-            onSubmit={() => void submitReset()}
-            saving={resetSaving}
-            submitLabel="변경"
-          />
+          <form className="admin-modal-content" onSubmit={(e) => void submitReset(e)}>
+            <StatusMessage message={resetError} tone="error" className="m-0" />
+            <p className="admin-user-management__edit-context m-0">
+              선택한 사용자(<strong>{resetTarget.username}</strong>)의 비밀번호를 새 값으로 변경합니다.
+            </p>
+            <FieldWrapper label="새 비밀번호" helperText={PASSWORD_HELPER} className="admin-modal-field">
+              <FormInput
+                type="password"
+                value={resetPassword}
+                onChange={(e) => setResetPassword(e.target.value)}
+                placeholder={PASSWORD_HELPER}
+                autoComplete="new-password"
+                className="admin-form-input"
+                disabled={resetSaving}
+                required
+              />
+            </FieldWrapper>
+            <div className="admin-modal-actions">
+              <FormButton
+                htmlType="button"
+                variant="secondary"
+                className="button button--secondary"
+                onClick={() => setResetTarget(null)}
+                disabled={resetSaving}
+              >
+                취소
+              </FormButton>
+              <FormButton
+                htmlType="submit"
+                variant="primary"
+                className="button button--primary"
+                loading={resetSaving}
+                loadingText="처리 중…"
+              >
+                변경
+              </FormButton>
+            </div>
+          </form>
         </FormDialog>
       ) : null}
 
       {confirmDialog}
     </GovernmentAdminPageShell>
-  )
-}
-
-function DialogActions(props: {
-  onCancel: () => void
-  onSubmit: () => void
-  saving: boolean
-  submitLabel: string
-}) {
-  return (
-    <div className="government-admin-users-page__dialog-actions">
-      <FormButton htmlType="button" variant="secondary" onClick={props.onCancel} disabled={props.saving}>
-        취소
-      </FormButton>
-      <FormButton
-        htmlType="button"
-        variant="primary"
-        loading={props.saving}
-        loadingText="처리 중…"
-        onClick={props.onSubmit}
-      >
-        {props.submitLabel}
-      </FormButton>
-    </div>
   )
 }
 
@@ -469,11 +570,34 @@ function UsersCreateForm(props: {
   createTenantId: string
   setCreateTenantId: (v: string) => void
   createNeedsTenant: boolean
+  createSaving: boolean
   roleOptions: { value: GovernmentStaffManageableRole; label: string }[]
   agencySelectOptions: { value: string; label: string }[]
 }) {
   return (
-    <div className="government-form-grid">
+    <>
+      {props.createNeedsTenant && props.agencySelectOptions.length > 0 ? (
+        <FieldWrapper label="소속 수행기관/대행사" className="admin-modal-field">
+          <FormSelect
+            className="admin-form-input"
+            value={props.createTenantId}
+            onChange={(e) => props.setCreateTenantId(e.target.value)}
+            options={props.agencySelectOptions}
+            disabled={props.createSaving}
+            aria-label="소속 수행기관/대행사"
+          />
+        </FieldWrapper>
+      ) : null}
+      <FieldWrapper label="권한" className="admin-modal-field">
+        <FormSelect
+          className="admin-form-input"
+          value={props.createRole}
+          onChange={(e) => props.setCreateRole(e.target.value as GovernmentStaffManageableRole)}
+          options={props.roleOptions}
+          disabled={props.createSaving}
+          aria-label="권한"
+        />
+      </FieldWrapper>
       <FieldWrapper label="아이디" className="admin-modal-field">
         <FormInput
           value={props.createUsername}
@@ -481,15 +605,8 @@ function UsersCreateForm(props: {
           placeholder="예) staff01"
           autoComplete="username"
           className="admin-form-input"
-        />
-      </FieldWrapper>
-      <FieldWrapper label="이름" className="admin-modal-field">
-        <FormInput
-          value={props.createDisplayName}
-          onChange={(e) => props.setCreateDisplayName(e.target.value)}
-          placeholder="예) 홍길동"
-          autoComplete="name"
-          className="admin-form-input"
+          disabled={props.createSaving}
+          required
         />
       </FieldWrapper>
       <FieldWrapper label="초기 비밀번호" helperText={PASSWORD_HELPER} className="admin-modal-field">
@@ -500,30 +617,23 @@ function UsersCreateForm(props: {
           placeholder={PASSWORD_HELPER}
           autoComplete="new-password"
           className="admin-form-input"
+          disabled={props.createSaving}
+          required
         />
       </FieldWrapper>
-      <FieldWrapper label="권한" className="admin-modal-field">
-        <FormSelect
-          value={props.createRole}
-          onChange={(e) => props.setCreateRole(e.target.value as GovernmentStaffManageableRole)}
-          options={props.roleOptions}
-          aria-label="권한"
+      <FieldWrapper label="이름 (표시용, 선택)" className="admin-modal-field">
+        <FormInput
+          value={props.createDisplayName}
+          onChange={(e) => props.setCreateDisplayName(e.target.value)}
+          placeholder="예) 홍길동"
+          autoComplete="name"
+          className="admin-form-input"
+          disabled={props.createSaving}
         />
       </FieldWrapper>
-      {props.createNeedsTenant && props.agencySelectOptions.length > 0 ? (
-        <FieldWrapper label="소속 수행기관/대행사" className="admin-modal-field">
-          <FormSelect
-            value={props.createTenantId}
-            onChange={(e) => props.setCreateTenantId(e.target.value)}
-            options={props.agencySelectOptions}
-            aria-label="소속 수행기관/대행사"
-          />
-        </FieldWrapper>
-      ) : null}
-    </div>
+    </>
   )
 }
-
 
 function UsersEditForm(props: {
   editUsername: string
@@ -536,12 +646,13 @@ function UsersEditForm(props: {
   editStatus: GovernmentUserEntityStatus
   setEditStatus: (v: GovernmentUserEntityStatus) => void
   editNeedsTenant: boolean
+  editSaving: boolean
   roleSelectDisabled?: boolean
   roleOptions: { value: GovernmentStaffManageableRole; label: string }[]
   agencySelectOptions: { value: string; label: string }[]
 }) {
   return (
-    <div className="government-form-grid">
+    <>
       <FieldWrapper label="아이디" className="admin-modal-field">
         <FormInput
           value={props.editUsername}
@@ -558,6 +669,7 @@ function UsersEditForm(props: {
           placeholder="예) 홍길동"
           autoComplete="name"
           className="admin-form-input"
+          disabled={props.editSaving}
         />
       </FieldWrapper>
       <FieldWrapper
@@ -568,76 +680,107 @@ function UsersEditForm(props: {
         className="admin-modal-field"
       >
         <FormSelect
+          className="admin-form-input"
           value={props.editRole}
           onChange={(e) => props.setEditRole(e.target.value as GovernmentStaffManageableRole)}
           options={props.roleOptions}
-          disabled={props.roleSelectDisabled}
+          disabled={props.roleSelectDisabled || props.editSaving}
           aria-label="권한"
         />
       </FieldWrapper>
       {props.editNeedsTenant && props.agencySelectOptions.length > 0 ? (
         <FieldWrapper label="소속 수행기관/대행사" className="admin-modal-field">
           <FormSelect
+            className="admin-form-input"
             value={props.editTenantId}
             onChange={(e) => props.setEditTenantId(e.target.value)}
             options={props.agencySelectOptions}
+            disabled={props.editSaving}
             aria-label="소속 수행기관/대행사"
           />
         </FieldWrapper>
       ) : null}
       <FieldWrapper label="상태" className="admin-modal-field">
         <FormSelect
+          className="admin-form-input"
           value={props.editStatus}
           onChange={(e) => props.setEditStatus(e.target.value as GovernmentUserEntityStatus)}
           options={STATUS_EDIT_OPTIONS}
+          disabled={props.editSaving}
           aria-label="상태"
         />
       </FieldWrapper>
-    </div>
+    </>
   )
 }
 
 function UsersTable(props: {
   rows: GovernmentAdminUserRow[]
+  isLoading: boolean
   onEdit: (row: GovernmentAdminUserRow) => void
   onReset: (row: GovernmentAdminUserRow) => void
 }) {
+  const emptyMessage = '등록된 직원이 없습니다.'
+
   return (
     <>
       <div className="table-container table-container--desktop">
-        <table className="admin-data-table">
+        <table className="admin-user-table admin-data-table">
           <thead>
             <tr>
-              <th>아이디</th>
-              <th>이름</th>
-              <th>권한</th>
-              <th>소속</th>
-              <th>상태</th>
-              <th>등록일</th>
-              <th>관리</th>
+              <th scope="col">소속</th>
+              <th scope="col">아이디</th>
+              <th scope="col">이름</th>
+              <th scope="col">권한</th>
+              <th scope="col">상태</th>
+              <th scope="col">등록일</th>
+              <th scope="col" className="admin-table-cell--actions">
+                관리
+              </th>
             </tr>
           </thead>
           <tbody>
-            {props.rows.map((r) => (
-              <tr key={r.id}>
-                <td>{r.username}</td>
-                <td>{r.displayName || '—'}</td>
-                <td>{GOVERNMENT_ROLE_LABELS[r.role] ?? r.role}</td>
-                <td>{tenantLabel(r)}</td>
-                <td>{r.status}</td>
-                <td>{formatDate(r.createdAt)}</td>
-                <td>
-                  <UserRowActions row={r} onEdit={props.onEdit} onReset={props.onReset} />
+            {props.rows.length === 0 && !props.isLoading ? (
+              <tr>
+                <td colSpan={7} className="admin-data-table__empty-cell">
+                  {emptyMessage}
                 </td>
               </tr>
-            ))}
+            ) : (
+              props.rows.map((r) => (
+                <tr key={r.id}>
+                  <td>{tenantLabel(r)}</td>
+                  <td>{r.username}</td>
+                  <td>{r.displayName || '—'}</td>
+                  <td>{GOVERNMENT_ROLE_LABELS[r.role] ?? r.role}</td>
+                  <td>
+                    <UserStatusBadge status={r.status} />
+                  </td>
+                  <td>{formatCreatedAt(r.createdAt)}</td>
+                  <td className="admin-table-cell--actions">
+                    <UserRowActions row={r} onEdit={props.onEdit} onReset={props.onReset} disabled={props.isLoading} />
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
+
       <div className="admin-responsive-card-list">
-        {props.rows.map((r) => (
-          <UserMobileCard key={r.id} row={r} onEdit={props.onEdit} onReset={props.onReset} />
-        ))}
+        {props.rows.length === 0 && !props.isLoading ? (
+          <EmptyState message={emptyMessage} className="m-0 px-1 py-2 text-[var(--text-sub)]" />
+        ) : (
+          props.rows.map((r) => (
+            <UserMobileCard
+              key={r.id}
+              row={r}
+              onEdit={props.onEdit}
+              onReset={props.onReset}
+              disabled={props.isLoading}
+            />
+          ))
+        )}
       </div>
     </>
   )
@@ -647,13 +790,26 @@ function UserRowActions(props: {
   row: GovernmentAdminUserRow
   onEdit: (row: GovernmentAdminUserRow) => void
   onReset: (row: GovernmentAdminUserRow) => void
+  disabled?: boolean
 }) {
   return (
     <div className="admin-table-actions">
-      <FormButton htmlType="button" variant="secondary" onClick={() => props.onEdit(props.row)}>
+      <FormButton
+        htmlType="button"
+        variant="secondary"
+        className="button button--secondary"
+        onClick={() => props.onEdit(props.row)}
+        disabled={props.disabled}
+      >
         수정
       </FormButton>
-      <FormButton htmlType="button" variant="secondary" onClick={() => props.onReset(props.row)}>
+      <FormButton
+        htmlType="button"
+        variant="secondary"
+        className="button button--secondary"
+        onClick={() => props.onReset(props.row)}
+        disabled={props.disabled}
+      >
         비밀번호
       </FormButton>
     </div>
@@ -664,10 +820,15 @@ function UserMobileCard(props: {
   row: GovernmentAdminUserRow
   onEdit: (row: GovernmentAdminUserRow) => void
   onReset: (row: GovernmentAdminUserRow) => void
+  disabled?: boolean
 }) {
   const r = props.row
   return (
     <article className="admin-user-card">
+      <div className="admin-user-card__row">
+        <span className="admin-user-card__label">소속</span>
+        <span className="admin-user-card__value">{tenantLabel(r)}</span>
+      </div>
       <div className="admin-user-card__row">
         <span className="admin-user-card__label">아이디</span>
         <span className="admin-user-card__value">{r.username}</span>
@@ -676,34 +837,23 @@ function UserMobileCard(props: {
         <span className="admin-user-card__label">이름</span>
         <span className="admin-user-card__value">{r.displayName || '—'}</span>
       </div>
-      <GovernmentAdminUsersCardMeta row={r} />
-      <div className="admin-user-card__actions">
-        <UserRowActions row={r} onEdit={props.onEdit} onReset={props.onReset} />
-      </div>
-    </article>
-  )
-}
-
-function GovernmentAdminUsersCardMeta({ row: r }: { row: GovernmentAdminUserRow }) {
-  return (
-    <>
       <div className="admin-user-card__row">
         <span className="admin-user-card__label">권한</span>
         <span className="admin-user-card__value">{GOVERNMENT_ROLE_LABELS[r.role] ?? r.role}</span>
       </div>
       <div className="admin-user-card__row">
-        <span className="admin-user-card__label">소속</span>
-        <span className="admin-user-card__value">{tenantLabel(r)}</span>
-      </div>
-      <div className="admin-user-card__row">
         <span className="admin-user-card__label">상태</span>
-        <span className="admin-user-card__value">{r.status}</span>
+        <span className="admin-user-card__value">
+          <UserStatusBadge status={r.status} />
+        </span>
       </div>
       <div className="admin-user-card__row">
         <span className="admin-user-card__label">등록일</span>
-        <span className="admin-user-card__value">{formatDate(r.createdAt)}</span>
+        <span className="admin-user-card__value">{formatCreatedAt(r.createdAt)}</span>
       </div>
-    </>
+      <div className="admin-user-card__actions">
+        <UserRowActions row={r} onEdit={props.onEdit} onReset={props.onReset} disabled={props.disabled} />
+      </div>
+    </article>
   )
 }
-
