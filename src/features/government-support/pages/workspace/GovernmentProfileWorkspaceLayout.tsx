@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import ResponsiveLayout from '../../../../components/ResponsiveLayout'
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
@@ -10,9 +10,8 @@ import {
   parseGovernmentProfileWorkspaceTab,
 } from '../../config/governmentProfileWorkspaceTabs'
 import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
-import GovernmentProfileListPanel from './GovernmentProfileListPanel'
-import GovernmentProfileWorkspaceLayoutPC from './GovernmentProfileWorkspaceLayoutPC'
-import GovernmentProfileWorkspaceLayoutMobile from './GovernmentProfileWorkspaceLayoutMobile'
+import GovernmentProfileWorkspacePCView from './GovernmentProfileWorkspacePCView'
+import GovernmentProfileWorkspaceMobileView from './GovernmentProfileWorkspaceMobileView'
 import {
   GovernmentProfileWorkspaceContext,
   type GovernmentProfileWorkspaceContextValue,
@@ -110,6 +109,11 @@ export default function GovernmentProfileWorkspaceLayout() {
     [navigate, selectedProfileIdFromPath],
   )
 
+  const [filesRefreshNonce, setFilesRefreshNonce] = useState(0)
+  const bumpFilesRefresh = useCallback(() => {
+    setFilesRefreshNonce((n) => n + 1)
+  }, [])
+
   const contextValue = useMemo<GovernmentProfileWorkspaceContextValue>(
     () => ({
       ...wsRest,
@@ -117,8 +121,10 @@ export default function GovernmentProfileWorkspaceLayout() {
       setSelectedId,
       selectedProfileIdFromPath,
       onSelectProfile,
+      filesRefreshNonce,
+      bumpFilesRefresh,
     }),
-    [wsRest, selectedId, setSelectedId, selectedProfileIdFromPath, onSelectProfile],
+    [wsRest, selectedId, setSelectedId, selectedProfileIdFromPath, onSelectProfile, filesRefreshNonce, bumpFilesRefresh],
   )
 
   const viewProps: GovernmentProfileWorkspaceLayoutViewProps = {
@@ -141,16 +147,11 @@ export default function GovernmentProfileWorkspaceLayout() {
 
   return (
     <GovernmentProfileWorkspaceContext.Provider value={contextValue}>
-      <div className="customer-workspace-layout government-profile-workspace">
-        <aside className="customer-workspace-layout__left" aria-label="사업장 작업공간">
-          <GovernmentProfileListPanel />
-        </aside>
-        <ResponsiveLayout<GovernmentProfileWorkspaceLayoutViewProps>
-          PC={GovernmentProfileWorkspaceLayoutPC}
-          Mobile={GovernmentProfileWorkspaceLayoutMobile}
-          viewProps={viewProps}
-        />
-      </div>
+      <ResponsiveLayout<GovernmentProfileWorkspaceLayoutViewProps>
+        PC={GovernmentProfileWorkspacePCView}
+        Mobile={GovernmentProfileWorkspaceMobileView}
+        viewProps={viewProps}
+      />
     </GovernmentProfileWorkspaceContext.Provider>
   )
 }

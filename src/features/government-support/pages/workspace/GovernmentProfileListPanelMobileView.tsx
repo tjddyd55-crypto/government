@@ -2,7 +2,7 @@ import GovernmentProfileListPanelBody from './GovernmentProfileListPanelBody'
 
 export default function GovernmentProfileListPanelMobileView() {
   return (
-    <main className="page customers-page customers-page--mobile page--with-back government-profile-list-panel">
+    <main className="page government-profile-list-panel government-profile-list-panel--mobile page--with-back">
       <GovernmentProfileListPanelBody />
     </main>
   )

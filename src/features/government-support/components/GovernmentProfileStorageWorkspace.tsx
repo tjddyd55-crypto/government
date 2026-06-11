@@ -19,6 +19,7 @@ import {
   type GovStorageFileRow,
 } from '../api/governmentProfileFilesApi'
 import GovernmentProfileStorageToolbar from './GovernmentProfileStorageToolbar'
+import { useGovernmentProfileWorkspaceContextOptional } from '../pages/workspace/governmentProfileWorkspaceContext'
 
 const FILE_NAME_REGEX = /^[A-Za-z0-9._\-() \u3131-\u318e\uac00-\ud7a3]+$/
 
@@ -77,14 +78,19 @@ type GovernmentProfileStorageWorkspaceProps = {
   token: string
   profileId: string
   variant: 'pc' | 'mobile'
+  panelLayout?: 'default' | 'sidebar'
 }
 
 export default function GovernmentProfileStorageWorkspace({
   token,
   profileId,
   variant,
+  panelLayout = 'default',
 }: GovernmentProfileStorageWorkspaceProps) {
   const isMobile = variant === 'mobile'
+  const isSidebar = panelLayout === 'sidebar'
+  const workspaceCtx = useGovernmentProfileWorkspaceContextOptional()
+  const filesRefreshNonce = workspaceCtx?.filesRefreshNonce ?? 0
   const [files, setFiles] = useState<StorageFileRow[]>([])
   const [selectedFileId, setSelectedFileId] = useState<number | null>(null)
   const [searchText, setSearchText] = useState('')
@@ -196,7 +202,7 @@ export default function GovernmentProfileStorageWorkspace({
         if (!controller.signal.aborted) setLoading(false)
       })
     return () => controller.abort()
-  }, [loadFiles, profileId, token])
+  }, [loadFiles, profileId, token, filesRefreshNonce])
 
   useEffect(() => {
     if (selectedFileId != null && !files.some((file) => file.id === selectedFileId)) {
@@ -304,12 +310,13 @@ export default function GovernmentProfileStorageWorkspace({
       await deleteGovProfileFile(token, profileId, resolveGovFileId(deleteTarget))
       setFiles((prev) => prev.filter((file) => file.id !== deleteTarget.id))
       setDeleteTarget(null)
+      workspaceCtx?.bumpFilesRefresh()
     } catch (e) {
       setError(e instanceof Error ? e.message : '삭제에 실패했습니다.')
     } finally {
       setSubmitting(false)
     }
-  }, [deleteTarget, profileId, submitting, token])
+  }, [deleteTarget, profileId, submitting, token, workspaceCtx])
 
   const openFile = useCallback(
     async (file: StorageFileRow) => {
@@ -327,7 +334,9 @@ export default function GovernmentProfileStorageWorkspace({
   )
 
   return (
-    <div className="storage-workspace page-shell">
+    <div
+      className={`storage-workspace page-shell${isSidebar ? ' storage-workspace--gov-sidebar' : ''}`}
+    >
       <div className="storage-workspace__header">
         <p className="storage-workspace__quota" role="status">
           사업장 서류/첨부 {files.length}개

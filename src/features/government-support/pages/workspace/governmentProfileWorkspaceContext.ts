@@ -4,6 +4,8 @@ import type { useGovernmentWorkspaceState } from '../../hooks/useGovernmentWorks
 export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovernmentWorkspaceState> & {
   selectedProfileIdFromPath: string | null
   onSelectProfile: (profileId: string) => void
+  filesRefreshNonce: number
+  bumpFilesRefresh: () => void
 }
 
 export const GovernmentProfileWorkspaceContext = createContext<GovernmentProfileWorkspaceContextValue | null>(
@@ -16,4 +18,8 @@ export function useGovernmentProfileWorkspaceContext(): GovernmentProfileWorkspa
     throw new Error('useGovernmentProfileWorkspaceContext must be used within GovernmentProfileWorkspaceLayout')
   }
   return ctx
+}
+
+export function useGovernmentProfileWorkspaceContextOptional(): GovernmentProfileWorkspaceContextValue | null {
+  return useContext(GovernmentProfileWorkspaceContext)
 }
