@@ -361,12 +361,12 @@ export default function GovernmentProfileStorageWorkspace({
           value={searchText}
           onChange={(event) => setSearchText(event.target.value)}
           placeholder="파일명 검색"
-          className="storage-workspace__search"
+          className="storage-workspace__search gov-form-control"
         />
         <select
           value={kindFilter}
           onChange={(event) => setKindFilter(event.target.value as 'all' | 'image' | 'pdf' | 'spreadsheet')}
-          className="storage-workspace__kind-filter"
+          className="storage-workspace__kind-filter gov-form-control"
           aria-label="파일 종류 필터"
         >
           <option value="all">전체 형식</option>

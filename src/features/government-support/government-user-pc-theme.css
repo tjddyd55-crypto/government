@@ -425,6 +425,270 @@
   display: contents;
 }
 
+/* —— 워크스페이스 내부: 다크 input/label/banner/button 제거 (pc-root·전역 input 규칙보다 우선) —— */
+.government-user-layout--pc-user .government-profile-workspace,
+.government-user-layout--mobile .government-profile-workspace {
+  --text: #0f172a;
+  --subtext: #64748b;
+  --text-main: #0f172a;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #64748b;
+  --primary: #f2b800;
+  --text-on-primary: #0f172a;
+  --bg-base: #ffffff;
+  --bg-soft: #f8fafc;
+  --border-subtle: #cbd5e1;
+  --border-muted: #d7dee8;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .field__control,
+.government-user-layout--pc-user .government-profile-workspace .form-input,
+.government-user-layout--pc-user .government-profile-workspace .form-select,
+.government-user-layout--pc-user .government-profile-workspace .form-textarea,
+.government-user-layout--pc-user .government-profile-workspace .customer-workspace-tab-select,
+.government-user-layout--pc-user .government-profile-workspace .customer-workspace-tab-textarea,
+.government-user-layout--pc-user .government-profile-workspace .storage-workspace__search,
+.government-user-layout--pc-user .government-profile-workspace .storage-workspace__kind-filter,
+.government-user-layout--pc-user .government-profile-workspace input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.government-user-layout--pc-user .government-profile-workspace select,
+.government-user-layout--pc-user .government-profile-workspace textarea,
+.government-user-layout--pc-user .government-profile-workspace .gov-applications-page input,
+.government-user-layout--pc-user .government-profile-workspace .gov-applications-page select,
+.government-user-layout--pc-user .government-profile-workspace .gov-applications-page textarea,
+.government-user-layout--mobile .government-profile-workspace .field__control,
+.government-user-layout--mobile .government-profile-workspace .form-input,
+.government-user-layout--mobile .government-profile-workspace .form-select,
+.government-user-layout--mobile .government-profile-workspace .form-textarea,
+.government-user-layout--mobile .government-profile-workspace .storage-workspace__search,
+.government-user-layout--mobile .government-profile-workspace .storage-workspace__kind-filter,
+.government-user-layout--mobile .government-profile-workspace input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.government-user-layout--mobile .government-profile-workspace select,
+.government-user-layout--mobile .government-profile-workspace textarea,
+.government-profile-edit-modal .field__control,
+.government-profile-edit-modal .form-input,
+.government-profile-edit-modal .form-select,
+.government-profile-edit-modal .form-textarea {
+  background-color: #ffffff;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .form-textarea,
+.government-user-layout--pc-user .government-profile-workspace .field__control.customer-form-textarea,
+.government-user-layout--pc-user .government-profile-workspace textarea,
+.government-user-layout--mobile .government-profile-workspace textarea,
+.government-profile-edit-modal textarea,
+.government-profile-edit-modal .form-textarea {
+  min-height: 88px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .field__control::placeholder,
+.government-user-layout--pc-user .government-profile-workspace .form-input::placeholder,
+.government-user-layout--pc-user .government-profile-workspace .storage-workspace__search::placeholder,
+.government-user-layout--mobile .government-profile-workspace input::placeholder,
+.government-user-layout--mobile .government-profile-workspace textarea::placeholder,
+.government-profile-edit-modal .field__control::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .field__control:focus,
+.government-user-layout--pc-user .government-profile-workspace .form-input:focus,
+.government-user-layout--pc-user .government-profile-workspace .form-select:focus,
+.government-user-layout--pc-user .government-profile-workspace .form-textarea:focus,
+.government-user-layout--pc-user .government-profile-workspace .storage-workspace__search:focus,
+.government-user-layout--pc-user .government-profile-workspace .storage-workspace__kind-filter:focus,
+.government-user-layout--mobile .government-profile-workspace input:focus,
+.government-user-layout--mobile .government-profile-workspace select:focus,
+.government-user-layout--mobile .government-profile-workspace textarea:focus,
+.government-profile-edit-modal .field__control:focus {
+  outline: none;
+  border-color: #f2b800;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+}
+
+.government-user-layout--pc-user .government-profile-workspace .field__control:disabled,
+.government-user-layout--pc-user .government-profile-workspace .field__control[readonly],
+.government-user-layout--pc-user .government-profile-workspace .field__control.field--readonly,
+.government-profile-edit-modal .field__control:disabled,
+.government-profile-edit-modal .field__control[readonly] {
+  background: #f8fafc;
+  color: #64748b;
+  opacity: 1;
+  border-color: #cbd5e1;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .field__label,
+.government-user-layout--pc-user .government-profile-workspace .customer-workspace-tab-field,
+.government-user-layout--mobile .government-profile-workspace .field__label,
+.government-profile-edit-modal .field__label {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .customer-detail-read__section-title,
+.government-user-layout--pc-user .government-profile-workspace .customer-workspace-tab-section__title,
+.government-profile-edit-modal .customer-detail-read__section-title {
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .customer-detail-read__info-label,
+.government-user-layout--pc-user .government-profile-workspace .customer-detail-read__info-value {
+  color: #0f172a;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-banner,
+.government-user-layout--mobile .government-profile-workspace .customer-edit-banner,
+.government-profile-edit-modal .customer-edit-banner {
+  background: #fff8d6;
+  border: 1px solid #f2b800;
+  color: #0f172a;
+  border-radius: 10px;
+  min-height: 36px;
+  padding: 8px 12px;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-form,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-basic-info-edit-form,
+.government-profile-edit-modal .customer-edit-form {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .government-profile-basic-info-edit-form .field-grid-customers,
+.government-profile-edit-modal .field-grid-customers {
+  gap: 14px 16px;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-form__status {
+  background: #f8fafc;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-actions,
+.government-profile-edit-modal .customer-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-actions button,
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-actions .form-button,
+.government-profile-edit-modal .customer-edit-actions button,
+.government-profile-edit-modal .customer-edit-actions .form-button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-weight: 700;
+  padding: 0 14px;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-actions .button-save,
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-actions .form-button--primary,
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-actions .gov-btn--primary,
+.government-profile-edit-modal .customer-edit-actions .button-save,
+.government-profile-edit-modal .customer-edit-actions .gov-btn--primary {
+  background: #f2b800;
+  border-color: #f2b800;
+  color: #0f172a;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-actions .button-save:hover:not(:disabled),
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-actions .gov-btn--primary:hover:not(:disabled),
+.government-profile-edit-modal .customer-edit-actions .gov-btn--primary:hover:not(:disabled) {
+  background: #d99f00;
+  border-color: #d99f00;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-actions .form-button--secondary,
+.government-user-layout--pc-user .government-profile-workspace .customer-edit-actions .gov-btn--secondary,
+.government-profile-edit-modal .customer-edit-actions .gov-btn--secondary {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .storage-workspace__filter-reset {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  cursor: pointer;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .storage-workspace__filter-reset:hover {
+  background: #f8fafc;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .storage-file-list .storage-file-list__action-button,
+.government-user-layout--pc-user .government-profile-workspace .storage-file-list button.storage-file-list__action-button,
+.government-user-layout--pc-user .government-profile-workspace .storage-file-list a.storage-file-list__action-button {
+  min-height: 32px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .storage-file-list .storage-file-list__action-button--delete,
+.government-user-layout--pc-user .government-profile-workspace .storage-file-list button.storage-file-list__action-button--delete {
+  background: #fff1f2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .storage-file-list .storage-file-list__action-button--delete:hover,
+.government-user-layout--pc-user .government-profile-workspace .storage-file-list button.storage-file-list__action-button--delete:hover {
+  background: #fee2e2;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .gov-applications-page .form-button,
+.government-user-layout--pc-user .government-profile-workspace .gov-applications-page .button,
+.government-user-layout--pc-user .government-profile-workspace .customer-workspace-record-item__actions .form-button,
+.government-user-layout--pc-user .government-profile-workspace .customer-workspace-tab-submit-row .form-button {
+  min-height: 36px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .gov-applications-page .claim-requests-page__status-select,
+.government-user-layout--pc-user .government-profile-workspace .gov-applications-page .claim-requests-page__status-memo {
+  width: 100%;
+}
+
 @media (max-width: 1280px) {
   .government-user-layout--pc-user .gov-applications-page__grid {
     grid-template-columns: 1fr;

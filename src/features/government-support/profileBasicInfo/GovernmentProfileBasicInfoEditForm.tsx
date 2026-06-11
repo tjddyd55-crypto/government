@@ -31,7 +31,7 @@ export default function GovernmentProfileBasicInfoEditForm({
         ✏ 사업장 기본정보 수정 중
       </div>
       <form
-        className="customer-edit-form"
+        className="customer-edit-form government-profile-basic-info-edit-form"
         noValidate
         onSubmit={(e) => {
           e.preventDefault()
@@ -54,7 +54,7 @@ export default function GovernmentProfileBasicInfoEditForm({
                   <span className="field__label">{field.label}</span>
                   {field.textarea ? (
                     <FormTextarea
-                      className="field__control customer-form-textarea"
+                      className="field__control gov-form-control customer-form-textarea"
                       rows={3}
                       name={`${profileId}-${field.key}`}
                       value={form[field.key] ?? ''}
@@ -62,7 +62,7 @@ export default function GovernmentProfileBasicInfoEditForm({
                     />
                   ) : (
                     <FormInput
-                      className="field__control"
+                      className="field__control gov-form-control"
                       name={`${profileId}-${field.key}`}
                       value={form[field.key] ?? ''}
                       onChange={(e) => patchField(field.key, e.target.value)}
@@ -80,7 +80,7 @@ export default function GovernmentProfileBasicInfoEditForm({
         ) : null}
         <div className="customer-edit-actions">
           <FormButton
-            className="button-save"
+            className="button-save gov-btn gov-btn--primary"
             htmlType="button"
             variant="primary"
             disabled={saving}
@@ -90,7 +90,13 @@ export default function GovernmentProfileBasicInfoEditForm({
           >
             저장
           </FormButton>
-          <FormButton htmlType="button" variant="secondary" disabled={saving} onClick={onCancel}>
+          <FormButton
+            htmlType="button"
+            variant="secondary"
+            className="gov-btn gov-btn--secondary"
+            disabled={saving}
+            onClick={onCancel}
+          >
             취소
           </FormButton>
         </div>

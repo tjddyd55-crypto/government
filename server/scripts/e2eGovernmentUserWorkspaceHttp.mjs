@@ -385,6 +385,20 @@ async function main() {
   } else {
     fail('profile workspace bundle contains expanded list detail marker')
   }
+  for (const m of ['gov-form-control', 'government-profile-basic-info-edit-form', 'storage-workspace__search']) {
+    if (basicTabSpa.js.includes(m)) pass(`profile basic tab bundle contains ${m}`)
+    else fail(`profile basic tab bundle contains ${m}`)
+  }
+
+  const applicationsTabPath = governmentProfileWorkspaceTabPath(profileAId, 'applications')
+  const applicationsTabSpa = await fetchHtml(applicationsTabPath)
+  if (applicationsTabSpa.status === 200) pass('GET profile applications tab SPA', applicationsTabSpa.bundle ?? '')
+  else fail('GET profile applications tab SPA', String(applicationsTabSpa.status))
+  if (applicationsTabSpa.js.includes('gov-applications-page') && applicationsTabSpa.js.includes('gov-form-control')) {
+    pass('profile applications tab bundle contains white form markers')
+  } else {
+    fail('profile applications tab bundle contains white form markers')
+  }
 
   const patchedBizName = `E2E Biz Patched ${ts}`
   const patchedPhone = `010-${String(ts).slice(-8)}`
