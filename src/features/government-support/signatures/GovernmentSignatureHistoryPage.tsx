@@ -10,6 +10,7 @@ import '../../pdf-engine/pdf-engine.css'
 import '../signatureTemplates/government-signature-console.css'
 import '../signatures/government-signature-send-mobile.css'
 import { useAuth } from '../../auth/AuthProvider'
+import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 import { mapGovernmentSignatureApiError } from './governmentSignatureUserDisplay'
 import type { SendSessionDetail } from '../signatureTemplates/governmentSignatureTemplateClient'
 import {
@@ -308,7 +309,7 @@ export default function GovernmentSignatureHistoryPage() {
                   size="sm"
                   className="contract-history-mobile-toolbar__send-wide"
                   disabled={!t}
-                  onClick={() => navigate('/government/signatures/send')}
+                  onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.signaturesSend)}
                 >
                   새 발송
                 </FormButton>
@@ -362,7 +363,7 @@ export default function GovernmentSignatureHistoryPage() {
                     variant="primary"
                     size="sm"
                     disabled={!t}
-                    onClick={() => navigate('/government/signatures/send')}
+                    onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.signaturesSend)}
                   >
                     새 발송
                   </FormButton>

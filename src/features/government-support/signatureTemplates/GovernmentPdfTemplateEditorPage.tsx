@@ -21,9 +21,10 @@ import {
   uploadGovSignaturePdfTemplateFile,
 } from './governmentSignaturePdfTemplateClient'
 import '../../pdf-engine/pdf-engine.css'
+import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 import './government-signature-console.css'
 
-const LIST_HREF = '/government/admin/signature-templates'
+const LIST_HREF = GOVERNMENT_ROUTE_PATHS.adminSignatureTemplates
 
 function coercePdfFieldSpecForEditor(f: PdfFieldSpec & { id?: number }): PdfFieldSpec {
   const rest = { ...f } as PdfFieldSpec & { id?: number }

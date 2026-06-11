@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider'
 import { canManageGovernmentUsers, isGovernmentProgramUser, resolveGovernmentAccessState } from '../lib/governmentAccess'
+import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 import { isGovernmentOperationalAccount, canManageGovernmentSignatures, resolveGovernmentHomePath } from '../lib/governmentHome'
 import { useGovernmentAccessShared } from '../context/GovernmentAccessContext'
 
@@ -34,7 +35,7 @@ export default function GovernmentProtectedRoute({
   const state = resolveGovernmentAccessState(summary, loading, Boolean(isAuthenticated && token))
 
   if (!isAuthenticated || !token) {
-    return <Navigate to="/government/login" replace />
+    return <Navigate to={GOVERNMENT_ROUTE_PATHS.login} replace />
   }
   if (state === 'loading') {
     return (

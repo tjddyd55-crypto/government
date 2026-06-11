@@ -12,6 +12,7 @@ import {
   GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
   GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
 } from '../config/governmentAdminNav'
+import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 
 export type GovernmentAdminDashboardHubCard = {
   to: string
@@ -93,7 +94,7 @@ export function useGovernmentAdminDashboardState(
   const platformCards = useMemo((): GovernmentAdminDashboardHubCard[] => {
     const list: GovernmentAdminDashboardHubCard[] = [
       {
-        to: '/government/admin/agencies',
+        to: GOVERNMENT_ROUTE_PATHS.adminAgencies,
         title: '대행사 관리',
         description: `등록 대행사 ${agencyCount ?? '—'}곳 · 기관 코드·가입 링크 발급`,
       },
@@ -101,12 +102,12 @@ export function useGovernmentAdminDashboardState(
     if (showUserMgmt) {
       list.push(
         {
-          to: '/government/admin/program-users',
+          to: GOVERNMENT_ROUTE_PATHS.adminProgramUsers,
           title: '이용자 관리',
           description: `프로그램 이용자 ${programUserCount ?? '—'}명 · 사업장 요약은 이용자 상세에서만`,
         },
         {
-          to: '/government/admin/users',
+          to: GOVERNMENT_ROUTE_PATHS.adminUsers,
           title: '대행사 직원',
           description: '대행사 직원·관리자 계정 등록·상태 관리',
         },
@@ -114,12 +115,12 @@ export function useGovernmentAdminDashboardState(
     }
     list.push(
       {
-        to: '/government/admin/notices',
+        to: GOVERNMENT_ROUTE_PATHS.adminNotices,
         title: '공지/전달사항',
         description: '운영 공지·전달사항 게시',
       },
       {
-        to: '/government/admin/resources',
+        to: GOVERNMENT_ROUTE_PATHS.adminResources,
         title: '자료실/서식함',
         description: '운영 자료·서식 파일 관리',
       },

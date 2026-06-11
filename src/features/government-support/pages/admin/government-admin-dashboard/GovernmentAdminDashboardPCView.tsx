@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { LoadingState } from '../../../../../components/feedback'
+import { GOVERNMENT_ROUTE_PATHS } from '../../../constants/governmentRouteKeys'
 import type { GovernmentAdminDashboardViewProps } from './governmentAdminDashboardViewProps'
 import {
   documentRequestStatusLabel,
@@ -123,31 +124,31 @@ export function OperationalDashboardBody({
 
   const shortcutCards = [
     {
-      to: '/government/admin/document-requests',
+      to: GOVERNMENT_ROUTE_PATHS.adminDocumentRequests,
       title: '요청서류 관리',
       description: `제출 대기 ${summary.pendingDocumentRequests}건 · 확인 ${summary.submittedDocumentRequests}건`,
     },
     {
-      to: '/government/admin/inquiries',
+      to: GOVERNMENT_ROUTE_PATHS.adminInquiries,
       title: '문의 관리',
       description: `미답변 ${summary.unansweredInquiries}건 · 진행 ${summary.inProgressInquiries}건`,
     },
     ...(showUserMgmt
       ? [
           {
-            to: '/government/admin/program-users',
+            to: GOVERNMENT_ROUTE_PATHS.adminProgramUsers,
             title: '이용자 관리',
             description: `등록 이용자 ${summary.programUsersCount}명`,
           },
         ]
       : []),
     {
-      to: '/government/admin/notices',
+      to: GOVERNMENT_ROUTE_PATHS.adminNotices,
       title: '공지 작성',
       description: '운영 공지·전달사항 게시',
     },
     {
-      to: '/government/admin/resources',
+      to: GOVERNMENT_ROUTE_PATHS.adminResources,
       title: '자료 등록',
       description: '자료실·서식함 파일 관리',
     },
@@ -194,7 +195,7 @@ export function OperationalDashboardBody({
               <span className="government-admin-dashboard__badge">{summary.unreadNotifications}</span>
             ) : null}
           </h2>
-          <Link to="/government/admin/notifications" className="platform-admin-page__head-link">
+          <Link to={GOVERNMENT_ROUTE_PATHS.adminNotifications} className="platform-admin-page__head-link">
             전체 보기
           </Link>
         </div>
@@ -205,7 +206,7 @@ export function OperationalDashboardBody({
             {summary.recentNotifications.map((row) => (
               <li key={row.id}>
                 <Link
-                  to={row.targetUrl || '/government/admin/notifications'}
+                  to={row.targetUrl || GOVERNMENT_ROUTE_PATHS.adminNotifications}
                   className={[
                     'platform-admin-page__stack-card',
                     !row.isRead ? 'platform-admin-page__stack-card--highlight' : '',
@@ -231,26 +232,26 @@ export function OperationalDashboardBody({
         <div className="platform-admin-page__grid-two">
           <DashboardListPanel
             title="요청서류"
-            linkTo="/government/admin/document-requests"
+            linkTo={GOVERNMENT_ROUTE_PATHS.adminDocumentRequests}
             linkLabel="전체 보기"
             emptyMessage="최근 요청이 없습니다."
             items={summary.recentDocumentRequests.map((row) => ({
               key: String(row.id),
               title: row.title || `요청 #${row.id}`,
               meta: `${row.profileDisplayName || '사업장'} · ${documentRequestStatusLabel(row.status)} · ${formatDashboardDateTime(row.updatedAt)}`,
-              href: '/government/admin/document-requests',
+              href: GOVERNMENT_ROUTE_PATHS.adminDocumentRequests,
             }))}
           />
           <DashboardListPanel
             title="문의"
-            linkTo="/government/admin/inquiries"
+            linkTo={GOVERNMENT_ROUTE_PATHS.adminInquiries}
             linkLabel="전체 보기"
             emptyMessage="최근 문의가 없습니다."
             items={summary.recentInquiries.map((row) => ({
               key: String(row.id),
               title: row.title || `문의 #${row.id}`,
               meta: `${row.profileDisplayName || '사업장'} · ${inquiryStatusLabel(row.status)} · ${formatDashboardDateTime(row.updatedAt)}`,
-              href: '/government/admin/inquiries',
+              href: GOVERNMENT_ROUTE_PATHS.adminInquiries,
             }))}
           />
           <DashboardListPanel

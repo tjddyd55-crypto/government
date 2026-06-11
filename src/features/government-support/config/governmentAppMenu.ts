@@ -2,6 +2,7 @@ import type { GaTenantDashboardMenuEntry } from '../../dashboard/gaTenantMenu'
 import type { GovernmentAccessSummary } from '../api/governmentSupportApi'
 import { canManageGovernmentUsers, isGovernmentProgramUser } from '../lib/governmentAccess'
 import { canManageGovernmentSignatures } from '../lib/governmentHome'
+import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 import {
   GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
   GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
@@ -74,14 +75,14 @@ export function buildGovernmentUserMobileMenu(): GaTenantDashboardMenuEntry[] {
 /** 이용자 홈(/government/workspace) — 보험 DashboardPage menu-card SSOT 패턴 */
 export function buildGovernmentUserHomeMenu(): GaTenantDashboardMenuEntry[] {
   return [
-    { type: 'link', label: '내 사업장/신청', path: '/government/my-applications' },
-    { type: 'link', label: '요청서류', path: '/government/app/requests' },
-    { type: 'link', label: '문의', path: '/government/app/inquiries' },
-    { type: 'link', label: '전자서명', path: '/government/app/signatures' },
+    { type: 'link', label: '내 사업장/신청', path: GOVERNMENT_ROUTE_PATHS.myApplications },
+    { type: 'link', label: '요청서류', path: GOVERNMENT_ROUTE_PATHS.appRequests },
+    { type: 'link', label: '문의', path: GOVERNMENT_ROUTE_PATHS.appInquiries },
+    { type: 'link', label: '전자서명', path: GOVERNMENT_ROUTE_PATHS.appSignatures },
     { type: 'divider', label: '' },
-    { type: 'link', label: '공지사항', path: '/government/notices' },
-    { type: 'link', label: '자료실', path: '/government/resources' },
-    { type: 'link', label: '내 정보', path: '/government/me' },
+    { type: 'link', label: '공지사항', path: GOVERNMENT_ROUTE_PATHS.notices },
+    { type: 'link', label: '자료실', path: GOVERNMENT_ROUTE_PATHS.resources },
+    { type: 'link', label: '내 정보', path: GOVERNMENT_ROUTE_PATHS.me },
   ]
 }
 
@@ -96,29 +97,41 @@ export function isGovernmentMobileMenuPathActive(pathname: string, itemPath: str
   if (itemPath === GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH) {
     return pathname.startsWith(`${GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH}/pdf`)
   }
-  if (itemPath === '/government/workspace') {
-    return pathname === '/government/workspace'
+  if (itemPath === GOVERNMENT_ROUTE_PATHS.workspace) {
+    return pathname === GOVERNMENT_ROUTE_PATHS.workspace
   }
-  if (itemPath === '/government/my-applications') {
-    return pathname === '/government/my-applications' || pathname.startsWith('/government/my-applications/')
+  if (itemPath === GOVERNMENT_ROUTE_PATHS.myApplications) {
+    return (
+      pathname === GOVERNMENT_ROUTE_PATHS.myApplications ||
+      pathname.startsWith(`${GOVERNMENT_ROUTE_PATHS.myApplications}/`)
+    )
   }
-  if (itemPath === '/government/app/requests') {
-    return pathname === '/government/app/requests' || pathname.startsWith('/government/app/requests/')
+  if (itemPath === GOVERNMENT_ROUTE_PATHS.appRequests) {
+    return (
+      pathname === GOVERNMENT_ROUTE_PATHS.appRequests ||
+      pathname.startsWith(`${GOVERNMENT_ROUTE_PATHS.appRequests}/`)
+    )
   }
-  if (itemPath === '/government/app/inquiries') {
-    return pathname === '/government/app/inquiries' || pathname.startsWith('/government/app/inquiries/')
+  if (itemPath === GOVERNMENT_ROUTE_PATHS.appInquiries) {
+    return (
+      pathname === GOVERNMENT_ROUTE_PATHS.appInquiries ||
+      pathname.startsWith(`${GOVERNMENT_ROUTE_PATHS.appInquiries}/`)
+    )
   }
-  if (itemPath === '/government/app/signatures') {
-    return pathname === '/government/app/signatures' || pathname.startsWith('/government/app/signatures/')
+  if (itemPath === GOVERNMENT_ROUTE_PATHS.appSignatures) {
+    return (
+      pathname === GOVERNMENT_ROUTE_PATHS.appSignatures ||
+      pathname.startsWith(`${GOVERNMENT_ROUTE_PATHS.appSignatures}/`)
+    )
   }
-  if (itemPath === '/government/notices') {
-    return pathname === '/government/notices' || pathname.startsWith('/government/notices/')
+  if (itemPath === GOVERNMENT_ROUTE_PATHS.notices) {
+    return pathname === GOVERNMENT_ROUTE_PATHS.notices || pathname.startsWith(`${GOVERNMENT_ROUTE_PATHS.notices}/`)
   }
-  if (itemPath === '/government/resources') {
-    return pathname === '/government/resources' || pathname.startsWith('/government/resources/')
+  if (itemPath === GOVERNMENT_ROUTE_PATHS.resources) {
+    return pathname === GOVERNMENT_ROUTE_PATHS.resources || pathname.startsWith(`${GOVERNMENT_ROUTE_PATHS.resources}/`)
   }
-  if (itemPath === '/government/me') {
-    return pathname === '/government/me' || pathname.startsWith('/government/me/')
+  if (itemPath === GOVERNMENT_ROUTE_PATHS.me) {
+    return pathname === GOVERNMENT_ROUTE_PATHS.me || pathname.startsWith(`${GOVERNMENT_ROUTE_PATHS.me}/`)
   }
   return pathname === itemPath || pathname.startsWith(`${itemPath}/`)
 }

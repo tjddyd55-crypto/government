@@ -4,6 +4,7 @@ import FileUploader from '../../../../components/common/FileUploader'
 import { StatusMessage } from '../../../../components/feedback'
 import { FormButton, FormInput, FormTextarea } from '../../../../components/form'
 import { useAuth } from '../../../auth/AuthProvider'
+import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
 import {
   confirmGovCustomerInquiryFile,
   createGovCustomerInquiry,
@@ -38,7 +39,7 @@ export default function GovernmentCustomerAppInquiryComposePage() {
   const [result, setResult] = useState('')
 
   useEffect(() => {
-    if (!token?.trim()) navigate('/government/login', { replace: true })
+    if (!token?.trim()) navigate(GOVERNMENT_ROUTE_PATHS.login, { replace: true })
   }, [navigate, token])
 
   const validateFile = (file: File): string | null => {
@@ -173,7 +174,7 @@ export default function GovernmentCustomerAppInquiryComposePage() {
         <FormButton htmlType="button" variant="primary" onClick={() => void handleSubmit()} loading={busy}>
           문의 전송
         </FormButton>
-        <FormButton htmlType="button" variant="secondary" onClick={() => navigate('/government/app/inquiries')}>
+        <FormButton htmlType="button" variant="secondary" onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.appInquiries)}>
           내역 보기
         </FormButton>
       </div>

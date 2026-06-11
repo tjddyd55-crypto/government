@@ -44,3 +44,11 @@ export function governmentSignPublicPath(token: string): string {
 export function governmentMyApplicationTabPath(profileId: string, tabSegment: string): string {
   return `/government/my-applications/${encodeURIComponent(profileId)}/${tabSegment}`
 }
+
+export function governmentAppRequestDetailPath(requestId: string | number): string {
+  return `${GOVERNMENT_ROUTE_PATHS.appRequests}/${encodeURIComponent(String(requestId))}`
+}
+
+export function governmentAppInquiryDetailPath(inquiryId: string | number): string {
+  return `${GOVERNMENT_ROUTE_PATHS.appInquiries}/${encodeURIComponent(String(inquiryId))}`
+}

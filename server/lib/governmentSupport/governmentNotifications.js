@@ -10,6 +10,7 @@ import {
 } from './governmentAccess.js'
 import {
   GOV_NOTIFICATION_EVENT_TYPES,
+  GOV_NOTIFICATION_TARGET_TYPES,
   GOV_NOTIFICATION_TARGET_URLS,
 } from './governmentNotificationKeys.js'
 
@@ -368,7 +369,7 @@ export async function notifyDocumentRequestSubmitted(pool, params) {
     eventType: 'document_request_submitted',
     title: '요청서류 제출',
     message: `${reqTitle} — ${label} 항목이 제출되었습니다.`,
-    targetType: 'document_request',
+    targetType: GOV_NOTIFICATION_TARGET_TYPES.DOCUMENT_REQUEST,
     targetId: params.requestId,
     targetUrl: GOV_NOTIFICATION_TARGET_URLS.DOCUMENT_REQUESTS,
   })
@@ -395,7 +396,7 @@ export async function notifyInquiryCreated(pool, params) {
     eventType: 'inquiry_created',
     title: '새 문의',
     message: `이용자 문의가 등록되었습니다: ${title}`,
-    targetType: 'inquiry',
+    targetType: GOV_NOTIFICATION_TARGET_TYPES.INQUIRY,
     targetId: params.inquiryId,
     targetUrl: GOV_NOTIFICATION_TARGET_URLS.INQUIRIES,
   })
@@ -421,7 +422,7 @@ export async function notifyInquiryReplied(pool, params) {
     eventType: 'inquiry_replied',
     title: '문의 답변',
     message: `문의에 답변이 등록되었습니다: ${title}`,
-    targetType: 'inquiry',
+    targetType: GOV_NOTIFICATION_TARGET_TYPES.INQUIRY,
     targetId: params.inquiryId,
     targetUrl: GOV_NOTIFICATION_TARGET_URLS.INQUIRIES,
   })
@@ -448,7 +449,7 @@ export async function notifySignatureCompleted(pool, params) {
     eventType: 'signature_completed',
     title: '전자서명 완료',
     message: `${name} — 전자서명이 완료되었습니다.`,
-    targetType: 'signature_session',
+    targetType: GOV_NOTIFICATION_TARGET_TYPES.SIGNATURE_SESSION,
     targetId: params.sessionId,
     targetUrl: GOV_NOTIFICATION_TARGET_URLS.ADMIN_HOME,
   })
@@ -474,7 +475,7 @@ export async function notifyProgramUserJoined(pool, params) {
     eventType: 'program_user_joined',
     title: '신규 이용자 가입',
     message: `기관 코드로 새 이용자가 가입했습니다: ${label}`,
-    targetType: 'program_user',
+    targetType: GOV_NOTIFICATION_TARGET_TYPES.PROGRAM_USER,
     targetId: params.actorUserId,
     targetUrl: GOV_NOTIFICATION_TARGET_URLS.PROGRAM_USERS,
   })
@@ -507,7 +508,7 @@ export async function notifyInquiryAssigned(pool, params) {
     eventType: 'inquiry_assigned',
     title: '문의 담당 지정',
     message: `문의 담당자로 지정되었습니다: ${title}`,
-    targetType: 'inquiry',
+    targetType: GOV_NOTIFICATION_TARGET_TYPES.INQUIRY,
     targetId: params.inquiryId,
     targetUrl: GOV_NOTIFICATION_TARGET_URLS.INQUIRIES,
   })
@@ -540,7 +541,7 @@ export async function notifyDocumentRequestAssigned(pool, params) {
     eventType: 'document_request_assigned',
     title: '요청서류 담당 지정',
     message: `요청서류 담당자로 지정되었습니다: ${title}`,
-    targetType: 'document_request',
+    targetType: GOV_NOTIFICATION_TARGET_TYPES.DOCUMENT_REQUEST,
     targetId: params.requestId,
     targetUrl: GOV_NOTIFICATION_TARGET_URLS.DOCUMENT_REQUESTS,
   })

@@ -1,4 +1,5 @@
 import type { GovernmentAccessSummary } from '../api/governmentSupportApi'
+import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 import { canManageGovernmentUsers, isGovernmentProgramUser } from './governmentAccess'
 
 /** 운영 계정(업종·대행사 관리자·직원) — 사업장/고객 워크스페이스 아님 */
@@ -35,10 +36,10 @@ export function canAccessUserOwnedWorkspace(summary: GovernmentAccessSummary | n
 
 /** 로그인·게이트 후 기본 진입 경로 */
 export function resolveGovernmentHomePath(summary: GovernmentAccessSummary | null): string {
-  if (!summary) return '/government/login'
-  if (isGovernmentProgramUser(summary)) return '/government/workspace'
-  if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return '/government/admin'
-  if (canManageGovernmentUsers(summary)) return '/government/admin'
-  if ((summary.governmentStaffTenantIds?.length ?? 0) > 0) return '/government/admin'
-  return '/government/admin/notices'
+  if (!summary) return GOVERNMENT_ROUTE_PATHS.login
+  if (isGovernmentProgramUser(summary)) return GOVERNMENT_ROUTE_PATHS.workspace
+  if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return GOVERNMENT_ROUTE_PATHS.adminRoot
+  if (canManageGovernmentUsers(summary)) return GOVERNMENT_ROUTE_PATHS.adminRoot
+  if ((summary.governmentStaffTenantIds?.length ?? 0) > 0) return GOVERNMENT_ROUTE_PATHS.adminRoot
+  return GOVERNMENT_ROUTE_PATHS.adminNotices
 }

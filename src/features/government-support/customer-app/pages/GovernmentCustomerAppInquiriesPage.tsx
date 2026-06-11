@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StatusMessage } from '../../../../components/feedback'
 import { useAuth } from '../../../auth/AuthProvider'
+import {
+  GOVERNMENT_ROUTE_PATHS,
+  governmentAppInquiryDetailPath,
+} from '../../constants/governmentRouteKeys'
 import { fetchGovCustomerInquiries, type GovCustomerInquiryListItem } from '../api/governmentCustomerAppApi'
 function formatDateTime(iso: string | null): string {
   if (!iso) return '—'
@@ -29,7 +33,7 @@ export default function GovernmentCustomerAppInquiriesPage() {
 
   useEffect(() => {
     if (!token?.trim()) {
-      navigate('/government/login', { replace: true })
+      navigate(GOVERNMENT_ROUTE_PATHS.login, { replace: true })
       return
     }
     let mounted = true
@@ -59,7 +63,7 @@ export default function GovernmentCustomerAppInquiriesPage() {
                 <button
                   type="button"
                   className="customer-app-claim-request-card"
-                  onClick={() => navigate(`/government/app/inquiries/${row.id}`)}
+                  onClick={() => navigate(governmentAppInquiryDetailPath(row.id))}
                 >
                   <div className="customer-app-claim-request-card__top">
                     <div>

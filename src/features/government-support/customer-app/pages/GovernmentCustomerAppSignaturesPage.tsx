@@ -8,6 +8,7 @@ import {
   fetchGovCustomerSignatures,
   type GovCustomerSignatureItem,
 } from '../api/governmentCustomerAppApi'
+import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
 import { mapGovernmentSignatureApiError } from '../../signatures/governmentSignatureUserDisplay'
 
 function formatDateTime(iso: string | null): string {
@@ -41,7 +42,7 @@ export default function GovernmentCustomerAppSignaturesPage() {
 
   useEffect(() => {
     if (!token?.trim()) {
-      navigate('/government/login', { replace: true })
+      navigate(GOVERNMENT_ROUTE_PATHS.login, { replace: true })
       return
     }
     let mounted = true

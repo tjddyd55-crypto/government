@@ -17,9 +17,10 @@ export function migrateGovernmentStorageKeys(): void {
     return
   }
   try {
-    const legacyJoin = window.sessionStorage.getItem('government_join_agency_code')
-    if (legacyJoin && !window.sessionStorage.getItem(GOVERNMENT_STORAGE_KEYS.joinAgencyCodeSession)) {
-      window.sessionStorage.setItem(GOVERNMENT_STORAGE_KEYS.joinAgencyCodeSession, legacyJoin)
+    const key = GOVERNMENT_STORAGE_KEYS.joinAgencyCodeSession
+    const legacyJoin = window.sessionStorage.getItem(key)
+    if (legacyJoin && !window.sessionStorage.getItem(key)) {
+      window.sessionStorage.setItem(key, legacyJoin)
     }
   } catch {
     /* ignore quota / private mode */

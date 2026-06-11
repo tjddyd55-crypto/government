@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate, useMatch } from 'react-router-dom'
 import FormButton from '../../../../components/form/FormButton'
 import { useAuth } from '../../../auth/AuthProvider'
+import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import '../../../customer-app/customer-app.css'
 
@@ -11,16 +12,32 @@ type Props = {
 }
 
 const TABS = [
-  { to: '/government/app/requests', label: '요청서류', match: (p: string) => p.startsWith('/government/app/requests') },
-  { to: '/government/app/progress', label: '진행상황', match: (p: string) => p.startsWith('/government/app/progress') },
-  { to: '/government/app/inquiries', label: '문의', match: (p: string) => p.startsWith('/government/app/inquiries') },
-  { to: '/government/app/signatures', label: '전자서명', match: (p: string) => p.startsWith('/government/app/signatures') },
+  {
+    to: GOVERNMENT_ROUTE_PATHS.appRequests,
+    label: '요청서류',
+    match: (p: string) => p.startsWith(GOVERNMENT_ROUTE_PATHS.appRequests),
+  },
+  {
+    to: GOVERNMENT_ROUTE_PATHS.appProgress,
+    label: '진행상황',
+    match: (p: string) => p.startsWith(GOVERNMENT_ROUTE_PATHS.appProgress),
+  },
+  {
+    to: GOVERNMENT_ROUTE_PATHS.appInquiries,
+    label: '문의',
+    match: (p: string) => p.startsWith(GOVERNMENT_ROUTE_PATHS.appInquiries),
+  },
+  {
+    to: GOVERNMENT_ROUTE_PATHS.appSignatures,
+    label: '전자서명',
+    match: (p: string) => p.startsWith(GOVERNMENT_ROUTE_PATHS.appSignatures),
+  },
 ] as const
 
 export default function GovernmentCustomerAppShell({ children, title = '정부지원 고객앱' }: Props) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const hideInquiryCta = Boolean(useMatch('/government/app/inquiries/new'))
+  const hideInquiryCta = Boolean(useMatch(GOVERNMENT_ROUTE_PATHS.appInquiriesNew))
   const { token } = useAuth()
   const { summary } = useGovernmentAccess(token)
   const [headerName, setHeaderName] = useState('정부지원 CRM')
@@ -47,7 +64,7 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
             <button
               type="button"
               className="customer-app-header__action-btn customer-app-header__action-btn--close"
-              onClick={() => navigate('/government/my-applications')}
+              onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.myApplications)}
             >
               닫기
             </button>
@@ -68,7 +85,7 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
                 variant="primary"
                 className="customer-app-shell__cta-button"
                 fullWidth
-                onClick={() => navigate('/government/app/inquiries/new')}
+                onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.appInquiriesNew)}
               >
                 문의하기
               </FormButton>

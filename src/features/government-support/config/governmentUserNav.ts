@@ -1,4 +1,6 @@
 /** 정부지원 CRM 이용자(program user) 전용 네비게이션 */
+import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
+
 export type GovernmentUserNavItem = {
   to: string
   label: string
@@ -6,10 +8,10 @@ export type GovernmentUserNavItem = {
 }
 
 export const GOVERNMENT_USER_NAV: GovernmentUserNavItem[] = [
-  { to: '/government/workspace', label: '홈', end: true },
-  { to: '/government/my-applications', label: '내 사업장/신청' },
-  { to: '/government/signatures', label: '전자서명' },
-  { to: '/government/notices', label: '공지사항' },
-  { to: '/government/resources', label: '자료실' },
-  { to: '/government/me', label: '내 정보' },
+  { to: GOVERNMENT_ROUTE_PATHS.workspace, label: '홈', end: true },
+  { to: GOVERNMENT_ROUTE_PATHS.myApplications, label: '내 사업장/신청' },
+  { to: GOVERNMENT_ROUTE_PATHS.signatures, label: '전자서명' },
+  { to: GOVERNMENT_ROUTE_PATHS.notices, label: '공지사항' },
+  { to: GOVERNMENT_ROUTE_PATHS.resources, label: '자료실' },
+  { to: GOVERNMENT_ROUTE_PATHS.me, label: '내 정보' },
 ]

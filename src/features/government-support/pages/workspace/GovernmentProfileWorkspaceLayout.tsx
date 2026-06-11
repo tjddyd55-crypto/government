@@ -9,6 +9,7 @@ import {
   governmentProfileWorkspacePath,
   parseGovernmentProfileWorkspaceTab,
 } from '../../config/governmentProfileWorkspaceTabs'
+import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
 import GovernmentProfileListPanel from './GovernmentProfileListPanel'
 import GovernmentProfileWorkspaceLayoutPC from './GovernmentProfileWorkspaceLayoutPC'
 import GovernmentProfileWorkspaceLayoutMobile from './GovernmentProfileWorkspaceLayoutMobile'
@@ -135,7 +136,7 @@ export default function GovernmentProfileWorkspaceLayout() {
     onClickProgress: () => moveToTab('progress'),
     onClickSignatures: () => moveToTab('signatures'),
     onClickApplications: () => moveToTab('applications'),
-    onClickCustomerApp: () => navigate('/government/app/requests'),
+    onClickCustomerApp: () => navigate(GOVERNMENT_ROUTE_PATHS.appRequests),
   }
 
   return (

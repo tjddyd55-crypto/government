@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import '../../pdf-engine/pdf-engine.css'
 import './government-signature-console.css'
 import { useAuth } from '../../auth/AuthProvider'
+import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 import { mapGovernmentSignatureApiError } from '../signatures/governmentSignatureUserDisplay'
 import { FormButton } from '../../../components/form'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
@@ -32,7 +33,7 @@ function resolveTenantGaId(role: string | undefined, ownerUserId: number): numbe
 export default function GovernmentSignatureTemplatesPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const isAdminRoute = location.pathname.startsWith('/government/admin/signature-templates')
+  const isAdminRoute = location.pathname.startsWith(GOVERNMENT_ROUTE_PATHS.adminSignatureTemplates)
   const { token, user } = useAuth()
   const t = token?.trim() ?? ''
   const role = user?.role
@@ -194,7 +195,7 @@ export default function GovernmentSignatureTemplatesPage() {
                 htmlType="button"
                 variant="primary"
                 size="sm"
-                onClick={() => navigate('/government/admin/signature-templates/pdf/new')}
+                onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.adminSignaturePdfNew)}
               >
                 PDF 업로드 · 좌표 편집
               </FormButton>

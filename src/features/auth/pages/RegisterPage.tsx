@@ -13,6 +13,10 @@ import {
 } from '../authApi'
 import { FormButton, FormInput } from '../../../components/form'
 import { useAuth } from '../AuthProvider'
+import {
+  GOVERNMENT_STORAGE_KEYS,
+  migrateGovernmentStorageKeys,
+} from '../../government-support/constants/governmentStorageKeys'
 
 type UsernameCheck = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 
@@ -106,10 +110,11 @@ export function RegisterPage({
     if (signupIndustry !== 'government' || initialRegistrationCode?.trim()) {
       return
     }
-    const stored = sessionStorage.getItem('government_join_agency_code')?.trim()
+    migrateGovernmentStorageKeys()
+    const stored = sessionStorage.getItem(GOVERNMENT_STORAGE_KEYS.joinAgencyCodeSession)?.trim()
     if (stored) {
       setRegistrationCode(stored.toUpperCase().replace(/\s+/g, ''))
-      sessionStorage.removeItem('government_join_agency_code')
+      sessionStorage.removeItem(GOVERNMENT_STORAGE_KEYS.joinAgencyCodeSession)
     }
   }, [signupIndustry, initialRegistrationCode])
 

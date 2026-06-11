@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StatusMessage } from '../../../../components/feedback'
 import { useAuth } from '../../../auth/AuthProvider'
+import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
 import { fetchGovCustomerProgress, type GovCustomerProgressEvent } from '../api/governmentCustomerAppApi'
 function formatDateTime(iso: string | null): string {
   if (!iso) return '—'
@@ -18,7 +19,7 @@ export default function GovernmentCustomerAppProgressPage() {
 
   useEffect(() => {
     if (!token?.trim()) {
-      navigate('/government/login', { replace: true })
+      navigate(GOVERNMENT_ROUTE_PATHS.login, { replace: true })
       return
     }
     let mounted = true

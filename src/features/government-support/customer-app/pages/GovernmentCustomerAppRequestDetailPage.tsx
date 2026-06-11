@@ -4,6 +4,7 @@ import FileUploader from '../../../../components/common/FileUploader'
 import { StatusMessage } from '../../../../components/feedback'
 import { FormButton } from '../../../../components/form'
 import { useAuth } from '../../../auth/AuthProvider'
+import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
 import {
   confirmGovCustomerDocumentFile,
   deleteGovCustomerDocumentFile,
@@ -168,7 +169,7 @@ export default function GovernmentCustomerAppRequestDetailPage() {
 
   useEffect(() => {
     if (!token?.trim()) {
-      navigate('/government/login', { replace: true })
+      navigate(GOVERNMENT_ROUTE_PATHS.login, { replace: true })
       return
     }
     void loadDetail()

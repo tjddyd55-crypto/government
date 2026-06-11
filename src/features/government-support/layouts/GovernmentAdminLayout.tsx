@@ -12,6 +12,7 @@ import {
   GOVERNMENT_STAFF_NAV,
   type GovernmentAdminNavItem,
 } from '../config/governmentAdminNav'
+import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 import { buildGovernmentAdminMobileMenu } from '../config/governmentAppMenu'
 import GovernmentMobileWorkspaceShell from '../components/GovernmentMobileWorkspaceShell'
 import GovernmentWorkspaceChrome from '../components/GovernmentWorkspaceChrome'
@@ -105,7 +106,7 @@ export default function GovernmentAdminLayout() {
         navItems={navItems}
         onLogout={() => logout()}
         workspaceLink={
-          showWorkspaceLink ? { to: '/government/my-applications', label: '내 사업장/신청' } : null
+          showWorkspaceLink ? { to: GOVERNMENT_ROUTE_PATHS.myApplications, label: '내 사업장/신청' } : null
         }
       >
         <Outlet />
