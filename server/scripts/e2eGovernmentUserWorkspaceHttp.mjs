@@ -29,6 +29,13 @@ const {
 const { pass, fail, summary } = createE2eReporter()
 const tag = Date.now().toString(36)
 
+/** 프론트 GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH / tab id 와 동일 (E2E route sanity) */
+const GOVERNMENT_MY_APPLICATIONS_PATH = '/government/my-applications'
+
+function governmentProfileWorkspaceTabPath(profileId, tab) {
+  return `${GOVERNMENT_MY_APPLICATIONS_PATH}/${encodeURIComponent(String(profileId))}/${tab}`
+}
+
 async function api(path, opts = {}) {
   return e2eApi(API, path, opts)
 }
@@ -118,8 +125,8 @@ async function main() {
     '내 사업장/신청',
     '/government/me',
     '기본정보',
-    '/basic',
     'government-profile-basic-info-panel',
+    'government-profile-workspace',
     'customer-detail-read',
     '서류/파일',
     '신청 관리',
@@ -320,6 +327,16 @@ async function main() {
   const detailA = await api(`/government-support/profiles/${profileAId}`, { token: tokenA })
   if (detailA.status === 200) pass('user A profile detail 200')
   else fail('user A profile detail', String(detailA.status))
+
+  const basicTabPath = governmentProfileWorkspaceTabPath(profileAId, 'basic')
+  const basicTabSpa = await fetchHtml(basicTabPath)
+  if (basicTabSpa.status === 200) pass('GET profile basic tab SPA', basicTabSpa.bundle ?? '')
+  else fail('GET profile basic tab SPA', String(basicTabSpa.status))
+  if (basicTabSpa.js.includes('government-profile-basic-info-panel')) {
+    pass('profile basic tab bundle contains government-profile-basic-info-panel')
+  } else {
+    fail('profile basic tab bundle contains government-profile-basic-info-panel')
+  }
 
   const patchedBizName = `E2E Biz Patched ${ts}`
   const patchedPhone = `010-${String(ts).slice(-8)}`
