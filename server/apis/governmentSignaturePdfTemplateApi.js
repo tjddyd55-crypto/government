@@ -35,13 +35,7 @@ function parseTemplateId(raw) {
   return n
 }
 
-function govPdfStorageKey(ownerUserId, code) {
-  const safeOwner = String(ownerUserId ?? 'unknown').replace(/[^a-zA-Z0-9_-]+/g, '_')
-  const safeCode = String(code).trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-')
-  return `pdf-templates/gov-user-${safeOwner}/${safeCode}-${Date.now()}.pdf`
-}
-
-function templateToDto(row) {
+import { buildGovernmentSignaturePdfTemplateUploadKey } from '../lib/governmentSupport/governmentR2Keys.js'
   return {
     id: row.id,
     code: row.code,
@@ -112,7 +106,13 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
         const pdfDoc = await PDFDocument.load(file.buffer, { ignoreEncryption: true })
         const pageCount = pdfDoc.getPageCount()
         const code = `gov-${ownerUserId.slice(0, 8)}-${Date.now()}`
-        const storageKey = govPdfStorageKey(ownerUserId, code)
+        const tenantId = resolveGovSignatureTemplateTenantId(req)
+        const storageKey = buildGovernmentSignaturePdfTemplateUploadKey({
+          ownerUserId,
+          code,
+          pdfTemplateId: code,
+          tenantId,
+        })
         await putTemplateObject(storageKey, file.buffer)
         res.status(201).json({ ok: true, storageKey, pageCount, code })
       } catch (e) {

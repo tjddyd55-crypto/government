@@ -8,6 +8,12 @@ import {
   isGovernmentSuperAdmin,
   resolveGovernmentTenantScopeForQuery,
 } from './governmentAccess.js'
+import {
+  GOV_NOTIFICATION_EVENT_TYPES,
+  GOV_NOTIFICATION_TARGET_URLS,
+} from './governmentNotificationKeys.js'
+
+export { GOV_NOTIFICATION_EVENT_TYPES }
 
 /**
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
@@ -25,16 +31,6 @@ function canAccessGovOperationalNotifications(ctx) {
     (ctx.governmentStaffTenantIds?.length ?? 0) > 0
   )
 }
-
-export const GOV_NOTIFICATION_EVENT_TYPES = Object.freeze([
-  'document_request_submitted',
-  'inquiry_created',
-  'inquiry_replied',
-  'signature_completed',
-  'program_user_joined',
-  'inquiry_assigned',
-  'document_request_assigned',
-])
 
 const OPERATIONAL_ROLES = Object.freeze(['government_staff', 'government_agency_admin'])
 
@@ -374,7 +370,7 @@ export async function notifyDocumentRequestSubmitted(pool, params) {
     message: `${reqTitle} — ${label} 항목이 제출되었습니다.`,
     targetType: 'document_request',
     targetId: params.requestId,
-    targetUrl: `/government/admin/document-requests`,
+    targetUrl: GOV_NOTIFICATION_TARGET_URLS.DOCUMENT_REQUESTS,
   })
 }
 
@@ -401,7 +397,7 @@ export async function notifyInquiryCreated(pool, params) {
     message: `이용자 문의가 등록되었습니다: ${title}`,
     targetType: 'inquiry',
     targetId: params.inquiryId,
-    targetUrl: `/government/admin/inquiries`,
+    targetUrl: GOV_NOTIFICATION_TARGET_URLS.INQUIRIES,
   })
 }
 
@@ -427,7 +423,7 @@ export async function notifyInquiryReplied(pool, params) {
     message: `문의에 답변이 등록되었습니다: ${title}`,
     targetType: 'inquiry',
     targetId: params.inquiryId,
-    targetUrl: `/government/admin/inquiries`,
+    targetUrl: GOV_NOTIFICATION_TARGET_URLS.INQUIRIES,
   })
 }
 
@@ -454,7 +450,7 @@ export async function notifySignatureCompleted(pool, params) {
     message: `${name} — 전자서명이 완료되었습니다.`,
     targetType: 'signature_session',
     targetId: params.sessionId,
-    targetUrl: `/government/admin`,
+    targetUrl: GOV_NOTIFICATION_TARGET_URLS.ADMIN_HOME,
   })
 }
 
@@ -480,7 +476,7 @@ export async function notifyProgramUserJoined(pool, params) {
     message: `기관 코드로 새 이용자가 가입했습니다: ${label}`,
     targetType: 'program_user',
     targetId: params.actorUserId,
-    targetUrl: `/government/admin/program-users`,
+    targetUrl: GOV_NOTIFICATION_TARGET_URLS.PROGRAM_USERS,
   })
 }
 
@@ -513,7 +509,7 @@ export async function notifyInquiryAssigned(pool, params) {
     message: `문의 담당자로 지정되었습니다: ${title}`,
     targetType: 'inquiry',
     targetId: params.inquiryId,
-    targetUrl: `/government/admin/inquiries`,
+    targetUrl: GOV_NOTIFICATION_TARGET_URLS.INQUIRIES,
   })
 }
 
@@ -546,6 +542,6 @@ export async function notifyDocumentRequestAssigned(pool, params) {
     message: `요청서류 담당자로 지정되었습니다: ${title}`,
     targetType: 'document_request',
     targetId: params.requestId,
-    targetUrl: `/government/admin/document-requests`,
+    targetUrl: GOV_NOTIFICATION_TARGET_URLS.DOCUMENT_REQUESTS,
   })
 }

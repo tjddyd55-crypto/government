@@ -10,6 +10,8 @@ export type GovernmentProfileWorkspaceTab =
   | 'signatures'
   | 'applications'
 
+export const GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH = '/government/my-applications'
+
 export const GOVERNMENT_PROFILE_WORKSPACE_TABS: { id: GovernmentProfileWorkspaceTab; label: string }[] = [
   { id: 'basic', label: '기본정보' },
   { id: 'files', label: '서류/파일' },
@@ -22,6 +24,12 @@ export const GOVERNMENT_PROFILE_WORKSPACE_TABS: { id: GovernmentProfileWorkspace
   { id: 'applications', label: '신청 관리' },
 ]
 
+export const GOVERNMENT_PROFILE_WORKSPACE_TAB_IDS = GOVERNMENT_PROFILE_WORKSPACE_TABS.map((t) => t.id)
+
+const SIDE_DETAIL_TAB_RE = new RegExp(
+  `^/government/my-applications/[^/]+/(?:${GOVERNMENT_PROFILE_WORKSPACE_TAB_IDS.join('|')})(?:/|$)`,
+)
+
 export function parseGovernmentProfileWorkspaceTab(raw: string | undefined): GovernmentProfileWorkspaceTab {
   const t = String(raw ?? '').trim().toLowerCase()
   if (GOVERNMENT_PROFILE_WORKSPACE_TABS.some((x) => x.id === t)) {
@@ -30,6 +38,14 @@ export function parseGovernmentProfileWorkspaceTab(raw: string | undefined): Gov
   return 'basic'
 }
 
+export function labelForGovernmentProfileWorkspaceTab(tab: GovernmentProfileWorkspaceTab): string {
+  return GOVERNMENT_PROFILE_WORKSPACE_TABS.find((x) => x.id === tab)?.label ?? '작업 영역'
+}
+
 export function governmentProfileWorkspacePath(profileId: string, tab: GovernmentProfileWorkspaceTab): string {
-  return `/government/my-applications/${encodeURIComponent(profileId)}/${tab}`
+  return `${GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH}/${encodeURIComponent(profileId)}/${tab}`
+}
+
+export function isGovernmentProfileWorkspaceSideDetailPath(pathname: string): boolean {
+  return SIDE_DETAIL_TAB_RE.test(pathname)
 }

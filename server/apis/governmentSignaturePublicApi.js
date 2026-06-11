@@ -1,4 +1,8 @@
 ﻿import { createHash, randomUUID } from 'node:crypto'
+import {
+  buildGovernmentSignatureFieldImageKey,
+  buildGovernmentSignatureSessionDocumentKey,
+} from '../lib/governmentSupport/governmentR2Keys.js'
 import { decryptGovSignatureTargetPhoneBlob } from '../lib/governmentSignatureStoredPhone.js'
 import { consentGetBuffer, consentPutObject } from '../lib/consentStorage.js'
 import { normalizeKrMobile, validateKrMobileDigits } from '../lib/phoneNormalize.js'
@@ -681,7 +685,11 @@ async function insertFinalSignedPdfFileRow(client, p) {
     p.storageFileName && String(p.storageFileName).trim()
       ? String(p.storageFileName).trim().replace(/[^a-zA-Z0-9._-]+/g, '_')
       : 'final-signed.pdf'
-  const storageKey = `government/signatures/sessions/${p.sessionId}/documents/${p.docId}/${fileSuffix}`
+  const storageKey = buildGovernmentSignatureSessionDocumentKey({
+    sendSessionId: p.sessionId,
+    documentId: p.docId,
+    fileName: fileSuffix,
+  })
   await consentPutObject(storageKey, p.buf, 'application/pdf')
   const hashHex = createHash('sha256').update(p.buf).digest('hex')
   const display =
@@ -1731,7 +1739,11 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
           })
           return
         }
-        const storageKeyCo = `government/signatures/sessions/${session.id}/documents/${docId}/signature/${CONFIRMATION_ONLY_SIGNATURE_FIELD_KEY}.png`
+        const storageKeyCo = buildGovernmentSignatureFieldImageKey({
+          sendSessionId: session.id,
+          documentId: docId,
+          fieldId: CONFIRMATION_ONLY_SIGNATURE_FIELD_KEY,
+        })
         const hashHexCo = createHash('sha256').update(buf).digest('hex')
         const syntheticField = {
           id: CONFIRMATION_ONLY_SIGNATURE_FIELD_KEY,
@@ -1892,7 +1904,11 @@ export function registerGovernmentSignaturePublicApi(apiRouter, ctx) {
         })
         return
       }
-      const storageKey = `government/signatures/sessions/${session.id}/documents/${docId}/signature/${targetField.id}.png`
+      const storageKey = buildGovernmentSignatureFieldImageKey({
+        sendSessionId: session.id,
+        documentId: docId,
+        fieldId: targetField.id,
+      })
       const hashHex = createHash('sha256').update(buf).digest('hex')
       const signLogCtx = {
         route: 'contract public sign',

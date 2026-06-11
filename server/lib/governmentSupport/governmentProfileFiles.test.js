@@ -14,26 +14,33 @@ import {
 } from './governmentProfileFiles.js'
 
 describe('buildGovernmentProfileFileObjectKey', () => {
-  it('government/profile-files 경로 사용', () => {
+  it('government/agencies/…/files 경로 사용', () => {
     const key = buildGovernmentProfileFileObjectKey({
-      ownerUserId: 'user-1',
+      tenantId: '36',
+      userId: 'user-1',
       profileId: '9',
       fileId: '3',
       fileName: 'test.pdf',
     })
-    assert.match(key, /government\/profile-files\/user-1\/9\/3\//)
+    assert.match(key, /government\/agencies\/36\/users\/user-1\/profiles\/9\/files\/3\//)
     assert.match(key, /test\.pdf$/)
   })
 
   it('assertGovernmentProfileFileObjectKey 일치', () => {
     const key = buildGovernmentProfileFileObjectKey({
-      ownerUserId: 'u1',
+      tenantId: '1',
+      userId: 'u1',
       profileId: '2',
       fileId: '5',
       fileName: 'a.pdf',
     })
     assert.equal(
-      assertGovernmentProfileFileObjectKey(key, { ownerUserId: 'u1', profileId: '2', fileId: '5' }),
+      assertGovernmentProfileFileObjectKey(key, {
+        tenantId: '1',
+        ownerUserId: 'u1',
+        profileId: '2',
+        fileId: '5',
+      }),
       true,
     )
   })

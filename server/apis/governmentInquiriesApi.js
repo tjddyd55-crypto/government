@@ -339,9 +339,9 @@ export function registerGovernmentInquiriesApi(apiRouter, deps) {
       )
       const fileId = fileIns.rows[0].id
       const objectKey = buildGovernmentInquiryObjectKey({
-        ownerUserId: ctx.userId,
+        tenantId: String(row.tenant_id ?? ''),
+        userId: ctx.userId,
         inquiryId,
-        messageId,
         fileId,
         fileName,
       })
@@ -387,6 +387,7 @@ export function registerGovernmentInquiriesApi(apiRouter, deps) {
         return
       }
       if (!assertGovernmentInquiryObjectKey(fileRow.file_key, {
+        tenantId: String(row.tenant_id ?? ''),
         ownerUserId: ctx.userId,
         inquiryId,
         messageId: fileRow.message_id,

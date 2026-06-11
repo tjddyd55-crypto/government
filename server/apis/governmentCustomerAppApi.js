@@ -143,7 +143,7 @@ export function registerGovernmentCustomerAppApi(apiRouter, deps) {
   async function loadRequestItemForOwner(itemId, requestId, ownerUserId) {
     const r = await pool.query(
       `
-      SELECT i.*, r.profile_id, r.owner_user_id
+      SELECT i.*, r.profile_id, r.owner_user_id, r.tenant_id
       FROM gov_support_document_request_items i
       INNER JOIN gov_support_document_requests r ON r.id = i.request_id
       WHERE i.id = $1::bigint AND i.request_id = $2::bigint
@@ -368,10 +368,10 @@ export function registerGovernmentCustomerAppApi(apiRouter, deps) {
         )
         const fileId = String(ins.rows[0].id)
         const objectKey = buildGovernmentRequestDocumentObjectKey({
-          ownerUserId,
+          tenantId: String(itemRow.tenant_id ?? ''),
+          userId: ownerUserId,
           profileId,
           requestId,
-          itemId,
           fileId,
           fileName,
         })
@@ -436,6 +436,7 @@ export function registerGovernmentCustomerAppApi(apiRouter, deps) {
         const fileRow = fr.rows[0]
         if (
           !assertGovernmentRequestDocumentObjectKey(String(fileRow.file_key ?? ''), {
+            tenantId: String(itemRow.tenant_id ?? ''),
             ownerUserId: ctx.userId,
             profileId: String(itemRow.profile_id),
             requestId,

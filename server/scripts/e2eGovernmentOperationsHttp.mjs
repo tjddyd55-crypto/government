@@ -24,8 +24,12 @@ async function login(username) {
 }
 
 function keyOk(key) {
-  const k = String(key ?? '')
-  return k.includes('government/resources/') && !k.includes('gov_support_profiles')
+  const k = String(key ?? '').replace(/^\/+/, '')
+  return (
+    (k.includes('government/agencies/') && k.includes('/shared/resources/')) ||
+    (k.includes('government/global/') && k.includes('/resources/')) ||
+    (k.includes('government/resources/') && !k.includes('gov_support_profiles'))
+  )
 }
 
 async function main() {

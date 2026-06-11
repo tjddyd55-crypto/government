@@ -955,13 +955,25 @@ export function registerGovernmentSupportApi(router, deps) {
         return
       }
       const meta = await pool.query(
-        `SELECT tenant_id, profile_id FROM gov_support_document_items WHERE id = $1::bigint`,
+        `
+        SELECT di.tenant_id, di.profile_id, p.owner_user_id
+        FROM gov_support_document_items di
+        INNER JOIN gov_support_profiles p ON p.id = di.profile_id
+        WHERE di.id = $1::bigint
+        `,
         [docId],
       )
       const tenantId = meta.rows[0].tenant_id
       const profileId = meta.rows[0].profile_id
+      const ownerUserId = String(meta.rows[0].owner_user_id ?? '')
       sanitizeGovernmentDocumentFileName(fileNameRaw)
-      const objectKey = buildGovernmentDocumentObjectKey(tenantId, profileId, docId, fileNameRaw)
+      const objectKey = buildGovernmentDocumentObjectKey({
+        tenantId,
+        userId: ownerUserId,
+        profileId,
+        docId,
+        fileName: fileNameRaw,
+      })
       const uploadUrl = await r2GetPresignedPutUrl(objectKey, contentType, 900, { cacheControl: null })
       if (!uploadUrl) {
         res.status(503).json({ message: '업로드 URL을 만들 수 없습니다. R2 설정을 확인하세요.' })
@@ -2025,6 +2037,7 @@ export function registerGovernmentSupportApi(router, deps) {
         return
       }
       const ownerUserId = String(profileRow.owner_user_id ?? ctx.userId)
+      const tenantId = String(profileRow.tenant_id ?? '')
       const category = String(body.category ?? '').trim().slice(0, 80)
       const description = String(body.description ?? '').trim().slice(0, 2000)
       const ins = await pool.query(
@@ -2039,7 +2052,8 @@ export function registerGovernmentSupportApi(router, deps) {
       )
       const fileId = String(ins.rows[0].id)
       const objectKey = buildGovernmentProfileFileObjectKey({
-        ownerUserId,
+        tenantId,
+        userId: ownerUserId,
         profileId,
         fileId,
         fileName,
@@ -2119,6 +2133,7 @@ export function registerGovernmentSupportApi(router, deps) {
       }
       if (
         !assertGovernmentProfileFileObjectKey(objectKey, {
+          tenantId: String(fileAccess.tenant_id ?? ''),
           ownerUserId: String(fileAccess.owner_user_id ?? ''),
           profileId,
           fileId,
@@ -2190,6 +2205,7 @@ export function registerGovernmentSupportApi(router, deps) {
         const fileKey = String(fileAccess.file_key ?? '').trim()
         if (
           !assertGovernmentProfileFileObjectKey(fileKey, {
+            tenantId: String(fileAccess.tenant_id ?? ''),
             ownerUserId: String(fileAccess.owner_user_id ?? ''),
             profileId,
             fileId,

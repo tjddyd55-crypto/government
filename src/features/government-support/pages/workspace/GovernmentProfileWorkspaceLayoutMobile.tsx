@@ -1,37 +1,20 @@
 import { useMemo } from 'react'
 import { useLocation, useNavigate, useOutlet } from 'react-router-dom'
 import Modal from '../../../../components/ui/Modal'
+import {
+  GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH,
+  isGovernmentProfileWorkspaceSideDetailPath,
+  labelForGovernmentProfileWorkspaceTab,
+  parseGovernmentProfileWorkspaceTab,
+} from '../../config/governmentProfileWorkspaceTabs'
 import type { GovernmentProfileWorkspaceLayoutViewProps } from './governmentProfileWorkspaceViewProps'
 
 function resolveMobileSheetTitle(pathname: string): string {
-  if (pathname.includes('/basic')) {
-    return '기본정보'
+  const m = pathname.match(/^\/government\/my-applications\/[^/]+\/([^/]+)/)
+  if (!m?.[1]) {
+    return '상세'
   }
-  if (pathname.includes('/consultations')) {
-    return '상담 이력'
-  }
-  if (pathname.includes('/memos')) {
-    return '메모'
-  }
-  if (pathname.includes('/progress')) {
-    return '진행상황'
-  }
-  if (pathname.includes('/signatures')) {
-    return '전자서명'
-  }
-  if (pathname.includes('/applications')) {
-    return '신청 관리'
-  }
-  if (pathname.includes('/files')) {
-    return '서류/파일'
-  }
-  if (pathname.includes('/documents')) {
-    return '서류관리'
-  }
-  if (pathname.includes('/edoc')) {
-    return '전자문서'
-  }
-  return '상세'
+  return labelForGovernmentProfileWorkspaceTab(parseGovernmentProfileWorkspaceTab(m[1]))
 }
 
 export default function GovernmentProfileWorkspaceLayoutMobile(props: GovernmentProfileWorkspaceLayoutViewProps) {
@@ -40,19 +23,12 @@ export default function GovernmentProfileWorkspaceLayoutMobile(props: Government
   const location = useLocation()
 
   const isMobileDetailRoute = useMemo(
-    () =>
-      /^\/government\/my-applications\/[^/]+\/(?:basic|files|documents|edoc|consultations|memos|progress|signatures|applications)(?:\/|$)/.test(
-        location.pathname,
-      ),
+    () => isGovernmentProfileWorkspaceSideDetailPath(location.pathname),
     [location.pathname],
   )
 
   const handleClose = () => {
-    if (props.selectedProfileId) {
-      navigate('/government/my-applications', { replace: true })
-      return
-    }
-    navigate('/government/my-applications', { replace: true })
+    navigate(GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH, { replace: true })
   }
 
   if (isMobileDetailRoute && outlet) {

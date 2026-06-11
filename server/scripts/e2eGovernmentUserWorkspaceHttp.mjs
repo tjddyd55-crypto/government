@@ -529,7 +529,10 @@ async function main() {
     if (docUploadUrl && docObjectKey && docFileId) pass('user A doc presign', String(docFileId))
     else fail('user A doc presign')
     const docKeyNorm = String(docObjectKey ?? '').replace(/^\/+/, '')
-    if (docKeyNorm.includes('government/request-documents/')) pass('request-doc R2 key path')
+    const requestDocKeyOk =
+      (docKeyNorm.includes('government/agencies/') && docKeyNorm.includes('/document-requests/')) ||
+      docKeyNorm.includes('government/request-documents/')
+    if (requestDocKeyOk) pass('request-doc R2 key path')
     else fail('request-doc R2 key path', docKeyNorm.slice(0, 80))
 
     const docPut = await fetch(docUploadUrl, {
@@ -723,7 +726,10 @@ async function main() {
   if (profileUploadUrl && profileObjectKey && profileFileId) pass('user A file presign', profileFileId)
   else fail('user A file presign')
   const objectKeyNorm = String(profileObjectKey ?? '').replace(/^\/+/, '')
-  if (objectKeyNorm.includes('government/profile-files/')) pass('profile file R2 key path')
+  const profileKeyOk =
+    (objectKeyNorm.includes('government/agencies/') && objectKeyNorm.includes('/profiles/') && objectKeyNorm.includes('/files/')) ||
+    objectKeyNorm.includes('government/profile-files/')
+  if (profileKeyOk) pass('profile file R2 key path')
   else fail('profile file R2 key path', objectKeyNorm.slice(0, 80))
 
   const profilePut = await fetch(profileUploadUrl, {

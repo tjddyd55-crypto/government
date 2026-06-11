@@ -1,37 +1,24 @@
 import { Outlet } from 'react-router-dom'
 import { EmptyState } from '../../../../components/feedback'
 import { FormButton } from '../../../../components/form'
+import {
+  GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH,
+  labelForGovernmentProfileWorkspaceTab,
+  parseGovernmentProfileWorkspaceTab,
+} from '../../config/governmentProfileWorkspaceTabs'
 import type { GovernmentProfileWorkspaceLayoutViewProps } from './governmentProfileWorkspaceViewProps'
 
+function resolveTabFromPathname(pathname: string) {
+  const m = pathname.match(/^\/government\/my-applications\/[^/]+\/([^/]+)/)
+  if (!m?.[1]) {
+    return null
+  }
+  return parseGovernmentProfileWorkspaceTab(m[1])
+}
+
 function rightTitle(pathname: string): string {
-  if (pathname.includes('/basic')) {
-    return '기본정보'
-  }
-  if (pathname.includes('/consultations')) {
-    return '상담 이력'
-  }
-  if (pathname.includes('/memos')) {
-    return '메모'
-  }
-  if (pathname.includes('/progress')) {
-    return '진행상황'
-  }
-  if (pathname.includes('/signatures')) {
-    return '전자서명'
-  }
-  if (pathname.includes('/applications')) {
-    return '신청 관리'
-  }
-  if (pathname.includes('/files')) {
-    return '서류/파일'
-  }
-  if (pathname.includes('/documents')) {
-    return '서류관리'
-  }
-  if (pathname.includes('/edoc')) {
-    return '전자문서'
-  }
-  return '작업 영역'
+  const tab = resolveTabFromPathname(pathname)
+  return tab ? labelForGovernmentProfileWorkspaceTab(tab) : '작업 영역'
 }
 
 export default function GovernmentProfileWorkspaceLayoutPC({
@@ -52,7 +39,8 @@ export default function GovernmentProfileWorkspaceLayoutPC({
   onClickCustomerApp,
 }: GovernmentProfileWorkspaceLayoutViewProps) {
   const isIndexPath =
-    pathname === '/government/my-applications' || pathname === '/government/my-applications/'
+    pathname === GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH ||
+    pathname === `${GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH}/`
 
   return (
     <section className="customer-workspace-layout__right" aria-label="사업장 연동 작업영역">

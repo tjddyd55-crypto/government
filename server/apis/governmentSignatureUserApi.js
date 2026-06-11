@@ -1,4 +1,5 @@
 ﻿import { createHash, randomUUID } from 'node:crypto'
+import { buildGovernmentSignatureSendAttachmentKey } from '../lib/governmentSupport/governmentR2Keys.js'
 import path from 'node:path'
 import { consentGetBuffer, consentPutObject } from '../lib/consentStorage.js'
 import {
@@ -1045,7 +1046,10 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           return
         }
         const displayBase = safeContractAttachmentBaseName(f.originalname || 'attachment')
-        const storageKey = `government/signatures/send-attachments/${uid}/${randomUUID()}/${displayBase}`
+        const storageKey = buildGovernmentSignatureSendAttachmentKey({
+          userId: uid,
+          fileName: displayBase,
+        })
         try {
           await consentPutObject(storageKey, f.buffer, mime)
         } catch {
