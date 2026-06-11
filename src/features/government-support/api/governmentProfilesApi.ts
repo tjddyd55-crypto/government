@@ -75,6 +75,15 @@ export async function patchGovProfile(token: string, profileId: string, patch: P
   return row
 }
 
+export async function deleteGovProfile(token: string, profileId: string): Promise<{ ok: boolean }> {
+  const raw = await apiRequest<unknown>(`/api/government-support/profiles/${profileId}`, {
+    method: 'DELETE',
+    token,
+  })
+  const data = unwrapData<{ ok?: boolean }>(raw)
+  return { ok: data?.ok ?? true }
+}
+
 export async function fetchGovPriorLoans(token: string, profileId: string): Promise<GovPriorLoan[]> {
   const raw = await apiRequest<unknown>(`/api/government-support/profiles/${profileId}/prior-loans`, {
     method: 'GET',

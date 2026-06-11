@@ -1,10 +1,66 @@
+import { useCallback, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useConfirmDialog } from '../../../../components/dialog'
 import FormButton from '../../../../components/form/FormButton'
+import {
+  GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH,
+  governmentProfileWorkspacePath,
+} from '../../config/governmentProfileWorkspaceTabs'
+import type { GovSupportProfile } from '../../types/governmentProfile.types'
+import GovernmentProfileEditModal from './GovernmentProfileEditModal'
+import GovernmentProfileListExpandDetail from './GovernmentProfileListExpandDetail'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
 
 const EMPTY_LIST_HINT = '등록된 사업장이 없습니다. 사업장을 먼저 등록해 주세요.'
 
 export default function GovernmentProfileListPanelBody() {
   const ws = useGovernmentProfileWorkspaceContext()
+  const navigate = useNavigate()
+  const { confirm, confirmDialog } = useConfirmDialog()
+  const [editTarget, setEditTarget] = useState<GovSupportProfile | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const handleSaveProfile = useCallback(
+    async (profileId: string, patch: Partial<GovSupportProfile>) => {
+      await ws.saveProfile(profileId, patch)
+    },
+    [ws],
+  )
+
+  const handleDeleteProfile = useCallback(
+    async (profile: GovSupportProfile) => {
+      const title = profile.businessName || profile.customerName || '이 사업장'
+      const ok = await confirm({
+        title: '사업장 삭제',
+        message: `${title}을(를) 삭제하시겠습니까?\n연결된 파일·상담 데이터는 보관되며 목록에서만 제거됩니다.`,
+        confirmLabel: '삭제',
+        cancelLabel: '취소',
+        tone: 'danger',
+      })
+      if (!ok) return
+
+      const deletedId = profile.id
+      const remaining = ws.profiles.filter((p) => p.id !== deletedId)
+      const wasSelected =
+        deletedId === ws.selectedProfileIdFromPath || deletedId === ws.selectedId
+
+      setDeletingId(deletedId)
+      try {
+        await ws.removeProfile(deletedId)
+        if (wasSelected) {
+          const next = remaining.find((p) => p.id !== deletedId)
+          if (next) {
+            navigate(governmentProfileWorkspacePath(next.id, 'basic'), { replace: true })
+          } else {
+            navigate(GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH, { replace: true })
+          }
+        }
+      } finally {
+        setDeletingId(null)
+      }
+    },
+    [confirm, navigate, ws],
+  )
 
   return (
     <>
@@ -41,28 +97,61 @@ export default function GovernmentProfileListPanelBody() {
             return (
               <li
                 key={row.id}
-                className={`customer-expand-card${active ? ' customer-expand-card--focal' : ''}`}
+                className={`record-card customer-card customer-expand-card transition-all duration-150 ease-out${
+                  active ? ' customer-expand-card--focal' : ''
+                }`}
                 data-profile-id={row.id}
               >
-                <button
-                  type="button"
-                  className="customer-expand-summary customer-expand-summary--toggle"
-                  aria-expanded={active}
-                  onClick={() => ws.onSelectProfile(row.id)}
-                >
-                  <span className="customer-expand-summary__content w-full min-w-0">
-                    <strong>{title}</strong>
-                    <span className="gov-customer-list-meta-line">
-                      {row.customerName ? `${row.customerName} · ` : null}
-                      {row.phone || '연락처 없음'} · {row.progressStatus}
+                <div className="customer-expand-card__main">
+                  <button
+                    type="button"
+                    className="customer-expand-summary customer-expand-summary--toggle transition-transform duration-100 ease-out active:scale-[0.98]"
+                    aria-expanded={active}
+                    aria-label={`${title} 상세 ${active ? '접기' : '펼치기'}`}
+                    onClick={() => ws.onSelectProfile(row.id)}
+                  >
+                    <span className="customer-expand-summary__content w-full min-w-0">
+                      <div className="flex justify-between items-center gap-2 w-full min-w-0">
+                        <div className="min-w-0 flex-1">
+                          <strong className="font-semibold">{title}</strong>
+                          <div className="text-sm text-[var(--text-secondary)] customer-card-summary-meta mt-0.5">
+                            <div className="gov-customer-list-summary">
+                              <div className="gov-customer-list-meta-line">
+                                {row.customerName ? `${row.customerName} · ` : null}
+                                {row.phone || '연락처 없음'} · {row.progressStatus || '—'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <span className="customer-expand-summary__hint shrink-0" aria-hidden="true">
+                          {active ? '▲' : '▼'}
+                        </span>
+                      </div>
                     </span>
-                  </span>
-                </button>
+                  </button>
+
+                  {active ? (
+                    <GovernmentProfileListExpandDetail
+                      profile={row}
+                      onEdit={() => setEditTarget(row)}
+                      onDelete={() => void handleDeleteProfile(row)}
+                      deleting={deletingId === row.id}
+                    />
+                  ) : null}
+                </div>
               </li>
             )
           })}
         </ul>
       )}
+
+      <GovernmentProfileEditModal
+        open={editTarget != null}
+        profile={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSave={handleSaveProfile}
+      />
+      {confirmDialog}
     </>
   )
 }

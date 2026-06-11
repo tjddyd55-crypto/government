@@ -42,8 +42,8 @@ export function mapGovSupportProfileRow(row) {
     delegationMemo: String(row.delegation_memo ?? ''),
     edocStatus: String(row.edoc_status ?? ''),
     docStatus: String(row.doc_status ?? ''),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: row.created_at != null ? String(row.created_at) : undefined,
+    updatedAt: row.updated_at != null ? String(row.updated_at) : undefined,
   }
 }
 

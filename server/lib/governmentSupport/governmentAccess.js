@@ -84,6 +84,15 @@ export function canCreateGovernmentProfile(ctx) {
 }
 
 /**
+ * 사업장/고객 삭제(archive) — 프로그램 이용자 본인만.
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ * @param {{ owner_user_id?: string|null, ownerUserId?: string|null, tenant_id?: string|number|null, tenantId?: string|number|null }} profileRow
+ */
+export function canDeleteGovernmentProfile(ctx, profileRow) {
+  return canAccessGovernmentProfile(ctx, profileRow) && isGovernmentProgramUser(ctx)
+}
+
+/**
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
  * @param {{ owner_user_id?: string|null, ownerUserId?: string|null, tenant_id?: string|number|null, tenantId?: string|number|null }} profileRow
  */

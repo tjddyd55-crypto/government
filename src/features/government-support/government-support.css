@@ -318,6 +318,19 @@
   padding: 1rem 1.25rem 1.5rem;
 }
 
+.government-user-layout--insurance-shell {
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.government-user-layout--insurance-shell .government-workspace-chrome__content:has(> .government-profile-workspace) {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 .government-horizontal-nav {
   border-top: 1px solid color-mix(in srgb, var(--border-default, #1e293b) 72%, transparent);
 }
@@ -1270,6 +1283,21 @@
   box-sizing: border-box;
 }
 
+.government-page--mobile.government-user-layout
+  .government-mobile-workspace-shell__content.content-wrapper:has(.government-profile-workspace) {
+  padding: 0;
+}
+
+.government-page--mobile.government-user-layout .government-profile-workspace .customers-page--mobile {
+  padding: 0;
+  max-width: none;
+}
+
+.government-page--mobile.government-user-layout .government-profile-workspace.customer-workspace-layout {
+  height: auto;
+  min-height: 0;
+}
+
 .government-page--mobile.government-user-layout .government-mobile-workspace-shell,
 .government-page--mobile.government-user-layout .government-user-layout__content {
   min-width: 0;
@@ -1348,7 +1376,59 @@
 
 /* —— 사업장 워크스페이스 (보험 customer-workspace-layout 패턴) —— */
 .government-profile-workspace.customer-workspace-layout {
+  flex: 1;
   min-height: 0;
+  height: 100%;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.government-profile-workspace .customer-workspace-layout__right-header {
+  flex-shrink: 0;
+}
+
+.government-profile-workspace .customer-workspace-layout__actions {
+  max-width: 100%;
+}
+
+.government-profile-list-expand-detail {
+  padding: 0 12px 8px;
+}
+
+.government-profile-list-expand-detail__body {
+  margin-top: 4px;
+}
+
+.government-profile-list-expand-detail .customer-detail-read__info-row {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.government-profile-edit-modal {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 86vh;
+}
+
+.government-profile-edit-modal__header {
+  flex-shrink: 0;
+  padding: 0 0 0.75rem;
+  border-bottom: 1px solid #1e293b;
+}
+
+.government-profile-edit-modal__title {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #f8fafc;
+}
+
+.government-profile-edit-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 0.75rem;
 }
 
 .government-profile-workspace .customer-workspace-layout__left .government-profile-list-panel,

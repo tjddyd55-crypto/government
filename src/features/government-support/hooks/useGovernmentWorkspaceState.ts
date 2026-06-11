@@ -12,6 +12,7 @@ import {
   fetchGovProfiles,
   patchGovApplicationCase,
   patchGovProfile,
+  deleteGovProfile,
 } from '../api/governmentProfilesApi'
 import type {
   GovApplicationCase,
@@ -102,13 +103,28 @@ export function useGovernmentWorkspaceState(
   }, [reloadDetail])
 
   const saveProfile = useCallback(
-    async (patch: Partial<GovSupportProfile>) => {
-      if (!token || !selected) return
-      const next = await patchGovProfile(token, selected.id, patch)
+    async (profileId: string, patch: Partial<GovSupportProfile>) => {
+      if (!token || !profileId) return null
+      const next = await patchGovProfile(token, profileId, patch)
       setProfiles((prev) => prev.map((p) => (p.id === next.id ? next : p)))
       setFeedback('저장했습니다.')
+      return next
     },
-    [token, selected],
+    [token],
+  )
+
+  const removeProfile = useCallback(
+    async (profileId: string) => {
+      if (!token || !profileId) return
+      await deleteGovProfile(token, profileId)
+      setProfiles((prev) => prev.filter((p) => p.id !== profileId))
+      if (selectedId === profileId) {
+        setSelectedId(null)
+      }
+      setFeedback('사업장을 삭제했습니다.')
+      onProfilesChanged?.()
+    },
+    [token, selectedId, onProfilesChanged],
   )
 
   const addProfile = useCallback(async () => {
@@ -202,6 +218,7 @@ export function useGovernmentWorkspaceState(
     feedback,
     setFeedback,
     saveProfile,
+    removeProfile,
     addProfile,
     addPriorLoan,
     updatePriorLoan,

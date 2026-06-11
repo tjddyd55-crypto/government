@@ -57,13 +57,17 @@ export async function ensureGovernmentSupportSchema(executor) {
     ADD COLUMN IF NOT EXISTS owner_user_id TEXT REFERENCES users(id) ON DELETE SET NULL
   `)
   await executor.query(`
+    ALTER TABLE gov_support_profiles
+    ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ
+  `)
+  await executor.query(`
     CREATE INDEX IF NOT EXISTS idx_gov_support_profiles_tenant
     ON gov_support_profiles (tenant_id, updated_at DESC)
   `)
   await executor.query(`
     CREATE INDEX IF NOT EXISTS idx_gov_support_profiles_owner
     ON gov_support_profiles (owner_user_id)
-    WHERE owner_user_id IS NOT NULL
+    WHERE owner_user_id IS NOT NULL AND archived_at IS NULL
   `)
 
   await executor.query(`

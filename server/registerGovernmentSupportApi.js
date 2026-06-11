@@ -12,6 +12,7 @@ import {
   resolveGovernmentCrmGaId,
   resolveGovernmentIndustryId,
   canCreateGovernmentProfile,
+  canDeleteGovernmentProfile,
   resolveGovernmentProfileQueryScope,
   resolveGovernmentTenantScopeForQuery,
   resolveTenantIdForProfileCreate,
@@ -383,6 +384,7 @@ export function registerGovernmentSupportApi(router, deps) {
         SELECT * FROM gov_support_profiles
         WHERE tenant_id = ANY($1::bigint[])
           AND owner_user_id IS NOT NULL
+          AND archived_at IS NULL
           AND ($2::text IS NULL OR owner_user_id = $2::text)
         ORDER BY updated_at DESC, id DESC
         `,
@@ -469,6 +471,10 @@ export function registerGovernmentSupportApi(router, deps) {
         return
       }
       const row = r.rows[0]
+      if (row.archived_at != null) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
       if (!canAccessGovernmentProfile(ctx, row)) {
         res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
@@ -484,10 +490,14 @@ export function registerGovernmentSupportApi(router, deps) {
       const ctx = req.platformContext
       const id = String(req.params.profileId ?? '').trim()
       const existing = await pool.query(
-        `SELECT tenant_id, owner_user_id FROM gov_support_profiles WHERE id = $1::bigint`,
+        `SELECT tenant_id, owner_user_id, archived_at FROM gov_support_profiles WHERE id = $1::bigint`,
         [id],
       )
       if ((existing.rowCount ?? 0) === 0) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
+      if (existing.rows[0].archived_at != null) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
@@ -503,10 +513,40 @@ export function registerGovernmentSupportApi(router, deps) {
       const sets = pairs.map((p, i) => `${p[0]} = $${i + 2}`)
       const vals = pairs.map((p) => p[1])
       const r = await pool.query(
-        `UPDATE gov_support_profiles SET ${sets.join(', ')}, updated_at = NOW() WHERE id = $1::bigint RETURNING *`,
+        `UPDATE gov_support_profiles SET ${sets.join(', ')}, updated_at = NOW() WHERE id = $1::bigint AND archived_at IS NULL RETURNING *`,
         [id, ...vals],
       )
+      if ((r.rowCount ?? 0) === 0) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
       res.json({ success: true, data: mapGovSupportProfileRow(r.rows[0]) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.delete('/government-support/profiles/:profileId', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      const id = String(req.params.profileId ?? '').trim()
+      const existing = await pool.query(
+        `SELECT tenant_id, owner_user_id, archived_at FROM gov_support_profiles WHERE id = $1::bigint`,
+        [id],
+      )
+      if ((existing.rowCount ?? 0) === 0 || existing.rows[0].archived_at != null) {
+        res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+        return
+      }
+      if (!canDeleteGovernmentProfile(ctx, existing.rows[0])) {
+        res.status(403).json({ message: '사업장 삭제 권한이 없습니다.' })
+        return
+      }
+      await pool.query(
+        `UPDATE gov_support_profiles SET archived_at = NOW(), updated_at = NOW() WHERE id = $1::bigint AND archived_at IS NULL`,
+        [id],
+      )
+      res.json({ success: true, data: { ok: true } })
     } catch (e) {
       handleDbError(e, req, res)
     }

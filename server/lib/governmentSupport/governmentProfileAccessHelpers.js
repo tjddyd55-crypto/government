@@ -9,7 +9,7 @@
  */
 export async function loadGovernmentProfileAccessRow(pool, profileId) {
   const r = await pool.query(
-    `SELECT tenant_id, owner_user_id FROM gov_support_profiles WHERE id = $1::bigint LIMIT 1`,
+    `SELECT tenant_id, owner_user_id, archived_at FROM gov_support_profiles WHERE id = $1::bigint AND archived_at IS NULL LIMIT 1`,
     [profileId],
   )
   return r.rows[0] ?? null

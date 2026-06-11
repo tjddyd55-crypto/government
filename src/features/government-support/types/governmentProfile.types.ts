@@ -40,6 +40,8 @@ export type GovSupportProfile = {
   delegationMemo: string
   edocStatus: string
   docStatus: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type GovAgencyRow = {

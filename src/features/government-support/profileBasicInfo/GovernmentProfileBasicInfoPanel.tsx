@@ -56,7 +56,7 @@ export default function GovernmentProfileBasicInfoPanel() {
     setError('')
     setStatusText('')
     try {
-      await ws.saveProfile(basicInfoFormToPatch(form))
+      await ws.saveProfile(profile.id, basicInfoFormToPatch(form))
       setEditing(false)
       setStatusText('저장했습니다.')
     } catch (e) {

@@ -337,6 +337,11 @@ async function main() {
   } else {
     fail('profile basic tab bundle contains government-profile-basic-info-panel')
   }
+  if (basicTabSpa.js.includes('government-profile-list-expand-detail')) {
+    pass('profile workspace bundle contains expanded list detail marker')
+  } else {
+    fail('profile workspace bundle contains expanded list detail marker')
+  }
 
   const patchedBizName = `E2E Biz Patched ${ts}`
   const patchedPhone = `010-${String(ts).slice(-8)}`
@@ -365,6 +370,31 @@ async function main() {
   const listRow = listAfterPatch.find((p) => String(p.id) === profileAId)
   if (String(listRow?.businessName ?? '') === patchedBizName) pass('user A profile list reflects patch')
   else fail('user A profile list reflects patch', String(listRow?.businessName))
+
+  const createdForDelete = await api('/government-support/profiles', {
+    token: tokenA,
+    method: 'POST',
+    body: { businessName: `E2E Delete ${ts}`, customerName: `E2E Delete Cust ${ts}` },
+    expectStatus: 200,
+  })
+  const profileDeleteId = String(createdForDelete.json?.data?.id ?? createdForDelete.json?.id ?? '')
+  if (profileDeleteId) pass('user A create profile for delete', profileDeleteId)
+  else fail('user A create profile for delete')
+
+  await api(`/government-support/profiles/${profileDeleteId}`, {
+    token: tokenA,
+    method: 'DELETE',
+    expectStatus: 200,
+  })
+  const listAfterProfileDelete =
+    (await api('/government-support/profiles', { token: tokenA })).json?.data ?? []
+  if (!listAfterProfileDelete.some((p) => String(p.id) === profileDeleteId)) {
+    pass('user A profile removed after delete')
+  } else fail('user A profile removed after delete')
+
+  const detailDeleted = await api(`/government-support/profiles/${profileDeleteId}`, { token: tokenA })
+  if (detailDeleted.status === 404) pass('user A deleted profile detail 404')
+  else fail('user A deleted profile detail 404', String(detailDeleted.status))
 
   const memoCreate = await api(`/government-support/profiles/${profileAId}/memos`, {
     token: tokenA,
@@ -867,6 +897,18 @@ async function main() {
   } catch (e) {
     if (String(e.message).includes('404')) pass('user B profile patch 404')
     else fail('user B profile patch forbidden', e.message)
+  }
+
+  try {
+    await api(`/government-support/profiles/${profileAId}`, {
+      token: tokenB,
+      method: 'DELETE',
+      expectStatus: 403,
+    })
+    pass('user B profile delete 403')
+  } catch (e) {
+    if (String(e.message).includes('404')) pass('user B profile delete 404')
+    else fail('user B profile delete forbidden', e.message)
   }
 
   const memoBCreate = await api(`/government-support/profiles/${profileAId}/memos`, {
