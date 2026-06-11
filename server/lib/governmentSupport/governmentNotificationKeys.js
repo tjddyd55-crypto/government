@@ -4,15 +4,15 @@
  * @module governmentNotificationKeys
  */
 
-export const GOV_NOTIFICATION_EVENT_TYPES = Object.freeze([
-  'document_request_submitted',
-  'inquiry_created',
-  'inquiry_replied',
-  'signature_completed',
-  'program_user_joined',
-  'inquiry_assigned',
-  'document_request_assigned',
-])
+export const GOV_NOTIFICATION_EVENT_TYPES = Object.freeze({
+  DOCUMENT_REQUEST_SUBMITTED: 'document_request_submitted',
+  INQUIRY_CREATED: 'inquiry_created',
+  INQUIRY_REPLIED: 'inquiry_replied',
+  SIGNATURE_COMPLETED: 'signature_completed',
+  PROGRAM_USER_JOINED: 'program_user_joined',
+  INQUIRY_ASSIGNED: 'inquiry_assigned',
+  DOCUMENT_REQUEST_ASSIGNED: 'document_request_assigned',
+})
 
 export const GOV_NOTIFICATION_TARGET_TYPES = Object.freeze({
   DOCUMENT_REQUEST: 'document_request',

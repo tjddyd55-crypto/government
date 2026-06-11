@@ -2,17 +2,18 @@
  * 정부지원 알림 eventType / targetType SSOT (프론트 — 서버 governmentNotificationKeys.js 와 동기화).
  */
 
-export const GOVERNMENT_NOTIFICATION_EVENT_TYPES = [
-  'document_request_submitted',
-  'inquiry_created',
-  'inquiry_replied',
-  'signature_completed',
-  'program_user_joined',
-  'inquiry_assigned',
-  'document_request_assigned',
-] as const
+export const GOVERNMENT_NOTIFICATION_EVENT_TYPES = {
+  DOCUMENT_REQUEST_SUBMITTED: 'document_request_submitted',
+  INQUIRY_CREATED: 'inquiry_created',
+  INQUIRY_REPLIED: 'inquiry_replied',
+  SIGNATURE_COMPLETED: 'signature_completed',
+  PROGRAM_USER_JOINED: 'program_user_joined',
+  INQUIRY_ASSIGNED: 'inquiry_assigned',
+  DOCUMENT_REQUEST_ASSIGNED: 'document_request_assigned',
+} as const
 
-export type GovernmentNotificationEventType = (typeof GOVERNMENT_NOTIFICATION_EVENT_TYPES)[number]
+export type GovernmentNotificationEventType =
+  (typeof GOVERNMENT_NOTIFICATION_EVENT_TYPES)[keyof typeof GOVERNMENT_NOTIFICATION_EVENT_TYPES]
 
 export const GOVERNMENT_NOTIFICATION_TARGET_TYPES = {
   DOCUMENT_REQUEST: 'document_request',

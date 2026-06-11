@@ -102,7 +102,7 @@ export async function createGovSupportNotifications(poolExec, params) {
     return []
   }
   const eventType = String(params.eventType ?? '').trim()
-  if (!GOV_NOTIFICATION_EVENT_TYPES.includes(eventType)) {
+  if (!Object.values(GOV_NOTIFICATION_EVENT_TYPES).includes(eventType)) {
     throw new Error(`invalid gov notification event_type: ${eventType}`)
   }
 
@@ -366,7 +366,7 @@ export async function notifyDocumentRequestSubmitted(pool, params) {
     actorUserId: params.actorUserId,
     ownerUserId: params.ownerUserId ?? params.actorUserId,
     profileId: params.profileId,
-    eventType: 'document_request_submitted',
+    eventType: GOV_NOTIFICATION_EVENT_TYPES.DOCUMENT_REQUEST_SUBMITTED,
     title: '요청서류 제출',
     message: `${reqTitle} — ${label} 항목이 제출되었습니다.`,
     targetType: GOV_NOTIFICATION_TARGET_TYPES.DOCUMENT_REQUEST,
@@ -393,7 +393,7 @@ export async function notifyInquiryCreated(pool, params) {
     actorUserId: params.actorUserId,
     ownerUserId: params.ownerUserId,
     profileId: params.profileId,
-    eventType: 'inquiry_created',
+    eventType: GOV_NOTIFICATION_EVENT_TYPES.INQUIRY_CREATED,
     title: '새 문의',
     message: `이용자 문의가 등록되었습니다: ${title}`,
     targetType: GOV_NOTIFICATION_TARGET_TYPES.INQUIRY,
@@ -419,7 +419,7 @@ export async function notifyInquiryReplied(pool, params) {
     tenantId: params.tenantId,
     ownerUserId: params.ownerUserId,
     profileId: params.profileId,
-    eventType: 'inquiry_replied',
+    eventType: GOV_NOTIFICATION_EVENT_TYPES.INQUIRY_REPLIED,
     title: '문의 답변',
     message: `문의에 답변이 등록되었습니다: ${title}`,
     targetType: GOV_NOTIFICATION_TARGET_TYPES.INQUIRY,
@@ -446,7 +446,7 @@ export async function notifySignatureCompleted(pool, params) {
     actorUserId: params.actorUserId,
     ownerUserId: params.ownerUserId,
     profileId: params.profileId,
-    eventType: 'signature_completed',
+    eventType: GOV_NOTIFICATION_EVENT_TYPES.SIGNATURE_COMPLETED,
     title: '전자서명 완료',
     message: `${name} — 전자서명이 완료되었습니다.`,
     targetType: GOV_NOTIFICATION_TARGET_TYPES.SIGNATURE_SESSION,
@@ -472,7 +472,7 @@ export async function notifyProgramUserJoined(pool, params) {
     tenantId: params.tenantId,
     actorUserId: params.actorUserId,
     ownerUserId: params.actorUserId,
-    eventType: 'program_user_joined',
+    eventType: GOV_NOTIFICATION_EVENT_TYPES.PROGRAM_USER_JOINED,
     title: '신규 이용자 가입',
     message: `기관 코드로 새 이용자가 가입했습니다: ${label}`,
     targetType: GOV_NOTIFICATION_TARGET_TYPES.PROGRAM_USER,
@@ -505,7 +505,7 @@ export async function notifyInquiryAssigned(pool, params) {
     ownerUserId: params.ownerUserId,
     profileId: params.profileId,
     recipientUserIds: [assigneeUserId],
-    eventType: 'inquiry_assigned',
+    eventType: GOV_NOTIFICATION_EVENT_TYPES.INQUIRY_ASSIGNED,
     title: '문의 담당 지정',
     message: `문의 담당자로 지정되었습니다: ${title}`,
     targetType: GOV_NOTIFICATION_TARGET_TYPES.INQUIRY,
@@ -538,7 +538,7 @@ export async function notifyDocumentRequestAssigned(pool, params) {
     ownerUserId: params.ownerUserId,
     profileId: params.profileId,
     recipientUserIds: [assigneeUserId],
-    eventType: 'document_request_assigned',
+    eventType: GOV_NOTIFICATION_EVENT_TYPES.DOCUMENT_REQUEST_ASSIGNED,
     title: '요청서류 담당 지정',
     message: `요청서류 담당자로 지정되었습니다: ${title}`,
     targetType: GOV_NOTIFICATION_TARGET_TYPES.DOCUMENT_REQUEST,
