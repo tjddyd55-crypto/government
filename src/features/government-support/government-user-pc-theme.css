@@ -1,0 +1,470 @@
+/* —— 이용자 PC 공통 화이트/옐로 테마 (보험 화면 참고, 정부지원 레포 전용) —— */
+
+.government-user-layout--pc-user {
+  --gov-workspace-bg: #f5f7fb;
+  --gov-workspace-panel: #ffffff;
+  --gov-workspace-border: #d7dee8;
+  --gov-workspace-border-strong: #cbd5e1;
+  --gov-workspace-text: #0f172a;
+  --gov-workspace-muted: #64748b;
+  --gov-workspace-primary: #f2b800;
+  --gov-workspace-primary-hover: #d99f00;
+  --gov-workspace-primary-soft: #fff8d6;
+  --gov-workspace-danger: #dc2626;
+  --gov-workspace-danger-soft: #fff1f2;
+  --bg-main: var(--gov-workspace-bg);
+  --bg-card: var(--gov-workspace-panel);
+  --bg-elevated: #f8fafc;
+  --bg-soft: #f8fafc;
+  --text-main: var(--gov-workspace-text);
+  --text-primary: var(--gov-workspace-text);
+  --text-secondary: var(--gov-workspace-muted);
+  --text-sub: var(--gov-workspace-muted);
+  --text-muted: var(--gov-workspace-muted);
+  --border-default: var(--gov-workspace-border);
+  --border-subtle: var(--gov-workspace-border);
+  --border: var(--gov-workspace-border);
+  --brand-primary: var(--gov-workspace-primary);
+}
+
+.government-user-layout--pc-user.government-page {
+  background: var(--gov-workspace-bg);
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user .government-user-pc-page {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--gov-workspace-bg);
+  color: var(--gov-workspace-text);
+}
+
+/* full-width page surfaces */
+.government-user-layout--pc-user .government-user-pc-page > .gov-user-page,
+.government-user-layout--pc-user .government-user-pc-page > .government-profile-workspace,
+.government-user-layout--pc-user .government-user-pc-page > .government-user-section,
+.government-user-layout--pc-user .government-user-pc-page > .claim-inbox,
+.government-user-layout--pc-user .government-user-pc-page > .page {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user .content-wrapper,
+.government-user-layout--pc-user .gov-user-page.content-wrapper,
+.government-user-layout--pc-user .claim-inbox.content-wrapper {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 18px 20px;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user .gov-user-page {
+  padding: 18px 20px;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user .gov-user-card {
+  background: var(--gov-workspace-panel);
+  border: 1px solid var(--gov-workspace-border);
+  border-radius: 14px;
+  box-shadow: none;
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user .government-page__title {
+  color: var(--gov-workspace-text);
+  margin: 0 0 0.35rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.government-user-layout--pc-user .government-page__muted {
+  color: var(--gov-workspace-muted);
+}
+
+/* —— 공통 폼 —— */
+.government-user-layout--pc-user .gov-form-control,
+.government-user-layout--pc-user .form-input,
+.government-user-layout--pc-user .form-select,
+.government-user-layout--pc-user .form-textarea,
+.government-user-layout--pc-user input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.government-user-layout--pc-user textarea,
+.government-user-layout--pc-user select {
+  background: #ffffff;
+  color: var(--gov-workspace-text);
+  border: 1px solid var(--gov-workspace-border-strong);
+  border-radius: 10px;
+  min-height: 38px;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user .form-textarea,
+.government-user-layout--pc-user textarea {
+  min-height: 88px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.government-user-layout--pc-user .form-input,
+.government-user-layout--pc-user input:not([type='checkbox']):not([type='radio']):not([type='file']) {
+  padding: 0 12px;
+}
+
+.government-user-layout--pc-user .form-input::placeholder,
+.government-user-layout--pc-user textarea::placeholder {
+  color: #94a3b8;
+}
+
+.government-user-layout--pc-user .form-input:focus,
+.government-user-layout--pc-user .form-select:focus,
+.government-user-layout--pc-user .form-textarea:focus,
+.government-user-layout--pc-user input:focus,
+.government-user-layout--pc-user textarea:focus,
+.government-user-layout--pc-user select:focus {
+  outline: none;
+  border-color: var(--gov-workspace-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gov-workspace-primary) 22%, transparent);
+}
+
+.government-user-layout--pc-user .form-label,
+.government-user-layout--pc-user label {
+  color: var(--gov-workspace-muted);
+}
+
+/* —— 버튼 (gov-btn 확장) —— */
+.government-user-layout--pc-user .gov-btn--ghost {
+  background: transparent;
+  color: var(--gov-workspace-text);
+  border-color: transparent;
+}
+
+.government-user-layout--pc-user .gov-btn--ghost:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.government-user-layout--pc-user .gov-btn--large {
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: 0.9375rem;
+}
+
+.government-user-layout--pc-user .button,
+.government-user-layout--pc-user .form-button {
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.government-user-layout--pc-user .form-button--primary,
+.government-user-layout--pc-user .button--primary {
+  background: var(--gov-workspace-primary);
+  border-color: var(--gov-workspace-primary);
+  color: #0f172a;
+}
+
+.government-user-layout--pc-user .form-button--primary:hover:not(:disabled),
+.government-user-layout--pc-user .button--primary:hover:not(:disabled) {
+  background: var(--gov-workspace-primary-hover);
+  border-color: var(--gov-workspace-primary-hover);
+}
+
+.government-user-layout--pc-user .form-button--secondary,
+.government-user-layout--pc-user .button--secondary {
+  background: #ffffff;
+  color: var(--gov-workspace-text);
+  border-color: var(--gov-workspace-border-strong);
+}
+
+.government-user-layout--pc-user .form-button--danger,
+.government-user-layout--pc-user .button--danger {
+  background: var(--gov-workspace-danger-soft);
+  color: var(--gov-workspace-danger);
+  border-color: #fca5a5;
+}
+
+/* —— 내 정보 —— */
+.government-user-layout--pc-user .gov-user-me-page {
+  padding: 18px 20px;
+}
+
+.government-user-layout--pc-user .gov-user-me-page .gov-user-card {
+  padding: 20px 22px;
+  margin-top: 14px;
+}
+
+.government-user-layout--pc-user .government-user-me__row {
+  border-bottom-color: var(--gov-workspace-border);
+}
+
+.government-user-layout--pc-user .government-user-me__label {
+  color: var(--gov-workspace-muted);
+}
+
+.government-user-layout--pc-user .government-user-me__value {
+  color: var(--gov-workspace-text);
+  font-weight: 600;
+}
+
+/* —— 공지/자료실 (claim-inbox 재스킨) —— */
+.government-user-layout--pc-user .gov-user-notices-page.claim-inbox,
+.government-user-layout--pc-user .gov-user-resources-page.claim-inbox {
+  gap: 14px;
+}
+
+.government-user-layout--pc-user .gov-user-notices-page .claim-inbox__hero,
+.government-user-layout--pc-user .gov-user-notices-page .claim-inbox__toolbar,
+.government-user-layout--pc-user .gov-user-notices-page .claim-inbox__list-panel,
+.government-user-layout--pc-user .gov-user-notices-page .claim-inbox__detail-panel,
+.government-user-layout--pc-user .gov-user-resources-page .claim-inbox__hero,
+.government-user-layout--pc-user .gov-user-resources-page .claim-inbox__toolbar,
+.government-user-layout--pc-user .gov-user-resources-page .claim-inbox__list-panel {
+  background: var(--gov-workspace-panel);
+  border: 1px solid var(--gov-workspace-border);
+  color: var(--gov-workspace-text);
+  box-shadow: none;
+}
+
+.government-user-layout--pc-user .claim-inbox__title {
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user .claim-inbox__subtitle,
+.government-user-layout--pc-user .claim-inbox__list-item-meta,
+.government-user-layout--pc-user .claim-inbox__detail-meta {
+  color: var(--gov-workspace-muted);
+}
+
+.government-user-layout--pc-user .claim-inbox__layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+}
+
+.government-user-layout--pc-user .claim-inbox__list-item {
+  background: #f8fafc;
+  border: 1px solid var(--gov-workspace-border);
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user .claim-inbox__list-item--active {
+  background: var(--gov-workspace-primary-soft);
+  border-color: color-mix(in srgb, var(--gov-workspace-primary) 45%, var(--gov-workspace-border));
+}
+
+.government-user-layout--pc-user .government-ops-badge {
+  background: var(--gov-workspace-primary-soft);
+  color: #92400e;
+  border: 1px solid color-mix(in srgb, var(--gov-workspace-primary) 40%, transparent);
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.government-user-layout--pc-user .claim-inbox__detail-memo {
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user .claim-inbox__status {
+  background: var(--gov-workspace-primary-soft);
+  color: #92400e;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* —— 전자서명 내역 —— */
+.government-user-layout--pc-user main.gov-user-signatures-page.contract-signature-console {
+  background: transparent;
+  padding: 0;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .contract-signature-console__container {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 18px 20px;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .contract-signature-console__title {
+  color: var(--gov-workspace-text);
+  font-weight: 800;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .contract-signature-console__lead,
+.government-user-layout--pc-user main.gov-user-signatures-page .contract-signature-console__hint,
+.government-user-layout--pc-user main.gov-user-signatures-page .contract-signature-console__empty-state-text {
+  color: var(--gov-workspace-muted);
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .contract-signature-console__notice {
+  background: var(--gov-workspace-primary-soft);
+  border-color: color-mix(in srgb, var(--gov-workspace-primary) 35%, var(--gov-workspace-border));
+  color: #92400e;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .contract-signature-console__section {
+  background: var(--gov-workspace-panel);
+  border: 1px solid var(--gov-workspace-border);
+  border-radius: 14px;
+  color: var(--gov-workspace-text);
+  padding: 16px 18px;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .contract-signature-console__filter-btn {
+  min-height: 32px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--gov-workspace-text);
+  border: 1px solid var(--gov-workspace-border-strong);
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .contract-signature-console__filter-btn--active {
+  background: var(--gov-workspace-primary-soft);
+  border-color: var(--gov-workspace-primary);
+  color: #0f172a;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .pdf-engine-table th,
+.government-user-layout--pc-user main.gov-user-signatures-page .pdf-engine-table td {
+  background: #ffffff;
+  color: var(--gov-workspace-text);
+  border-color: var(--gov-workspace-border);
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .pdf-engine-table tbody tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+/* —— 워크스페이스 탭: 신청관리 —— */
+.government-user-layout--pc-user .gov-applications-page {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user .gov-applications-page__create-card {
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+
+.government-user-layout--pc-user .gov-applications-page__create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.government-user-layout--pc-user .gov-applications-page__create-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 12px;
+}
+
+.government-user-layout--pc-user .gov-applications-page__create-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.government-user-layout--pc-user .gov-applications-page__grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.2fr) minmax(240px, 0.9fr);
+  gap: 16px;
+  align-items: stretch;
+  min-height: 420px;
+}
+
+.government-user-layout--pc-user .gov-applications-page .claim-requests-page__panel {
+  background: var(--gov-workspace-panel);
+  border: 1px solid var(--gov-workspace-border);
+  border-radius: 14px;
+  min-height: 280px;
+}
+
+.government-user-layout--pc-user .gov-applications-page .claim-requests-page__panel-head {
+  padding: 14px 16px;
+  border-bottom-color: var(--gov-workspace-border);
+}
+
+.government-user-layout--pc-user .gov-applications-page .claim-requests-page__panel-head h3 {
+  color: var(--gov-workspace-text);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.government-user-layout--pc-user .gov-applications-page .claim-requests-page__panel-head-tools {
+  color: var(--gov-workspace-muted);
+}
+
+.government-user-layout--pc-user .gov-applications-page .claim-requests-page__section-title {
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user .gov-applications-page .claim-requests-page__section-description,
+.government-user-layout--pc-user .gov-applications-page .claim-requests-page__timeline-empty,
+.government-user-layout--pc-user .gov-applications-page .claim-requests-page__panel-empty {
+  color: var(--gov-workspace-muted);
+}
+
+.government-user-layout--pc-user .gov-applications-page .claim-requests-page__claims-grid {
+  display: contents;
+}
+
+@media (max-width: 1280px) {
+  .government-user-layout--pc-user .gov-applications-page__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .government-user-layout--pc-user .gov-applications-page__create-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .government-user-layout--pc-user .claim-inbox__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* —— 모바일: 구조 유지, 폼/버튼만 최소 보정 —— */
+.government-user-layout--mobile .gov-btn {
+  min-height: 44px;
+}
+
+.government-user-layout--mobile .gov-form-control,
+.government-user-layout--mobile .form-input,
+.government-user-layout--mobile .form-select,
+.government-user-layout--mobile .form-textarea {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+}
+
+.government-user-layout--mobile .gov-user-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  color: #0f172a;
+}
+
+.government-user-layout--mobile .government-user-me__label {
+  color: #64748b;
+}
+
+.government-user-layout--mobile .government-user-me__value {
+  color: #0f172a;
+}

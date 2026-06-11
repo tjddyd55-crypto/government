@@ -264,6 +264,9 @@ async function main() {
   for (const m of [
     '/government/signatures',
     '/government/signatures/send',
+    'gov-user-signatures-page',
+    'gov-form-control',
+    'gov-btn--primary',
     'government/admin/signature-templates',
     'signature-templates',
     '전자서명',

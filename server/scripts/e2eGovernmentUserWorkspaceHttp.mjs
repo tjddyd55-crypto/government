@@ -135,8 +135,10 @@ async function main() {
   if (homeHtml.status === 200) pass('GET /government/my-applications', homeHtml.bundle ?? '')
   else fail('GET /government/my-applications', String(homeHtml.status))
 
-  const navMarkers = [
+  const coreMarkers = [
     'government-user-layout',
+    'government-user-layout--pc-user',
+    'government-user-pc-page',
     'government-workspace-topbar',
     'government-workspace-breadcrumb',
     'gov-btn--primary',
@@ -159,9 +161,26 @@ async function main() {
     '/government/admin/document-requests',
     '요청서류 관리',
   ]
-  for (const m of navMarkers) {
+  for (const m of coreMarkers) {
     if (homeHtml.js.includes(m)) pass(`bundle contains ${m}`)
     else fail(`bundle contains ${m}`)
+  }
+
+  const userThemePageChecks = [
+    { path: '/government/my-applications', label: 'applications shell', markers: ['gov-form-control', 'gov-applications-page'] },
+    { path: '/government/notices', label: 'notices', markers: ['gov-user-notices-page', 'gov-form-control'] },
+    { path: '/government/resources', label: 'resources', markers: ['gov-user-resources-page', 'gov-form-control'] },
+    { path: '/government/me', label: 'me', markers: ['gov-user-me-page'] },
+    { path: '/government/signatures', label: 'signatures', markers: ['gov-user-signatures-page', 'gov-form-control'] },
+  ]
+  for (const check of userThemePageChecks) {
+    const pageHtml = await fetchHtml(check.path)
+    if (pageHtml.status === 200) pass(`GET ${check.path} SPA`, pageHtml.bundle ?? '')
+    else fail(`GET ${check.path} SPA`, String(pageHtml.status))
+    for (const m of check.markers) {
+      if (pageHtml.js.includes(m)) pass(`${check.label} bundle contains ${m}`)
+      else fail(`${check.label} bundle contains ${m}`)
+    }
   }
 
   /** @type {string | null} */

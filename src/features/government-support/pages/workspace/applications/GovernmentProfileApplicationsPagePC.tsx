@@ -11,27 +11,27 @@ import type { GovernmentProfileApplicationsViewProps } from './governmentProfile
 
 export default function GovernmentProfileApplicationsPagePC(props: GovernmentProfileApplicationsViewProps) {
   return (
-    <main className="page claim-requests-page claim-requests-page--pc page--with-back content-wrapper">
+    <main className="gov-applications-page government-profile-applications-page gov-user-page">
       <StatusMessage message={props.error} tone="error" />
 
-      <section className="claim-requests-page__card government-profile-applications__create-card">
+      <section className="gov-user-card gov-applications-page__create-card">
         <div className="claim-requests-page__section-header">
           <div>
             <h2 className="claim-requests-page__section-title">신청 등록</h2>
             <p className="claim-requests-page__section-description">새 신청 건을 등록합니다.</p>
           </div>
         </div>
-        <form onSubmit={props.onSubmitCreate}>
-          <div className="claim-requests-page__status-form-row claim-requests-page__status-form-row--wrap">
+        <form className="gov-applications-page__create-form" onSubmit={props.onSubmitCreate}>
+          <div className="gov-applications-page__create-grid">
             <FormInput
-              className="claim-requests-page__status-select"
+              className="gov-form-control claim-requests-page__status-select"
               value={props.createTitle}
               onChange={(event) => props.onSetCreateTitle(event.target.value)}
               placeholder="신청 제목"
               maxLength={GOVERNMENT_PROFILE_APPLICATION_TITLE_MAX}
             />
             <FormSelect
-              className="claim-requests-page__status-select"
+              className="gov-form-control claim-requests-page__status-select"
               value={props.createType}
               onChange={(event) => props.onSetCreateType(event.target.value)}
               options={[
@@ -41,26 +41,39 @@ export default function GovernmentProfileApplicationsPagePC(props: GovernmentPro
             />
           </div>
           <FormTextarea
-            className="claim-requests-page__status-memo"
-            rows={3}
+            className="gov-form-control claim-requests-page__status-memo"
+            rows={4}
             value={props.createContent}
             onChange={(event) => props.onSetCreateContent(event.target.value)}
             placeholder="신청 내용"
             maxLength={GOVERNMENT_PROFILE_APPLICATION_CONTENT_MAX}
           />
-          <FormButton htmlType="submit" variant="primary" disabled={props.busy} className="customer-workspace-tab-submit">
-            {props.busy ? '저장 중…' : '신청 추가'}
-          </FormButton>
+          <div className="gov-applications-page__create-actions">
+            <FormButton
+              htmlType="submit"
+              variant="primary"
+              disabled={props.busy}
+              className="gov-btn gov-btn--primary"
+            >
+              {props.busy ? '저장 중…' : '신청 추가'}
+            </FormButton>
+          </div>
         </form>
       </section>
 
-      <section className="claim-requests-page__claims-grid">
+      <div className="gov-applications-page__grid claim-requests-page__claims-grid">
         <article className="claim-requests-page__panel claim-requests-page__panel--list">
           <div className="claim-requests-page__panel-head">
             <h3>신청 관리</h3>
             <div className="claim-requests-page__panel-head-tools">
               <span>총 {props.rows.length}건</span>
-              <FormButton htmlType="button" variant="secondary" onClick={() => void props.onReloadList()} disabled={props.loading}>
+              <FormButton
+                htmlType="button"
+                variant="secondary"
+                className="gov-btn gov-btn--secondary gov-btn--sm"
+                onClick={() => void props.onReloadList()}
+                disabled={props.loading}
+              >
                 새로고침
               </FormButton>
             </div>
@@ -121,7 +134,7 @@ export default function GovernmentProfileApplicationsPagePC(props: GovernmentPro
             </div>
           </article>
         </PCOnlySection>
-      </section>
+      </div>
     </main>
   )
 }

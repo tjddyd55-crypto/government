@@ -48,7 +48,7 @@ export default function GovernmentUserNoticesPage() {
   const ordered = [...pinned, ...normal]
 
   return (
-    <main className="page page--with-back claim-inbox content-wrapper government-user-notices-page">
+    <main className="page page--with-back claim-inbox content-wrapper government-user-notices-page gov-user-page gov-user-notices-page">
       <section className="claim-inbox__hero">
         <div>
           <h1 className="claim-inbox__title">공지사항</h1>
@@ -58,10 +58,16 @@ export default function GovernmentUserNoticesPage() {
 
       <section className="claim-inbox__toolbar">
         <FieldWrapper label="검색">
-          <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="제목·내용" />
+          <FormInput
+            className="gov-form-control"
+            value={filterQ}
+            onChange={(e) => setFilterQ(e.target.value)}
+            placeholder="제목·내용"
+          />
         </FieldWrapper>
         <FieldWrapper label="구분">
           <FormSelect
+            className="gov-form-control"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
             options={[{ value: '', label: '전체' }, ...GOVERNMENT_NOTICE_CATEGORIES]}

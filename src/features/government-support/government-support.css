@@ -553,7 +553,8 @@
   text-decoration: none;
 }
 
-.gov-btn--sm {
+.gov-btn--sm,
+.gov-btn--small {
   min-height: 32px;
   padding: 0 12px;
   font-size: 0.8125rem;

@@ -14,6 +14,7 @@ import {
   type GovernmentUserChromeContextValue,
 } from '../context/governmentUserChromeContext'
 import '../government-support.css'
+import '../government-user-pc-theme.css'
 
 export default function GovernmentUserLayout() {
   useDocumentTitle(GOVERNMENT_APP_TITLE)
@@ -59,7 +60,9 @@ export default function GovernmentUserLayout() {
           onLogout={() => logout()}
           breadcrumb={<GovernmentWorkspaceBreadcrumb workspaceSuffix={workspaceBreadcrumbSuffix} />}
         >
-          <Outlet />
+          <div className="government-user-pc-page">
+            <Outlet />
+          </div>
         </GovernmentWorkspaceChrome>
       </main>
     </GovernmentUserChromeContext.Provider>

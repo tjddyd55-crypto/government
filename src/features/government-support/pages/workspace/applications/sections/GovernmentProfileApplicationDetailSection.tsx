@@ -81,7 +81,7 @@ export function GovernmentProfileApplicationDetailBody({
         <label className="claim-requests-page__detail-meta claim-requests-page__detail-field">
           제목
           <FormInput
-            className="claim-requests-page__status-select"
+            className="gov-form-control claim-requests-page__status-select"
             value={editTitle}
             onChange={(event) => onSetEditTitle(event.target.value)}
             maxLength={GOVERNMENT_PROFILE_APPLICATION_TITLE_MAX}
@@ -90,7 +90,7 @@ export function GovernmentProfileApplicationDetailBody({
         <label className="claim-requests-page__detail-meta claim-requests-page__detail-field">
           유형
           <FormSelect
-            className="claim-requests-page__status-select"
+            className="gov-form-control claim-requests-page__status-select"
             value={editType}
             onChange={(event) => onSetEditType(event.target.value)}
             options={[
@@ -100,7 +100,7 @@ export function GovernmentProfileApplicationDetailBody({
           />
         </label>
         <FormTextarea
-          className="claim-requests-page__status-memo"
+          className="gov-form-control claim-requests-page__status-memo"
           rows={5}
           value={editContent}
           onChange={(event) => onSetEditContent(event.target.value)}
@@ -108,10 +108,22 @@ export function GovernmentProfileApplicationDetailBody({
           maxLength={GOVERNMENT_PROFILE_APPLICATION_CONTENT_MAX}
         />
         <div className="claim-requests-page__status-form-row customer-workspace-tab-submit-row">
-          <FormButton htmlType="button" variant="primary" onClick={() => void onSaveDetail()} loading={actionBusy}>
+          <FormButton
+            htmlType="button"
+            variant="primary"
+            className="gov-btn gov-btn--primary"
+            onClick={() => void onSaveDetail()}
+            loading={actionBusy}
+          >
             내용 저장
           </FormButton>
-          <FormButton htmlType="button" variant="secondary" onClick={() => void onDeleteApplication()} loading={actionBusy}>
+          <FormButton
+            htmlType="button"
+            variant="secondary"
+            className="gov-btn gov-btn--danger"
+            onClick={() => void onDeleteApplication()}
+            loading={actionBusy}
+          >
             보관(삭제)
           </FormButton>
         </div>
@@ -121,7 +133,7 @@ export function GovernmentProfileApplicationDetailBody({
         <div className="claim-requests-page__detail-subtitle">상태 변경</div>
         <div className="claim-requests-page__status-form-row">
           <FormSelect
-            className="claim-requests-page__status-select"
+            className="gov-form-control claim-requests-page__status-select"
             value={statusTarget}
             onChange={(event) => onSetStatusTarget(event.target.value as GovernmentProfileApplicationStatus)}
             options={statusOptions.map((item) => ({ value: item.value, label: item.label }))}
@@ -129,6 +141,7 @@ export function GovernmentProfileApplicationDetailBody({
           <FormButton
             htmlType="button"
             variant="primary"
+            className="gov-btn gov-btn--primary"
             onClick={() => void onSaveStatus()}
             loading={actionBusy}
             disabled={saveStatusDisabled}

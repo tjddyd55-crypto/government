@@ -248,8 +248,10 @@ export default function GovernmentSignatureHistoryPage() {
   return (
     <main
       className={
-        'insurance-dark-forms contract-signature-console contract-signature-history-page' +
-        (historyMobile ? ' contract-signature-flow--mobile' : '')
+        (historyMobile
+          ? 'insurance-dark-forms contract-signature-flow--mobile'
+          : 'gov-user-page gov-user-signatures-page') +
+        ' contract-signature-console contract-signature-history-page'
       }
     >
       <div className="contract-signature-console__container">
@@ -323,6 +325,7 @@ export default function GovernmentSignatureHistoryPage() {
               <div className="contract-signature-console__filter-row" style={{ justifyContent: 'space-between' }}>
                 <FormInput
                   type="search"
+                  className="gov-form-control"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="사업장명·식별번호·전화·템플릿명 검색"
@@ -336,7 +339,7 @@ export default function GovernmentSignatureHistoryPage() {
                   >
                     정렬
                     <FormSelect
-                      className="form-select"
+                      className="gov-form-control form-select"
                       value={sort}
                       disabled={!t}
                       options={[
@@ -353,6 +356,7 @@ export default function GovernmentSignatureHistoryPage() {
                     htmlType="button"
                     variant="secondary"
                     size="sm"
+                    className="gov-btn gov-btn--secondary gov-btn--sm"
                     disabled={!t || listBusy}
                     onClick={() => void reloadListFirstPage()}
                   >
@@ -362,6 +366,7 @@ export default function GovernmentSignatureHistoryPage() {
                     htmlType="button"
                     variant="primary"
                     size="sm"
+                    className="gov-btn gov-btn--primary gov-btn--sm"
                     disabled={!t}
                     onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.signaturesSend)}
                   >
@@ -414,7 +419,14 @@ export default function GovernmentSignatureHistoryPage() {
 
           {rows.length > 0 && rows.length < total ? (
             <div style={{ marginTop: 12 }}>
-              <FormButton htmlType="button" variant="secondary" size="sm" disabled={moreBusy || !t} onClick={() => void loadMore()}>
+              <FormButton
+                htmlType="button"
+                variant="secondary"
+                size="sm"
+                className="gov-btn gov-btn--secondary gov-btn--sm"
+                disabled={moreBusy || !t}
+                onClick={() => void loadMore()}
+              >
                 {moreBusy ? '불러오는 중…' : `더 보기 (${rows.length}/${total})`}
               </FormButton>
             </div>

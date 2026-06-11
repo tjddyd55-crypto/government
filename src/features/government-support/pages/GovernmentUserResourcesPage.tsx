@@ -61,7 +61,7 @@ export default function GovernmentUserResourcesPage() {
   }
 
   return (
-    <main className="page page--with-back claim-inbox content-wrapper government-user-resources-page">
+    <main className="page page--with-back claim-inbox content-wrapper government-user-resources-page gov-user-page gov-user-resources-page">
       <section className="claim-inbox__hero">
         <div>
           <h1 className="claim-inbox__title">자료실/서식함</h1>
@@ -71,10 +71,16 @@ export default function GovernmentUserResourcesPage() {
 
       <section className="claim-inbox__toolbar">
         <FieldWrapper label="검색">
-          <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="제목·설명" />
+          <FormInput
+            className="gov-form-control"
+            value={filterQ}
+            onChange={(e) => setFilterQ(e.target.value)}
+            placeholder="제목·설명"
+          />
         </FieldWrapper>
         <FieldWrapper label="카테고리">
           <FormSelect
+            className="gov-form-control"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
             options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_CATEGORIES]}
@@ -104,6 +110,7 @@ export default function GovernmentUserResourcesPage() {
                     <FormButton
                       htmlType="button"
                       variant="primary"
+                      className="gov-btn gov-btn--primary gov-btn--sm"
                       disabled={downloadingId === row.id}
                       onClick={() => void handleDownload(row)}
                     >
