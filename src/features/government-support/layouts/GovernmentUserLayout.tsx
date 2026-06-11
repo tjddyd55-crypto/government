@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
@@ -6,7 +7,12 @@ import { useAuth } from '../../auth/AuthProvider'
 import { GOVERNMENT_USER_NAV } from '../config/governmentUserNav'
 import { buildGovernmentUserMobileMenu } from '../config/governmentAppMenu'
 import GovernmentMobileWorkspaceShell from '../components/GovernmentMobileWorkspaceShell'
+import GovernmentWorkspaceBreadcrumb from '../components/GovernmentWorkspaceBreadcrumb'
 import GovernmentWorkspaceChrome from '../components/GovernmentWorkspaceChrome'
+import {
+  GovernmentUserChromeContext,
+  type GovernmentUserChromeContextValue,
+} from '../context/governmentUserChromeContext'
 import '../government-support.css'
 
 export default function GovernmentUserLayout() {
@@ -14,6 +20,14 @@ export default function GovernmentUserLayout() {
   const { logout } = useAuth()
   const isMobile = useIsMobile()
   const mobileMenuItems = buildGovernmentUserMobileMenu()
+  const [workspaceBreadcrumbSuffix, setWorkspaceBreadcrumbSuffix] = useState<string | null>(null)
+
+  const chromeContextValue = useMemo<GovernmentUserChromeContextValue>(
+    () => ({
+      setWorkspaceBreadcrumbSuffix,
+    }),
+    [],
+  )
 
   if (isMobile) {
     return (
@@ -34,16 +48,20 @@ export default function GovernmentUserLayout() {
   }
 
   return (
-    <main
-      className={`page government-page government-user-layout government-user-layout--insurance-shell ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
-    >
-      <GovernmentWorkspaceChrome
-        brand={GOVERNMENT_APP_TITLE}
-        navItems={GOVERNMENT_USER_NAV}
-        onLogout={() => logout()}
+    <GovernmentUserChromeContext.Provider value={chromeContextValue}>
+      <main
+        className={`page government-page government-user-layout government-user-layout--insurance-shell government-user-layout--pc-user ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
       >
-        <Outlet />
-      </GovernmentWorkspaceChrome>
-    </main>
+        <GovernmentWorkspaceChrome
+          variant="user"
+          brand={GOVERNMENT_APP_TITLE}
+          navItems={GOVERNMENT_USER_NAV}
+          onLogout={() => logout()}
+          breadcrumb={<GovernmentWorkspaceBreadcrumb workspaceSuffix={workspaceBreadcrumbSuffix} />}
+        >
+          <Outlet />
+        </GovernmentWorkspaceChrome>
+      </main>
+    </GovernmentUserChromeContext.Provider>
   )
 }

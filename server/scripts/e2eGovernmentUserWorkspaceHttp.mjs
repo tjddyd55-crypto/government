@@ -115,12 +115,31 @@ async function main() {
   if (health.status === 200) pass('health 200')
   else fail('health', String(health.status))
 
-  const homeHtml = await fetchHtml('/government/workspace')
-  if (homeHtml.status === 200) pass('GET /government/workspace', homeHtml.bundle ?? '')
-  else fail('GET /government/workspace', String(homeHtml.status))
+  const workspaceRedirect = await fetch(`${BASE}/government/workspace`, {
+    redirect: 'manual',
+    headers: { Accept: 'text/html' },
+  })
+  const redirectLocation = workspaceRedirect.headers.get('location') ?? ''
+  if (
+    (workspaceRedirect.status === 302 || workspaceRedirect.status === 307) &&
+    redirectLocation.includes('/government/my-applications')
+  ) {
+    pass('GET /government/workspace redirects to my-applications')
+  } else if (workspaceRedirect.status === 200 && redirectLocation === '') {
+    pass('GET /government/workspace', 'same-document workspace shell')
+  } else {
+    fail('GET /government/workspace redirect', `${workspaceRedirect.status} ${redirectLocation}`)
+  }
+
+  const homeHtml = await fetchHtml('/government/my-applications')
+  if (homeHtml.status === 200) pass('GET /government/my-applications', homeHtml.bundle ?? '')
+  else fail('GET /government/my-applications', String(homeHtml.status))
 
   const navMarkers = [
     'government-user-layout',
+    'government-workspace-topbar',
+    'government-workspace-breadcrumb',
+    'gov-btn--primary',
     '/government/my-applications',
     '내 사업장/신청',
     '/government/me',

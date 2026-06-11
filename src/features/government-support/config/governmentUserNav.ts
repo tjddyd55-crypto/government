@@ -5,11 +5,16 @@ export type GovernmentUserNavItem = {
   to: string
   label: string
   end?: boolean
+  matchPrefix?: string
 }
 
 export const GOVERNMENT_USER_NAV: GovernmentUserNavItem[] = [
-  { to: GOVERNMENT_ROUTE_PATHS.workspace, label: '홈', end: true },
-  { to: GOVERNMENT_ROUTE_PATHS.myApplications, label: '내 사업장/신청' },
+  { to: GOVERNMENT_ROUTE_PATHS.myApplications, label: '홈', end: true },
+  {
+    to: GOVERNMENT_ROUTE_PATHS.myApplications,
+    label: '내 사업장/신청',
+    matchPrefix: GOVERNMENT_ROUTE_PATHS.myApplications,
+  },
   { to: GOVERNMENT_ROUTE_PATHS.signatures, label: '전자서명' },
   { to: GOVERNMENT_ROUTE_PATHS.notices, label: '공지사항' },
   { to: GOVERNMENT_ROUTE_PATHS.resources, label: '자료실' },

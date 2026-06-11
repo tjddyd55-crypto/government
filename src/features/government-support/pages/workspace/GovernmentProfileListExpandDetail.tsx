@@ -71,7 +71,7 @@ export default function GovernmentProfileListExpandDetail({
             htmlType="button"
             variant="secondary"
             size="sm"
-            className="customer-detail-action-button"
+            className="customer-detail-action-button gov-btn gov-btn--secondary gov-btn--sm"
             title="사업장 정보 수정"
             aria-label="수정"
             onClick={onEdit}
@@ -82,7 +82,7 @@ export default function GovernmentProfileListExpandDetail({
             htmlType="button"
             variant="danger"
             size="sm"
-            className="customer-detail-action-button customer-detail-action-button--danger"
+            className="customer-detail-action-button customer-detail-action-button--danger gov-btn gov-btn--danger gov-btn--sm"
             title="사업장 삭제"
             aria-label="삭제"
             disabled={deleting}

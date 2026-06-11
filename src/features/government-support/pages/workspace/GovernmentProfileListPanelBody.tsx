@@ -68,7 +68,13 @@ export default function GovernmentProfileListPanelBody() {
         <h1 className="customers-page__title">내 사업장/신청</h1>
         <p className="customers-page__subtitle">본인 명의 사업장만 표시됩니다.</p>
         <div className="customers-page__action-row customers-page__action-row--gov">
-          <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => void ws.addProfile()}>
+          <FormButton
+            htmlType="button"
+            variant="primary"
+            size="sm"
+            className="gov-btn gov-btn--primary gov-btn--sm"
+            onClick={() => void ws.addProfile()}
+          >
             + 사업장 추가
           </FormButton>
         </div>

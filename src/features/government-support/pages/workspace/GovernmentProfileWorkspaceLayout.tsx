@@ -10,6 +10,7 @@ import {
   parseGovernmentProfileWorkspaceTab,
 } from '../../config/governmentProfileWorkspaceTabs'
 import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
+import { useGovernmentUserChromeContextOptional } from '../../context/governmentUserChromeContext'
 import GovernmentProfileWorkspacePCView from './GovernmentProfileWorkspacePCView'
 import GovernmentProfileWorkspaceMobileView from './GovernmentProfileWorkspaceMobileView'
 import {
@@ -98,6 +99,20 @@ export default function GovernmentProfileWorkspaceLayout() {
     }
     return selectedProfileIdFromPath ? '선택 사업장' : ''
   }, [selectedProfile, selectedProfileIdFromPath])
+
+  const userChrome = useGovernmentUserChromeContextOptional()
+
+  useEffect(() => {
+    if (!userChrome) {
+      return
+    }
+    userChrome.setWorkspaceBreadcrumbSuffix(
+      selectedProfileIdFromPath && selectedProfileLabel ? selectedProfileLabel : null,
+    )
+    return () => {
+      userChrome.setWorkspaceBreadcrumbSuffix(null)
+    }
+  }, [selectedProfileIdFromPath, selectedProfileLabel, userChrome])
 
   const moveToTab = useCallback(
     (tab: GovernmentProfileWorkspaceTab) => {

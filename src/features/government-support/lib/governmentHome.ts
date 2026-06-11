@@ -37,7 +37,7 @@ export function canAccessUserOwnedWorkspace(summary: GovernmentAccessSummary | n
 /** 로그인·게이트 후 기본 진입 경로 */
 export function resolveGovernmentHomePath(summary: GovernmentAccessSummary | null): string {
   if (!summary) return GOVERNMENT_ROUTE_PATHS.login
-  if (isGovernmentProgramUser(summary)) return GOVERNMENT_ROUTE_PATHS.workspace
+  if (isGovernmentProgramUser(summary)) return GOVERNMENT_ROUTE_PATHS.myApplications
   if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return GOVERNMENT_ROUTE_PATHS.adminRoot
   if (canManageGovernmentUsers(summary)) return GOVERNMENT_ROUTE_PATHS.adminRoot
   if ((summary.governmentStaffTenantIds?.length ?? 0) > 0) return GOVERNMENT_ROUTE_PATHS.adminRoot

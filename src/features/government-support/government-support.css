@@ -276,15 +276,132 @@
   padding: 1.25rem 1.5rem;
 }
 
-/* —— 보험 AppWorkspaceLayout + PCTopNavigation 동일 상단 크롬 —— */
-.government-workspace-chrome__header {
+/* —— 이용자 PC shell: 보험형 topbar + breadcrumb —— */
+.government-user-pc-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.government-workspace-topbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 56px;
+  height: 56px;
+  padding: 0 18px;
+  box-sizing: border-box;
+  background: #0f172a;
+  border-bottom: 1px solid #1e293b;
+}
+
+.government-workspace-topbar__brand {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.government-workspace-topbar__brand-text {
+  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.government-workspace-topbar__nav {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+}
+
+.government-workspace-topbar__nav .government-horizontal-nav__items {
+  padding: 0;
+  justify-content: center;
+  gap: 6px;
+}
+
+.government-workspace-topbar__nav .government-horizontal-nav__item {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.government-workspace-topbar__nav .government-horizontal-nav__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.government-workspace-topbar__nav .government-horizontal-nav__item--active {
+  background: #f2b800;
+  color: #0f172a;
+}
+
+.government-workspace-topbar__actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.government-workspace-breadcrumb {
+  flex-shrink: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #d7dee8;
+  box-sizing: border-box;
+}
+
+.government-workspace-breadcrumb__list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.government-workspace-breadcrumb__link {
+  color: #475569;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.government-workspace-breadcrumb__link:hover {
+  color: #0f172a;
+  text-decoration: underline;
+}
+
+.government-workspace-breadcrumb__current {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.government-workspace-breadcrumb__sep {
+  margin: 0 4px;
+  color: #94a3b8;
+}
+
+/* —— 관리자 legacy chrome (admin 레이아웃 전용) —— */
+.government-workspace-chrome--admin .government-workspace-chrome__header {
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid color-mix(in srgb, var(--border-default, #1e293b) 82%, transparent);
   background: color-mix(in srgb, var(--bg-elevated, #111827) 94%, #000 6%);
 }
 
-.government-workspace-chrome__brand-row {
+.government-workspace-chrome--admin .government-workspace-chrome__brand-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -292,7 +409,7 @@
   padding: 0.65rem 1rem;
 }
 
-.government-workspace-chrome__brand-group {
+.government-workspace-chrome--admin .government-workspace-chrome__brand-group {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -300,15 +417,56 @@
   min-width: 0;
 }
 
-.government-workspace-chrome__brand {
+.government-workspace-chrome--admin .government-workspace-chrome__brand {
   color: var(--text-primary, #f8fafc);
   font-size: 1rem;
 }
 
-.government-workspace-chrome__workspace-link {
+.government-workspace-chrome--admin .government-workspace-chrome__workspace-link {
   color: var(--brand-primary, #60a5fa);
   font-size: 0.875rem;
   text-decoration: none;
+}
+
+.government-workspace-chrome--admin .government-horizontal-nav {
+  border-top: 1px solid color-mix(in srgb, var(--border-default, #1e293b) 72%, transparent);
+}
+
+.government-workspace-chrome--admin .government-horizontal-nav__items {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.government-workspace-chrome--admin .government-horizontal-nav__item {
+  flex: 0 0 auto;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 11px;
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--text-primary, #f8fafc) 84%, transparent);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.government-workspace-chrome--admin .government-horizontal-nav__item:hover {
+  background: color-mix(in srgb, var(--brand-primary, #60a5fa) 14%, transparent);
+  color: var(--text-primary, #fff);
+}
+
+.government-workspace-chrome--admin .government-horizontal-nav__item--active {
+  background: color-mix(in srgb, var(--brand-primary, #60a5fa) 24%, transparent);
+  color: var(--text-primary, #fff);
 }
 
 .government-workspace-chrome__content {
@@ -318,10 +476,27 @@
   padding: 1rem 1.25rem 1.5rem;
 }
 
+.government-workspace-chrome--user .government-workspace-chrome__content {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fb;
+}
+
 .government-user-layout--insurance-shell {
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
+}
+
+.government-user-layout--pc-user {
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-user-layout--pc-user.government-page {
+  background: #f5f7fb;
 }
 
 .government-user-layout--insurance-shell .government-workspace-chrome__content:has(> .government-profile-workspace) {
@@ -331,10 +506,7 @@
   flex-direction: column;
 }
 
-.government-horizontal-nav {
-  border-top: 1px solid color-mix(in srgb, var(--border-default, #1e293b) 72%, transparent);
-}
-
+/* 공통 가로 nav (모바일·fallback) */
 .government-horizontal-nav__items {
   display: flex;
   align-items: center;
@@ -354,7 +526,7 @@
   justify-content: center;
   padding: 0 11px;
   border-radius: 999px;
-  color: color-mix(in srgb, var(--text-primary, #f8fafc) 84%, transparent);
+  color: #475569;
   font-size: 0.88rem;
   font-weight: 700;
   line-height: 1;
@@ -362,14 +534,84 @@
   text-decoration: none;
 }
 
-.government-horizontal-nav__item:hover {
-  background: color-mix(in srgb, var(--brand-primary, #60a5fa) 14%, transparent);
-  color: var(--text-primary, #fff);
+/* —— 정부지원 워크스페이스 버튼 규격 —— */
+.gov-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-decoration: none;
 }
 
-.government-horizontal-nav__item--active {
-  background: color-mix(in srgb, var(--brand-primary, #60a5fa) 24%, transparent);
-  color: var(--text-primary, #fff);
+.gov-btn--sm {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 0.8125rem;
+  border-radius: 10px;
+}
+
+.gov-btn--primary {
+  background: #f2b800;
+  color: #0f172a;
+  border-color: #f2b800;
+}
+
+.gov-btn--primary:hover:not(:disabled) {
+  background: #d99f00;
+  border-color: #d99f00;
+}
+
+.gov-btn--secondary {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.gov-btn--secondary:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.gov-btn--danger {
+  background: #fff1f2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.gov-btn--danger:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.gov-btn--topbar {
+  min-height: 32px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.16);
+  font-size: 0.8125rem;
+}
+
+.gov-btn--topbar:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.gov-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.government-profile-workspace .form-button.gov-btn,
+.government-profile-workspace .button.gov-btn {
+  min-height: inherit;
 }
 
 .government-admin-layout--insurance-shell,
@@ -1382,8 +1624,10 @@
   --gov-workspace-text: #0f172a;
   --gov-workspace-muted: #64748b;
   --gov-workspace-primary: #f2b800;
-  --gov-workspace-primary-hover: #ddb000;
-  --gov-workspace-danger: #ef4444;
+  --gov-workspace-primary-hover: #d99f00;
+  --gov-workspace-primary-soft: #fff8d6;
+  --gov-workspace-danger: #dc2626;
+  --gov-workspace-danger-soft: #fff1f2;
   flex: 1;
   min-height: 0;
   height: 100%;
@@ -1435,6 +1679,7 @@
   flex-direction: column;
   overflow: hidden;
   background: var(--gov-workspace-panel);
+  border-right: 1px solid var(--gov-workspace-border);
 }
 
 .government-profile-workspace-pc__right {
@@ -1453,7 +1698,8 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 12px 16px 16px;
+  padding: 16px 24px 20px;
+  background: #f8fafc;
 }
 
 /* 모바일 워크스페이스 */
@@ -1531,9 +1777,12 @@
 }
 
 .government-profile-list-panel .customer-expand-card--focal {
-  box-shadow:
-    0 4px 14px var(--shadow-card),
-    0 0 0 2px var(--gov-workspace-primary);
+  box-shadow: 0 2px 10px var(--shadow-card);
+  border-left: 3px solid var(--gov-workspace-primary);
+}
+
+.government-profile-list-panel .customer-expand-card--focal .customer-expand-summary {
+  background: var(--gov-workspace-primary-soft);
 }
 
 .government-profile-list-panel .customer-expand-summary {
@@ -1555,9 +1804,9 @@
 .government-profile-list-panel .customer-expand-detail {
   margin: 8px 12px 12px;
   padding: 12px;
-  border: 2px solid var(--gov-workspace-primary);
+  border: 1px solid color-mix(in srgb, var(--gov-workspace-primary) 45%, var(--gov-workspace-border));
   border-radius: 12px;
-  background: #fffdf5;
+  background: #ffffff;
   font-size: 0.9375rem;
   box-sizing: border-box;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
@@ -1613,7 +1862,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 18px 24px;
   border-bottom: 1px solid var(--gov-workspace-border);
   flex-shrink: 0;
   background: var(--gov-workspace-panel);
@@ -1648,7 +1897,8 @@
   gap: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0 8px;
+  min-height: 52px;
+  padding: 0 12px;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
 }
@@ -1656,14 +1906,15 @@
 .government-profile-workspace-tabs__item {
   flex: 0 0 auto;
   margin: 0;
-  padding: 10px 14px;
+  padding: 0 16px;
+  min-height: 52px;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   border-radius: 0;
   background: transparent;
-  color: var(--gov-workspace-muted);
+  color: #475569;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2;
   white-space: nowrap;
   cursor: pointer;
@@ -1679,7 +1930,7 @@
 }
 
 .government-profile-workspace-tabs__item--active {
-  color: var(--gov-workspace-text);
+  color: var(--gov-workspace-primary-hover);
   border-bottom-color: var(--gov-workspace-primary);
 }
 
@@ -1829,10 +2080,33 @@
 .government-profile-workspace .customer-workspace-tab-select,
 .government-profile-workspace .customer-workspace-tab-textarea,
 .government-profile-workspace .storage-workspace__search,
-.government-profile-workspace .storage-workspace__kind-filter {
-  background: #f8fafc;
+.government-profile-workspace .storage-workspace__kind-filter,
+.government-profile-workspace input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.government-profile-workspace textarea,
+.government-profile-workspace select {
+  background: #ffffff;
   color: var(--gov-workspace-text);
-  border: 1px solid var(--gov-workspace-border);
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  min-height: 36px;
+  box-sizing: border-box;
+}
+
+.government-profile-workspace textarea {
+  min-height: 88px;
+}
+
+.government-profile-workspace input::placeholder,
+.government-profile-workspace textarea::placeholder {
+  color: #94a3b8;
+}
+
+.government-profile-workspace input:focus,
+.government-profile-workspace textarea:focus,
+.government-profile-workspace select:focus {
+  outline: none;
+  border-color: var(--gov-workspace-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gov-workspace-primary) 24%, transparent);
 }
 
 .government-profile-workspace .customer-workspace-record-item {

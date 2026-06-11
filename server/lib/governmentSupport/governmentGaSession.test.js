@@ -27,7 +27,7 @@ describe('isGovernmentGaSession (policy mirror)', () => {
 describe('resolveGovernmentHomePath policy mirror', () => {
   function resolveGovernmentHomePath(summary) {
     if (!summary) return '/government/login'
-    if (summary.isGovernmentProgramUser) return '/government/workspace'
+    if (summary.isGovernmentProgramUser) return '/government/my-applications'
     if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return '/government/admin'
     if ((summary.governmentAgencyAdminTenantIds?.length ?? 0) > 0) return '/government/admin'
     if ((summary.governmentStaffTenantIds?.length ?? 0) > 0) return '/government/admin'
@@ -57,7 +57,7 @@ describe('resolveGovernmentHomePath policy mirror', () => {
     )
     assert.equal(
       resolveGovernmentHomePath({ isGovernmentProgramUser: true }),
-      '/government/workspace',
+      '/government/my-applications',
     )
   })
 })

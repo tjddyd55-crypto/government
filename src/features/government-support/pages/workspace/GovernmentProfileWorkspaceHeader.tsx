@@ -41,7 +41,7 @@ export default function GovernmentProfileWorkspaceHeader({
             htmlType="button"
             variant="secondary"
             size="sm"
-            className="government-profile-workspace-btn government-profile-workspace-btn--secondary"
+            className="gov-btn gov-btn--secondary gov-btn--sm"
             onClick={onClickCustomerApp}
           >
             고객앱 보기

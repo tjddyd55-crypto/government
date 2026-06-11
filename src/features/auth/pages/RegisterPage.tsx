@@ -87,7 +87,7 @@ export function RegisterPage({
       return
     }
     if (signupIndustry === 'government') {
-      navigate('/government/workspace', { replace: true })
+      navigate('/government/my-applications', { replace: true })
       return
     }
     navigate('/dashboard', { replace: true })

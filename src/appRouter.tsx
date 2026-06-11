@@ -122,7 +122,6 @@ import GovernmentLoginPage from './features/government-support/pages/GovernmentL
 import GovernmentSignupPage from './features/government-support/pages/GovernmentSignupPage'
 import GovernmentJoinPage from './features/government-support/pages/GovernmentJoinPage'
 import GovernmentUserLayout from './features/government-support/layouts/GovernmentUserLayout'
-import GovernmentUserHomePage from './features/government-support/pages/user/GovernmentUserHomePage'
 import GovernmentUserBusinessesPage from './features/government-support/pages/user/GovernmentUserBusinessesPage'
 import GovernmentProfileWorkspaceLayout from './features/government-support/pages/workspace/GovernmentProfileWorkspaceLayout'
 import GovernmentProfileWorkspaceHomePage from './features/government-support/pages/workspace/GovernmentProfileWorkspaceHomePage'
@@ -206,7 +205,10 @@ export const appRouter = createBrowserRouter([
           {
             element: <GovernmentUserLayout />,
             children: [
-              { path: 'government/workspace', element: <GovernmentUserHomePage /> },
+              {
+                path: 'government/workspace',
+                element: <Navigate to="/government/my-applications" replace />,
+              },
               { path: 'government/my-businesses', element: <GovernmentUserBusinessesPage /> },
               {
                 path: 'government/my-applications',

@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import FormButton from '../../../components/form/FormButton'
 import GovernmentHorizontalNav, { type GovernmentHorizontalNavItem } from './GovernmentHorizontalNav'
 
 type GovernmentWorkspaceChromeProps = {
@@ -8,19 +7,47 @@ type GovernmentWorkspaceChromeProps = {
   navItems: GovernmentHorizontalNavItem[]
   onLogout: () => void
   workspaceLink?: { to: string; label: string } | null
+  /** 이용자 PC: 보험형 단일 topbar. 관리자는 legacy 2행 chrome 유지 */
+  variant?: 'user' | 'admin'
+  breadcrumb?: ReactNode
   children: ReactNode
 }
 
-/** 보험 AppWorkspaceLayout + PCTopNavigation 과 동일한 상단 크롬(가로 메뉴 + 본문) */
 export default function GovernmentWorkspaceChrome({
   brand,
   navItems,
   onLogout,
   workspaceLink,
+  variant = 'admin',
+  breadcrumb,
   children,
 }: GovernmentWorkspaceChromeProps) {
+  if (variant === 'user') {
+    return (
+      <div className="government-user-pc-shell government-workspace-chrome government-workspace-chrome--user">
+        <header className="government-workspace-topbar government-workspace-chrome__topbar">
+          <div className="government-workspace-topbar__brand" aria-label="브랜드">
+            <strong className="government-workspace-topbar__brand-text">{brand}</strong>
+          </div>
+          <GovernmentHorizontalNav
+            items={navItems}
+            className="government-workspace-topbar__nav"
+            ariaLabel="이용자 메뉴"
+          />
+          <div className="government-workspace-topbar__actions">
+            <button type="button" className="gov-btn gov-btn--topbar" onClick={onLogout}>
+              로그아웃
+            </button>
+          </div>
+        </header>
+        {breadcrumb}
+        <div className="government-workspace-chrome__content">{children}</div>
+      </div>
+    )
+  }
+
   return (
-    <>
+    <div className="government-workspace-chrome government-workspace-chrome--admin">
       <header className="government-workspace-chrome__header">
         <div className="government-workspace-chrome__brand-row">
           <div className="government-workspace-chrome__brand-group">
@@ -31,13 +58,13 @@ export default function GovernmentWorkspaceChrome({
               </Link>
             ) : null}
           </div>
-          <FormButton htmlType="button" variant="secondary" onClick={onLogout}>
+          <button type="button" className="gov-btn gov-btn--topbar" onClick={onLogout}>
             로그아웃
-          </FormButton>
+          </button>
         </div>
         <GovernmentHorizontalNav items={navItems} className="government-workspace-chrome__nav" />
       </header>
       <div className="government-workspace-chrome__content">{children}</div>
-    </>
+    </div>
   )
 }
