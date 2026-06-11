@@ -23,6 +23,7 @@ import {
   resolveGovSignatureTemplateTenantId,
   resolveGovernmentSignatureAccessScope,
 } from '../lib/governmentSignatures/access.js'
+import { buildGovernmentSignaturePdfTemplateUploadKey } from '../lib/governmentSupport/governmentR2Keys.js'
 
 const uploadPdf = multer({
   storage: multer.memoryStorage(),
@@ -35,7 +36,7 @@ function parseTemplateId(raw) {
   return n
 }
 
-import { buildGovernmentSignaturePdfTemplateUploadKey } from '../lib/governmentSupport/governmentR2Keys.js'
+function templateToDto(row) {
   return {
     id: row.id,
     code: row.code,
