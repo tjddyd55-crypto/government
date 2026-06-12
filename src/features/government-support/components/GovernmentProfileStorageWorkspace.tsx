@@ -79,6 +79,7 @@ type GovernmentProfileStorageWorkspaceProps = {
   profileId: string
   variant: 'pc' | 'mobile'
   panelLayout?: 'default' | 'sidebar'
+  onFileCountChange?: (count: number) => void
 }
 
 export default function GovernmentProfileStorageWorkspace({
@@ -86,6 +87,7 @@ export default function GovernmentProfileStorageWorkspace({
   profileId,
   variant,
   panelLayout = 'default',
+  onFileCountChange,
 }: GovernmentProfileStorageWorkspaceProps) {
   const isMobile = variant === 'mobile'
   const isSidebar = panelLayout === 'sidebar'
@@ -209,6 +211,10 @@ export default function GovernmentProfileStorageWorkspace({
       setSelectedFileId(null)
     }
   }, [files, selectedFileId])
+
+  useEffect(() => {
+    onFileCountChange?.(files.length)
+  }, [files.length, onFileCountChange])
 
   const validateStoragePickerFile = useCallback((file: File): string | null => {
     const normalizedName = normalizeName(file.name)
@@ -335,7 +341,9 @@ export default function GovernmentProfileStorageWorkspace({
 
   return (
     <div
-      className={`storage-workspace page-shell${isSidebar ? ' storage-workspace--gov-sidebar' : ''}`}
+      className={`storage-workspace page-shell government-profile-storage-workspace${
+        isSidebar ? ' government-profile-storage-workspace--sidebar storage-workspace--gov-sidebar' : ''
+      }`}
     >
       <div className="storage-workspace__header">
         <p className="storage-workspace__quota" role="status">
@@ -345,6 +353,7 @@ export default function GovernmentProfileStorageWorkspace({
 
       <GovernmentProfileStorageToolbar
         isMobile={isMobile}
+        isSidebar={isSidebar}
         validateUploadFile={validateStoragePickerFile}
         onUploadFiles={(selected) => {
           void uploadFiles(selected)

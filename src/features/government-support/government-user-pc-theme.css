@@ -720,6 +720,60 @@
   background: #f8fafc;
 }
 
+/* —— PC 우측 문서 패널: 검색·필터 화이트 폼 (전역 검정 input 덮어쓰기) —— */
+.government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel input.storage-workspace__search,
+.government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel select.storage-workspace__kind-filter {
+  height: 38px;
+  min-height: 38px;
+  background-color: #ffffff;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: none;
+  font-size: 14px;
+  line-height: 1.4;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel input.storage-workspace__search {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 12px;
+}
+
+.government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel select.storage-workspace__kind-filter {
+  flex: 0 0 auto;
+  width: 104px;
+  padding: 0 10px;
+}
+
+.government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel input.storage-workspace__search::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel input.storage-workspace__search:focus,
+.government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel select.storage-workspace__kind-filter:focus {
+  outline: none;
+  border-color: #f2b800;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+}
+
+.government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel .storage-workspace__filter-reset {
+  min-height: 38px;
+  height: 38px;
+  align-self: center;
+}
+
+.government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel .storage-workspace__error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  text-align: left;
+}
+
 .government-user-layout--pc-user .government-profile-workspace .storage-file-list .storage-file-list__action-button,
 .government-user-layout--pc-user .government-profile-workspace .storage-file-list button.storage-file-list__action-button,
 .government-user-layout--pc-user .government-profile-workspace .storage-file-list a.storage-file-list__action-button {
