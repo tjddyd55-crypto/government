@@ -78,7 +78,7 @@ function DocumentRequestItemUpload({ token, requestId, item, onChanged }: ItemUp
         <h3 className="customer-app-claim-section-title">{item.label || item.docType}</h3>
         <span className={itemStatusClass(item.status)}>{item.status}</span>
       </div>
-      <StatusMessage message={error} tone="error" className="!mt-2" />
+      <StatusMessage message={error} tone="error" className="government-customer-app-status-msg" />
       {item.files.length > 0 ? (
         <ul className="customer-app-claim-file-list">
           {item.files.map((file) => (
@@ -176,7 +176,7 @@ export default function GovernmentCustomerAppRequestDetailPage() {
   }, [loadDetail, navigate, token])
 
   return (
-    <div className="customer-app-claim-page government-customer-app-detail">
+    <div className="government-customer-app-page customer-app-claim-page government-customer-app-detail">
       <StatusMessage message={error} tone="error" />
       {!detail && loading ? <div className="customer-app-claim-empty">불러오는 중…</div> : null}
       {detail ? (

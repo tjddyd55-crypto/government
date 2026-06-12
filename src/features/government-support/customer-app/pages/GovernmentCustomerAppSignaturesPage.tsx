@@ -60,7 +60,7 @@ export default function GovernmentCustomerAppSignaturesPage() {
   }, [navigate, token])
 
   return (
-    <div className="customer-app-claim-page">
+    <div className="government-customer-app-page customer-app-claim-page">
       <StatusMessage message={error} tone="error" />
       {rows.length === 0 ? <div className="customer-app-claim-empty">전자서명 내역이 없습니다.</div> : null}
       {rows.length > 0 ? (
@@ -84,7 +84,8 @@ export default function GovernmentCustomerAppSignaturesPage() {
                   <div className="customer-app-claim-actions government-customer-app-card-actions">
                     <FormButton
                       htmlType="button"
-                      variant="secondary"
+                      variant="primary"
+                      className="gov-btn gov-btn--primary gov-btn--block"
                       loading={busyId === row.id}
                       onClick={() => {
                         void (async () => {

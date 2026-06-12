@@ -5,6 +5,7 @@ import { useAuth } from '../../../auth/AuthProvider'
 import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import '../../../customer-app/customer-app.css'
+import '../government-customer-app-theme.css'
 
 type Props = {
   children: ReactNode
@@ -49,7 +50,10 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
   }, [summary])
 
   return (
-    <div className={`customer-app-shell${hideInquiryCta ? ' customer-app-shell--no-cta' : ''}`}>
+    <div
+      className={`government-customer-app government-customer-app-shell customer-app-shell${hideInquiryCta ? ' customer-app-shell--no-cta' : ''}`}
+      data-testid="government-customer-app-shell"
+    >
       <header className="customer-app-header">
         <div className="customer-app-header__row">
           <div className="customer-app-header__identity">
@@ -83,7 +87,7 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
               <FormButton
                 htmlType="button"
                 variant="primary"
-                className="customer-app-shell__cta-button"
+                className="customer-app-shell__cta-button gov-btn gov-btn--primary gov-btn--block"
                 fullWidth
                 onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.appInquiriesNew)}
               >
@@ -91,14 +95,14 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
               </FormButton>
             </div>
           ) : null}
-          <nav className="customer-app-tabbar" aria-label="고객앱 주요 메뉴">
+          <nav className="customer-app-tabbar government-customer-app-tabbar" aria-label="고객앱 주요 메뉴">
             {TABS.map((tab) => {
               const active = tab.match(pathname)
               return (
                 <NavLink
                   key={tab.to}
                   to={tab.to}
-                  className={`customer-app-tabbar__item${active ? ' is-active' : ''}`}
+                  className={`customer-app-tabbar__item government-customer-app-tabbar__item${active ? ' is-active government-customer-app-tabbar__item--active' : ''}`}
                   aria-current={active ? 'page' : undefined}
                 >
                   {tab.label}
@@ -115,14 +119,14 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
 export function GovernmentCustomerAppBottomNavOnly() {
   const { pathname } = useLocation()
   return (
-    <nav className="customer-app-tabbar" aria-label="고객앱 주요 메뉴">
+    <nav className="customer-app-tabbar government-customer-app-tabbar" aria-label="고객앱 주요 메뉴">
       {TABS.map((tab) => {
         const active = tab.match(pathname)
         return (
           <NavLink
             key={tab.to}
             to={tab.to}
-            className={`customer-app-tabbar__item${active ? ' is-active' : ''}`}
+            className={`customer-app-tabbar__item government-customer-app-tabbar__item${active ? ' is-active government-customer-app-tabbar__item--active' : ''}`}
             aria-current={active ? 'page' : undefined}
           >
             {tab.label}

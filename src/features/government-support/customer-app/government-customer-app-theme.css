@@ -1,0 +1,621 @@
+/* 정부지원 고객앱(/government/app/*) — 화이트/옐로 테마 (보험 customer-app.css 미수정, scope override) */
+
+.government-customer-app.customer-app-shell {
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-customer-app .customer-app-main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 10px 16px calc(150px + env(safe-area-inset-bottom, 0px));
+  background: #f5f7fb;
+  color: #0f172a;
+  gap: 12px;
+}
+
+.government-customer-app.customer-app-shell--no-cta .customer-app-main {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+.government-customer-app .customer-app-shell__bottom {
+  background: #ffffff;
+  border-top: 1px solid #d7dee8;
+}
+
+.government-customer-app .customer-app-header__identity {
+  color: #0f172a;
+}
+
+.government-customer-app .customer-app-header__sep {
+  color: #94a3b8;
+}
+
+.government-customer-app .customer-app-header__phone-line {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.government-customer-app .customer-app-header__action-btn--close {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  text-shadow: none;
+}
+
+.government-customer-app .customer-app-header__action-btn--close:hover {
+  background: #f8fafc;
+}
+
+.government-customer-app .customer-app-tabbar__item:active {
+  background: rgba(242, 184, 0, 0.08);
+}
+
+/* —— Header —— */
+.government-customer-app .customer-app-header {
+  background: #ffffff;
+  border-bottom: 1px solid #d7dee8;
+  padding: 12px 16px 10px;
+}
+
+.government-customer-app .customer-app-header__title {
+  color: #0f172a;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.government-customer-app .customer-app-header__subtitle {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.government-customer-app .customer-app-header__close {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.government-customer-app .customer-app-header__close:hover {
+  background: #f8fafc;
+}
+
+/* —— Tabbar —— */
+.government-customer-app .customer-app-tabbar,
+.government-customer-app .government-customer-app-tabbar {
+  background: #ffffff;
+  border-top: 1px solid #d7dee8;
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+}
+
+.government-customer-app .customer-app-tabbar__item,
+.government-customer-app .government-customer-app-tabbar__item {
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.78rem;
+  min-height: 48px;
+}
+
+.government-customer-app .customer-app-tabbar__item.is-active,
+.government-customer-app .government-customer-app-tabbar__item--active {
+  color: #0f172a;
+  font-weight: 800;
+  box-shadow: inset 0 -3px 0 #f2b800;
+}
+
+/* —— Bottom CTA —— */
+.government-customer-app .customer-app-cta {
+  background: linear-gradient(180deg, rgba(245, 247, 251, 0) 0%, #f5f7fb 28%);
+}
+
+.government-customer-app .customer-app-cta__button {
+  min-height: 44px;
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+/* —— Page shell —— */
+.government-customer-app-page.customer-app-claim-page {
+  padding: 14px 16px 20px;
+}
+
+.government-customer-app-page .customer-app-claim-page__title {
+  color: #0f172a;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.government-customer-app-page .customer-app-claim-page__subtitle {
+  color: #64748b;
+  font-size: 0.86rem;
+}
+
+.government-customer-app-page .customer-app-claim-page__back {
+  color: #475569;
+  font-weight: 700;
+}
+
+.government-customer-app-page .customer-app-claim-page__back:hover {
+  color: #0f172a;
+}
+
+/* —— Cards / lists —— */
+.government-customer-app .government-customer-app-card,
+.government-customer-app-page .customer-app-claim-card,
+.government-customer-app-page .customer-app-claim-request-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.government-customer-app-page .customer-app-claim-request-list {
+  gap: 12px;
+}
+
+.government-customer-app-page .customer-app-claim-request-card {
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.government-customer-app-page .customer-app-claim-request-card:hover,
+.government-customer-app-page .customer-app-claim-request-card:active {
+  border-color: #f2b800;
+  box-shadow: 0 2px 8px rgba(242, 184, 0, 0.12);
+}
+
+.government-customer-app-page .customer-app-claim-request-card__title {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.government-customer-app-page .customer-app-claim-request-card__meta {
+  color: #64748b;
+}
+
+.government-customer-app-page .customer-app-claim-request-card__status {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.government-customer-app-page .customer-app-claim-request-card__status--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.government-customer-app-page .customer-app-claim-request-card__status--processing {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.government-customer-app-page .customer-app-claim-request-card__status--done {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.government-customer-app-page .customer-app-claim-request-card__status--cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.government-customer-app-page .customer-app-claim-request-card__memo {
+  color: #475569;
+}
+
+.government-customer-app-page .customer-app-claim-section-title {
+  color: #0f172a;
+}
+
+.government-customer-app-page .customer-app-claim-section-description {
+  color: #64748b;
+}
+
+.government-customer-app-page .customer-app-claim-field__label {
+  color: #475569;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.government-customer-app-page .customer-app-claim-status--requested {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.government-customer-app-page .customer-app-claim-status--processing {
+  background: #fef9c3;
+  color: #854d0e;
+  border-color: #fde047;
+}
+
+.government-customer-app-page .customer-app-claim-status--done {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.government-customer-app-page .customer-app-claim-status--rejected,
+.government-customer-app-page .customer-app-claim-status--canceled {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.government-customer-app-page .customer-app-claim-status--unknown {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.government-customer-app-page .customer-app-claim-file-row {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+}
+
+.government-customer-app-page .customer-app-claim-file-row__icon {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.government-customer-app-page .customer-app-claim-file-row__name {
+  color: #0f172a;
+}
+
+.government-customer-app-page .customer-app-claim-file-row__meta {
+  color: #64748b;
+}
+
+.government-customer-app-page .customer-app-claim-empty--in-card {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+}
+
+.government-customer-app-page .government-customer-app-status-msg {
+  margin-top: 8px;
+}
+
+.government-customer-app-page .customer-app-claim-empty,
+.government-customer-app-page .customer-app-claim-error {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 20px 16px;
+  color: #64748b;
+  text-align: center;
+}
+
+.government-customer-app-page .customer-app-claim-error {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+/* —— Detail —— */
+.government-customer-app-page .customer-app-claim-detail-header {
+  margin-bottom: 4px;
+}
+
+.government-customer-app-page .customer-app-claim-detail-meta {
+  color: #64748b;
+}
+
+.government-customer-app-page .customer-app-claim-detail-memo {
+  color: #0f172a;
+}
+
+.government-customer-app-page .customer-app-claim-detail-file {
+  border: 1px solid #d7dee8;
+  background: #ffffff;
+}
+
+.government-customer-app-page .customer-app-claim-detail-file__thumb {
+  background: #f1f5f9;
+}
+
+.government-customer-app-page .customer-app-claim-detail-file__placeholder {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.government-customer-app-page .customer-app-claim-detail-file__name {
+  color: #0f172a;
+}
+
+.government-customer-app-page .customer-app-claim-detail-file__meta {
+  color: #64748b;
+}
+
+/* —— Timeline (progress) —— */
+.government-customer-app-page .customer-app-claim-timeline__item {
+  color: #475569;
+}
+
+.government-customer-app-page .customer-app-claim-timeline__item::before {
+  background: #f2b800;
+}
+
+.government-customer-app-page .customer-app-claim-timeline__main {
+  color: #0f172a;
+}
+
+.government-customer-app-page .customer-app-claim-timeline__meta,
+.government-customer-app-page .customer-app-claim-timeline__memo {
+  color: #64748b;
+}
+
+/* —— Form controls —— */
+.government-customer-app .gov-form-control,
+.government-customer-app-page .customer-app-claim-textarea,
+.government-customer-app-page .customer-app-claim-input,
+.government-customer-app-page .government-customer-app-compose .customer-app-claim-textarea,
+.government-customer-app-page .government-customer-app-compose .customer-app-claim-input {
+  width: 100%;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.94rem;
+  outline: none;
+}
+
+.government-customer-app-page .customer-app-claim-textarea,
+.government-customer-app-page .government-customer-app-compose .customer-app-claim-textarea {
+  min-height: 96px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.government-customer-app-page .customer-app-claim-input,
+.government-customer-app-page .government-customer-app-compose .customer-app-claim-input {
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.government-customer-app .gov-form-control::placeholder,
+.government-customer-app-page .customer-app-claim-textarea::placeholder,
+.government-customer-app-page .customer-app-claim-input::placeholder {
+  color: #94a3b8;
+}
+
+.government-customer-app .gov-form-control:focus,
+.government-customer-app-page .customer-app-claim-textarea:focus,
+.government-customer-app-page .customer-app-claim-input:focus {
+  border-color: #f2b800;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+}
+
+.government-customer-app-page .government-customer-app-compose label,
+.government-customer-app-page .customer-app-claim-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #475569;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* —— Buttons —— */
+.government-customer-app .gov-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.government-customer-app .gov-btn--primary,
+.government-customer-app .customer-app-cta__button.gov-btn--primary {
+  background: #f2b800;
+  color: #0f172a;
+  border-color: #f2b800;
+}
+
+.government-customer-app .gov-btn--primary:hover:not(:disabled),
+.government-customer-app .customer-app-cta__button.gov-btn--primary:hover:not(:disabled) {
+  background: #d99f00;
+  border-color: #d99f00;
+}
+
+.government-customer-app .gov-btn--secondary {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.government-customer-app .gov-btn--secondary:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.government-customer-app .gov-btn--danger {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.government-customer-app .gov-btn--danger:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.government-customer-app .gov-btn--sm {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 0.82rem;
+  border-radius: 10px;
+}
+
+.government-customer-app .gov-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.government-customer-app .gov-btn--block {
+  width: 100%;
+}
+
+/* FormButton / legacy button overrides inside customer app */
+.government-customer-app .customer-app-claim-actions .button,
+.government-customer-app .customer-app-claim-actions button,
+.government-customer-app-page .form-button--primary,
+.government-customer-app-page .button--primary {
+  min-height: 44px;
+  border-radius: 12px;
+  background: #f2b800;
+  color: #0f172a;
+  border: 1px solid #f2b800;
+  font-weight: 800;
+}
+
+.government-customer-app .customer-app-claim-actions .button:hover:not(:disabled),
+.government-customer-app-page .form-button--primary:hover:not(:disabled) {
+  background: #d99f00;
+  border-color: #d99f00;
+}
+
+.government-customer-app .customer-app-claim-refresh-btn,
+.government-customer-app-page .form-button--secondary,
+.government-customer-app-page .button--secondary {
+  min-height: 40px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  font-weight: 700;
+}
+
+.government-customer-app .customer-app-claim-refresh-btn:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.government-customer-app-page .customer-app-claim-actions {
+  margin-top: 16px;
+  gap: 10px;
+}
+
+/* —— File uploader —— */
+.government-customer-app-page .government-customer-app-uploader-wrap .file-uploader {
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  color: #0f172a;
+}
+
+.government-customer-app-page .government-customer-app-uploader-wrap .file-uploader--active {
+  border-color: #f2b800;
+  background: #fffbeb;
+}
+
+.government-customer-app-page .government-customer-app-uploader-wrap .file-uploader__primary {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.government-customer-app-page .government-customer-app-uploader-wrap .file-uploader__muted {
+  color: #64748b;
+}
+
+.government-customer-app-page .government-customer-app-file-btn {
+  min-height: 44px;
+  border-radius: 12px;
+  background: #f2b800;
+  color: #0f172a;
+  border: 1px solid #f2b800;
+  font-weight: 800;
+}
+
+.government-customer-app-page .government-customer-app-file-btn:hover:not(:disabled) {
+  background: #d99f00;
+  border-color: #d99f00;
+}
+
+/* —— Inquiry compose —— */
+.government-customer-app-page.government-customer-app-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.government-customer-app-page .government-customer-app-compose__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* —— Signature cards —— */
+.government-customer-app-page .government-customer-app-signature-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.government-customer-app-page .government-customer-app-signature-card__title {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.government-customer-app-page .government-customer-app-signature-card__meta {
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+.government-customer-app-page .government-customer-app-signature-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.government-customer-app-page .government-customer-app-signature-badge--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.government-customer-app-page .government-customer-app-signature-badge--signed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.government-customer-app-page .government-customer-app-signature-badge--expired,
+.government-customer-app-page .government-customer-app-signature-badge--cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* —— PC: center column, avoid narrow dark column —— */
+@media (min-width: 769px) {
+  .government-customer-app .customer-app-main {
+    max-width: 520px;
+    padding-bottom: 96px;
+  }
+
+  .government-customer-app .customer-app-tabbar,
+  .government-customer-app .government-customer-app-tabbar {
+    max-width: 520px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .government-customer-app .customer-app-cta {
+    max-width: 520px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}

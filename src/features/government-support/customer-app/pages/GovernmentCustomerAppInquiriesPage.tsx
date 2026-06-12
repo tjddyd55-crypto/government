@@ -51,7 +51,7 @@ export default function GovernmentCustomerAppInquiriesPage() {
   }, [navigate, token])
 
   return (
-    <div className="customer-app-claim-page">
+    <div className="government-customer-app-page customer-app-claim-page">
       <StatusMessage message={error} tone="error" />
       {rows.length === 0 ? <div className="customer-app-claim-empty">문의 내역이 없습니다.</div> : null}
       {rows.length > 0 ? (

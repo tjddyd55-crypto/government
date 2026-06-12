@@ -83,7 +83,7 @@ export default function GovernmentCustomerAppInquiryDetailPage() {
   const statusMeta = detail ? inquiryStatusMeta(detail.status) : null
 
   return (
-    <div className="customer-app-claim-page government-customer-app-detail">
+    <div className="government-customer-app-page customer-app-claim-page government-customer-app-detail">
       <StatusMessage message={error} tone="error" />
       {!detail && loading ? <div className="customer-app-claim-empty">불러오는 중…</div> : null}
       {detail ? (
@@ -128,7 +128,7 @@ export default function GovernmentCustomerAppInquiryDetailPage() {
           <section className="customer-app-claim-card">
             <h2 className="customer-app-claim-section-title">추가 메시지</h2>
             <FormTextarea
-              className="customer-app-claim-textarea"
+              className="gov-form-control customer-app-claim-textarea"
               rows={3}
               value={reply}
               onChange={(e) => setReply(e.target.value)}

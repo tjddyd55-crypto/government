@@ -94,7 +94,7 @@ export default function GovernmentCustomerAppInquiryComposePage() {
   }
 
   return (
-    <div className="customer-app-claim-page government-customer-app-compose">
+    <div className="government-customer-app-page customer-app-claim-page government-customer-app-compose">
       <StatusMessage message={error} tone="error" />
       <StatusMessage message={result} tone="success" />
 
@@ -106,7 +106,7 @@ export default function GovernmentCustomerAppInquiryComposePage() {
         <div className="customer-app-claim-field">
           <span className="customer-app-claim-field__label">제목 (선택)</span>
           <FormInput
-            className="customer-app-claim-input"
+            className="gov-form-control customer-app-claim-input"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="예: 서류 제출 관련 문의"
@@ -116,7 +116,7 @@ export default function GovernmentCustomerAppInquiryComposePage() {
         <div className="customer-app-claim-field">
           <span className="customer-app-claim-field__label">내용</span>
           <FormTextarea
-            className="customer-app-claim-textarea"
+            className="gov-form-control customer-app-claim-textarea"
             rows={5}
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -158,7 +158,7 @@ export default function GovernmentCustomerAppInquiryComposePage() {
                   <FormButton
                     htmlType="button"
                     variant="secondary"
-                    className="!h-8 !px-3 text-[12px]"
+                    className="gov-btn gov-btn--secondary gov-btn--sm"
                     onClick={() => setFiles((prev) => prev.filter((f) => f.id !== item.id))}
                   >
                     삭제

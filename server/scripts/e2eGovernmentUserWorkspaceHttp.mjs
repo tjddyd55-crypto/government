@@ -163,6 +163,9 @@ async function main() {
     '신청 관리',
     '/files/presign',
     '/government/app',
+    'government-customer-app-shell',
+    'government-customer-app-page',
+    'government-customer-app-tabbar',
     '/government/admin/document-requests',
     '요청서류 관리',
   ]
@@ -177,6 +180,11 @@ async function main() {
     { path: '/government/resources', label: 'resources', markers: ['gov-user-resources-page', 'gov-form-control'] },
     { path: '/government/me', label: 'me', markers: ['gov-user-me-page'] },
     { path: '/government/signatures', label: 'signatures', markers: ['gov-user-signatures-page', 'gov-form-control'] },
+    {
+      path: '/government/app/requests',
+      label: 'customer app requests',
+      markers: ['government-customer-app-shell', 'government-customer-app-page', 'government-customer-app-tabbar'],
+    },
   ]
   for (const check of userThemePageChecks) {
     const pageHtml = await fetchHtml(check.path)
