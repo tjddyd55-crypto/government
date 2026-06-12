@@ -96,10 +96,10 @@ async function main() {
   const token = users.userA.token
   pass('program user ready', users.userA.username)
 
-  const me = await api('/me', { token })
-  const access = me.json?.data ?? me.json
-  if (me.status === 200 && access?.isGovernmentProgramUser === true) pass('user is program user')
-  else fail('user is program user', String(me.status))
+  const accessRes = await api('/government-support/me/access', { token })
+  const access = accessRes.json?.data ?? accessRes.json
+  if (accessRes.status === 200 && access?.isGovernmentProgramUser === true) pass('user is program user')
+  else fail('user is program user', String(accessRes.status))
 
   const docList = await api('/government-support/my/document-requests', { token })
   if (docList.status === 200) pass('GET my/document-requests')
