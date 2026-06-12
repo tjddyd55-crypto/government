@@ -459,3 +459,124 @@
   border-color: #f2b800;
   box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
 }
+
+/*
+ * index.css 전역 input:not(...) 규칙 (specificity 0,8,1 — #000 배경) 은
+ * class-only 정부 테마 규칙보다 우선한다. 동일 :not 체인 + layout prefix 로 덮어쓴다.
+ */
+.government-user-layout.government-user-white-theme input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):not([type='hidden']),
+.government-auth-white-theme input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):not([type='hidden']),
+.government-admin-white-theme input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):not([type='hidden']),
+.government-user-layout.government-user-white-theme select,
+.government-auth-white-theme select,
+.government-admin-white-theme select,
+.government-user-layout.government-user-white-theme textarea,
+.government-auth-white-theme textarea,
+.government-admin-white-theme textarea {
+  background-color: #ffffff;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.government-user-layout.government-user-white-theme input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):not([type='hidden'])::placeholder,
+.government-user-layout.government-user-white-theme textarea::placeholder,
+.government-auth-white-theme input::placeholder,
+.government-auth-white-theme textarea::placeholder,
+.government-admin-white-theme input::placeholder,
+.government-admin-white-theme textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.government-user-layout.government-user-white-theme input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):not([type='hidden']):focus:not(:disabled),
+.government-user-layout.government-user-white-theme select:focus:not(:disabled),
+.government-user-layout.government-user-white-theme textarea:focus:not(:disabled),
+.government-auth-white-theme input:focus:not(:disabled),
+.government-auth-white-theme select:focus:not(:disabled),
+.government-auth-white-theme textarea:focus:not(:disabled),
+.government-admin-white-theme input:focus:not(:disabled),
+.government-admin-white-theme select:focus:not(:disabled),
+.government-admin-white-theme textarea:focus:not(:disabled) {
+  outline: none;
+  border-color: #f2b800;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+}
+
+/* storage 검색·필터 — 전역 legacy 최종 보정 */
+.government-user-layout input.storage-workspace__search.gov-form-control,
+.government-user-layout input.government-storage-search-input,
+.government-user-layout select.storage-workspace__kind-filter.gov-form-control,
+.government-user-layout select.government-storage-kind-select {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: none !important;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.government-user-layout input.storage-workspace__search::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.government-user-layout input.storage-workspace__search:focus,
+.government-user-layout select.storage-workspace__kind-filter:focus {
+  outline: none;
+  border-color: #f2b800 !important;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18) !important;
+}
+
+/* 주소 검색 필드 */
+.government-address-field__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.government-address-field .government-address-search-button {
+  align-self: flex-start;
+  min-height: 38px;
+}
+
+@media (min-width: 640px) {
+  .government-address-field__controls--inline {
+    flex-direction: row;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .government-address-field__controls--inline .government-address-search {
+    flex: 0 0 auto;
+  }
+
+  .government-address-field__controls--inline .government-address-field__input {
+    flex: 1 1 240px;
+    min-width: 0;
+  }
+}
+
+.government-address-search-dialog__embed {
+  width: min(480px, 92vw);
+  height: min(480px, 70vh);
+}
+
+.government-address-search-dialog__error {
+  margin: 0;
+  padding: 12px 16px;
+  color: #dc2626;
+  font-size: 14px;
+}

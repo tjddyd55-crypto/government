@@ -412,6 +412,20 @@ async function main() {
     else fail(`profile basic tab bundle contains ${m}`)
   }
 
+  const filesTabPath = governmentProfileWorkspaceTabPath(profileAId, 'files')
+  const filesTabSpa = await fetchHtml(filesTabPath)
+  if (filesTabSpa.status === 200) pass('GET profile files tab SPA', filesTabSpa.bundle ?? '')
+  else fail('GET profile files tab SPA', String(filesTabSpa.status))
+  for (const m of ['government-storage-search-input', 'storage-workspace__search', 'gov-form-control']) {
+    if (filesTabSpa.js.includes(m)) pass(`profile files tab bundle contains ${m}`)
+    else fail(`profile files tab bundle contains ${m}`)
+  }
+  if (basicTabSpa.js.includes('government-address-search-button')) {
+    pass('profile basic tab bundle contains government-address-search-button')
+  } else {
+    fail('profile basic tab bundle contains government-address-search-button')
+  }
+
   const progressTabPath = governmentProfileWorkspaceTabPath(profileAId, 'progress')
   const progressTabSpa = await fetchHtml(progressTabPath)
   if (progressTabSpa.status === 200) pass('GET profile progress tab SPA', progressTabSpa.bundle ?? '')
