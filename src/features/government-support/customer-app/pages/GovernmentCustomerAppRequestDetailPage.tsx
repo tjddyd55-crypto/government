@@ -125,7 +125,7 @@ function DocumentRequestItemUpload({ token, requestId, item, onChanged }: ItemUp
           ))}
         </ul>
       ) : null}
-      <div className="government-customer-app-uploader-wrap">
+      <div className="government-customer-app-uploader-wrap" data-testid="government-customer-app-uploader-wrap">
         <FileUploader
           accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
           validateFile={validateFile}

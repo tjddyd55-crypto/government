@@ -94,7 +94,10 @@ export default function GovernmentCustomerAppInquiryComposePage() {
   }
 
   return (
-    <div className="government-customer-app-page customer-app-claim-page government-customer-app-compose">
+    <div
+      className="government-customer-app-page customer-app-claim-page government-customer-app-compose"
+      data-testid="government-customer-app-inquiry-compose"
+    >
       <StatusMessage message={error} tone="error" />
       <StatusMessage message={result} tone="success" />
 
@@ -171,10 +174,22 @@ export default function GovernmentCustomerAppInquiryComposePage() {
       </section>
 
       <div className="customer-app-claim-actions">
-        <FormButton htmlType="button" variant="primary" onClick={() => void handleSubmit()} loading={busy}>
+        <FormButton
+          htmlType="button"
+          variant="primary"
+          className="gov-btn gov-btn--primary gov-btn--block government-customer-app-submit-inquiry"
+          data-testid="government-customer-app-submit-inquiry"
+          onClick={() => void handleSubmit()}
+          loading={busy}
+        >
           문의 전송
         </FormButton>
-        <FormButton htmlType="button" variant="secondary" onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.appInquiries)}>
+        <FormButton
+          htmlType="button"
+          variant="secondary"
+          className="gov-btn gov-btn--secondary gov-btn--block"
+          onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.appInquiries)}
+        >
           내역 보기
         </FormButton>
       </div>

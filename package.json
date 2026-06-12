@@ -46,6 +46,7 @@
     "e2e:government:user-workspace": "node server/scripts/e2eGovernmentUserWorkspaceHttp.mjs",
     "e2e:government:signatures": "node server/scripts/e2eGovernmentSignaturesHttp.mjs",
     "e2e:government:join-code": "node server/scripts/e2eGovernmentJoinCodeHttp.mjs",
+    "e2e:government:customer-app": "node server/scripts/e2eGovernmentCustomerAppHttp.mjs",
     "e2e:government:operations:db": "node server/scripts/e2eGovernmentOperationsDevelop.mjs",
     "e2e:government:seed-program-users": "node server/scripts/e2eSeedProgramUsers.mjs",
     "e2e:government:reset-admin-password": "node server/scripts/e2eResetAdminPassword.mjs"

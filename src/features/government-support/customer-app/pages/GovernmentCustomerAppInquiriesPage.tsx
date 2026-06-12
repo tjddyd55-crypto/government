@@ -55,7 +55,7 @@ export default function GovernmentCustomerAppInquiriesPage() {
       <StatusMessage message={error} tone="error" />
       {rows.length === 0 ? <div className="customer-app-claim-empty">문의 내역이 없습니다.</div> : null}
       {rows.length > 0 ? (
-        <ul className="customer-app-claim-request-list">
+        <ul className="customer-app-claim-request-list" data-testid="government-customer-app-inquiry-list">
           {rows.map((row) => {
             const meta = inquiryStatusMeta(row.status)
             return (

@@ -135,7 +135,13 @@ export default function GovernmentCustomerAppInquiryDetailPage() {
               placeholder="추가로 전달할 내용을 입력해 주세요."
             />
             <div className="customer-app-claim-actions government-customer-app-compose-actions">
-              <FormButton htmlType="button" variant="primary" onClick={() => void handleReply()} loading={replyBusy}>
+              <FormButton
+                htmlType="button"
+                variant="primary"
+                className="gov-btn gov-btn--primary gov-btn--block government-customer-app-submit-inquiry"
+                onClick={() => void handleReply()}
+                loading={replyBusy}
+              >
                 메시지 보내기
               </FormButton>
             </div>
