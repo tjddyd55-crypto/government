@@ -322,3 +322,175 @@
   max-width: none;
   width: 100%;
 }
+
+/* 알림 목록 */
+.government-admin-white-theme .government-admin-notifications-content__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.government-admin-white-theme .government-admin-notifications-content__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gov-ui-text);
+}
+
+.government-admin-white-theme .government-admin-notifications-content__lead,
+.government-admin-white-theme .government-admin-notifications-content__status {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: var(--gov-ui-muted);
+  line-height: 1.5;
+}
+
+.government-admin-white-theme .government-admin-notifications-content__error {
+  margin: 16px 0 0;
+  font-size: 0.875rem;
+  color: var(--gov-ui-danger);
+}
+
+.government-admin-white-theme .government-admin-notifications-content__empty {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--gov-ui-border);
+  border-radius: 14px;
+  background: var(--gov-ui-panel);
+  font-size: 0.875rem;
+  color: var(--gov-ui-muted);
+}
+
+.government-admin-white-theme .government-admin-notifications-content__panel {
+  margin-top: 12px;
+  border: 1px solid var(--gov-ui-border);
+  border-radius: 14px;
+  background: var(--gov-ui-panel);
+  overflow: hidden;
+}
+
+.government-admin-white-theme .government-admin-notifications-content__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.government-admin-white-theme .government-admin-notifications-content__row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 1px solid var(--gov-ui-border);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.government-admin-white-theme .government-admin-notifications-content__row:last-child {
+  border-bottom: none;
+}
+
+.government-admin-white-theme .government-admin-notifications-content__row--unread {
+  background: var(--gov-ui-primary-soft);
+}
+
+.government-admin-white-theme .government-admin-notifications-content__row:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.government-admin-white-theme .government-admin-notifications-content__row--unread:hover:not(:disabled) {
+  background: #fff3bf;
+}
+
+.government-admin-white-theme .government-admin-notifications-content__row-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--gov-ui-text);
+}
+
+.government-admin-white-theme .government-admin-notifications-content__row-message {
+  margin-top: 2px;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.government-admin-white-theme .government-admin-notifications-content__row-time {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--gov-ui-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.government-admin-white-theme .government-admin-notifications-page__read-all {
+  margin-left: auto;
+}
+
+/* legacy admin table / card (government-support.css) */
+.government-admin-white-theme .government-admin-table th {
+  color: var(--gov-ui-muted);
+  border-bottom: 1px solid var(--gov-ui-border-strong);
+}
+
+.government-admin-white-theme .government-admin-table td {
+  color: var(--gov-ui-text);
+  border-bottom: 1px solid var(--gov-ui-border);
+}
+
+.government-admin-white-theme .government-admin-users-page__card {
+  background: var(--gov-ui-panel);
+  border: 1px solid var(--gov-ui-border);
+  color: var(--gov-ui-text);
+}
+
+.government-admin-white-theme .government-admin-users-page__card-label {
+  color: var(--gov-ui-muted);
+}
+
+.government-admin-white-theme .government-admin-page__muted {
+  color: var(--gov-ui-muted);
+}
+
+/* admin PDF 좌표 편집기 */
+.government-admin-white-theme .insurance-dark-forms.pdf-engine-page {
+  background: transparent;
+  color: var(--gov-ui-text);
+}
+
+.government-admin-white-theme .insurance-dark-forms.pdf-engine-page .pdf-engine-page__header,
+.government-admin-white-theme .insurance-dark-forms.pdf-engine-page .pdf-engine-panel,
+.government-admin-white-theme .insurance-dark-forms.pdf-engine-page .pdf-engine-sidebar,
+.government-admin-white-theme .insurance-dark-forms.pdf-engine-page .pdf-engine-canvas-wrap {
+  background: var(--gov-ui-panel);
+  border-color: var(--gov-ui-border);
+  color: var(--gov-ui-text);
+}
+
+.government-admin-white-theme .insurance-dark-forms.pdf-engine-page .pdf-engine-table th,
+.government-admin-white-theme .insurance-dark-forms.pdf-engine-page .pdf-engine-table td {
+  color: var(--gov-ui-text);
+  border-color: var(--gov-ui-border);
+  background: var(--gov-ui-panel);
+}
+
+.government-admin-white-theme .insurance-dark-forms.pdf-engine-page input,
+.government-admin-white-theme .insurance-dark-forms.pdf-engine-page select,
+.government-admin-white-theme .insurance-dark-forms.pdf-engine-page textarea {
+  background: #ffffff;
+  color: var(--gov-ui-text);
+  border: 1px solid var(--gov-ui-border-strong);
+}
+
+.government-admin-white-theme .insurance-dark-forms .contract-signature-console__notice {
+  background: var(--gov-ui-primary-soft);
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.government-admin-white-theme .insurance-dark-forms .contract-signature-console__alert--danger {
+  background: var(--gov-ui-danger-soft);
+  border: 1px solid #fca5a5;
+  color: var(--gov-ui-danger);
+}

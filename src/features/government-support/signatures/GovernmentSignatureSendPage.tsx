@@ -902,9 +902,9 @@ export default function GovernmentSignatureSendPage() {
     )
   }
 
-  const mainClass =
-    'insurance-dark-forms contract-signature-console' +
-    (isMobileFlow ? ' contract-signature-flow--mobile' : '')
+  const mainClass = isMobileFlow
+    ? 'insurance-dark-forms contract-signature-console contract-signature-flow--mobile'
+    : 'gov-user-page gov-user-signatures-page contract-signature-console'
 
   const senderFields = selectedTpl?.senderFieldsForSend ?? []
 

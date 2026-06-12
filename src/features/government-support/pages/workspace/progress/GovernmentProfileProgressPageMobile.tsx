@@ -100,7 +100,7 @@ export default function GovernmentProfileProgressPageMobile(props: GovernmentPro
                     <FormButton
                       htmlType="button"
                       variant="action"
-                      className="filter-button"
+                      className="gov-btn gov-btn--secondary gov-btn--sm"
                       disabled={busy}
                       onClick={() => void onDelete(r.id)}
                     >

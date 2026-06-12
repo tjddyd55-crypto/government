@@ -739,3 +739,76 @@
 .government-user-layout--mobile .government-user-me__value {
   color: #0f172a;
 }
+
+/* 워크스페이스 전자서명 탭 (insurance-dark-forms 제거 후) */
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel.contract-signature-console {
+  background: transparent;
+  color: var(--gov-ui-text);
+}
+
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel .contract-signature-console__section {
+  background: var(--gov-ui-panel);
+  border: 1px solid var(--gov-ui-border);
+  border-radius: 14px;
+  color: var(--gov-ui-text);
+}
+
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel .contract-signature-console__title,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel .contract-signature-console__section-title {
+  color: var(--gov-ui-text);
+}
+
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel .contract-signature-console__lead,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel .contract-signature-console__hint {
+  color: var(--gov-ui-muted);
+}
+
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel .pdf-engine-table th,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel .pdf-engine-table td {
+  color: var(--gov-ui-text);
+  border-color: var(--gov-ui-border);
+  background: var(--gov-ui-panel);
+}
+
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel input,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel select,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-signatures-panel textarea {
+  background: #ffffff;
+  color: var(--gov-ui-text);
+  border: 1px solid var(--gov-ui-border-strong);
+}
+
+/* 워크스페이스 인라인 메모 */
+.government-user-white-theme .government-profile-inline-note__todo-btn,
+.government-user-layout--pc-user .government-profile-inline-note__todo-btn {
+  flex-shrink: 0;
+}
+
+.government-user-white-theme .government-profile-inline-note__delete-btn,
+.government-user-layout--pc-user .government-profile-inline-note__delete-btn {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--gov-ui-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 2px 6px;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.government-user-white-theme .government-profile-inline-note__delete-btn:hover:not(:disabled),
+.government-user-layout--pc-user .government-profile-inline-note__delete-btn:hover:not(:disabled) {
+  color: var(--gov-ui-danger);
+  opacity: 1;
+}
+
+.government-user-white-theme .customer-inline-notes .customer-section-title,
+.government-user-layout--pc-user .customer-inline-notes .customer-section-title {
+  color: var(--gov-ui-text);
+}
+
+.government-user-white-theme .customer-inline-memo-row__meta,
+.government-user-layout--pc-user .customer-inline-memo-row__meta {
+  color: var(--gov-ui-muted);
+}

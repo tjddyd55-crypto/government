@@ -46,7 +46,7 @@ export default function GovernmentProfileSignaturesView({
   const templateNames = (names: string[]) => (names.length > 0 ? names.join(', ') : '—')
 
   return (
-    <div className="government-profile-signatures-panel insurance-dark-forms contract-signature-console">
+    <div className="government-profile-signatures-panel contract-signature-console">
       <section className="contract-signature-console__section government-profile-signatures-panel__section">
         <h2 className="contract-signature-console__section-title">전자서명 발송</h2>
         <p className="contract-signature-console__hint">

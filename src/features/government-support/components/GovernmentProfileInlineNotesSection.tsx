@@ -216,7 +216,7 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
             <FormButton
               htmlType="button"
               variant="action"
-              className="filter-button shrink-0"
+              className="gov-btn gov-btn--secondary gov-btn--sm shrink-0"
               disabled={saving || !token?.trim()}
               onClick={openMemoModal}
             >
@@ -226,7 +226,7 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
             <Button
               type="button"
               variant="secondary"
-              className="!px-3 !py-1.5 text-xs shrink-0"
+              className="gov-btn gov-btn--secondary gov-btn--sm shrink-0"
               disabled={saving || !token?.trim()}
               onClick={openMemoModal}
             >
@@ -267,18 +267,7 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
                       aria-label="할 일로 추가"
                       title="할 일로 추가"
                       disabled={saving}
-                      style={{
-                        flexShrink: 0,
-                        border: '1px solid rgba(255,255,255,0.15)',
-                        background: '#111827',
-                        color: '#e5e7eb',
-                        cursor: saving ? 'default' : 'pointer',
-                        fontSize: '0.75rem',
-                        lineHeight: 1,
-                        padding: '4px 8px',
-                        borderRadius: 6,
-                        opacity: saving ? 0.5 : 1,
-                      }}
+                      className="gov-btn gov-btn--secondary gov-btn--sm government-profile-inline-note__todo-btn"
                       onClick={(e) => {
                         e.stopPropagation()
                         onAddTodoFromMemo({ noteId: note.id, memoText: note.content })
@@ -292,16 +281,7 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
                     aria-label="메모 삭제"
                     title="삭제"
                     disabled={saving}
-                    style={{
-                      flexShrink: 0,
-                      border: 'none',
-                      background: 'transparent',
-                      cursor: saving ? 'default' : 'pointer',
-                      fontSize: '1.1rem',
-                      lineHeight: 1,
-                      padding: '2px 6px',
-                      opacity: 0.75,
-                    }}
+                    className="government-profile-inline-note__delete-btn"
                     onClick={(e) => {
                       e.stopPropagation()
                       void requestRemoveNote(note.id)
@@ -325,9 +305,9 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
           void requestCloseMemoModal()
         }}
       >
-        <div className="text-lg font-semibold mb-2 text-[var(--text-primary)]">메모 입력</div>
+        <div className="text-lg font-semibold mb-2 text-[#0f172a]">메모 입력</div>
         <FormTextarea
-          className="w-full border border-[var(--border-default)] rounded-lg p-2 mb-3 bg-[var(--bg-card)] text-[var(--text-primary)] box-border min-h-[120px]"
+          className="gov-form-control w-full mb-3 box-border min-h-[120px]"
           value={draft}
           maxLength={GOVERNMENT_PROFILE_MEMO_MAX_LENGTH}
           onChange={(e) => setDraft(e.target.value.slice(0, GOVERNMENT_PROFILE_MEMO_MAX_LENGTH))}
