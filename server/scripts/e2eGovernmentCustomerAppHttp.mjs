@@ -97,7 +97,8 @@ async function main() {
   pass('program user ready', users.userA.username)
 
   const me = await api('/me', { token })
-  if (me.status === 200 && me.json?.isGovernmentProgramUser === true) pass('user is program user')
+  const access = me.json?.data ?? me.json
+  if (me.status === 200 && access?.isGovernmentProgramUser === true) pass('user is program user')
   else fail('user is program user', String(me.status))
 
   const docList = await api('/government-support/my/document-requests', { token })
