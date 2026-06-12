@@ -494,3 +494,33 @@
   border: 1px solid #fca5a5;
   color: var(--gov-ui-danger);
 }
+
+/* admin 모달·툴바 폼 (admin-ui.css var(--bg-input) 덮어쓰기) */
+.government-admin-white-theme .admin-modal-panel,
+.government-admin-white-theme .government-profile-edit-modal .modal-panel {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.government-admin-white-theme .admin-modal-panel .field__label,
+.government-admin-white-theme .government-profile-edit-modal .field__label {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.government-admin-white-theme .government-form-grid input,
+.government-admin-white-theme .government-form-grid select,
+.government-admin-white-theme .government-form-grid textarea {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.government-admin-white-theme .claim-inbox__status-editor-row select,
+.government-admin-white-theme .claim-inbox__status-memo {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+}

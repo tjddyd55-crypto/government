@@ -104,6 +104,9 @@ export default function GovernmentProfileStorageWorkspace({
   const [filesListError, setFilesListError] = useState('')
   const [renameTarget, setRenameTarget] = useState<{ file: StorageFileRow; value: string } | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<StorageFileRow | null>(null)
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false)
+  const [addCategoryName, setAddCategoryName] = useState('')
+  const [categoryNotice, setCategoryNotice] = useState('')
 
   const filteredFiles = useMemo(() => {
     const query = searchText.trim().toLowerCase()
@@ -188,6 +191,9 @@ export default function GovernmentProfileStorageWorkspace({
     setKindFilter('all')
     setError('')
     setFilesListError('')
+    setCategoryNotice('')
+    setAddCategoryOpen(false)
+    setAddCategoryName('')
   }, [profileId, token])
 
   useEffect(() => {
@@ -324,6 +330,26 @@ export default function GovernmentProfileStorageWorkspace({
     }
   }, [deleteTarget, profileId, submitting, token, workspaceCtx])
 
+  const openAddCategoryDialog = useCallback(() => {
+    setCategoryNotice('')
+    setAddCategoryName('')
+    setAddCategoryOpen(true)
+  }, [])
+
+  const submitAddCategory = useCallback(() => {
+    const name = normalizeName(addCategoryName)
+    if (!name) {
+      setError('분류 이름을 입력해 주세요.')
+      return
+    }
+    setAddCategoryOpen(false)
+    setAddCategoryName('')
+    setError('')
+    setCategoryNotice(
+      `「${name}」 문서 분류는 서버 저장 연동 준비 중입니다. 현재는 파일을 바로 업로드할 수 있습니다.`,
+    )
+  }, [addCategoryName])
+
   const openFile = useCallback(
     async (file: StorageFileRow) => {
       if (!token?.trim()) return
@@ -345,80 +371,108 @@ export default function GovernmentProfileStorageWorkspace({
         isSidebar ? ' government-profile-storage-workspace--sidebar storage-workspace--gov-sidebar' : ''
       }`}
     >
-      <div className="storage-workspace__header">
-        <p className="storage-workspace__quota" role="status">
-          사업장 서류/첨부 {files.length}개
-        </p>
+      <div className="government-profile-storage-workspace__scroll">
+        <div className="storage-workspace__header">
+          <p className="storage-workspace__quota" role="status">
+            사업장 서류/첨부 {files.length}개
+          </p>
+        </div>
+
+        <GovernmentProfileStorageToolbar
+          isMobile={isMobile}
+          isSidebar={isSidebar}
+          validateUploadFile={validateStoragePickerFile}
+          onUploadFiles={(selected) => {
+            void uploadFiles(selected)
+          }}
+          onUploadInvalidBatch={(failures) => {
+            if (failures.length) setError(`${failures.length}개 파일이 형식·용량·이름 규칙에 맞지 않습니다.`)
+          }}
+          uploading={uploading}
+        />
+
+        <div className="storage-workspace__filters" role="search">
+          <input
+            type="search"
+            value={searchText}
+            onChange={(event) => setSearchText(event.target.value)}
+            placeholder="파일명 검색"
+            className="storage-workspace__search gov-form-control"
+          />
+          <select
+            value={kindFilter}
+            onChange={(event) => setKindFilter(event.target.value as 'all' | 'image' | 'pdf' | 'spreadsheet')}
+            className="storage-workspace__kind-filter gov-form-control"
+            aria-label="파일 종류 필터"
+          >
+            <option value="all">전체 형식</option>
+            <option value="image">이미지</option>
+            <option value="pdf">PDF</option>
+            <option value="spreadsheet">엑셀/CSV</option>
+          </select>
+          {(searchText.trim() || kindFilter !== 'all') && (
+            <button
+              type="button"
+              className="storage-workspace__filter-reset"
+              onClick={() => {
+                setSearchText('')
+                setKindFilter('all')
+              }}
+            >
+              필터 초기화
+            </button>
+          )}
+        </div>
+
+        <div className="storage-workspace__summary">표시 {filteredFiles.length}개 / 전체 {files.length}개</div>
+
+        {error ? <p className="storage-workspace__error">{error}</p> : null}
+        {categoryNotice ? (
+          <p className="government-profile-storage-workspace__category-notice" role="status">
+            {categoryNotice}
+          </p>
+        ) : null}
+
+        <StorageFileList
+          folders={[]}
+          files={filteredFiles}
+          loading={loading}
+          listFetchError={filesListError}
+          selectedFileId={selectedFileId}
+          expandedFolderIds={new Set()}
+          onToggleFolder={() => {}}
+          onSelectFile={setSelectedFileId}
+          onOpen={(file) => {
+            void openFile(file)
+          }}
+          downloadLinksByFileId={fileDownloadLinks}
+          downloadLinkFailedIds={fileDownloadFailedIds}
+          onRename={(file) => setRenameTarget({ file, value: file.displayName })}
+          onDelete={(file) => setDeleteTarget(file)}
+          onRenameFolder={() => {}}
+          onDeleteFolder={() => {}}
+        />
       </div>
 
-      <GovernmentProfileStorageToolbar
-        isMobile={isMobile}
-        isSidebar={isSidebar}
-        validateUploadFile={validateStoragePickerFile}
-        onUploadFiles={(selected) => {
-          void uploadFiles(selected)
-        }}
-        onUploadInvalidBatch={(failures) => {
-          if (failures.length) setError(`${failures.length}개 파일이 형식·용량·이름 규칙에 맞지 않습니다.`)
-        }}
-        uploading={uploading}
-      />
-
-      <div className="storage-workspace__filters" role="search">
-        <input
-          type="search"
-          value={searchText}
-          onChange={(event) => setSearchText(event.target.value)}
-          placeholder="파일명 검색"
-          className="storage-workspace__search gov-form-control"
-        />
-        <select
-          value={kindFilter}
-          onChange={(event) => setKindFilter(event.target.value as 'all' | 'image' | 'pdf' | 'spreadsheet')}
-          className="storage-workspace__kind-filter gov-form-control"
-          aria-label="파일 종류 필터"
-        >
-          <option value="all">전체 형식</option>
-          <option value="image">이미지</option>
-          <option value="pdf">PDF</option>
-          <option value="spreadsheet">엑셀/CSV</option>
-        </select>
-        {(searchText.trim() || kindFilter !== 'all') && (
+      {isSidebar ? (
+        <footer className="government-profile-storage-workspace__footer">
           <button
             type="button"
-            className="storage-workspace__filter-reset"
-            onClick={() => {
-              setSearchText('')
-              setKindFilter('all')
-            }}
+            className="gov-btn gov-btn--secondary gov-btn--document-add"
+            onClick={openAddCategoryDialog}
           >
-            필터 초기화
+            + 문서 분류 추가
           </button>
-        )}
-      </div>
+        </footer>
+      ) : null}
 
-      <div className="storage-workspace__summary">표시 {filteredFiles.length}개 / 전체 {files.length}개</div>
-
-      {error ? <p className="storage-workspace__error">{error}</p> : null}
-
-      <StorageFileList
-        folders={[]}
-        files={filteredFiles}
-        loading={loading}
-        listFetchError={filesListError}
-        selectedFileId={selectedFileId}
-        expandedFolderIds={new Set()}
-        onToggleFolder={() => {}}
-        onSelectFile={setSelectedFileId}
-        onOpen={(file) => {
-          void openFile(file)
-        }}
-        downloadLinksByFileId={fileDownloadLinks}
-        downloadLinkFailedIds={fileDownloadFailedIds}
-        onRename={(file) => setRenameTarget({ file, value: file.displayName })}
-        onDelete={(file) => setDeleteTarget(file)}
-        onRenameFolder={() => {}}
-        onDeleteFolder={() => {}}
+      <StorageRenameDialog
+        open={addCategoryOpen}
+        title="문서 분류 추가"
+        value={addCategoryName}
+        onChange={setAddCategoryName}
+        onClose={() => setAddCategoryOpen(false)}
+        onSubmit={submitAddCategory}
       />
 
       <StorageRenameDialog

@@ -99,15 +99,17 @@ export default function GovernmentProfileListPanelBody() {
       ) : (
         <ul className="record-list customer-expand-list customer-list customers-page__customer-list">
           {ws.profiles.map((row) => {
+            const selected = row.id === ws.selectedProfileIdFromPath
             const expanded = row.id === ws.expandedProfileId
             const title = row.businessName || row.customerName || '이름 없음'
             return (
               <li
                 key={row.id}
-                className={`record-card customer-card customer-expand-card transition-all duration-150 ease-out${
-                  expanded ? ' customer-expand-card--focal government-profile-list-card--expanded' : ''
-                }`}
+                className={`record-card customer-card customer-expand-card government-profile-list-card transition-all duration-150 ease-out${
+                  selected ? ' government-profile-list-card--active' : ''
+                }${expanded ? ' customer-expand-card--focal government-profile-list-card--expanded' : ''}`}
                 data-profile-id={row.id}
+                data-profile-selected={selected ? 'true' : 'false'}
                 data-profile-expanded={expanded ? 'true' : 'false'}
               >
                 <div className="customer-expand-card__main">

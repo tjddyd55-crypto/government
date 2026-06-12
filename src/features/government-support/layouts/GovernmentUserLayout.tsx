@@ -33,7 +33,7 @@ export default function GovernmentUserLayout() {
   if (isMobile) {
     return (
       <main
-        className={`page government-page government-user-layout government-user-layout--mobile ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
+        className={`page government-page government-user-layout government-user-layout--mobile government-user-white-theme ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
       >
         <GovernmentMobileWorkspaceShell
           title="정부지원 CRM"

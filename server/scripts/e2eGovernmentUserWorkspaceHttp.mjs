@@ -153,6 +153,9 @@ async function main() {
     'government-profile-workspace--pc',
     'government-profile-workspace-pc__center',
     'government-profile-workspace-right-documents-panel',
+    'government-profile-storage-workspace__footer',
+    'gov-btn--document-add',
+    '+ 문서 분류 추가',
     'government-profile-workspace-tabs--pc',
     'government-profile-workspace-tabs__item--active',
     'customer-detail-read',
@@ -393,7 +396,9 @@ async function main() {
     'storage-workspace__search',
     'government-profile-workspace--full-width',
     'government-profile-list-card--expanded',
+    'government-profile-list-card--active',
     'data-profile-expanded',
+    'data-profile-selected',
   ]) {
     if (basicTabSpa.js.includes(m)) pass(`profile basic tab bundle contains ${m}`)
     else fail(`profile basic tab bundle contains ${m}`)

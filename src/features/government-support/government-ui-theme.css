@@ -189,3 +189,273 @@
   min-height: 44px;
   padding: 0 16px;
 }
+
+/* —— 레이아웃 스코프 폼 SSOT (전역 dark input / admin-ui.css 덮어쓰기) —— */
+.government-user-layout input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']),
+.government-user-layout select,
+.government-user-layout textarea,
+.government-admin-layout input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']),
+.government-admin-layout select,
+.government-admin-layout textarea,
+.government-profile-workspace input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']),
+.government-profile-workspace select,
+.government-profile-workspace textarea,
+.government-profile-workspace-right-documents-panel input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+.government-profile-workspace-right-documents-panel select,
+.government-profile-workspace-right-documents-panel textarea {
+  background-color: #ffffff;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: none;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.government-user-layout textarea,
+.government-admin-layout textarea,
+.government-profile-workspace textarea {
+  min-height: 88px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.government-user-layout input::placeholder,
+.government-user-layout textarea::placeholder,
+.government-admin-layout input::placeholder,
+.government-admin-layout textarea::placeholder,
+.government-profile-workspace input::placeholder,
+.government-profile-workspace textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.government-user-layout input:focus,
+.government-user-layout select:focus,
+.government-user-layout textarea:focus,
+.government-admin-layout input:focus,
+.government-admin-layout select:focus,
+.government-admin-layout textarea:focus,
+.government-profile-workspace input:focus,
+.government-profile-workspace select:focus,
+.government-profile-workspace textarea:focus,
+.government-profile-workspace-right-documents-panel input:focus,
+.government-profile-workspace-right-documents-panel select:focus {
+  outline: none;
+  border-color: #f2b800;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+}
+
+.government-user-layout input:disabled,
+.government-user-layout select:disabled,
+.government-user-layout textarea:disabled,
+.government-user-layout input[readonly],
+.government-user-layout textarea[readonly],
+.government-admin-layout input:disabled,
+.government-admin-layout select:disabled,
+.government-admin-layout textarea:disabled,
+.government-admin-layout input[readonly],
+.government-admin-layout textarea[readonly],
+.government-profile-workspace input:disabled,
+.government-profile-workspace select:disabled,
+.government-profile-workspace textarea:disabled,
+.government-profile-workspace input[readonly],
+.government-profile-workspace textarea[readonly],
+.government-profile-workspace .field__control.field--readonly,
+.government-profile-workspace .field--readonly .field__control {
+  background: #f8fafc;
+  color: #64748b;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.government-user-layout .field__label,
+.government-user-layout label,
+.government-admin-layout .field__label,
+.government-admin-layout label,
+.government-profile-workspace .field__label,
+.government-form-grid .field__label,
+.government-form-grid label {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 이용자 claim-inbox (공지/자료) */
+.government-user-layout .claim-inbox input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='button']),
+.government-user-layout .claim-inbox select,
+.government-user-layout .claim-inbox textarea,
+.government-user-layout .claim-inbox .form-input,
+.government-user-layout .claim-inbox .form-select {
+  background-color: #ffffff;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  min-height: 38px;
+  box-shadow: none;
+}
+
+.government-user-layout .claim-inbox .field__label {
+  color: #475569;
+  font-weight: 700;
+}
+
+.government-user-layout--mobile .gov-user-notices-page .claim-inbox__hero,
+.government-user-layout--mobile .gov-user-notices-page .claim-inbox__toolbar,
+.government-user-layout--mobile .gov-user-notices-page .claim-inbox__list-panel,
+.government-user-layout--mobile .gov-user-notices-page .claim-inbox__detail-panel,
+.government-user-layout--mobile .gov-user-resources-page .claim-inbox__hero,
+.government-user-layout--mobile .gov-user-resources-page .claim-inbox__toolbar,
+.government-user-layout--mobile .gov-user-resources-page .claim-inbox__list-panel {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+  box-shadow: none;
+}
+
+/* storage / 검색·필터 */
+.government-user-layout .storage-workspace__search,
+.government-user-layout .storage-workspace__kind-filter,
+.government-profile-workspace .storage-workspace__search,
+.government-profile-workspace .storage-workspace__kind-filter {
+  height: 38px;
+  min-height: 38px;
+}
+
+.government-profile-workspace .storage-workspace__filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.government-profile-workspace .storage-workspace__search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.government-profile-workspace .storage-workspace__kind-filter {
+  flex: 0 0 auto;
+  width: 104px;
+}
+
+/* admin-ui.css admin-form-input (높은 specificity) */
+.government-admin-white-theme .admin-ga-management .admin-modal-panel input,
+.government-admin-white-theme .admin-ga-management .admin-modal-panel select,
+.government-admin-white-theme .admin-ga-management .admin-modal-panel textarea,
+.government-admin-white-theme .admin-ga-management .admin-toolbar input,
+.government-admin-white-theme .admin-ga-management .admin-toolbar select,
+.government-admin-white-theme .admin-user-management .admin-modal-panel input,
+.government-admin-white-theme .admin-user-management .admin-modal-panel select,
+.government-admin-white-theme .admin-user-management .admin-modal-panel textarea,
+.government-admin-white-theme .admin-form-input,
+.government-admin-white-theme .claim-inbox input:not([type='checkbox']):not([type='radio']),
+.government-admin-white-theme .claim-inbox select,
+.government-admin-white-theme .claim-inbox textarea,
+.government-admin-white-theme .claim-inbox__filter-label select,
+.government-admin-white-theme .claim-inbox__status-memo,
+.government-admin-white-theme .claim-inbox__status-editor select {
+  background-color: #ffffff;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.government-admin-white-theme .admin-ga-management .admin-toolbar .field__label,
+.government-admin-white-theme .admin-user-management .field__label {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.government-admin-white-theme .claim-inbox__filter-label {
+  color: #475569;
+  font-weight: 700;
+}
+
+.government-admin-white-theme .admin-ga-management .admin-modal-panel input:focus,
+.government-admin-white-theme .admin-ga-management .admin-modal-panel select:focus,
+.government-admin-white-theme .admin-user-management .admin-modal-panel select:focus,
+.government-admin-white-theme .admin-form-input:focus,
+.government-admin-white-theme .claim-inbox select:focus,
+.government-admin-white-theme .claim-inbox textarea:focus,
+.government-admin-white-theme .claim-inbox input:focus {
+  outline: none;
+  border-color: #f2b800;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+}
+
+/* 이용자 primary 버튼 (form-button / button--primary) */
+.government-user-white-theme .form-button--primary,
+.government-user-white-theme .button--primary,
+.government-user-layout .form-button--primary,
+.government-user-layout .button--primary {
+  background: #f2b800;
+  border-color: #f2b800;
+  color: #0f172a;
+}
+
+.government-user-white-theme .form-button--primary:hover:not(:disabled),
+.government-user-white-theme .button--primary:hover:not(:disabled),
+.government-user-layout .form-button--primary:hover:not(:disabled),
+.government-user-layout .button--primary:hover:not(:disabled) {
+  background: #d99f00;
+  border-color: #d99f00;
+}
+
+.government-user-white-theme .form-button--secondary,
+.government-user-white-theme .button--secondary,
+.government-user-layout .form-button--secondary,
+.government-user-layout .button--secondary {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+/* 모바일 전자서명 (insurance-dark-forms 잔존 구간 화이트화) */
+.government-user-layout--mobile main.insurance-dark-forms.contract-signature-console input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+.government-user-layout--mobile main.insurance-dark-forms.contract-signature-console select,
+.government-user-layout--mobile main.insurance-dark-forms.contract-signature-console textarea {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+}
+
+.government-user-layout--mobile main.insurance-dark-forms.contract-signature-console input:focus,
+.government-user-layout--mobile main.insurance-dark-forms.contract-signature-console select:focus,
+.government-user-layout--mobile main.insurance-dark-forms.contract-signature-console textarea:focus {
+  outline: none;
+  border-color: #f2b800;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+}
+
+/* PC 전자서명 내역 검색/정렬 */
+.government-user-layout--pc-user main.gov-user-signatures-page input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+.government-user-layout--pc-user main.gov-user-signatures-page select {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  min-height: 38px;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page input:focus,
+.government-user-layout--pc-user main.gov-user-signatures-page select:focus {
+  outline: none;
+  border-color: #f2b800;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+}
