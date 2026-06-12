@@ -151,6 +151,7 @@ async function main() {
     'government-profile-workspace',
     'government-profile-workspace-pc',
     'government-profile-workspace--pc',
+    'government-profile-workspace-pc__center',
     'government-profile-workspace-right-documents-panel',
     'government-profile-workspace-tabs--pc',
     'government-profile-workspace-tabs__item--active',
@@ -386,9 +387,25 @@ async function main() {
   } else {
     fail('profile workspace bundle contains expanded list detail marker')
   }
-  for (const m of ['gov-form-control', 'government-profile-basic-info-edit-form', 'storage-workspace__search']) {
+  for (const m of [
+    'gov-form-control',
+    'government-profile-basic-info-edit-form',
+    'storage-workspace__search',
+    'government-profile-workspace--full-width',
+    'onToggleProfileCard',
+    'data-profile-expanded',
+  ]) {
     if (basicTabSpa.js.includes(m)) pass(`profile basic tab bundle contains ${m}`)
     else fail(`profile basic tab bundle contains ${m}`)
+  }
+
+  const progressTabPath = governmentProfileWorkspaceTabPath(profileAId, 'progress')
+  const progressTabSpa = await fetchHtml(progressTabPath)
+  if (progressTabSpa.status === 200) pass('GET profile progress tab SPA', progressTabSpa.bundle ?? '')
+  else fail('GET profile progress tab SPA', String(progressTabSpa.status))
+  for (const statusLabel of ['서류준비중', '서류발급 완료', '접수대기', '접수중', '심사중', '최종승인']) {
+    if (progressTabSpa.js.includes(statusLabel)) pass(`progress tab bundle contains status ${statusLabel}`)
+    else fail(`progress tab bundle contains status ${statusLabel}`)
   }
 
   const applicationsTabPath = governmentProfileWorkspaceTabPath(profileAId, 'applications')
@@ -771,7 +788,7 @@ async function main() {
     token: tokenA,
     method: 'POST',
     body: {
-      status: '심사 중',
+      status: '심사중',
       content: `E2E progress A ${ts}`,
       title: 'E2E 진행',
       eventDate: '2026-05-19',
@@ -788,13 +805,13 @@ async function main() {
   else fail('user A progress in list')
 
   const detailAfterProgress = unwrapData((await api(`/government-support/profiles/${profileAId}`, { token: tokenA })).json)
-  if (detailAfterProgress?.progressStatus === '심사 중') pass('user A profile progressStatus synced')
+  if (detailAfterProgress?.progressStatus === '심사중') pass('user A profile progressStatus synced')
   else fail('user A profile progressStatus synced', String(detailAfterProgress?.progressStatus))
 
   const progressPatch = await api(`/government-support/profiles/${profileAId}/progress/${progressAId}`, {
     token: tokenA,
     method: 'PATCH',
-    body: { content: `E2E progress A patched ${ts}`, status: '보완 요청' },
+    body: { content: `E2E progress A patched ${ts}`, status: '서류준비중' },
     expectStatus: 200,
   })
   if (String(progressPatch.json?.data?.content ?? '').includes('patched')) pass('user A patch progress')

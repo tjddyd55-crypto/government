@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { FormButton } from '../../../../components/form'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
+import { getGovernmentProgressStatusLabel } from '../../constants/governmentProgressStatus'
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 
 type OutletContext = {
@@ -87,7 +88,7 @@ export default function GovernmentProfileWorkspaceHomePage() {
                 <span className="customer-workspace-recent__main">
                   <strong>{profileTitle(row)}</strong>
                   <small>
-                    {formatPhone(row.phone)} · {row.progressStatus || '진행상태 없음'}
+                    {formatPhone(row.phone)} · {getGovernmentProgressStatusLabel(row.progressStatus)}
                   </small>
                 </span>
                 <span className="customer-workspace-recent__action">열기</span>

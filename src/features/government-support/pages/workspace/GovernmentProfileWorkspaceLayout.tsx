@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import ResponsiveLayout from '../../../../components/ResponsiveLayout'
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
@@ -75,12 +75,34 @@ export default function GovernmentProfileWorkspaceLayout() {
     }
   }, [selectedProfileIdFromPath, selectedId, setSelectedId])
 
-  const onSelectProfile = useCallback(
+  const prevPathProfileIdRef = useRef<string | null>(null)
+  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (selectedProfileIdFromPath !== prevPathProfileIdRef.current) {
+      prevPathProfileIdRef.current = selectedProfileIdFromPath
+      setExpandedProfileId(selectedProfileIdFromPath)
+    }
+  }, [selectedProfileIdFromPath])
+
+  const onToggleProfileCard = useCallback(
     (profileId: string) => {
+      if (profileId === selectedProfileIdFromPath) {
+        setExpandedProfileId((prev) => (prev === profileId ? null : profileId))
+        return
+      }
       const tab = activeTab ?? 'basic'
+      setExpandedProfileId(profileId)
       navigate(governmentProfileWorkspacePath(profileId, tab), { replace: true })
     },
-    [activeTab, navigate],
+    [activeTab, navigate, selectedProfileIdFromPath],
+  )
+
+  const onSelectProfile = useCallback(
+    (profileId: string) => {
+      onToggleProfileCard(profileId)
+    },
+    [onToggleProfileCard],
   )
 
   const selectedProfile = useMemo(() => {
@@ -135,11 +157,13 @@ export default function GovernmentProfileWorkspaceLayout() {
       selectedId,
       setSelectedId,
       selectedProfileIdFromPath,
+      expandedProfileId,
       onSelectProfile,
+      onToggleProfileCard,
       filesRefreshNonce,
       bumpFilesRefresh,
     }),
-    [wsRest, selectedId, setSelectedId, selectedProfileIdFromPath, onSelectProfile, filesRefreshNonce, bumpFilesRefresh],
+    [wsRest, selectedId, setSelectedId, selectedProfileIdFromPath, expandedProfileId, onSelectProfile, onToggleProfileCard, filesRefreshNonce, bumpFilesRefresh],
   )
 
   const viewProps: GovernmentProfileWorkspaceLayoutViewProps = {

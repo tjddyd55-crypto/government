@@ -6,6 +6,7 @@ import {
   GOVERNMENT_PROFILE_PROGRESS_TITLE_MAX,
 } from '../../../constants/governmentProfileProgress.config'
 import { progressStatusBadgeTone } from '../../../utils/governmentProfileProgressSummary'
+import { getGovernmentProgressStatusLabel } from '../../../constants/governmentProgressStatus'
 import type { GovernmentProfileProgressViewProps } from './governmentProfileProgressViewProps'
 
 export default function GovernmentProfileProgressPageMobile(props: GovernmentProfileProgressViewProps) {
@@ -93,7 +94,7 @@ export default function GovernmentProfileProgressPageMobile(props: GovernmentPro
                         <span
                           className={`government-status-summary-card__badge government-status-summary-card__badge--${tone}`}
                         >
-                          {r.status}
+                          {getGovernmentProgressStatusLabel(r.status)}
                         </span>
                       ) : null}
                     </div>

@@ -1,4 +1,5 @@
 import FormButton from '../../../../components/form/FormButton'
+import { getGovernmentProgressStatusLabel } from '../../constants/governmentProgressStatus'
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 import {
   displayGovField,
@@ -17,7 +18,7 @@ function buildExpandRows(profile: GovSupportProfile): ExpandRow[] {
     { label: '담당자명', value: displayGovField(profile.customerName) },
     { label: '연락처', value: displayGovField(profile.phone) },
     { label: '상담 상태', value: displayGovField(profile.docStatus) },
-    { label: '신청 상태', value: displayGovField(profile.progressStatus) },
+    { label: '신청 상태', value: displayGovField(getGovernmentProgressStatusLabel(profile.progressStatus)) },
     { label: '주소', value: displayGovField(profile.businessAddress || profile.homeAddress) },
     { label: '개업일', value: displayGovField(profile.businessOpenedAt) },
     {
@@ -74,7 +75,10 @@ export default function GovernmentProfileListExpandDetail({
             className="customer-detail-action-button gov-btn gov-btn--secondary gov-btn--sm"
             title="사업장 정보 수정"
             aria-label="수정"
-            onClick={onEdit}
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit()
+            }}
           >
             수정
           </FormButton>
@@ -88,7 +92,10 @@ export default function GovernmentProfileListExpandDetail({
             disabled={deleting}
             loading={deleting}
             loadingText="삭제 중…"
-            onClick={onDelete}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
           >
             삭제
           </FormButton>

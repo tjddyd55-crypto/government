@@ -9,7 +9,10 @@ import {
   deleteGovProfileProgressEvent,
   fetchGovProfileProgressEvents,
 } from '../../api/governmentProfileProgressApi'
-import { GOVERNMENT_APPLICATION_STATUSES } from '../../constants/governmentApplicationStatuses'
+import {
+  GOVERNMENT_PROGRESS_STATUS_VALUES,
+  normalizeGovernmentProgressStatus,
+} from '../../constants/governmentProgressStatus'
 import type { GovProfileProgressEvent } from '../../types/governmentProfile.types'
 import { buildGovernmentProfileProgressSummary } from '../../utils/governmentProfileProgressSummary'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
@@ -26,7 +29,9 @@ export default function GovernmentProfileProgressPanel() {
   const { confirm, confirmDialog } = useConfirmDialog()
 
   const [rows, setRows] = useState<GovProfileProgressEvent[]>([])
-  const [status, setStatus] = useState(() => profile?.progressStatus ?? GOVERNMENT_APPLICATION_STATUSES[0])
+  const [status, setStatus] = useState(() =>
+    normalizeGovernmentProgressStatus(profile?.progressStatus),
+  )
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [eventDate, setEventDate] = useState(() => localYmd())
@@ -39,7 +44,7 @@ export default function GovernmentProfileProgressPanel() {
 
   useEffect(() => {
     if (profile?.progressStatus) {
-      setStatus(profile.progressStatus)
+      setStatus(normalizeGovernmentProgressStatus(profile.progressStatus))
     }
   }, [profile?.progressStatus, profileId])
 
@@ -144,7 +149,7 @@ export default function GovernmentProfileProgressPanel() {
     busy,
     rows,
     summary,
-    statusOptions: GOVERNMENT_APPLICATION_STATUSES,
+    statusOptions: GOVERNMENT_PROGRESS_STATUS_VALUES,
     onSetStatus: setStatus,
     onSetTitle: setTitle,
     onSetContent: setContent,

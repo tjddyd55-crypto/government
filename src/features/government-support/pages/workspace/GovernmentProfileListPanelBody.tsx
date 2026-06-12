@@ -6,6 +6,7 @@ import {
   GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH,
   governmentProfileWorkspacePath,
 } from '../../config/governmentProfileWorkspaceTabs'
+import { getGovernmentProgressStatusLabel } from '../../constants/governmentProgressStatus'
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 import GovernmentProfileEditModal from './GovernmentProfileEditModal'
 import GovernmentProfileListExpandDetail from './GovernmentProfileListExpandDetail'
@@ -98,23 +99,24 @@ export default function GovernmentProfileListPanelBody() {
       ) : (
         <ul className="record-list customer-expand-list customer-list customers-page__customer-list">
           {ws.profiles.map((row) => {
-            const active = row.id === ws.selectedProfileIdFromPath || row.id === ws.selectedId
+            const expanded = row.id === ws.expandedProfileId
             const title = row.businessName || row.customerName || '이름 없음'
             return (
               <li
                 key={row.id}
                 className={`record-card customer-card customer-expand-card transition-all duration-150 ease-out${
-                  active ? ' customer-expand-card--focal' : ''
+                  expanded ? ' customer-expand-card--focal government-profile-list-card--expanded' : ''
                 }`}
                 data-profile-id={row.id}
+                data-profile-expanded={expanded ? 'true' : 'false'}
               >
                 <div className="customer-expand-card__main">
                   <button
                     type="button"
                     className="customer-expand-summary customer-expand-summary--toggle transition-transform duration-100 ease-out active:scale-[0.98]"
-                    aria-expanded={active}
-                    aria-label={`${title} 상세 ${active ? '접기' : '펼치기'}`}
-                    onClick={() => ws.onSelectProfile(row.id)}
+                    aria-expanded={expanded}
+                    aria-label={`${title} 상세 ${expanded ? '접기' : '펼치기'}`}
+                    onClick={() => ws.onToggleProfileCard(row.id)}
                   >
                     <span className="customer-expand-summary__content w-full min-w-0">
                       <div className="flex justify-between items-center gap-2 w-full min-w-0">
@@ -124,19 +126,19 @@ export default function GovernmentProfileListPanelBody() {
                             <div className="gov-customer-list-summary">
                               <div className="gov-customer-list-meta-line">
                                 {row.customerName ? `${row.customerName} · ` : null}
-                                {row.phone || '연락처 없음'} · {row.progressStatus || '—'}
+                                {row.phone || '연락처 없음'} · {getGovernmentProgressStatusLabel(row.progressStatus)}
                               </div>
                             </div>
                           </div>
                         </div>
                         <span className="customer-expand-summary__hint shrink-0" aria-hidden="true">
-                          {active ? '▲' : '▼'}
+                          {expanded ? '▲' : '▼'}
                         </span>
                       </div>
                     </span>
                   </button>
 
-                  {active ? (
+                  {expanded ? (
                     <GovernmentProfileListExpandDetail
                       profile={row}
                       onEdit={() => setEditTarget(row)}

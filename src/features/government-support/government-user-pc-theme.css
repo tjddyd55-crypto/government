@@ -37,6 +37,70 @@
 .government-user-layout--pc-user.government-page {
   background: var(--gov-workspace-bg);
   color: var(--gov-workspace-text);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user .government-user-pc-shell {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.government-user-layout--pc-user .government-workspace-chrome__content {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.government-user-layout--pc-user .government-profile-workspace--full-width,
+.government-user-layout--pc-user .government-profile-workspace.government-profile-workspace--pc {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.government-user-layout--pc-user .government-profile-workspace-pc__left,
+.government-user-layout--pc-user .government-profile-workspace-pc__right {
+  flex-shrink: 0;
+}
+
+.government-user-layout--pc-user .government-profile-workspace-pc__center {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.government-user-layout--pc-user .government-profile-workspace-pc__left .page,
+.government-user-layout--pc-user .government-profile-list-panel--pc.page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user .government-profile-workspace-pc__body {
+  padding: 16px 20px 20px;
+}
+
+.government-user-layout--pc-user .government-workspace-topbar,
+.government-user-layout--pc-user .government-workspace-breadcrumb {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .government-user-layout--pc-user .government-user-pc-page {

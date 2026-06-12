@@ -48,7 +48,7 @@ export default function GovernmentProfileWorkspacePCView({
 
   return (
     <div
-      className="government-profile-workspace government-profile-workspace--pc government-profile-workspace-pc"
+      className="government-profile-workspace government-profile-workspace--pc government-profile-workspace-pc government-profile-workspace--full-width"
       data-layout="pc-three-column"
     >
       <aside className="government-profile-workspace-pc__left" aria-label="사업장 목록">

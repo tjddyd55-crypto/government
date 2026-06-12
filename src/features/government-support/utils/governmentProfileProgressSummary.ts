@@ -1,3 +1,8 @@
+import {
+  getGovernmentProgressStatusLabel,
+  normalizeGovernmentProgressStatus,
+  type GovernmentProgressStatus,
+} from '../constants/governmentProgressStatus'
 import type { GovSupportProfile } from '../types/governmentProfile.types'
 
 export type GovernmentProgressStatusTone = 'blue' | 'amber' | 'green' | 'red' | 'neutral'
@@ -23,17 +28,21 @@ export type GovernmentProfileProgressSummaryModel = {
   hasAnySignal: boolean
 }
 
-function normalizeStatus(s: string): string {
-  return s.replace(/\s+/g, '').toLowerCase()
-}
 
-function inferStatusToneFromText(statusNorm: string): GovernmentProgressStatusTone {
-  if (!statusNorm) return 'neutral'
-  if (/반려|거절|불승인|탈락|취소|철회|중단|부결/.test(statusNorm)) return 'red'
-  if (/승인|선정|합격|지급완료|완료|확정|종료/.test(statusNorm)) return 'green'
-  if (/보완|재제출|추가서류/.test(statusNorm)) return 'amber'
-  if (/접수|제출|심사|검토|진행|대기|협의|상담|준비|발송|수집/.test(statusNorm)) return 'blue'
-  return 'neutral'
+function toneForCanonicalStatus(status: GovernmentProgressStatus): GovernmentProgressStatusTone {
+  switch (status) {
+    case '서류준비중':
+    case '접수대기':
+      return 'neutral'
+    case '서류발급 완료':
+    case '접수중':
+    case '심사중':
+      return 'amber'
+    case '최종승인':
+      return 'green'
+    default:
+      return 'neutral'
+  }
 }
 
 function pushBadgeUnique(out: GovernmentProgressSummaryBadge[], label: string, tone: GovernmentProgressStatusTone) {
@@ -51,26 +60,18 @@ export function buildGovernmentProfileProgressSummary(
 ): GovernmentProfileProgressSummaryModel {
   const p = profile
   const statusRaw = String(p?.progressStatus ?? '').trim()
-  const statusNorm = normalizeStatus(statusRaw)
-  const statusTone = inferStatusToneFromText(statusNorm)
+  const statusLabel = statusRaw ? getGovernmentProgressStatusLabel(statusRaw) : '미정'
+  const canonicalStatus = normalizeGovernmentProgressStatus(statusRaw)
+  const statusTone = toneForCanonicalStatus(canonicalStatus)
 
   const badges: GovernmentProgressSummaryBadge[] = []
   if (statusRaw) {
-    pushBadgeUnique(badges, statusRaw, statusTone)
-  }
-  if (/보완/.test(statusNorm)) {
-    pushBadgeUnique(badges, '보완요청', 'amber')
-  }
-  if (/반려|부결/.test(statusNorm)) {
-    pushBadgeUnique(badges, '반려', 'red')
-  }
-  if (/승인|완료|종료/.test(statusNorm)) {
-    pushBadgeUnique(badges, '승인·완료', 'green')
+    pushBadgeUnique(badges, statusLabel, statusTone)
   }
 
   const primaryLine =
     [p?.productName, p?.businessName].filter(Boolean).join(' · ') ||
-    statusRaw ||
+    statusLabel ||
     '진행상황'
 
   const secondaryParts = [
@@ -87,7 +88,7 @@ export function buildGovernmentProfileProgressSummary(
     rows.push({ label, value: v, valueTone })
   }
 
-  pushRow('접수상태', statusRaw, statusTone)
+  pushRow('접수상태', statusLabel, statusTone)
   pushRow('접수상품명', String(p?.productName ?? ''))
   pushRow('가능상품', String(p?.availableProduct ?? ''))
   pushRow('접수일정', String(p?.scheduleAt ?? ''))
@@ -98,7 +99,7 @@ export function buildGovernmentProfileProgressSummary(
   const hasAnySignal = badges.length > 0 || rows.length > 0
 
   return {
-    statusLabel: statusRaw || '미정',
+    statusLabel,
     statusTone,
     primaryLine,
     secondaryLine: secondaryParts.join(' · '),
@@ -109,5 +110,5 @@ export function buildGovernmentProfileProgressSummary(
 }
 
 export function progressStatusBadgeTone(status: string): GovernmentProgressStatusTone {
-  return inferStatusToneFromText(normalizeStatus(status))
+  return toneForCanonicalStatus(normalizeGovernmentProgressStatus(status))
 }

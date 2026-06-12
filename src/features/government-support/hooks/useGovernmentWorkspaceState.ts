@@ -175,7 +175,7 @@ export function useGovernmentWorkspaceState(
     if (!token || !selected) return
     await createGovApplicationCase(token, selected.id, {
       productName: selected.productName,
-      progressStatus: '상담 접수',
+      progressStatus: '서류준비중',
     })
     await reloadDetail()
     setFeedback('신청/청약 건을 추가했습니다.')
