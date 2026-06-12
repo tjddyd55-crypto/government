@@ -392,7 +392,7 @@ async function main() {
     'government-profile-basic-info-edit-form',
     'storage-workspace__search',
     'government-profile-workspace--full-width',
-    'onToggleProfileCard',
+    'government-profile-list-card--expanded',
     'data-profile-expanded',
   ]) {
     if (basicTabSpa.js.includes(m)) pass(`profile basic tab bundle contains ${m}`)
