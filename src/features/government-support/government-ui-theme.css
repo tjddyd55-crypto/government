@@ -1,0 +1,191 @@
+/* —— 정부지원 CRM 공통 UI 토큰 (auth / user / admin) —— */
+
+.government-auth-white-theme,
+.government-user-white-theme,
+.government-admin-white-theme,
+.government-user-layout--pc-user,
+.government-admin-layout--pc-admin {
+  --gov-ui-bg: #f5f7fb;
+  --gov-ui-panel: #ffffff;
+  --gov-ui-border: #d7dee8;
+  --gov-ui-border-strong: #cbd5e1;
+  --gov-ui-text: #0f172a;
+  --gov-ui-muted: #64748b;
+  --gov-ui-primary: #f2b800;
+  --gov-ui-primary-hover: #d99f00;
+  --gov-ui-primary-soft: #fff8d6;
+  --gov-ui-danger: #dc2626;
+  --gov-ui-danger-soft: #fff1f2;
+}
+
+/* 공통 카드 */
+.government-auth-white-theme .gov-card,
+.government-user-white-theme .gov-card,
+.government-admin-white-theme .gov-card {
+  background: var(--gov-ui-panel);
+  border: 1px solid var(--gov-ui-border);
+  border-radius: 14px;
+  box-shadow: none;
+  color: var(--gov-ui-text);
+}
+
+/* 공통 폼 (높은 specificity — 전역 검정 input 덮어쓰기) */
+.government-auth-white-theme .gov-form-control,
+.government-user-white-theme .gov-form-control,
+.government-admin-white-theme .gov-form-control,
+.government-auth-white-theme .form-input,
+.government-auth-white-theme .form-select,
+.government-auth-white-theme .form-textarea,
+.government-user-white-theme .form-input,
+.government-user-white-theme .form-select,
+.government-user-white-theme .form-textarea,
+.government-admin-white-theme .form-input,
+.government-admin-white-theme .form-select,
+.government-admin-white-theme .form-textarea,
+.government-admin-white-theme .admin-form-input,
+.government-auth-white-theme .field__control,
+.government-user-white-theme .field__control,
+.government-admin-white-theme .field__control,
+.government-auth-white-theme input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+.government-auth-white-theme select,
+.government-auth-white-theme textarea,
+.government-user-white-theme input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+.government-user-white-theme select,
+.government-user-white-theme textarea,
+.government-admin-white-theme input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+.government-admin-white-theme select,
+.government-admin-white-theme textarea {
+  background-color: #ffffff;
+  background: #ffffff;
+  color: var(--gov-ui-text);
+  border: 1px solid var(--gov-ui-border-strong);
+  border-radius: 10px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.government-auth-white-theme textarea,
+.government-user-white-theme textarea,
+.government-admin-white-theme textarea,
+.government-auth-white-theme .form-textarea,
+.government-user-white-theme .form-textarea,
+.government-admin-white-theme .form-textarea {
+  min-height: 88px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.government-auth-white-theme input::placeholder,
+.government-auth-white-theme textarea::placeholder,
+.government-user-white-theme input::placeholder,
+.government-user-white-theme textarea::placeholder,
+.government-admin-white-theme input::placeholder,
+.government-admin-white-theme textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.government-auth-white-theme input:focus,
+.government-auth-white-theme select:focus,
+.government-auth-white-theme textarea:focus,
+.government-user-white-theme input:focus,
+.government-user-white-theme select:focus,
+.government-user-white-theme textarea:focus,
+.government-admin-white-theme input:focus,
+.government-admin-white-theme select:focus,
+.government-admin-white-theme textarea:focus,
+.government-auth-white-theme .field__control:focus,
+.government-user-white-theme .field__control:focus,
+.government-admin-white-theme .field__control:focus {
+  outline: none;
+  border-color: var(--gov-ui-primary);
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+}
+
+.government-auth-white-theme .field__label,
+.government-user-white-theme .field__label,
+.government-admin-white-theme .field__label,
+.government-admin-white-theme .form-label,
+.government-admin-white-theme label {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.government-auth-white-theme .gov-btn,
+.government-user-white-theme .gov-btn,
+.government-admin-white-theme .gov-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+.government-auth-white-theme .gov-btn--primary,
+.government-user-white-theme .gov-btn--primary,
+.government-admin-white-theme .gov-btn--primary,
+.government-auth-white-theme .button--primary,
+.government-auth-white-theme .form-button--primary,
+.government-admin-white-theme .button--primary,
+.government-admin-white-theme .form-button--primary {
+  background: var(--gov-ui-primary);
+  color: var(--gov-ui-text);
+  border-color: var(--gov-ui-primary);
+}
+
+.government-auth-white-theme .gov-btn--primary:hover:not(:disabled),
+.government-user-white-theme .gov-btn--primary:hover:not(:disabled),
+.government-admin-white-theme .gov-btn--primary:hover:not(:disabled),
+.government-admin-white-theme .button--primary:hover:not(:disabled),
+.government-admin-white-theme .form-button--primary:hover:not(:disabled) {
+  background: var(--gov-ui-primary-hover);
+  border-color: var(--gov-ui-primary-hover);
+}
+
+.government-auth-white-theme .gov-btn--secondary,
+.government-user-white-theme .gov-btn--secondary,
+.government-admin-white-theme .gov-btn--secondary,
+.government-admin-white-theme .button--secondary,
+.government-admin-white-theme .form-button--secondary {
+  background: #ffffff;
+  color: var(--gov-ui-text);
+  border-color: var(--gov-ui-border-strong);
+}
+
+.government-auth-white-theme .gov-btn--danger,
+.government-user-white-theme .gov-btn--danger,
+.government-admin-white-theme .gov-btn--danger {
+  background: var(--gov-ui-danger-soft);
+  color: var(--gov-ui-danger);
+  border-color: #fca5a5;
+}
+
+.government-auth-white-theme .gov-btn--sm,
+.government-user-white-theme .gov-btn--sm,
+.government-admin-white-theme .gov-btn--sm {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 0.8125rem;
+}
+
+.government-auth-white-theme .gov-btn--large,
+.government-user-white-theme .gov-btn--large,
+.government-admin-white-theme .gov-btn--large {
+  min-height: 44px;
+  padding: 0 16px;
+}

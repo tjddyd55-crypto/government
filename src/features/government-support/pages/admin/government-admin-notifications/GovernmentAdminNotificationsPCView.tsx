@@ -3,7 +3,7 @@ import GovernmentAdminNotificationsContent from './GovernmentAdminNotificationsC
 
 export default function GovernmentAdminNotificationsPCView(props: GovernmentAdminNotificationsViewProps) {
   return (
-    <main className="page notifications-placeholder-page government-admin-notifications-page government-admin-notifications-page--pc page--with-back content-wrapper page-shell bg-[#0b111a] text-[#e5e7eb]">
+    <main className="page notifications-placeholder-page government-admin-notifications-page government-admin-notifications-page--pc page--with-back content-wrapper page-shell">
       <GovernmentAdminNotificationsContent {...props} variant="pc" />
     </main>
   )

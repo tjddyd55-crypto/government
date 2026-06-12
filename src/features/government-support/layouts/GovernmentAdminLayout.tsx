@@ -20,6 +20,7 @@ import { canManageGovernmentUsers, isGovernmentProgramUser } from '../lib/govern
 import { canAccessUserOwnedWorkspace, canManageGovernmentSignatures } from '../lib/governmentHome'
 import { useGovernmentAccessShared } from '../context/GovernmentAccessContext'
 import '../government-support.css'
+import '../government-admin-theme.css'
 
 function filterSignatureNavItems(items: GovernmentAdminNavItem[], allowSignatureSetup: boolean) {
   if (allowSignatureSetup) return items
@@ -75,7 +76,7 @@ export default function GovernmentAdminLayout() {
   if (isMobile) {
     return (
       <main
-        className={`page government-page government-admin-layout government-admin-layout--mobile ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
+        className={`page government-page government-admin-layout government-admin-layout--mobile government-admin-white-theme ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
       >
         <GovernmentMobileWorkspaceShell
           title="정부지원 CRM · 관리"
@@ -99,7 +100,7 @@ export default function GovernmentAdminLayout() {
 
   return (
     <main
-      className={`page government-page government-admin-layout government-admin-layout--insurance-shell ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
+      className={`page government-page government-admin-layout government-admin-layout--insurance-shell government-admin-layout--pc-admin government-admin-white-theme ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
     >
       <GovernmentWorkspaceChrome
         brand={`${GOVERNMENT_APP_TITLE} · 관리`}

@@ -218,7 +218,7 @@ async function main() {
   if (joinHtml.status === 200) pass('GET /government/join/:code SPA', joinHtml.bundle ?? '')
   else fail('GET /government/join/:code SPA', String(joinHtml.status))
 
-  for (const m of ['회원가입 · 정부지원', '예) AGENCY001', '기관 코드']) {
+  for (const m of ['회원가입 · 정부지원', '예) AGENCY001', '기관 코드', 'government-auth-white-theme']) {
     if (joinHtml.js.includes(m) || joinHtml.html.includes(m)) pass(`join SPA contains ${m}`)
     else fail(`join SPA contains ${m}`)
   }
@@ -246,6 +246,14 @@ async function main() {
 
   if (govLoginHtml.js.includes('정부지원 CRM')) pass('government/login SPA contains government brand')
   else fail('government/login SPA contains government brand')
+
+  for (const m of ['government-auth-white-theme', 'gov-form-control', 'gov-btn--primary']) {
+    if (govLoginHtml.js.includes(m)) pass(`government/login SPA contains ${m}`)
+    else fail(`government/login SPA contains ${m}`)
+  }
+
+  if (signupHtml.js.includes('government-auth-white-theme')) pass('signup SPA contains government-auth-white-theme')
+  else fail('signup SPA contains government-auth-white-theme')
 
   const userJoin = `e2e_join_link_${tag}`
   try {

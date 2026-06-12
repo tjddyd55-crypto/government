@@ -1,0 +1,116 @@
+@import './government-ui-theme.css';
+
+/* —— 정부지원 auth: login / signup / join 화이트 테마 —— */
+
+.government-auth-white-theme.auth-page,
+.government-auth-white-theme.auth-page.auth-page--login-split,
+.government-auth-white-theme.auth-page.auth-page--mobile-login {
+  background: var(--gov-ui-bg);
+  color: var(--gov-ui-text);
+}
+
+.government-auth-white-theme .auth-login-sidebar {
+  background: var(--gov-ui-primary-soft);
+  border-right: 1px solid var(--gov-ui-border);
+}
+
+.government-auth-white-theme .auth-login-sidebar__brand {
+  color: var(--gov-ui-text);
+}
+
+.government-auth-white-theme .auth-login-sidebar__copy {
+  color: var(--gov-ui-muted);
+}
+
+.government-auth-white-theme .auth-login-content {
+  background: var(--gov-ui-bg);
+}
+
+.government-auth-white-theme .auth-card,
+.government-auth-white-theme .card.auth-card {
+  background: var(--gov-ui-panel);
+  border: 1px solid var(--gov-ui-border);
+  border-radius: 14px;
+  box-shadow: none;
+  color: var(--gov-ui-text);
+}
+
+.government-auth-white-theme .auth-card h1,
+.government-auth-white-theme .auth-card h2 {
+  color: var(--gov-ui-text);
+  font-weight: 800;
+}
+
+.government-auth-white-theme .auth-notice {
+  background: var(--gov-ui-primary-soft);
+  border: 1px solid color-mix(in srgb, var(--gov-ui-primary) 35%, var(--gov-ui-border));
+  color: var(--gov-ui-text);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.government-auth-white-theme .switch-text {
+  color: var(--gov-ui-muted);
+}
+
+.government-auth-white-theme .switch-text__action {
+  color: #92400e;
+  font-weight: 700;
+}
+
+.government-auth-white-theme .switch-text__action:hover {
+  color: var(--gov-ui-primary-hover);
+}
+
+.government-auth-white-theme .auth-page__version-footer {
+  color: var(--gov-ui-muted);
+}
+
+.government-auth-white-theme .ga-success {
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.government-auth-white-theme .ga-error {
+  color: var(--gov-ui-danger);
+  background: var(--gov-ui-danger-soft);
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.government-auth-white-theme .text-gray-400 {
+  color: var(--gov-ui-muted);
+}
+
+.government-auth-white-theme .verify-section {
+  background: #f8fafc;
+  border: 1px solid var(--gov-ui-border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.government-auth-white-theme .button.button--primary.button--full,
+.government-auth-white-theme .signup-button {
+  min-height: 44px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.government-auth-white-theme .button.button--secondary {
+  background: #ffffff;
+  color: var(--gov-ui-text);
+  border: 1px solid var(--gov-ui-border-strong);
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.government-auth-white-theme .status--error {
+  color: var(--gov-ui-danger);
+}

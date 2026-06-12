@@ -3,7 +3,7 @@ import GovernmentAdminNotificationsContent from './GovernmentAdminNotificationsC
 
 export default function GovernmentAdminNotificationsMobileView(props: GovernmentAdminNotificationsViewProps) {
   return (
-    <main className="page notifications-placeholder-page government-admin-notifications-page government-admin-notifications-page--mobile page--with-back content-wrapper page-shell bg-[#0b111a] text-[#e5e7eb] pb-6">
+    <main className="page notifications-placeholder-page government-admin-notifications-page government-admin-notifications-page--mobile page--with-back content-wrapper page-shell pb-6">
       <GovernmentAdminNotificationsContent {...props} variant="mobile" />
     </main>
   )

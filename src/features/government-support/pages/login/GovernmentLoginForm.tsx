@@ -25,7 +25,7 @@ export default function GovernmentLoginForm({
   handleSubmit,
 }: GovernmentLoginFormProps) {
   return (
-    <section className="card auth-card auth-card--login-split">
+    <section className="card auth-card auth-card--login-split gov-card">
       <h1>로그인</h1>
 
       {flash.passwordReset ? (
@@ -43,6 +43,7 @@ export default function GovernmentLoginForm({
         <label className="field">
           <span className="field__label">아이디</span>
           <FormInput
+            className="gov-form-control"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
             autoComplete="username"
@@ -57,6 +58,7 @@ export default function GovernmentLoginForm({
         <label className="field">
           <span className="field__label">비밀번호</span>
           <FormInput
+            className="gov-form-control"
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -68,7 +70,7 @@ export default function GovernmentLoginForm({
         {errorMessage ? <p className="status status--error">{errorMessage}</p> : null}
 
         <FormButton
-          className="button button--primary button--full"
+          className="button button--primary button--full gov-btn gov-btn--primary gov-btn--large"
           htmlType="submit"
           variant="primary"
           disabled={isSubmitting}

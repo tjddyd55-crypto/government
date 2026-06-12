@@ -1,6 +1,7 @@
 /* —— 이용자 PC 공통 화이트/옐로 테마 (보험 화면 참고, 정부지원 레포 전용) —— */
 
-.government-user-layout--pc-user {
+.government-user-layout--pc-user,
+.government-user-white-theme {
   --gov-workspace-bg: #f5f7fb;
   --gov-workspace-panel: #ffffff;
   --gov-workspace-border: #d7dee8;
@@ -25,6 +26,12 @@
   --border-subtle: var(--gov-workspace-border);
   --border: var(--gov-workspace-border);
   --brand-primary: var(--gov-workspace-primary);
+}
+
+.government-user-layout--pc-user.government-page,
+.government-user-white-theme.government-page {
+  background: var(--gov-workspace-bg);
+  color: var(--gov-workspace-text);
 }
 
 .government-user-layout--pc-user.government-page {

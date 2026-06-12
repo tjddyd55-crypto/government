@@ -51,7 +51,7 @@ export default function GovernmentUserLayout() {
   return (
     <GovernmentUserChromeContext.Provider value={chromeContextValue}>
       <main
-        className={`page government-page government-user-layout government-user-layout--insurance-shell government-user-layout--pc-user ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
+        className={`page government-page government-user-layout government-user-layout--insurance-shell government-user-layout--pc-user government-user-white-theme ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
       >
         <GovernmentWorkspaceChrome
           variant="user"

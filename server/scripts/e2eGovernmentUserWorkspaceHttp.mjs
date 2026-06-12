@@ -138,6 +138,7 @@ async function main() {
   const coreMarkers = [
     'government-user-layout',
     'government-user-layout--pc-user',
+    'government-user-white-theme',
     'government-user-pc-page',
     'government-workspace-topbar',
     'government-workspace-breadcrumb',
@@ -1383,6 +1384,11 @@ async function main() {
     } else if (adminDashSpa.js.includes('government-admin-layout')) {
       pass('GET /government/admin SPA dashboard')
     } else fail('GET /government/admin SPA dashboard')
+    if (adminDashSpa.js.includes('government-admin-white-theme')) {
+      pass('admin bundle contains government-admin-white-theme')
+    } else {
+      fail('admin bundle contains government-admin-white-theme')
+    }
 
     const notifSpa = await fetchHtml('/government/admin/notifications')
     if (notifSpa.status === 200 && notifSpa.js.includes('government-admin-notifications-page')) {

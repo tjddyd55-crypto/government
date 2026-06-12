@@ -17,6 +17,7 @@ import {
   GOVERNMENT_STORAGE_KEYS,
   migrateGovernmentStorageKeys,
 } from '../../government-support/constants/governmentStorageKeys'
+import '../../government-support/government-auth-theme.css'
 
 type UsernameCheck = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 
@@ -494,9 +495,11 @@ export function RegisterPage({
   const smsRequestDisabled = smsSubmitting || resendLeft > 0 || isVerified
   const smsConfirmDisabled = smsSubmitting || smsCode.trim().length !== 6 || isVerified
 
+  const isGovernmentAuth = signupIndustry === 'government'
+
   return (
-    <main className="auth-page">
-      <section className="card auth-card">
+    <main className={isGovernmentAuth ? 'auth-page government-auth-white-theme' : 'auth-page'}>
+      <section className={`card auth-card${isGovernmentAuth ? ' gov-card' : ''}`}>
         <h1>
           {tenantCodeMode ?
             signupIndustry === 'gym' ?
@@ -701,7 +704,11 @@ export function RegisterPage({
           {infoMessage ? <p className="status">{infoMessage}</p> : null}
 
           <FormButton
-            className="button button--primary button--full signup-button"
+            className={
+              isGovernmentAuth
+                ? 'button button--primary button--full signup-button gov-btn gov-btn--primary gov-btn--large'
+                : 'button button--primary button--full signup-button'
+            }
             htmlType="submit"
             variant="primary"
             disabled={signupSubmitDisabled}
