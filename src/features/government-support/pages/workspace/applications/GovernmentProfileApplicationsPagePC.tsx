@@ -14,7 +14,7 @@ export default function GovernmentProfileApplicationsPagePC(props: GovernmentPro
     <main className="gov-applications-page government-profile-applications-page gov-user-page">
       <StatusMessage message={props.error} tone="error" />
 
-      <section className="gov-user-card gov-applications-page__create-card">
+      <section className="gov-user-card gov-applications-page__create-card gov-workspace-compose-card">
         <div className="claim-requests-page__section-header">
           <div>
             <h2 className="claim-requests-page__section-title">신청 등록</h2>

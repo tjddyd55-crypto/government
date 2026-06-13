@@ -94,13 +94,16 @@
   box-sizing: border-box;
 }
 
-/* —— PC 좌측 사업장 카드: 선택 세로 바 —— */
+/* —— PC 좌측 사업장 카드: 선택 세로 바 (summary 영역만) —— */
 .government-user-layout--pc-user .government-profile-list-panel--pc .government-profile-list-card--active {
-  position: relative;
   overflow: visible;
 }
 
-.government-user-layout--pc-user .government-profile-list-panel--pc .government-profile-list-card--active::before {
+.government-user-layout--pc-user .government-profile-list-panel--pc .government-profile-list-card__summary-row--active {
+  position: relative;
+}
+
+.government-user-layout--pc-user .government-profile-list-panel--pc .government-profile-list-card__summary-row--active::before {
   content: '';
   position: absolute;
   left: 0;
@@ -840,9 +843,36 @@
 .government-user-layout--pc-user .government-profile-workspace .gov-applications-page .form-button,
 .government-user-layout--pc-user .government-profile-workspace .gov-applications-page .button,
 .government-user-layout--pc-user .government-profile-workspace .customer-workspace-record-item__actions .form-button,
-.government-user-layout--pc-user .government-profile-workspace .customer-workspace-tab-submit-row .form-button {
+.government-user-layout--pc-user .government-profile-workspace .customer-workspace-tab-submit-row .form-button,
+.government-user-layout--pc-user .government-profile-workspace .customer-workspace-tab-submit.form-button,
+.government-user-layout--pc-user .government-profile-workspace .customer-workspace-tab-submit.button {
   min-height: 36px;
   border-radius: 10px;
+  font-weight: 700;
+}
+
+.government-user-layout--pc-user .government-profile-workspace .gov-workspace-compose-card__actions .form-button,
+.government-user-layout--pc-user .government-profile-workspace .gov-workspace-compose-card__actions .button,
+.government-user-layout--pc-user .government-profile-workspace .gov-workspace-record-card__actions .form-button,
+.government-user-layout--pc-user .government-profile-workspace .gov-workspace-record-card__actions .button,
+.government-user-layout--pc-user .government-profile-workspace .gov-workspace-record-section__head .form-button,
+.government-user-layout--pc-user .government-profile-workspace .customers-page__action-row--gov .form-button,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-basic-info-panel__edit-actions .form-button {
+  min-height: 36px;
+  height: auto;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.government-user-layout--pc-user .government-profile-list-panel--pc .government-profile-list-expand-detail__actions .form-button,
+.government-user-layout--pc-user .government-profile-list-panel--pc .government-profile-list-expand-detail__actions .button {
+  min-height: 32px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 

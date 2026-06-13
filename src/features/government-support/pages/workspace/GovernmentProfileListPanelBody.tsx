@@ -129,7 +129,11 @@ export default function GovernmentProfileListPanelBody() {
                 data-profile-expanded={expanded ? 'true' : 'false'}
               >
                 <div className="customer-expand-card__main government-profile-list-card__main">
-                  <div className="government-profile-list-card__summary-row">
+                  <div
+                    className={`government-profile-list-card__summary-row${
+                      selected ? ' government-profile-list-card__summary-row--active' : ''
+                    }`}
+                  >
                     <button
                       type="button"
                       className="customer-expand-summary customer-expand-summary--toggle government-profile-list-card__summary"

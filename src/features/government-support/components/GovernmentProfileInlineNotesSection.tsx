@@ -1,7 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useConfirmDialog } from '../../../components/dialog'
 import { FormTextarea, FormButton } from '../../../components/form'
-import { Button } from '../../../components/ui/Button'
 import Modal from '../../../components/ui/Modal'
 import {
   createGovProfileMemo,
@@ -22,7 +21,7 @@ type Props = {
   onStatusMessage: (msg: string) => void
   /** 메모 줄에서 플랫폼 할 일 초안 생성 */
   onAddTodoFromMemo?: (payload: { noteId: string; memoText: string }) => void
-  /** 모바일 사업장 메모 전용 화면: 구분선을 다크 테마 토큰에 맞춤 */
+  /** 모바일 사업장 메모 전용 화면: 모달 입력 + 다크 테마 토큰 */
   workspaceMobileMemo?: boolean
 }
 
@@ -62,6 +61,10 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
     setMemoOpen(false)
   }, [])
 
+  const clearDraft = useCallback(() => {
+    setDraft('')
+  }, [])
+
   const requestCloseMemoModal = useCallback(async () => {
     if (!draft.trim()) {
       closeMemoModal()
@@ -78,6 +81,23 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
       closeMemoModal()
     }
   }, [closeMemoModal, confirm, draft])
+
+  const requestClearDraft = useCallback(async () => {
+    if (!draft.trim()) {
+      clearDraft()
+      return
+    }
+    const ok = await confirm({
+      title: '메모 작성',
+      message: '작성 중인 내용이 있습니다. 취소할까요?',
+      confirmLabel: '취소',
+      cancelLabel: '계속 작성',
+      tone: 'warning',
+    })
+    if (ok) {
+      clearDraft()
+    }
+  }, [clearDraft, confirm, draft])
 
   function openMemoModal() {
     setDraft('')
@@ -164,7 +184,12 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
     savingLock.current = true
     setSaving(true)
     setLocalMemos(nextForApi)
-    closeMemoModal()
+
+    if (workspaceMobileMemo) {
+      closeMemoModal()
+    } else {
+      clearDraft()
+    }
 
     void commitCreateToServer(optimistic, nextForApi, () => {
       setLocalMemos((prev) => prev.filter((m) => m.id !== tempId))
@@ -207,124 +232,174 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
     removeNote(id)
   }
 
+  const composeForm = workspaceMobileMemo ? null : (
+    <section
+      className="gov-user-card gov-workspace-compose-card"
+      data-testid="government-profile-memo-compose-inline"
+    >
+      <div className="gov-workspace-compose-card__header">
+        <h3 className="gov-workspace-compose-card__title">메모 작성</h3>
+        <p className="gov-workspace-compose-card__desc">사업장 관련 메모를 바로 등록합니다.</p>
+      </div>
+      <FormTextarea
+        className="gov-form-control gov-workspace-compose-card__textarea"
+        value={draft}
+        maxLength={GOVERNMENT_PROFILE_MEMO_MAX_LENGTH}
+        onChange={(e) => setDraft(e.target.value.slice(0, GOVERNMENT_PROFILE_MEMO_MAX_LENGTH))}
+        placeholder="메모 내용"
+        rows={4}
+        spellCheck={false}
+        autoCorrect="off"
+        autoCapitalize="off"
+      />
+      <div className="gov-workspace-compose-card__actions">
+        {draft.trim() ? (
+          <FormButton
+            htmlType="button"
+            variant="secondary"
+            className="gov-btn gov-btn--secondary"
+            disabled={saving}
+            onClick={() => void requestClearDraft()}
+          >
+            취소
+          </FormButton>
+        ) : null}
+        <FormButton
+          htmlType="button"
+          variant="primary"
+          className="gov-btn gov-btn--primary"
+          disabled={saving || !draft.trim() || !token?.trim()}
+          onClick={handleMemoSave}
+        >
+          {saving ? '저장 중…' : '메모 추가'}
+        </FormButton>
+      </div>
+    </section>
+  )
+
   return (
-    <div className="customer-inline-notes mt-5">
-      <div className="flex justify-between items-center mb-2 gap-2">
-        <div className="customer-section-title !mt-0">[메모]</div>
-        <div className="flex items-center gap-2 shrink-0">
+    <div className="customer-inline-notes gov-workspace-notes-section">
+      {composeForm}
+
+      <div className="gov-workspace-record-section">
+        <div className="gov-workspace-record-section__head">
+          <h3 className="gov-workspace-record-section__title">등록된 메모</h3>
           {workspaceMobileMemo ? (
             <FormButton
               htmlType="button"
-              variant="action"
-              className="gov-btn gov-btn--secondary gov-btn--sm shrink-0"
+              variant="primary"
+              className="gov-btn gov-btn--primary gov-btn--sm shrink-0"
               disabled={saving || !token?.trim()}
               onClick={openMemoModal}
             >
               메모 추가
             </FormButton>
           ) : (
-            <Button
-              type="button"
-              variant="secondary"
-              className="gov-btn gov-btn--secondary gov-btn--sm shrink-0"
-              disabled={saving || !token?.trim()}
-              onClick={openMemoModal}
-            >
-              메모 추가
-            </Button>
+            <span className="gov-workspace-record-section__count">총 {sortedItems.length}건</span>
           )}
         </div>
-      </div>
-      {sortedItems.length === 0 ? (
-        <div className="text-sm text-[var(--text-secondary)] mt-2">등록된 내용이 없습니다.</div>
-      ) : (
-        <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0' }}>
-          {sortedItems.map((note) => {
-            return (
-              <li
-                key={note.id}
-                className={`customer-inline-memo-row${workspaceMobileMemo ? ' customer-inline-memo-row--workspace-mobile' : ''}`}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 8,
-                  alignItems: 'flex-start',
-                  ...(workspaceMobileMemo ? {} : { borderTop: '1px solid var(--border-subtle)' }),
-                  padding: '12px 0',
-                  fontSize: '0.9rem',
-                }}
-              >
-                <div className="customer-inline-memo-row__body" style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{note.content}</div>
-                  <small className="customer-inline-memo-row__meta block mt-1">
-                    {new Date(note.createdAt).toLocaleString('ko-KR')}
-                  </small>
-                </div>
-                <div style={{ flexShrink: 0, display: 'flex', gap: 6, alignItems: 'flex-start' }}>
-                  {onAddTodoFromMemo ? (
+
+        {sortedItems.length === 0 ? (
+          <p className="gov-workspace-record-section__empty">등록된 내용이 없습니다.</p>
+        ) : (
+          <ul className="gov-workspace-record-list">
+            {sortedItems.map((note) => {
+              return (
+                <li
+                  key={note.id}
+                  className={`gov-workspace-record-card customer-inline-memo-row${
+                    workspaceMobileMemo ? ' customer-inline-memo-row--workspace-mobile' : ''
+                  }`}
+                >
+                  <div className="gov-workspace-record-card__body customer-inline-memo-row__body">
+                    <div className="gov-workspace-record-card__text">{note.content}</div>
+                    <small className="customer-inline-memo-row__meta gov-workspace-record-card__meta">
+                      {new Date(note.createdAt).toLocaleString('ko-KR')}
+                    </small>
+                  </div>
+                  <div className="gov-workspace-record-card__actions">
+                    {onAddTodoFromMemo ? (
+                      <FormButton
+                        htmlType="button"
+                        aria-label="할 일로 추가"
+                        title="할 일로 추가"
+                        disabled={saving}
+                        className="gov-btn gov-btn--secondary gov-btn--sm government-profile-inline-note__todo-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onAddTodoFromMemo({ noteId: note.id, memoText: note.content })
+                        }}
+                      >
+                        할 일로 추가
+                      </FormButton>
+                    ) : null}
                     <FormButton
                       htmlType="button"
-                      aria-label="할 일로 추가"
-                      title="할 일로 추가"
+                      variant="danger"
+                      size="sm"
+                      aria-label="메모 삭제"
+                      title="삭제"
                       disabled={saving}
-                      className="gov-btn gov-btn--secondary gov-btn--sm government-profile-inline-note__todo-btn"
+                      className="gov-btn gov-btn--danger gov-btn--sm"
                       onClick={(e) => {
                         e.stopPropagation()
-                        onAddTodoFromMemo({ noteId: note.id, memoText: note.content })
+                        void requestRemoveNote(note.id)
                       }}
                     >
-                      할 일로 추가
+                      삭제
                     </FormButton>
-                  ) : null}
-                  <FormButton
-                    htmlType="button"
-                    aria-label="메모 삭제"
-                    title="삭제"
-                    disabled={saving}
-                    className="government-profile-inline-note__delete-btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      void requestRemoveNote(note.id)
-                    }}
-                  >
-                    ×
-                  </FormButton>
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-      )}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
 
-      <Modal
-        open={memoOpen}
-        onClose={closeMemoModal}
-        ariaLabel="메모 입력"
-        closeOnBackdrop={false}
-        onEscapeRequest={() => {
-          void requestCloseMemoModal()
-        }}
-      >
-        <div className="text-lg font-semibold mb-2 text-[#0f172a]">메모 입력</div>
-        <FormTextarea
-          className="gov-form-control w-full mb-3 box-border min-h-[120px]"
-          value={draft}
-          maxLength={GOVERNMENT_PROFILE_MEMO_MAX_LENGTH}
-          onChange={(e) => setDraft(e.target.value.slice(0, GOVERNMENT_PROFILE_MEMO_MAX_LENGTH))}
-          placeholder="메모 내용"
-          spellCheck={false}
-          autoCorrect="off"
-          autoCapitalize="off"
-        />
-        <div className="flex gap-2 justify-end flex-wrap">
-          <Button type="button" variant="secondary" onClick={() => void requestCloseMemoModal()}>
-            취소
-          </Button>
-          <Button type="button" disabled={saving || !draft.trim()} onClick={handleMemoSave}>
-            확인
-          </Button>
-        </div>
-      </Modal>
+      {workspaceMobileMemo ? (
+        <>
+          <Modal
+            open={memoOpen}
+            onClose={closeMemoModal}
+            ariaLabel="메모 입력"
+            closeOnBackdrop={false}
+            onEscapeRequest={() => {
+              void requestCloseMemoModal()
+            }}
+          >
+            <div className="text-lg font-semibold mb-2 text-[#0f172a]">메모 입력</div>
+            <FormTextarea
+              className="gov-form-control w-full mb-3 box-border min-h-[120px]"
+              value={draft}
+              maxLength={GOVERNMENT_PROFILE_MEMO_MAX_LENGTH}
+              onChange={(e) => setDraft(e.target.value.slice(0, GOVERNMENT_PROFILE_MEMO_MAX_LENGTH))}
+              placeholder="메모 내용"
+              spellCheck={false}
+              autoCorrect="off"
+              autoCapitalize="off"
+            />
+            <div className="flex gap-2 justify-end flex-wrap">
+              <FormButton
+                htmlType="button"
+                variant="secondary"
+                className="gov-btn gov-btn--secondary"
+                onClick={() => void requestCloseMemoModal()}
+              >
+                취소
+              </FormButton>
+              <FormButton
+                htmlType="button"
+                variant="primary"
+                className="gov-btn gov-btn--primary"
+                disabled={saving || !draft.trim()}
+                onClick={handleMemoSave}
+              >
+                확인
+              </FormButton>
+            </div>
+          </Modal>
+        </>
+      ) : null}
       {confirmDialog}
     </div>
   )
