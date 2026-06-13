@@ -322,59 +322,56 @@ export default function GovernmentSignatureHistoryPage() {
             </>
           ) : (
             <>
-              <div className="contract-signature-console__filter-row" style={{ justifyContent: 'space-between' }}>
-                <FormInput
-                  type="search"
-                  className="gov-form-control"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="사업장명·식별번호·전화·템플릿명 검색"
-                  disabled={!t}
-                  style={{ maxWidth: 360, flex: '1 1 200px' }}
-                />
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                  <label
-                    className="contract-signature-console__hint"
-                    style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-                  >
-                    정렬
-                    <FormSelect
-                      className="gov-form-control form-select"
-                      value={sort}
-                      disabled={!t}
-                      options={[
-                        { value: 'sent_desc', label: '최신 발송순' },
-                        { value: 'completed_desc', label: '완료일순' },
-                      ]}
-                      onChange={(e) =>
-                        setSort(e.target.value === 'completed_desc' ? 'completed_desc' : 'sent_desc')
-                      }
-                      style={{ minWidth: 140 }}
-                    />
-                  </label>
-                  <FormButton
-                    htmlType="button"
-                    variant="secondary"
-                    size="sm"
-                    className="gov-btn gov-btn--secondary gov-btn--sm"
-                    disabled={!t || listBusy}
-                    onClick={() => void reloadListFirstPage()}
-                  >
-                    새로고침
-                  </FormButton>
-                  <FormButton
-                    htmlType="button"
-                    variant="primary"
-                    size="sm"
-                    className="gov-btn gov-btn--primary gov-btn--sm"
+              <div className="gov-signature-history-toolbar gov-card">
+                <div className="gov-signature-history-toolbar__controls">
+                  <FormInput
+                    type="search"
+                    className="gov-form-control gov-signature-history-toolbar__search"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="사업장명·식별번호·전화·템플릿명 검색"
                     disabled={!t}
-                    onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.signaturesSend)}
-                  >
-                    새 발송
-                  </FormButton>
+                  />
+                  <div className="gov-signature-history-toolbar__actions">
+                    <label className="gov-signature-history-toolbar__sort">
+                      <span className="gov-signature-history-toolbar__sort-label">정렬</span>
+                      <FormSelect
+                        className="gov-form-control form-select"
+                        value={sort}
+                        disabled={!t}
+                        options={[
+                          { value: 'sent_desc', label: '최신 발송순' },
+                          { value: 'completed_desc', label: '완료일순' },
+                        ]}
+                        onChange={(e) =>
+                          setSort(e.target.value === 'completed_desc' ? 'completed_desc' : 'sent_desc')
+                        }
+                      />
+                    </label>
+                    <FormButton
+                      htmlType="button"
+                      variant="secondary"
+                      size="sm"
+                      className="gov-btn gov-btn--secondary gov-btn--sm"
+                      disabled={!t || listBusy}
+                      onClick={() => void reloadListFirstPage()}
+                    >
+                      새로고침
+                    </FormButton>
+                    <FormButton
+                      htmlType="button"
+                      variant="primary"
+                      size="sm"
+                      className="gov-btn gov-btn--primary gov-btn--sm"
+                      disabled={!t}
+                      onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.signaturesSend)}
+                    >
+                      새 발송
+                    </FormButton>
+                  </div>
                 </div>
+                <SendSessionHistoryFilters value={filter} onChange={setFilter} />
               </div>
-              <SendSessionHistoryFilters value={filter} onChange={setFilter} />
             </>
           )}
 
@@ -399,9 +396,9 @@ export default function GovernmentSignatureHistoryPage() {
           {listBusy && rows.length === 0 ? <p className="contract-signature-console__hint">불러오는 중…</p> : null}
 
           {!listBusy && rows.length === 0 && !listError ? (
-            <div>
+            <div className="gov-signature-history-empty gov-card">
               <p className="contract-signature-console__empty-state-text">아직 발송한 전자문서가 없습니다.</p>
-              <Link className="contract-signature-console__hint" to="/government/signatures/send">
+              <Link className="gov-signature-history-empty__link" to="/government/signatures/send">
                 전자서명 발송하기
               </Link>
             </div>

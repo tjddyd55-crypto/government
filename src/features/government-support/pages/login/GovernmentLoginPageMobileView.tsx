@@ -6,7 +6,7 @@ export default function GovernmentLoginPageMobileView() {
   const controller = useGovernmentLoginController()
 
   return (
-    <main className="auth-page auth-page--mobile-login government-auth-white-theme">
+    <main className="auth-page auth-page--mobile-login government-auth-page government-auth-white-theme">
       <section className="auth-login-content">
         <GovernmentLoginForm
           username={controller.username}

@@ -6,7 +6,7 @@ export default function GovernmentLoginPagePCView() {
   const controller = useGovernmentLoginController()
 
   return (
-    <main className="auth-page auth-page--login-split government-auth-white-theme">
+    <main className="auth-page auth-page--login-split government-auth-page government-auth-white-theme">
       <aside className="auth-login-sidebar" aria-label="로그인 안내">
         <div className="auth-login-sidebar__inner">
           <h2 className="auth-login-sidebar__brand">정부지원 CRM</h2>

@@ -496,9 +496,10 @@ export function RegisterPage({
   const smsConfirmDisabled = smsSubmitting || smsCode.trim().length !== 6 || isVerified
 
   const isGovernmentAuth = signupIndustry === 'government'
+  const govInputClass = isGovernmentAuth ? 'gov-form-control' : undefined
 
   return (
-    <main className={isGovernmentAuth ? 'auth-page government-auth-white-theme' : 'auth-page'}>
+    <main className={isGovernmentAuth ? 'auth-page government-auth-page government-auth-white-theme' : 'auth-page'}>
       <section className={`card auth-card${isGovernmentAuth ? ' gov-card' : ''}`}>
         <h1>
           {tenantCodeMode ?
@@ -533,6 +534,7 @@ export function RegisterPage({
                   : '테넌트에서 발급한 코드입니다. 업종별 화면에 맞는 코드만 입력하세요.'}
               </p>
               <FormInput
+                className={govInputClass}
                 value={registrationCode}
                 onChange={(e) => {
                   setRegistrationCode(e.target.value.toUpperCase().replace(/\s+/g, ''))
@@ -551,6 +553,7 @@ export function RegisterPage({
               <span className="field__label">GA 코드</span>
               <p className="text-xs text-gray-400 mb-2">부여받은 코드를 입력하세요.</p>
               <FormInput
+                className={govInputClass}
                 value={gaCode}
                 onChange={(e) => {
                   setGaCode(e.target.value.toUpperCase())
@@ -570,6 +573,7 @@ export function RegisterPage({
             <span className="field__label">아이디</span>
             <div className="register-field-row">
               <FormInput
+                className={govInputClass}
                 value={username}
                 onChange={(event) => {
                   setUsername(event.target.value)
@@ -600,6 +604,7 @@ export function RegisterPage({
           <label className="field">
             <span className="field__label">비밀번호</span>
             <FormInput
+              className={govInputClass}
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -612,6 +617,7 @@ export function RegisterPage({
           <label className="field">
             <span className="field__label">비밀번호 확인</span>
             <FormInput
+              className={govInputClass}
               type="password"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
@@ -624,6 +630,7 @@ export function RegisterPage({
           <label className="field">
             <span className="field__label">이름</span>
             <FormInput
+              className={govInputClass}
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoComplete="name"
@@ -637,6 +644,7 @@ export function RegisterPage({
             <label className="field">
               <span className="field__label">휴대폰 번호</span>
               <FormInput
+                className={govInputClass}
                 value={phone}
                 onChange={(e) => {
                   setPhone(e.target.value)
@@ -673,6 +681,7 @@ export function RegisterPage({
             <label className="field">
               <span className="field__label">인증번호</span>
               <FormInput
+                className={govInputClass}
                 value={smsCode}
                 onChange={(e) => setSmsCode(e.target.value)}
                 inputMode="numeric"

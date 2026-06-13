@@ -9,7 +9,6 @@ import {
   formatOpsDate,
   labelForNoticeCategory,
 } from '../constants/governmentOperations'
-import '../../claim-requests/claim-inbox.css'
 
 export default function GovernmentUserNoticesPage() {
   useDocumentTitle('정부지원 CRM · 공지사항')
@@ -48,15 +47,13 @@ export default function GovernmentUserNoticesPage() {
   const ordered = [...pinned, ...normal]
 
   return (
-    <main className="page page--with-back claim-inbox content-wrapper government-user-notices-page gov-user-page gov-user-notices-page">
-      <section className="claim-inbox__hero">
-        <div>
-          <h1 className="claim-inbox__title">공지사항</h1>
-          <p className="claim-inbox__subtitle">소속 대행사 공지를 확인할 수 있습니다.</p>
-        </div>
+    <main className="page page--with-back government-user-notices-page gov-user-page">
+      <section className="government-user-notices-hero">
+        <h1 className="government-user-notices-hero__title">공지사항</h1>
+        <p className="government-user-notices-hero__subtitle">소속 대행사 공지를 확인할 수 있습니다.</p>
       </section>
 
-      <section className="claim-inbox__toolbar">
+      <section className="government-user-notices-toolbar">
         <FieldWrapper label="검색">
           <FormInput
             className="gov-form-control"
@@ -80,22 +77,24 @@ export default function GovernmentUserNoticesPage() {
       {!loading && rows.length === 0 ? <EmptyState message="표시할 공지가 없습니다." /> : null}
 
       {!loading && rows.length > 0 ? (
-        <div className="claim-inbox__layout">
-          <section className="claim-inbox__list-panel">
-            <ul className="claim-inbox__list">
+        <div className="government-user-notices-layout">
+          <section className="government-user-notices-list">
+            <ul className="government-user-notices-card-list">
               {ordered.map((row) => (
                 <li key={row.id}>
                   <button
                     type="button"
-                    className={`claim-inbox__list-item${selected?.id === row.id ? ' claim-inbox__list-item--active' : ''}`}
+                    className={`government-user-notices-card${
+                      selected?.id === row.id ? ' government-user-notices-card--selected' : ''
+                    }`}
                     onClick={() => setSelected(row)}
                   >
-                    <div className="claim-inbox__list-item-top">
+                    <div className="government-user-notices-card__title-row">
                       <strong>
                         {row.isPinned ? <span className="government-ops-badge">중요</span> : null} {row.title}
                       </strong>
                     </div>
-                    <div className="claim-inbox__list-item-meta">
+                    <div className="government-user-notices-card__meta">
                       {labelForNoticeCategory(row.category)} · {formatOpsDate(row.publishedAt ?? row.createdAt)}
                     </div>
                   </button>
@@ -104,18 +103,14 @@ export default function GovernmentUserNoticesPage() {
             </ul>
           </section>
           {selected ? (
-            <section className="claim-inbox__detail-panel">
-              <div className="claim-inbox__detail">
-                <div className="claim-inbox__detail-head">
-                  <div>
-                    <div className="claim-inbox__detail-title">{selected.title}</div>
-                    <div className="claim-inbox__detail-meta">
-                      {labelForNoticeCategory(selected.category)} · {formatOpsDate(selected.publishedAt ?? selected.createdAt)}
-                    </div>
-                  </div>
+            <section className="government-user-notices-detail">
+              <article className="government-user-notices-detail-card">
+                <div className="government-user-notices-detail-card__title">{selected.title}</div>
+                <div className="government-user-notices-detail-card__meta">
+                  {labelForNoticeCategory(selected.category)} · {formatOpsDate(selected.publishedAt ?? selected.createdAt)}
                 </div>
-                <div className="claim-inbox__detail-memo">{selected.content}</div>
-              </div>
+                <div className="government-user-notices-detail-card__body">{selected.content}</div>
+              </article>
             </section>
           ) : null}
         </div>

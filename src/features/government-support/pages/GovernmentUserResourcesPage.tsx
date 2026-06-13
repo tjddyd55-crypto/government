@@ -14,7 +14,6 @@ import {
   formatOpsDate,
   labelForResourceCategory,
 } from '../constants/governmentOperations'
-import '../../claim-requests/claim-inbox.css'
 
 export default function GovernmentUserResourcesPage() {
   useDocumentTitle('정부지원 CRM · 자료실')
@@ -61,15 +60,13 @@ export default function GovernmentUserResourcesPage() {
   }
 
   return (
-    <main className="page page--with-back claim-inbox content-wrapper government-user-resources-page gov-user-page gov-user-resources-page">
-      <section className="claim-inbox__hero">
-        <div>
-          <h1 className="claim-inbox__title">자료실/서식함</h1>
-          <p className="claim-inbox__subtitle">소속 대행사 자료를 다운로드할 수 있습니다.</p>
-        </div>
+    <main className="page page--with-back government-user-resources-page gov-user-page">
+      <section className="government-user-resources-hero">
+        <h1 className="government-user-resources-hero__title">자료실/서식함</h1>
+        <p className="government-user-resources-hero__subtitle">소속 대행사 자료를 다운로드할 수 있습니다.</p>
       </section>
 
-      <section className="claim-inbox__toolbar">
+      <section className="government-user-resources-toolbar">
         <FieldWrapper label="검색">
           <FormInput
             className="gov-form-control"
@@ -93,20 +90,24 @@ export default function GovernmentUserResourcesPage() {
       {!loading && rows.length === 0 ? <EmptyState message="표시할 자료가 없습니다." /> : null}
 
       {!loading && rows.length > 0 ? (
-        <section className="claim-inbox__list-panel">
-          <ul className="claim-inbox__list">
+        <section className="government-user-resources-list">
+          <ul className="government-user-resource-card-list">
             {rows.map((row) => (
               <li key={row.id}>
-                <article className="gov-user-resource-card claim-inbox__list-item">
-                  <div className="claim-inbox__list-item-top">
+                <article className="government-user-resource-card">
+                  <div className="government-user-resource-card__head">
                     <strong>{row.title}</strong>
-                    <span className="claim-inbox__status">{labelForResourceCategory(row.category)}</span>
+                    <span className="government-user-resource-card__badge">
+                      {labelForResourceCategory(row.category)}
+                    </span>
                   </div>
-                  <div className="claim-inbox__list-item-meta">
+                  <div className="government-user-resource-card__meta">
                     {row.fileName} ({formatFileSize(row.fileSize)}) · {formatOpsDate(row.publishedAt ?? row.createdAt)}
                   </div>
-                  {row.description ? <p className="claim-inbox__detail-memo">{row.description}</p> : null}
-                  <div className="claim-inbox__detail-actions">
+                  {row.description ? (
+                    <p className="government-user-resource-card__description">{row.description}</p>
+                  ) : null}
+                  <div className="government-user-resource-card__actions">
                     <FormButton
                       htmlType="button"
                       variant="primary"

@@ -17,15 +17,15 @@ const OPTIONS: { value: HistoryFilter; label: string }[] = [
 
 export function SendSessionHistoryFilters({ value, onChange }: Props) {
   return (
-    <div className="contract-signature-console__filter-row" role="toolbar" aria-label="발송 상태 필터">
+    <div className="gov-signature-history-status-tabs" role="toolbar" aria-label="발송 상태 필터">
       {OPTIONS.map((opt) => (
         <FormButton
           key={opt.value}
           htmlType="button"
           variant="secondary"
           size="sm"
-          className={`contract-signature-console__filter-btn${
-            value === opt.value ? ' contract-signature-console__filter-btn--active' : ''
+          className={`gov-btn gov-btn--sm gov-signature-history-status-tab${
+            value === opt.value ? ' gov-signature-history-status-tab--active' : ''
           }`}
           onClick={() => onChange(opt.value)}
         >

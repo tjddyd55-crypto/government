@@ -497,6 +497,96 @@
   background: #f8fafc;
 }
 
+/* —— 전자서명 발송 내역 toolbar / status tabs —— */
+.government-user-layout--pc-user main.gov-user-signatures-page.contract-signature-history-page .contract-signature-console__container {
+  gap: 16px;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-toolbar__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-toolbar__search {
+  flex: 1 1 240px;
+  max-width: 420px;
+  min-width: 0;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-toolbar__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #64748b;
+  font-size: 0.8125rem;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-toolbar__sort-label {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-status-tab {
+  min-height: 32px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-status-tab--active {
+  background: #fff8d6;
+  border-color: #f2b800;
+  color: #0f172a;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-empty {
+  padding: 20px 24px;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-empty__link {
+  display: inline-block;
+  margin-top: 10px;
+  color: #92400e;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-empty__link:hover {
+  text-decoration: underline;
+}
+
 /* —— 워크스페이스 탭: 신청관리 —— */
 .government-user-layout--pc-user .gov-applications-page {
   width: 100%;

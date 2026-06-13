@@ -114,3 +114,32 @@
 .government-auth-white-theme .status--error {
   color: var(--gov-ui-danger);
 }
+
+/* auth focus — index.css `.auth-page .field input:focus` (brand-primary + shadow) 보다 높은 specificity */
+.government-auth-white-theme.auth-page.government-auth-page .field input.form-input,
+.government-auth-white-theme.auth-page.government-auth-page .field input.gov-form-control,
+.government-auth-white-theme.auth-page.government-auth-page .field select.form-select,
+.government-auth-white-theme.auth-page.government-auth-page .field select.gov-form-control,
+.government-auth-white-theme.auth-page.government-auth-page .field textarea {
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: none;
+  outline: none;
+}
+
+.government-auth-white-theme.auth-page.government-auth-page .field input.form-input:focus,
+.government-auth-white-theme.auth-page.government-auth-page .field input.form-input:focus-visible,
+.government-auth-white-theme.auth-page.government-auth-page .field input.gov-form-control:focus,
+.government-auth-white-theme.auth-page.government-auth-page .field input.gov-form-control:focus-visible,
+.government-auth-white-theme.auth-page.government-auth-page .field select.form-select:focus,
+.government-auth-white-theme.auth-page.government-auth-page .field select.form-select:focus-visible,
+.government-auth-white-theme.auth-page.government-auth-page .field select.gov-form-control:focus,
+.government-auth-white-theme.auth-page.government-auth-page .field select.gov-form-control:focus-visible,
+.government-auth-white-theme.auth-page.government-auth-page .field textarea:focus,
+.government-auth-white-theme.auth-page.government-auth-page .field textarea:focus-visible {
+  outline: none;
+  border-color: #f2b800;
+  box-shadow: none;
+}

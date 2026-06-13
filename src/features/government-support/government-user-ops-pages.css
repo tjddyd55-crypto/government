@@ -1,0 +1,242 @@
+/* —— 정부지원 이용자 공지 / 자료실 (claim-inbox 비의존 화이트 테마) —— */
+
+.government-user-notices-page,
+.government-user-resources-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 18px 20px;
+  box-sizing: border-box;
+  background: #f5f7fb;
+  color: #0f172a;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.government-user-notices-hero,
+.government-user-notices-toolbar,
+.government-user-resources-hero,
+.government-user-resources-toolbar {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: none;
+  color: #0f172a;
+}
+
+.government-user-notices-toolbar,
+.government-user-resources-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.government-user-notices-hero__title,
+.government-user-resources-hero__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: #0f172a;
+}
+
+.government-user-notices-hero__subtitle,
+.government-user-resources-hero__subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.government-user-notices-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.95fr) minmax(0, 1.35fr);
+  gap: 14px;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.government-user-notices-list,
+.government-user-notices-detail {
+  min-width: 0;
+  min-height: 0;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: none;
+  color: #0f172a;
+}
+
+.government-user-notices-card-list,
+.government-user-resource-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.government-user-notices-card {
+  width: 100%;
+  display: block;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #d7dee8;
+  background: #ffffff;
+  color: #0f172a;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.government-user-notices-card:hover,
+.government-user-notices-card--selected {
+  background: #fffdf0;
+  border-color: #f2b800;
+}
+
+.government-user-notices-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.government-user-notices-card__title-row strong {
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  color: #0f172a;
+}
+
+.government-user-notices-card__meta,
+.government-user-notices-detail-card__meta,
+.government-user-resource-card__meta {
+  margin-top: 5px;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.government-user-notices-detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.government-user-notices-detail-card__title {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.government-user-notices-detail-card__body {
+  padding: 16px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.government-user-resources-list {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.government-user-resource-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: #0f172a;
+  box-shadow: none;
+}
+
+.government-user-resource-card-list {
+  gap: 12px;
+}
+
+.government-user-resource-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.government-user-resource-card__head strong {
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #0f172a;
+}
+
+.government-user-resource-card__badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #fff8d6;
+  border: 1px solid #f2b800;
+  color: #92400e;
+}
+
+.government-user-resource-card__description {
+  margin: 10px 0 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.government-user-resource-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.government-ops-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 4px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: #fff8d6;
+  border: 1px solid #f2b800;
+  color: #92400e;
+}
+
+@media (max-width: 900px) {
+  .government-user-notices-layout {
+    grid-template-columns: 1fr;
+  }
+}
