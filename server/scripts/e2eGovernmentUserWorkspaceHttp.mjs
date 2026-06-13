@@ -458,7 +458,11 @@ async function main() {
   } else {
     pass('profile files tab bundle has no document category placeholder')
   }
-  for (const m of ['address-search-field--gov', 'parseAddressFromSave', 'formatAddressForSave']) {
+  for (const m of [
+    'address-search-field--gov',
+    'government-address-field__search',
+    '상세주소를 입력하세요 (선택)',
+  ]) {
     if (basicTabSpa.js.includes(m)) pass(`profile basic tab bundle contains ${m}`)
     else fail(`profile basic tab bundle contains ${m}`)
   }
