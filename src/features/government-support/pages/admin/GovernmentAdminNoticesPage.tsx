@@ -22,7 +22,10 @@ import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import { useGovernmentAdminTextSearch } from '../../hooks/useGovernmentAdminTextSearch'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import GovernmentAdminSearchField from '../../components/GovernmentAdminSearchField'
+import GovernmentAdminOperationalScopeFields from '../../components/GovernmentAdminOperationalScopeFields'
+import GovernmentAdminModalFooter from '../../components/GovernmentAdminModalFooter'
 import { mapGovernmentAdminApiError } from '../../lib/mapGovernmentAdminApiError'
+import { labelForOperationalScope, resolveOperationalScopePayload } from '../../lib/governmentOperationalScope'
 import { canManageGovernmentUsers } from '../../lib/governmentAccess'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 
@@ -51,6 +54,7 @@ export default function GovernmentAdminNoticesPage() {
   const { summary } = useGovernmentAccess(token)
   const { confirm, confirmDialog } = useConfirmDialog()
   const isIndustryAdmin = Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
+  const canPickScope = isIndustryAdmin
   const isAgencyAdmin = canManageGovernmentUsers(summary)
   const defaultTenantId =
     summary?.governmentAgencyAdminTenantIds[0] ??
@@ -70,10 +74,13 @@ export default function GovernmentAdminNoticesPage() {
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
-  const agencyOptions = useMemo(
-    () => agencies.map((a) => ({ value: a.id, label: `${a.name} (${a.agencyCode})` })),
-    [agencies],
-  )
+  const agencyFormOptions = useMemo(() => {
+    const base = agencies.map((a) => ({ value: a.id, label: `${a.name} (${a.agencyCode})` }))
+    if (canPickScope) {
+      return [{ value: '', label: '대행사 선택' }, ...base]
+    }
+    return base
+  }, [agencies, canPickScope])
 
   const load = useCallback(async () => {
     if (!token) return
@@ -96,9 +103,9 @@ export default function GovernmentAdminNoticesPage() {
   }, [token, filterStatus, filterCategory, textSearch.query])
 
   useEffect(() => {
-    if (!token || !isAgencyAdmin) return
+    if (!token || (!isIndustryAdmin && !isAgencyAdmin)) return
     void fetchGovAgencies(token).then(setAgencies).catch(() => setAgencies([]))
-  }, [token, isAgencyAdmin])
+  }, [token, isIndustryAdmin, isAgencyAdmin])
 
   useEffect(() => {
     void load()
@@ -106,7 +113,11 @@ export default function GovernmentAdminNoticesPage() {
 
   const openCreate = () => {
     setEditingId(null)
-    setForm({ ...EMPTY_FORM, tenantId: defaultTenantId })
+    setForm({
+      ...EMPTY_FORM,
+      scopeType: canPickScope ? 'global' : 'agency',
+      tenantId: defaultTenantId,
+    })
     setFormError(null)
     setEditorOpen(true)
   }
@@ -131,13 +142,14 @@ export default function GovernmentAdminNoticesPage() {
     setSaving(true)
     setFormError(null)
     try {
+      const scope = resolveOperationalScopePayload(form, { canPickScope, defaultTenantId })
       const body = {
         title: form.title.trim(),
         content: form.content,
         category: form.category,
         status: form.status,
-        scopeType: isIndustryAdmin ? 'global' : 'agency',
-        tenantId: isIndustryAdmin ? undefined : form.tenantId || defaultTenantId,
+        scopeType: scope.scopeType,
+        tenantId: scope.tenantId,
         isPinned: form.isPinned,
       }
       if (editingId) {
@@ -148,7 +160,7 @@ export default function GovernmentAdminNoticesPage() {
       setEditorOpen(false)
       await load()
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : '저장에 실패했습니다.')
+      setFormError(mapGovernmentAdminApiError(e, '저장에 실패했습니다.'))
     } finally {
       setSaving(false)
     }
@@ -166,6 +178,12 @@ export default function GovernmentAdminNoticesPage() {
     await load()
   }
 
+  const resetFilters = () => {
+    textSearch.reset()
+    setFilterCategory('')
+    setFilterStatus('')
+  }
+
   return (
     <GovernmentAdminPageShell
       title="공지/전달사항"
@@ -176,36 +194,51 @@ export default function GovernmentAdminNoticesPage() {
       }
       testId="government-admin-notices-page"
       toolbar={
-        <>
-          <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" onClick={openCreate}>
-            공지 작성
-          </FormButton>
-          <GovernmentAdminSearchField
-            draft={textSearch.draft}
-            onDraftChange={textSearch.setDraft}
-            onApply={textSearch.apply}
-            onReset={textSearch.reset}
-            onKeyDown={textSearch.onKeyDown}
-            placeholder="제목·내용"
-            disabled={loading}
-          />
-          <FieldWrapper label="구분">
-            <FormSelect
-              className="gov-form-control"
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              options={[{ value: '', label: '전체' }, ...GOVERNMENT_NOTICE_CATEGORIES]}
+        <div className="government-admin-toolbar">
+          <div className="government-admin-toolbar__actions">
+            <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" onClick={openCreate}>
+              공지 작성
+            </FormButton>
+          </div>
+          <div className="government-admin-toolbar__filters">
+            <GovernmentAdminSearchField
+              draft={textSearch.draft}
+              onDraftChange={textSearch.setDraft}
+              onApply={textSearch.apply}
+              onReset={textSearch.reset}
+              onKeyDown={textSearch.onKeyDown}
+              placeholder="제목·내용"
+              disabled={loading}
             />
-          </FieldWrapper>
-          <FieldWrapper label="상태">
-            <FormSelect
-              className="gov-form-control"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              options={[{ value: '', label: '전체' }, ...GOVERNMENT_NOTICE_STATUSES]}
-            />
-          </FieldWrapper>
-        </>
+            <FieldWrapper label="구분" className="government-admin-toolbar__field">
+              <FormSelect
+                className="gov-form-control"
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                options={[{ value: '', label: '전체' }, ...GOVERNMENT_NOTICE_CATEGORIES]}
+                disabled={loading}
+              />
+            </FieldWrapper>
+            <FieldWrapper label="상태" className="government-admin-toolbar__field">
+              <FormSelect
+                className="gov-form-control"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                options={[{ value: '', label: '전체' }, ...GOVERNMENT_NOTICE_STATUSES]}
+                disabled={loading}
+              />
+            </FieldWrapper>
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              className="gov-btn gov-btn--secondary"
+              onClick={resetFilters}
+              disabled={loading}
+            >
+              초기화
+            </FormButton>
+          </div>
+        </div>
       }
     >
       {error ? (
@@ -225,7 +258,7 @@ export default function GovernmentAdminNoticesPage() {
                 <th>제목</th>
                 <th>구분</th>
                 <th>상태</th>
-                <th>대행사</th>
+                <th>범위</th>
                 <th>작성자</th>
                 <th>등록일</th>
                 <th className="admin-table-cell--actions">관리</th>
@@ -239,16 +272,16 @@ export default function GovernmentAdminNoticesPage() {
                   </td>
                   <td>{labelForNoticeCategory(row.category)}</td>
                   <td>{labelForStatus(row.status)}</td>
-                  <td>{row.tenantName || '—'}</td>
+                  <td>{labelForOperationalScope(row)}</td>
                   <td>{row.createdByDisplayName || '—'}</td>
                   <td>{formatOpsDate(row.publishedAt ?? row.createdAt)}</td>
                   <td className="admin-table-cell--actions">
                     <div className="admin-table-actions">
-                      <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => openEdit(row)}>
+                      <FormButton htmlType="button" variant="secondary" className="gov-btn gov-btn--secondary gov-btn--sm" onClick={() => openEdit(row)}>
                         수정
                       </FormButton>
                       {row.status !== 'archived' ? (
-                        <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => void handleArchive(row)}>
+                        <FormButton htmlType="button" variant="danger" className="gov-btn gov-btn--danger gov-btn--sm" onClick={() => void handleArchive(row)}>
                           보관
                         </FormButton>
                       ) : null}
@@ -278,15 +311,19 @@ export default function GovernmentAdminNoticesPage() {
                   <span className="admin-user-card__value">{labelForStatus(row.status)}</span>
                 </div>
                 <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">범위</span>
+                  <span className="admin-user-card__value">{labelForOperationalScope(row)}</span>
+                </div>
+                <div className="admin-user-card__row">
                   <span className="admin-user-card__label">등록일</span>
                   <span className="admin-user-card__value">{formatOpsDate(row.publishedAt ?? row.createdAt)}</span>
                 </div>
                 <div className="admin-user-card__actions">
-                  <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => openEdit(row)}>
+                  <FormButton htmlType="button" variant="secondary" className="gov-btn gov-btn--secondary gov-btn--sm" onClick={() => openEdit(row)}>
                     수정
                   </FormButton>
                   {row.status !== 'archived' ? (
-                    <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => void handleArchive(row)}>
+                    <FormButton htmlType="button" variant="danger" className="gov-btn gov-btn--danger gov-btn--sm" onClick={() => void handleArchive(row)}>
                       보관
                     </FormButton>
                   ) : null}
@@ -304,18 +341,31 @@ export default function GovernmentAdminNoticesPage() {
         closeOnBackdrop={false}
         closeOnEsc={!saving}
         panelPreset="largeForm"
+        panelClassName="government-admin-modal-panel"
+        overlayClassName="government-admin-modal-backdrop"
       >
         <StatusMessage message={formError} tone="error" className="m-0 mb-3" />
-        <div className="government-ops-form-grid">
+        <div className="government-ops-form-grid government-admin-modal-body">
           <FieldWrapper label="제목">
             <FormInput
+              className="gov-form-control"
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               placeholder="공지 제목"
             />
           </FieldWrapper>
+          <GovernmentAdminOperationalScopeFields
+            canPickScope={canPickScope}
+            scopeType={form.scopeType}
+            tenantId={form.tenantId}
+            agencyOptions={agencyFormOptions}
+            onScopeTypeChange={(value) => setForm((f) => ({ ...f, scopeType: value, tenantId: value === 'global' ? '' : f.tenantId }))}
+            onTenantIdChange={(value) => setForm((f) => ({ ...f, tenantId: value }))}
+            disabled={saving}
+          />
           <FieldWrapper label="구분">
             <FormSelect
+              className="gov-form-control"
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
               options={[...GOVERNMENT_NOTICE_CATEGORIES]}
@@ -323,22 +373,15 @@ export default function GovernmentAdminNoticesPage() {
           </FieldWrapper>
           <FieldWrapper label="상태">
             <FormSelect
+              className="gov-form-control"
               value={form.status}
               onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
               options={[...GOVERNMENT_NOTICE_STATUSES]}
             />
           </FieldWrapper>
-          {isAgencyAdmin && agencyOptions.length > 1 ? (
-            <FieldWrapper label="대행사">
-              <FormSelect
-                value={form.tenantId}
-                onChange={(e) => setForm((f) => ({ ...f, tenantId: e.target.value }))}
-                options={agencyOptions}
-              />
-            </FieldWrapper>
-          ) : null}
           <FieldWrapper label="중요 공지">
             <FormSelect
+              className="gov-form-control"
               value={form.isPinned ? 'yes' : 'no'}
               onChange={(e) => setForm((f) => ({ ...f, isPinned: e.target.value === 'yes' }))}
               options={[
@@ -349,6 +392,7 @@ export default function GovernmentAdminNoticesPage() {
           </FieldWrapper>
           <FieldWrapper label="내용" className="government-ops-form-grid__full">
             <FormTextarea
+              className="gov-form-control"
               value={form.content}
               onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
               rows={8}
@@ -356,14 +400,14 @@ export default function GovernmentAdminNoticesPage() {
             />
           </FieldWrapper>
         </div>
-        <div className="government-admin-users-page__dialog-actions">
-          <FormButton htmlType="button" variant="secondary" onClick={() => setEditorOpen(false)} disabled={saving}>
+        <GovernmentAdminModalFooter>
+          <FormButton htmlType="button" variant="secondary" className="gov-btn gov-btn--secondary" onClick={() => setEditorOpen(false)} disabled={saving}>
             취소
           </FormButton>
-          <FormButton htmlType="button" variant="primary" onClick={() => void submit()} disabled={saving}>
+          <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" onClick={() => void submit()} disabled={saving} loading={saving} loadingText="저장 중…">
             저장
           </FormButton>
-        </div>
+        </GovernmentAdminModalFooter>
       </FormDialog>
       {confirmDialog}
     </GovernmentAdminPageShell>

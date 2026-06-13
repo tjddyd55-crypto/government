@@ -152,8 +152,9 @@ export default function GovernmentAdminInquiriesBody({ variant, ...p }: Props) {
   }
 
   return (
-    <main
-      className={`page page--with-back claim-inbox content-wrapper government-admin-inquiries-page government-admin-inquiries-page--${variant}`}
+    <div
+      className={`government-admin-page claim-inbox government-admin-inquiries-page government-admin-inquiries-page--${variant}`}
+      data-testid="government-admin-inquiries-page"
     >
       <StatusMessage message={p.error} tone="error" />
       <StatusMessage message={p.notice} tone="success" />
@@ -163,7 +164,7 @@ export default function GovernmentAdminInquiriesBody({ variant, ...p }: Props) {
           <h1 className="claim-inbox__title">문의 관리</h1>
           <p className="claim-inbox__subtitle">프로그램 이용자가 남긴 문의를 확인하고 답변합니다.</p>
         </div>
-        <FormButton htmlType="button" variant="secondary" onClick={() => void p.loadRows()} loading={p.loading}>
+        <FormButton htmlType="button" variant="secondary" className="gov-btn gov-btn--secondary" onClick={() => void p.loadRows()} loading={p.loading}>
           새로고침
         </FormButton>
       </section>
@@ -230,6 +231,6 @@ export default function GovernmentAdminInquiriesBody({ variant, ...p }: Props) {
           <div className="claim-inbox__mobile-modal-body">{renderDetail()}</div>
         </div>
       ) : null}
-    </main>
+    </div>
   )
 }

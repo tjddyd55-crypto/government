@@ -147,6 +147,7 @@ import GovernmentAdminProgramUsersPage from './features/government-support/pages
 import GovernmentAdminProgramUserDetailPage from './features/government-support/pages/admin/GovernmentAdminProgramUserDetailPage'
 import GovernmentAdminNoticesPage from './features/government-support/pages/admin/GovernmentAdminNoticesPage'
 import GovernmentAdminResourcesPage from './features/government-support/pages/admin/GovernmentAdminResourcesPage'
+import GovernmentAdminSettingsPage from './features/government-support/pages/admin/GovernmentAdminSettingsPage'
 import GovernmentUserNoticesPage from './features/government-support/pages/GovernmentUserNoticesPage'
 import GovernmentUserResourcesPage from './features/government-support/pages/GovernmentUserResourcesPage'
 import GovernmentPlaceholderPage from './features/government-support/components/GovernmentPlaceholderPage'
@@ -265,16 +266,7 @@ export const appRouter = createBrowserRouter([
                         path: 'government/admin/memberships',
                         element: <Navigate to="/government/admin" replace />,
                       },
-                      {
-                        path: 'government/admin/settings',
-                        element: (
-                          <GovernmentPlaceholderPage
-                            title="설정"
-                            description="정부지원 CRM 설정 (준비 중)"
-                            backTo="/government/admin"
-                          />
-                        ),
-                      },
+                      { path: 'government/admin/settings', element: <GovernmentAdminSettingsPage /> },
                       {
                         path: 'government/admin/templates',
                         element: (

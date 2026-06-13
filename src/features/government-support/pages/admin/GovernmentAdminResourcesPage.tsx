@@ -25,7 +25,10 @@ import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import { useGovernmentAdminTextSearch } from '../../hooks/useGovernmentAdminTextSearch'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import GovernmentAdminSearchField from '../../components/GovernmentAdminSearchField'
+import GovernmentAdminOperationalScopeFields from '../../components/GovernmentAdminOperationalScopeFields'
+import GovernmentAdminModalFooter from '../../components/GovernmentAdminModalFooter'
 import { mapGovernmentAdminApiError } from '../../lib/mapGovernmentAdminApiError'
+import { labelForOperationalScope, resolveOperationalScopePayload } from '../../lib/governmentOperationalScope'
 import { canManageGovernmentUsers } from '../../lib/governmentAccess'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 
@@ -54,6 +57,7 @@ export default function GovernmentAdminResourcesPage() {
   const { summary } = useGovernmentAccess(token)
   const { confirm, confirmDialog } = useConfirmDialog()
   const isIndustryAdmin = Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
+  const canPickScope = isIndustryAdmin
   const isAgencyAdmin = canManageGovernmentUsers(summary)
   const defaultTenantId =
     summary?.governmentAgencyAdminTenantIds[0] ??
@@ -73,10 +77,13 @@ export default function GovernmentAdminResourcesPage() {
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
-  const agencyOptions = useMemo(
-    () => agencies.map((a) => ({ value: a.id, label: `${a.name} (${a.agencyCode})` })),
-    [agencies],
-  )
+  const agencyFormOptions = useMemo(() => {
+    const base = agencies.map((a) => ({ value: a.id, label: `${a.name} (${a.agencyCode})` }))
+    if (canPickScope) {
+      return [{ value: '', label: '대행사 선택' }, ...base]
+    }
+    return base
+  }, [agencies, canPickScope])
 
   const load = useCallback(async () => {
     if (!token) return
@@ -99,9 +106,9 @@ export default function GovernmentAdminResourcesPage() {
   }, [token, filterStatus, filterCategory, textSearch.query])
 
   useEffect(() => {
-    if (!token || !isAgencyAdmin) return
+    if (!token || (!isIndustryAdmin && !isAgencyAdmin)) return
     void fetchGovAgencies(token).then(setAgencies).catch(() => setAgencies([]))
-  }, [token, isAgencyAdmin])
+  }, [token, isIndustryAdmin, isAgencyAdmin])
 
   useEffect(() => {
     void load()
@@ -109,7 +116,11 @@ export default function GovernmentAdminResourcesPage() {
 
   const openCreate = () => {
     setEditing(null)
-    setForm({ ...EMPTY_FORM, tenantId: defaultTenantId })
+    setForm({
+      ...EMPTY_FORM,
+      scopeType: canPickScope ? 'global' : 'agency',
+      tenantId: defaultTenantId,
+    })
     setFormError(null)
     setEditorOpen(true)
   }
@@ -134,13 +145,14 @@ export default function GovernmentAdminResourcesPage() {
     setSaving(true)
     setFormError(null)
     try {
+      const scope = resolveOperationalScopePayload(form, { canPickScope, defaultTenantId })
       const meta = {
         title: form.title.trim(),
         description: form.description,
         category: form.category,
         status: form.status,
-        scopeType: isIndustryAdmin ? 'global' : 'agency',
-        tenantId: isIndustryAdmin ? undefined : form.tenantId || defaultTenantId,
+        scopeType: scope.scopeType,
+        tenantId: scope.tenantId,
       }
       if (editing && !form.file) {
         await updateGovernmentResource(token, editing.id, meta)
@@ -176,7 +188,7 @@ export default function GovernmentAdminResourcesPage() {
       setEditorOpen(false)
       await load()
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : '저장에 실패했습니다.')
+      setFormError(mapGovernmentAdminApiError(e, '저장에 실패했습니다.'))
     } finally {
       setSaving(false)
     }
@@ -194,6 +206,12 @@ export default function GovernmentAdminResourcesPage() {
     await load()
   }
 
+  const resetFilters = () => {
+    textSearch.reset()
+    setFilterCategory('')
+    setFilterStatus('')
+  }
+
   return (
     <GovernmentAdminPageShell
       title="자료실/서식함"
@@ -204,36 +222,51 @@ export default function GovernmentAdminResourcesPage() {
       }
       testId="government-admin-resources-page"
       toolbar={
-        <>
-          <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" onClick={openCreate}>
-            자료 등록
-          </FormButton>
-          <GovernmentAdminSearchField
-            draft={textSearch.draft}
-            onDraftChange={textSearch.setDraft}
-            onApply={textSearch.apply}
-            onReset={textSearch.reset}
-            onKeyDown={textSearch.onKeyDown}
-            placeholder="제목·설명"
-            disabled={loading}
-          />
-          <FieldWrapper label="카테고리">
-            <FormSelect
-              className="gov-form-control"
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_CATEGORIES]}
+        <div className="government-admin-toolbar">
+          <div className="government-admin-toolbar__actions">
+            <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" onClick={openCreate}>
+              자료 등록
+            </FormButton>
+          </div>
+          <div className="government-admin-toolbar__filters">
+            <GovernmentAdminSearchField
+              draft={textSearch.draft}
+              onDraftChange={textSearch.setDraft}
+              onApply={textSearch.apply}
+              onReset={textSearch.reset}
+              onKeyDown={textSearch.onKeyDown}
+              placeholder="제목·설명"
+              disabled={loading}
             />
-          </FieldWrapper>
-          <FieldWrapper label="상태">
-            <FormSelect
-              className="gov-form-control"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_STATUSES]}
-            />
-          </FieldWrapper>
-        </>
+            <FieldWrapper label="카테고리" className="government-admin-toolbar__field">
+              <FormSelect
+                className="gov-form-control"
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_CATEGORIES]}
+                disabled={loading}
+              />
+            </FieldWrapper>
+            <FieldWrapper label="상태" className="government-admin-toolbar__field">
+              <FormSelect
+                className="gov-form-control"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_STATUSES]}
+                disabled={loading}
+              />
+            </FieldWrapper>
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              className="gov-btn gov-btn--secondary"
+              onClick={resetFilters}
+              disabled={loading}
+            >
+              초기화
+            </FormButton>
+          </div>
+        </div>
       }
     >
       {error ? (
@@ -251,6 +284,7 @@ export default function GovernmentAdminResourcesPage() {
             <thead>
               <tr>
                 <th>제목</th>
+                <th>범위</th>
                 <th>카테고리</th>
                 <th>파일</th>
                 <th>상태</th>
@@ -262,6 +296,7 @@ export default function GovernmentAdminResourcesPage() {
               {rows.map((row) => (
                 <tr key={row.id}>
                   <td>{row.title}</td>
+                  <td>{labelForOperationalScope(row)}</td>
                   <td>{labelForResourceCategory(row.category)}</td>
                   <td>
                     {row.fileName} ({formatFileSize(row.fileSize)})
@@ -274,17 +309,17 @@ export default function GovernmentAdminResourcesPage() {
                         <FormButton
                           htmlType="button"
                           variant="secondary"
-                          className="button button--secondary"
+                          className="gov-btn gov-btn--secondary gov-btn--sm"
                           onClick={() => void downloadGovernmentResource(token!, row.id)}
                         >
                           다운로드
                         </FormButton>
                       ) : null}
-                      <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => openEdit(row)}>
+                      <FormButton htmlType="button" variant="secondary" className="gov-btn gov-btn--secondary gov-btn--sm" onClick={() => openEdit(row)}>
                         수정
                       </FormButton>
                       {row.status !== 'archived' ? (
-                        <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => void handleArchive(row)}>
+                        <FormButton htmlType="button" variant="danger" className="gov-btn gov-btn--danger gov-btn--sm" onClick={() => void handleArchive(row)}>
                           보관
                         </FormButton>
                       ) : null}
@@ -302,6 +337,10 @@ export default function GovernmentAdminResourcesPage() {
                 <div className="admin-user-card__row">
                   <span className="admin-user-card__label">제목</span>
                   <span className="admin-user-card__value">{row.title}</span>
+                </div>
+                <div className="admin-user-card__row">
+                  <span className="admin-user-card__label">범위</span>
+                  <span className="admin-user-card__value">{labelForOperationalScope(row)}</span>
                 </div>
                 <div className="admin-user-card__row">
                   <span className="admin-user-card__label">카테고리</span>
@@ -322,17 +361,17 @@ export default function GovernmentAdminResourcesPage() {
                     <FormButton
                       htmlType="button"
                       variant="secondary"
-                      className="button button--secondary"
+                      className="gov-btn gov-btn--secondary gov-btn--sm"
                       onClick={() => void downloadGovernmentResource(token!, row.id)}
                     >
                       다운로드
                     </FormButton>
                   ) : null}
-                  <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => openEdit(row)}>
+                  <FormButton htmlType="button" variant="secondary" className="gov-btn gov-btn--secondary gov-btn--sm" onClick={() => openEdit(row)}>
                     수정
                   </FormButton>
                   {row.status !== 'archived' ? (
-                    <FormButton htmlType="button" variant="secondary" className="button button--secondary" onClick={() => void handleArchive(row)}>
+                    <FormButton htmlType="button" variant="danger" className="gov-btn gov-btn--danger gov-btn--sm" onClick={() => void handleArchive(row)}>
                       보관
                     </FormButton>
                   ) : null}
@@ -350,18 +389,31 @@ export default function GovernmentAdminResourcesPage() {
         closeOnBackdrop={false}
         closeOnEsc={!saving}
         panelPreset="largeForm"
+        panelClassName="government-admin-modal-panel"
+        overlayClassName="government-admin-modal-backdrop"
       >
         <StatusMessage message={formError} tone="error" className="m-0 mb-3" />
-        <div className="government-ops-form-grid">
+        <div className="government-ops-form-grid government-admin-modal-body">
           <FieldWrapper label="제목">
             <FormInput
+              className="gov-form-control"
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               placeholder="자료 제목"
             />
           </FieldWrapper>
+          <GovernmentAdminOperationalScopeFields
+            canPickScope={canPickScope}
+            scopeType={form.scopeType}
+            tenantId={form.tenantId}
+            agencyOptions={agencyFormOptions}
+            onScopeTypeChange={(value) => setForm((f) => ({ ...f, scopeType: value, tenantId: value === 'global' ? '' : f.tenantId }))}
+            onTenantIdChange={(value) => setForm((f) => ({ ...f, tenantId: value }))}
+            disabled={saving}
+          />
           <FieldWrapper label="카테고리">
             <FormSelect
+              className="gov-form-control"
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
               options={[...GOVERNMENT_RESOURCE_CATEGORIES]}
@@ -369,33 +421,27 @@ export default function GovernmentAdminResourcesPage() {
           </FieldWrapper>
           <FieldWrapper label="상태">
             <FormSelect
+              className="gov-form-control"
               value={form.status}
               onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
               options={[...GOVERNMENT_RESOURCE_STATUSES]}
             />
           </FieldWrapper>
-          {isAgencyAdmin && agencyOptions.length > 1 ? (
-            <FieldWrapper label="대행사">
-              <FormSelect
-                value={form.tenantId}
-                onChange={(e) => setForm((f) => ({ ...f, tenantId: e.target.value }))}
-                options={agencyOptions}
-              />
-            </FieldWrapper>
-          ) : null}
           <FieldWrapper label="파일" className="government-ops-form-grid__full">
             <input
+              className="gov-form-control"
               type="file"
               accept=".pdf,.doc,.docx,.xls,.xlsx,.hwp,.zip,.png,.jpg,.jpeg,.webp"
               onChange={(e) => setForm((f) => ({ ...f, file: e.target.files?.[0] ?? null }))}
               aria-label="자료 파일"
             />
             {editing?.fileName ? (
-              <p className="government-page__muted">현재 파일: {editing.fileName}</p>
+              <p className="government-admin-page__muted">현재 파일: {editing.fileName}</p>
             ) : null}
           </FieldWrapper>
           <FieldWrapper label="설명" className="government-ops-form-grid__full">
             <FormTextarea
+              className="gov-form-control"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={4}
@@ -403,14 +449,14 @@ export default function GovernmentAdminResourcesPage() {
             />
           </FieldWrapper>
         </div>
-        <div className="government-admin-users-page__dialog-actions">
-          <FormButton htmlType="button" variant="secondary" onClick={() => setEditorOpen(false)} disabled={saving}>
+        <GovernmentAdminModalFooter>
+          <FormButton htmlType="button" variant="secondary" className="gov-btn gov-btn--secondary" onClick={() => setEditorOpen(false)} disabled={saving}>
             취소
           </FormButton>
-          <FormButton htmlType="button" variant="primary" onClick={() => void submit()} disabled={saving}>
+          <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" onClick={() => void submit()} disabled={saving} loading={saving} loadingText="저장 중…">
             저장
           </FormButton>
-        </div>
+        </GovernmentAdminModalFooter>
       </FormDialog>
       {confirmDialog}
     </GovernmentAdminPageShell>

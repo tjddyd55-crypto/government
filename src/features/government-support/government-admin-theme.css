@@ -654,3 +654,210 @@
   border-radius: 14px;
   color: #0f172a;
 }
+
+/* —— admin toolbar / modal / full-width / claim-inbox white polish —— */
+
+.government-admin-white-theme .government-admin-pc-page,
+.government-admin-white-theme .government-admin-layout__content,
+.government-admin-white-theme .government-workspace-chrome__content,
+.government-admin-white-theme .government-admin-page {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.government-admin-white-theme .government-admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.government-admin-white-theme .government-admin-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.government-admin-white-theme .government-admin-toolbar__filters {
+  display: flex;
+  flex: 1 1 420px;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.government-admin-white-theme .government-admin-toolbar__field {
+  min-width: 140px;
+}
+
+.government-admin-white-theme .government-admin-empty-card {
+  padding: 20px 24px;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  color: #64748b;
+  font-size: 0.9375rem;
+}
+
+.government-admin-white-theme .government-admin-modal-panel.customer-ui-modal-panel {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  color: #0f172a;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.government-admin-white-theme .government-admin-modal-panel h2 {
+  margin: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #0f172a;
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.government-admin-white-theme .government-admin-modal-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  max-height: min(62vh, 720px);
+}
+
+.government-admin-white-theme .government-admin-modal-panel > .mt-4 {
+  margin-top: 0;
+}
+
+.government-admin-white-theme .government-admin-modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.government-admin-white-theme .admin-data-table tbody tr:hover td {
+  background: #fffdf0;
+}
+
+.government-admin-white-theme .admin-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.government-admin-white-theme .claim-inbox.government-admin-page,
+.government-admin-white-theme .claim-inbox.content-wrapper,
+.government-admin-white-theme .government-admin-document-requests-page,
+.government-admin-white-theme .government-admin-inquiries-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 24px;
+  box-sizing: border-box;
+  background: transparent;
+  color: #0f172a;
+}
+
+.government-admin-white-theme .claim-inbox__summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.government-admin-white-theme .claim-inbox__summary-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  box-shadow: none;
+  color: #0f172a;
+}
+
+.government-admin-white-theme .claim-inbox__summary-card span {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.government-admin-white-theme .claim-inbox__summary-card strong {
+  color: #0f172a;
+}
+
+.government-admin-white-theme .claim-inbox__summary-card--requested strong {
+  color: #ca8a04;
+}
+
+.government-admin-white-theme .claim-inbox__summary-card--processing strong {
+  color: #2563eb;
+}
+
+.government-admin-white-theme .claim-inbox__summary-card--done strong {
+  color: #16a34a;
+}
+
+.government-admin-white-theme .claim-inbox__hero,
+.government-admin-white-theme .claim-inbox__toolbar,
+.government-admin-white-theme .claim-inbox__list-panel,
+.government-admin-white-theme .claim-inbox__detail-panel,
+.government-admin-white-theme .claim-inbox__detail-section {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  box-shadow: none;
+  color: #0f172a;
+}
+
+.government-admin-white-theme .claim-inbox__title {
+  color: #0f172a;
+}
+
+.government-admin-white-theme .claim-inbox__subtitle,
+.government-admin-white-theme .claim-inbox__list-item-meta,
+.government-admin-white-theme .claim-inbox__detail-meta,
+.government-admin-white-theme .claim-inbox__file-meta {
+  color: #64748b;
+}
+
+.government-admin-white-theme .claim-inbox__list-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+.government-admin-white-theme .claim-inbox__list-item--active {
+  background: #fff9db;
+  border-color: #f2b800;
+}
+
+.government-admin-white-theme .claim-inbox__empty {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  color: #64748b;
+  padding: 16px;
+}
+
+.government-admin-white-theme .claim-inbox__mobile-modal {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+@media (max-width: 768px) {
+  .government-admin-white-theme .government-admin-toolbar__filters {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .government-admin-white-theme .government-admin-toolbar__actions,
+  .government-admin-white-theme .government-admin-toolbar__actions .gov-btn {
+    width: 100%;
+  }
+
+  .government-admin-white-theme .claim-inbox__summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

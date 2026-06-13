@@ -124,8 +124,9 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
   }
 
   return (
-    <main
-      className={`page page--with-back claim-inbox content-wrapper government-admin-document-requests-page government-admin-document-requests-page--${variant}`}
+    <div
+      className={`government-admin-page claim-inbox government-admin-document-requests-page government-admin-document-requests-page--${variant}`}
+      data-testid="government-admin-document-requests-page"
     >
       <StatusMessage message={p.error} tone="error" />
       <StatusMessage message={p.notice} tone="success" />
@@ -136,10 +137,10 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
           <p className="claim-inbox__subtitle">이용자에게 요청서류를 발송하고 제출 여부를 확인합니다.</p>
         </div>
         <div className="claim-inbox__detail-actions">
-          <FormButton htmlType="button" variant="primary" onClick={() => p.setComposeOpen((v) => !v)}>
+          <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" onClick={() => p.setComposeOpen((v) => !v)}>
             {p.composeOpen ? '발송 닫기' : '요청서류 발송'}
           </FormButton>
-          <FormButton htmlType="button" variant="secondary" onClick={() => void p.loadRows()} loading={p.loading}>
+          <FormButton htmlType="button" variant="secondary" className="gov-btn gov-btn--secondary" onClick={() => void p.loadRows()} loading={p.loading}>
             새로고침
           </FormButton>
         </div>
@@ -287,6 +288,6 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
           <div className="claim-inbox__mobile-modal-body">{renderDetail()}</div>
         </div>
       ) : null}
-    </main>
+    </div>
   )
 }
