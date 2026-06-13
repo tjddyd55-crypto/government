@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EmptyState, LoadingState } from '../../../../components/feedback'
-import { FieldWrapper, FormInput, FormSelect } from '../../../../components/form'
+import { FieldWrapper, FormButton, FormInput, FormSelect } from '../../../../components/form'
 import { useAuth } from '../../../auth/AuthProvider'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import GovernmentAdminSearchField from '../../components/GovernmentAdminSearchField'
@@ -126,6 +126,12 @@ export default function GovernmentAdminProgramUsersPage() {
     void loadUsers()
   }, [loadUsers])
 
+  const resetFilters = () => {
+    setFilterTenant('')
+    setFilterStatus('')
+    textSearch.reset()
+  }
+
   return (
     <GovernmentAdminPageShell
       managementKind="user"
@@ -133,40 +139,50 @@ export default function GovernmentAdminProgramUsersPage() {
       description="기관 코드로 가입한 프로그램 이용자 계정·상태만 확인합니다. 사업장·신청 데이터는 이용자 본인 워크스페이스에서 관리합니다."
       testId="government-admin-page"
       toolbar={
-        <>
-          <GovernmentAdminSearchField
-            draft={textSearch.draft}
-            onDraftChange={textSearch.setDraft}
-            onApply={textSearch.apply}
-            onReset={textSearch.reset}
-            onKeyDown={textSearch.onKeyDown}
-            placeholder="아이디·이름"
-            disabled={loading}
-            testId="government-admin-user-search"
-          />
-          <FieldWrapper label="대행사 선택" className="admin-modal-field admin-user-management__filter-field">
-            <FormSelect
-              className="gov-form-control admin-form-input"
-              value={filterTenant}
-              onChange={(e) => setFilterTenant(e.target.value)}
-              options={tenantFilterOptions}
+        <div className="government-admin-toolbar">
+          <div className="government-admin-toolbar__filters">
+            <GovernmentAdminSearchField
+              draft={textSearch.draft}
+              onDraftChange={textSearch.setDraft}
+              onApply={textSearch.apply}
+              onReset={textSearch.reset}
+              onKeyDown={textSearch.onKeyDown}
+              placeholder="아이디·이름"
               disabled={loading}
-              aria-busy={loading}
-              aria-label="대행사 선택"
+              testId="government-admin-user-search"
             />
-          </FieldWrapper>
-          <FieldWrapper label="상태" className="admin-modal-field admin-user-management__filter-field">
-            <FormSelect
-              className="gov-form-control admin-form-input"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              options={STATUS_FILTER_OPTIONS}
+            <FieldWrapper label="대행사 선택" className="government-admin-toolbar__field">
+              <FormSelect
+                className="gov-form-control"
+                value={filterTenant}
+                onChange={(e) => setFilterTenant(e.target.value)}
+                options={tenantFilterOptions}
+                disabled={loading}
+                aria-busy={loading}
+                aria-label="대행사 선택"
+              />
+            </FieldWrapper>
+            <FieldWrapper label="상태" className="government-admin-toolbar__field">
+              <FormSelect
+                className="gov-form-control"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                options={STATUS_FILTER_OPTIONS}
+                disabled={loading}
+                aria-label="상태"
+              />
+            </FieldWrapper>
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              className="gov-btn gov-btn--secondary"
+              onClick={resetFilters}
               disabled={loading}
-              aria-label="상태"
-            />
-          </FieldWrapper>
-          {loading ? <LoadingState message="불러오는 중…" className="gov-status-loading m-0" /> : null}
-        </>
+            >
+              초기화
+            </FormButton>
+          </div>
+        </div>
       }
     >
       {loadError ? (
@@ -174,7 +190,8 @@ export default function GovernmentAdminProgramUsersPage() {
           {loadError}
         </div>
       ) : null}
-      <ProgramUsersTable rows={rows} isLoading={loading} />
+      {loading ? <LoadingState message="불러오는 중…" className="gov-status-loading" /> : null}
+      {!loading ? <ProgramUsersTable rows={rows} isLoading={loading} /> : null}
     </GovernmentAdminPageShell>
   )
 }
@@ -219,7 +236,7 @@ function ProgramUsersTable(props: { rows: GovernmentAdminUserRow[]; isLoading: b
                     <div className="admin-table-actions">
                       <Link
                         to={`/government/admin/program-users/${row.id}`}
-                        className="button button--secondary"
+                        className="gov-btn gov-btn--secondary gov-btn--sm"
                       >
                         상세
                       </Link>
@@ -275,7 +292,7 @@ function ProgramUserMobileCard({ row }: { row: GovernmentAdminUserRow }) {
       <div className="admin-user-card__actions">
         <Link
           to={`/government/admin/program-users/${row.id}`}
-          className="button button--secondary"
+          className="gov-btn gov-btn--secondary gov-btn--sm"
         >
           상세
         </Link>

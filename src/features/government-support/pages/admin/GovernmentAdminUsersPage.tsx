@@ -19,6 +19,7 @@ import {
   type GovernmentStaffManageableRole,
 } from '../../constants/governmentRoles'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
+import GovernmentAdminModalFooter from '../../components/GovernmentAdminModalFooter'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import GovernmentAdminSearchField from '../../components/GovernmentAdminSearchField'
 import { useGovernmentAdminTextSearch } from '../../hooks/useGovernmentAdminTextSearch'
@@ -228,7 +229,7 @@ export default function GovernmentAdminUsersPage() {
       setSuccessMsg('직원을 등록했습니다.')
       await loadUsers()
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : '직원 등록에 실패했습니다.')
+      setCreateError(mapGovernmentAdminApiError(err, '직원 등록에 실패했습니다.'))
     } finally {
       setCreateSaving(false)
     }
@@ -272,7 +273,7 @@ export default function GovernmentAdminUsersPage() {
       setEditing(null)
       setSuccessMsg('저장되었습니다.')
     } catch (err) {
-      setEditError(err instanceof Error ? err.message : '저장에 실패했습니다.')
+      setEditError(mapGovernmentAdminApiError(err, '저장에 실패했습니다.'))
     } finally {
       setEditSaving(false)
     }
@@ -300,7 +301,7 @@ export default function GovernmentAdminUsersPage() {
       setResetTarget(null)
       setSuccessMsg('비밀번호가 변경되었습니다. 새 비밀번호로 로그인할 수 있습니다.')
     } catch (err) {
-      setResetError(err instanceof Error ? err.message : '비밀번호 변경에 실패했습니다.')
+      setResetError(mapGovernmentAdminApiError(err, '비밀번호 변경에 실패했습니다.'))
     } finally {
       setResetSaving(false)
     }
@@ -308,6 +309,13 @@ export default function GovernmentAdminUsersPage() {
 
   const createNeedsTenant = createRole !== 'government_industry_admin'
   const editNeedsTenant = editRole !== 'government_industry_admin'
+
+  const resetFilters = () => {
+    setFilterRole('')
+    setFilterTenant('')
+    setFilterStatus('')
+    textSearch.reset()
+  }
 
   const defaultDescription = (
     <>
@@ -326,58 +334,70 @@ export default function GovernmentAdminUsersPage() {
       description={defaultDescription}
       testId="government-admin-page"
       toolbar={
-        <>
-          <FormButton
-            htmlType="button"
-            variant="primary"
-            className="gov-btn gov-btn--primary"
-            onClick={openCreate}
-            disabled={loading}
-          >
-            등록
-          </FormButton>
-          <GovernmentAdminSearchField
-            draft={textSearch.draft}
-            onDraftChange={textSearch.setDraft}
-            onApply={textSearch.apply}
-            onReset={textSearch.reset}
-            onKeyDown={textSearch.onKeyDown}
-            placeholder="아이디·이름"
-            disabled={loading}
-            testId="government-admin-staff-search"
-          />
-          <FieldWrapper label="권한" className="admin-modal-field admin-user-management__filter-field">
-            <FormSelect
-              className="gov-form-control admin-form-input"
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              options={filterRoleOptions}
+        <div className="government-admin-toolbar">
+          <div className="government-admin-toolbar__actions">
+            <FormButton
+              htmlType="button"
+              variant="primary"
+              className="gov-btn gov-btn--primary"
+              onClick={openCreate}
               disabled={loading}
-              aria-label="권한"
-            />
-          </FieldWrapper>
-          <FieldWrapper label="소속" className="admin-modal-field admin-user-management__filter-field">
-            <FormSelect
-              className="gov-form-control admin-form-input"
-              value={filterTenant}
-              onChange={(e) => setFilterTenant(e.target.value)}
-              options={tenantFilterOptions}
+            >
+              등록
+            </FormButton>
+          </div>
+          <div className="government-admin-toolbar__filters">
+            <GovernmentAdminSearchField
+              draft={textSearch.draft}
+              onDraftChange={textSearch.setDraft}
+              onApply={textSearch.apply}
+              onReset={textSearch.reset}
+              onKeyDown={textSearch.onKeyDown}
+              placeholder="아이디·이름"
               disabled={loading}
-              aria-label="소속 수행기관/대행사"
+              testId="government-admin-staff-search"
             />
-          </FieldWrapper>
-          <FieldWrapper label="상태" className="admin-modal-field admin-user-management__filter-field">
-            <FormSelect
-              className="gov-form-control admin-form-input"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              options={STATUS_FILTER_OPTIONS}
+            <FieldWrapper label="권한" className="government-admin-toolbar__field">
+              <FormSelect
+                className="gov-form-control"
+                value={filterRole}
+                onChange={(e) => setFilterRole(e.target.value)}
+                options={filterRoleOptions}
+                disabled={loading}
+                aria-label="권한"
+              />
+            </FieldWrapper>
+            <FieldWrapper label="소속" className="government-admin-toolbar__field">
+              <FormSelect
+                className="gov-form-control"
+                value={filterTenant}
+                onChange={(e) => setFilterTenant(e.target.value)}
+                options={tenantFilterOptions}
+                disabled={loading}
+                aria-label="소속 수행기관/대행사"
+              />
+            </FieldWrapper>
+            <FieldWrapper label="상태" className="government-admin-toolbar__field">
+              <FormSelect
+                className="gov-form-control"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                options={STATUS_FILTER_OPTIONS}
+                disabled={loading}
+                aria-label="상태"
+              />
+            </FieldWrapper>
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              className="gov-btn gov-btn--secondary"
+              onClick={resetFilters}
               disabled={loading}
-              aria-label="상태"
-            />
-          </FieldWrapper>
-          {loading ? <LoadingState message="불러오는 중…" className="gov-status-loading m-0" /> : null}
-        </>
+            >
+              초기화
+            </FormButton>
+          </div>
+        </div>
       }
     >
       {loadError ? (
@@ -391,7 +411,10 @@ export default function GovernmentAdminUsersPage() {
         </div>
       ) : null}
 
-      <UsersTable rows={rows} isLoading={loading} onEdit={openEdit} onReset={openReset} />
+      {loading ? <LoadingState message="불러오는 중…" className="gov-status-loading" /> : null}
+      {!loading ? (
+        <UsersTable rows={rows} isLoading={loading} onEdit={openEdit} onReset={openReset} />
+      ) : null}
 
       {createOpen ? (
         <FormDialog
@@ -402,13 +425,13 @@ export default function GovernmentAdminUsersPage() {
             }
           }}
           title="직원 등록"
-          panelClassName="admin-modal-panel"
-          overlayClassName="admin-modal-backdrop"
-          closeOnBackdrop={!createSaving}
+          panelClassName="government-admin-modal-panel"
+          overlayClassName="government-admin-modal-backdrop"
+          closeOnBackdrop={false}
           closeOnEsc={!createSaving}
         >
-          <form className="admin-modal-content" onSubmit={(e) => void submitCreate(e)}>
-            <StatusMessage message={createError} tone="error" className="m-0" />
+          <form className="government-admin-modal-body" onSubmit={(e) => void submitCreate(e)}>
+            <StatusMessage message={createError} tone="error" className="m-0 mb-3" />
             <UsersCreateForm
               createUsername={createUsername}
               setCreateUsername={setCreateUsername}
@@ -425,11 +448,11 @@ export default function GovernmentAdminUsersPage() {
               roleOptions={staffRoleOptions}
               agencySelectOptions={agencySelectOptions}
             />
-            <div className="admin-modal-actions">
+            <GovernmentAdminModalFooter>
               <FormButton
                 htmlType="button"
                 variant="secondary"
-                className="button button--secondary"
+                className="gov-btn gov-btn--secondary"
                 onClick={() => setCreateOpen(false)}
                 disabled={createSaving}
               >
@@ -438,13 +461,13 @@ export default function GovernmentAdminUsersPage() {
               <FormButton
                 htmlType="submit"
                 variant="primary"
-                className="button button--primary"
+                className="gov-btn gov-btn--primary"
                 loading={createSaving}
                 loadingText="저장 중…"
               >
                 저장
               </FormButton>
-            </div>
+            </GovernmentAdminModalFooter>
           </form>
         </FormDialog>
       ) : null}
@@ -458,17 +481,17 @@ export default function GovernmentAdminUsersPage() {
             }
           }}
           title="직원 수정"
-          panelClassName="admin-modal-panel"
-          overlayClassName="admin-modal-backdrop"
-          closeOnBackdrop={!editSaving}
+          panelClassName="government-admin-modal-panel"
+          overlayClassName="government-admin-modal-backdrop"
+          closeOnBackdrop={false}
           closeOnEsc={!editSaving}
         >
-          <form className="admin-modal-content" onSubmit={(e) => void submitEdit(e)}>
-            <p className="admin-user-management__edit-context m-0">
+          <form className="government-admin-modal-body" onSubmit={(e) => void submitEdit(e)}>
+            <p className="admin-user-management__edit-context m-0 mb-3">
               소속: <strong>{tenantLabel(editing)}</strong> · 권한:{' '}
               {GOVERNMENT_ROLE_LABELS[editing.role as GovernmentMembershipRole] ?? editing.role}
             </p>
-            <StatusMessage message={editError} tone="error" className="m-0" />
+            <StatusMessage message={editError} tone="error" className="m-0 mb-3" />
             <UsersEditForm
               editUsername={editing.username}
               editDisplayName={editDisplayName}
@@ -485,11 +508,11 @@ export default function GovernmentAdminUsersPage() {
               roleSelectDisabled={editRoleLocked}
               agencySelectOptions={agencySelectOptions}
             />
-            <div className="admin-modal-actions">
+            <GovernmentAdminModalFooter>
               <FormButton
                 htmlType="button"
                 variant="secondary"
-                className="button button--secondary"
+                className="gov-btn gov-btn--secondary"
                 onClick={() => setEditing(null)}
                 disabled={editSaving}
               >
@@ -498,13 +521,13 @@ export default function GovernmentAdminUsersPage() {
               <FormButton
                 htmlType="submit"
                 variant="primary"
-                className="button button--primary"
+                className="gov-btn gov-btn--primary"
                 loading={editSaving}
                 loadingText="저장 중…"
               >
                 저장
               </FormButton>
-            </div>
+            </GovernmentAdminModalFooter>
           </form>
         </FormDialog>
       ) : null}
@@ -518,14 +541,14 @@ export default function GovernmentAdminUsersPage() {
             }
           }}
           title="비밀번호 초기화"
-          panelClassName="admin-modal-panel"
-          overlayClassName="admin-modal-backdrop"
-          closeOnBackdrop={!resetSaving}
+          panelClassName="government-admin-modal-panel"
+          overlayClassName="government-admin-modal-backdrop"
+          closeOnBackdrop={false}
           closeOnEsc={!resetSaving}
         >
-          <form className="admin-modal-content" onSubmit={(e) => void submitReset(e)}>
-            <StatusMessage message={resetError} tone="error" className="m-0" />
-            <p className="admin-user-management__edit-context m-0">
+          <form className="government-admin-modal-body" onSubmit={(e) => void submitReset(e)}>
+            <StatusMessage message={resetError} tone="error" className="m-0 mb-3" />
+            <p className="admin-user-management__edit-context m-0 mb-3">
               선택한 사용자(<strong>{resetTarget.username}</strong>)의 비밀번호를 새 값으로 변경합니다.
             </p>
             <FieldWrapper label="새 비밀번호" helperText={PASSWORD_HELPER} className="admin-modal-field">
@@ -535,16 +558,16 @@ export default function GovernmentAdminUsersPage() {
                 onChange={(e) => setResetPassword(e.target.value)}
                 placeholder={PASSWORD_HELPER}
                 autoComplete="new-password"
-                className="admin-form-input"
+                className="gov-form-control"
                 disabled={resetSaving}
                 required
               />
             </FieldWrapper>
-            <div className="admin-modal-actions">
+            <GovernmentAdminModalFooter>
               <FormButton
                 htmlType="button"
                 variant="secondary"
-                className="button button--secondary"
+                className="gov-btn gov-btn--secondary"
                 onClick={() => setResetTarget(null)}
                 disabled={resetSaving}
               >
@@ -552,14 +575,14 @@ export default function GovernmentAdminUsersPage() {
               </FormButton>
               <FormButton
                 htmlType="submit"
-                variant="primary"
-                className="button button--primary"
+                variant="danger"
+                className="gov-btn gov-btn--danger"
                 loading={resetSaving}
                 loadingText="처리 중…"
               >
                 변경
               </FormButton>
-            </div>
+            </GovernmentAdminModalFooter>
           </form>
         </FormDialog>
       ) : null}
@@ -590,7 +613,7 @@ function UsersCreateForm(props: {
       {props.createNeedsTenant && props.agencySelectOptions.length > 0 ? (
         <FieldWrapper label="소속 수행기관/대행사" className="admin-modal-field">
           <FormSelect
-            className="admin-form-input"
+            className="gov-form-control"
             value={props.createTenantId}
             onChange={(e) => props.setCreateTenantId(e.target.value)}
             options={props.agencySelectOptions}
@@ -601,7 +624,7 @@ function UsersCreateForm(props: {
       ) : null}
       <FieldWrapper label="권한" className="admin-modal-field">
         <FormSelect
-          className="admin-form-input"
+          className="gov-form-control"
           value={props.createRole}
           onChange={(e) => props.setCreateRole(e.target.value as GovernmentStaffManageableRole)}
           options={props.roleOptions}
@@ -615,7 +638,7 @@ function UsersCreateForm(props: {
           onChange={(e) => props.setCreateUsername(e.target.value)}
           placeholder="예) staff01"
           autoComplete="username"
-          className="admin-form-input"
+          className="gov-form-control"
           disabled={props.createSaving}
           required
         />
@@ -627,7 +650,7 @@ function UsersCreateForm(props: {
           onChange={(e) => props.setCreatePassword(e.target.value)}
           placeholder={PASSWORD_HELPER}
           autoComplete="new-password"
-          className="admin-form-input"
+          className="gov-form-control"
           disabled={props.createSaving}
           required
         />
@@ -638,7 +661,7 @@ function UsersCreateForm(props: {
           onChange={(e) => props.setCreateDisplayName(e.target.value)}
           placeholder="예) 홍길동"
           autoComplete="name"
-          className="admin-form-input"
+          className="gov-form-control"
           disabled={props.createSaving}
         />
       </FieldWrapper>
@@ -669,7 +692,7 @@ function UsersEditForm(props: {
           value={props.editUsername}
           readOnly
           disabled
-          className="admin-form-input field--readonly"
+          className="gov-form-control field--readonly"
           aria-readonly="true"
         />
       </FieldWrapper>
@@ -679,7 +702,7 @@ function UsersEditForm(props: {
           onChange={(e) => props.setEditDisplayName(e.target.value)}
           placeholder="예) 홍길동"
           autoComplete="name"
-          className="admin-form-input"
+          className="gov-form-control"
           disabled={props.editSaving}
         />
       </FieldWrapper>
@@ -691,7 +714,7 @@ function UsersEditForm(props: {
         className="admin-modal-field"
       >
         <FormSelect
-          className="admin-form-input"
+          className="gov-form-control"
           value={props.editRole}
           onChange={(e) => props.setEditRole(e.target.value as GovernmentStaffManageableRole)}
           options={props.roleOptions}
@@ -702,7 +725,7 @@ function UsersEditForm(props: {
       {props.editNeedsTenant && props.agencySelectOptions.length > 0 ? (
         <FieldWrapper label="소속 수행기관/대행사" className="admin-modal-field">
           <FormSelect
-            className="admin-form-input"
+            className="gov-form-control"
             value={props.editTenantId}
             onChange={(e) => props.setEditTenantId(e.target.value)}
             options={props.agencySelectOptions}
@@ -713,7 +736,7 @@ function UsersEditForm(props: {
       ) : null}
       <FieldWrapper label="상태" className="admin-modal-field">
         <FormSelect
-          className="admin-form-input"
+          className="gov-form-control"
           value={props.editStatus}
           onChange={(e) => props.setEditStatus(e.target.value as GovernmentUserEntityStatus)}
           options={STATUS_EDIT_OPTIONS}
@@ -808,7 +831,7 @@ function UserRowActions(props: {
       <FormButton
         htmlType="button"
         variant="secondary"
-        className="button button--secondary"
+        className="gov-btn gov-btn--secondary gov-btn--sm"
         onClick={() => props.onEdit(props.row)}
         disabled={props.disabled}
       >
@@ -817,7 +840,7 @@ function UserRowActions(props: {
       <FormButton
         htmlType="button"
         variant="secondary"
-        className="button button--secondary"
+        className="gov-btn gov-btn--secondary gov-btn--sm"
         onClick={() => props.onReset(props.row)}
         disabled={props.disabled}
       >

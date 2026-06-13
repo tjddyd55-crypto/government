@@ -30,7 +30,7 @@ export default function GovernmentAdminSearchField({
     <FieldWrapper label={label} className="admin-user-management__filter-field government-admin-search-field-wrap">
       <div className="government-admin-search-field" data-testid={testId}>
         <FormInput
-          className="gov-form-control admin-form-input"
+          className="gov-form-control"
           value={draft}
           onChange={(e) => onDraftChange(e.target.value)}
           onKeyDown={onKeyDown}
