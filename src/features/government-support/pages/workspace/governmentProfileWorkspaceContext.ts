@@ -8,6 +8,12 @@ export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovern
   onToggleProfileCard: (profileId: string) => void
   filesRefreshNonce: number
   bumpFilesRefresh: () => void
+  documentCategoriesVersion: number
+  listProfileDocumentCategories: (profileId: string) => string[]
+  addProfileDocumentCategory: (
+    profileId: string,
+    name: string,
+  ) => { ok: true; name: string } | { ok: false; error: string }
 }
 
 export const GovernmentProfileWorkspaceContext = createContext<GovernmentProfileWorkspaceContextValue | null>(

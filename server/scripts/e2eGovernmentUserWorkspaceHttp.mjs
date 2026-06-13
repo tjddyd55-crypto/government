@@ -407,18 +407,32 @@ async function main() {
     'government-profile-list-card--active',
     'data-profile-expanded',
     'data-profile-selected',
+    'data-profile-id',
+    'gov-profile-workspace-collapsed-profile-ids',
+    'gov-profile-document-categories',
+    '이미 같은 이름의 문서 분류가 있습니다.',
   ]) {
     if (basicTabSpa.js.includes(m)) pass(`profile basic tab bundle contains ${m}`)
     else fail(`profile basic tab bundle contains ${m}`)
+  }
+  if (basicTabSpa.js.includes('서버 저장 연동 준비 중')) {
+    fail('profile basic tab bundle must not contain document category placeholder')
+  } else {
+    pass('profile basic tab bundle has no document category placeholder')
   }
 
   const filesTabPath = governmentProfileWorkspaceTabPath(profileAId, 'files')
   const filesTabSpa = await fetchHtml(filesTabPath)
   if (filesTabSpa.status === 200) pass('GET profile files tab SPA', filesTabSpa.bundle ?? '')
   else fail('GET profile files tab SPA', String(filesTabSpa.status))
-  for (const m of ['government-storage-search-input', 'storage-workspace__search', 'gov-form-control']) {
+  for (const m of ['government-storage-search-input', 'storage-workspace__search', 'gov-form-control', 'gov-profile-document-categories', '문서 분류 추가']) {
     if (filesTabSpa.js.includes(m)) pass(`profile files tab bundle contains ${m}`)
     else fail(`profile files tab bundle contains ${m}`)
+  }
+  if (filesTabSpa.js.includes('서버 저장 연동 준비 중')) {
+    fail('profile files tab bundle must not contain document category placeholder')
+  } else {
+    pass('profile files tab bundle has no document category placeholder')
   }
   if (basicTabSpa.js.includes('government-address-search-button')) {
     pass('profile basic tab bundle contains government-address-search-button')
@@ -927,6 +941,42 @@ async function main() {
   })
   if (String(filePatchA.json?.data?.fileName ?? '').includes('patched')) pass('user A patch profile file')
   else fail('user A patch profile file')
+
+  const fileCategoryName = `E2E 분류 ${ts}`
+  const fileCategoryPatch = await api(`/government-support/profiles/${profileAId}/files/${profileFileId}`, {
+    token: tokenA,
+    method: 'PATCH',
+    body: { category: fileCategoryName },
+    expectStatus: 200,
+  })
+  if (String(fileCategoryPatch.json?.data?.category ?? '') === fileCategoryName) pass('user A patch profile file category')
+  else fail('user A patch profile file category', String(fileCategoryPatch.json?.data?.category))
+
+  const fileListAfterCategory =
+    (await api(`/government-support/profiles/${profileAId}/files`, { token: tokenA })).json?.data ?? []
+  const categorizedFile = fileListAfterCategory.find((f) => String(f.id) === profileFileId)
+  if (String(categorizedFile?.category ?? '') === fileCategoryName) pass('user A file category in list refresh')
+  else fail('user A file category in list refresh', String(categorizedFile?.category))
+
+  const createdSameNameA = await api('/government-support/profiles', {
+    token: tokenA,
+    method: 'POST',
+    body: { businessName: `E2E Same Name ${ts}`, customerName: '신규 고객' },
+    expectStatus: 200,
+  })
+  const createdSameNameB = await api('/government-support/profiles', {
+    token: tokenA,
+    method: 'POST',
+    body: { businessName: `E2E Same Name B ${ts}`, customerName: '신규 고객' },
+    expectStatus: 200,
+  })
+  const sameNameIdA = String(createdSameNameA.json?.data?.id ?? createdSameNameA.json?.id ?? '')
+  const sameNameIdB = String(createdSameNameB.json?.data?.id ?? createdSameNameB.json?.id ?? '')
+  if (sameNameIdA && sameNameIdB && sameNameIdA !== sameNameIdB) {
+    pass('duplicate customerName profiles have distinct ids', `${sameNameIdA} vs ${sameNameIdB}`)
+  } else {
+    fail('duplicate customerName profiles have distinct ids', `${sameNameIdA} vs ${sameNameIdB}`)
+  }
 
   const memoRegression = await api(`/government-support/profiles/${profileAId}/memos`, {
     token: tokenA,

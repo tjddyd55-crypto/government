@@ -18,6 +18,11 @@ import {
   saveGovProfileFile,
   type GovStorageFileRow,
 } from '../api/governmentProfileFilesApi'
+import {
+  buildGovCategoryFolders,
+  govCategoryToFolderId,
+  mergeProfileDocumentCategories,
+} from '../lib/governmentProfileDocumentCategories'
 import GovernmentProfileStorageToolbar from './GovernmentProfileStorageToolbar'
 import { useGovernmentProfileWorkspaceContextOptional } from '../pages/workspace/governmentProfileWorkspaceContext'
 
@@ -93,7 +98,10 @@ export default function GovernmentProfileStorageWorkspace({
   const isSidebar = panelLayout === 'sidebar'
   const workspaceCtx = useGovernmentProfileWorkspaceContextOptional()
   const filesRefreshNonce = workspaceCtx?.filesRefreshNonce ?? 0
+  const documentCategoriesVersion = workspaceCtx?.documentCategoriesVersion ?? 0
   const [files, setFiles] = useState<StorageFileRow[]>([])
+  const [rawGovFiles, setRawGovFiles] = useState<Array<{ category: string }>>([])
+  const [expandedFolderIds, setExpandedFolderIds] = useState<Set<number>>(() => new Set())
   const [selectedFileId, setSelectedFileId] = useState<number | null>(null)
   const [searchText, setSearchText] = useState('')
   const [kindFilter, setKindFilter] = useState<'all' | 'image' | 'pdf' | 'spreadsheet'>('all')
@@ -106,7 +114,26 @@ export default function GovernmentProfileStorageWorkspace({
   const [deleteTarget, setDeleteTarget] = useState<StorageFileRow | null>(null)
   const [addCategoryOpen, setAddCategoryOpen] = useState(false)
   const [addCategoryName, setAddCategoryName] = useState('')
-  const [categoryNotice, setCategoryNotice] = useState('')
+
+  const documentCategories = useMemo(() => {
+    void documentCategoriesVersion
+    const fileCategories = rawGovFiles.map((file) => file.category)
+    return mergeProfileDocumentCategories(profileId, fileCategories)
+  }, [documentCategoriesVersion, profileId, rawGovFiles])
+
+  const categoryFolders = useMemo(
+    () => buildGovCategoryFolders(documentCategories),
+    [documentCategories],
+  )
+
+  const toggleFolder = useCallback((folderId: number) => {
+    setExpandedFolderIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(folderId)) next.delete(folderId)
+      else next.add(folderId)
+      return next
+    })
+  }, [])
 
   const filteredFiles = useMemo(() => {
     const query = searchText.trim().toLowerCase()
@@ -179,6 +206,7 @@ export default function GovernmentProfileStorageWorkspace({
       if (signal?.aborted) return
       const rows = await fetchGovProfileFiles(token, profileId)
       if (signal?.aborted) return
+      setRawGovFiles(rows.map((row) => ({ category: row.category })))
       setFiles(rows.map((r) => govProfileFileToStorageRow(r) as StorageFileRow))
     },
     [profileId, token],
@@ -186,12 +214,13 @@ export default function GovernmentProfileStorageWorkspace({
 
   useEffect(() => {
     setFiles([])
+    setRawGovFiles([])
     setSelectedFileId(null)
     setSearchText('')
     setKindFilter('all')
     setError('')
     setFilesListError('')
-    setCategoryNotice('')
+    setExpandedFolderIds(new Set())
     setAddCategoryOpen(false)
     setAddCategoryName('')
   }, [profileId, token])
@@ -331,7 +360,6 @@ export default function GovernmentProfileStorageWorkspace({
   }, [deleteTarget, profileId, submitting, token, workspaceCtx])
 
   const openAddCategoryDialog = useCallback(() => {
-    setCategoryNotice('')
     setAddCategoryName('')
     setAddCategoryOpen(true)
   }, [])
@@ -342,13 +370,24 @@ export default function GovernmentProfileStorageWorkspace({
       setError('분류 이름을 입력해 주세요.')
       return
     }
+    if (!workspaceCtx) {
+      setError('문서 분류를 추가할 수 없습니다.')
+      return
+    }
+    const result = workspaceCtx.addProfileDocumentCategory(profileId, name)
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
     setAddCategoryOpen(false)
     setAddCategoryName('')
     setError('')
-    setCategoryNotice(
-      `「${name}」 문서 분류는 서버 저장 연동 준비 중입니다. 현재는 파일을 바로 업로드할 수 있습니다.`,
-    )
-  }, [addCategoryName])
+    setExpandedFolderIds((prev) => {
+      const next = new Set(prev)
+      next.add(govCategoryToFolderId(result.name))
+      return next
+    })
+  }, [addCategoryName, profileId, workspaceCtx])
 
   const openFile = useCallback(
     async (file: StorageFileRow) => {
@@ -427,20 +466,15 @@ export default function GovernmentProfileStorageWorkspace({
         <div className="storage-workspace__summary">표시 {filteredFiles.length}개 / 전체 {files.length}개</div>
 
         {error ? <p className="storage-workspace__error">{error}</p> : null}
-        {categoryNotice ? (
-          <p className="government-profile-storage-workspace__category-notice" role="status">
-            {categoryNotice}
-          </p>
-        ) : null}
 
         <StorageFileList
-          folders={[]}
+          folders={categoryFolders}
           files={filteredFiles}
           loading={loading}
           listFetchError={filesListError}
           selectedFileId={selectedFileId}
-          expandedFolderIds={new Set()}
-          onToggleFolder={() => {}}
+          expandedFolderIds={expandedFolderIds}
+          onToggleFolder={toggleFolder}
           onSelectFile={setSelectedFileId}
           onOpen={(file) => {
             void openFile(file)
@@ -470,6 +504,7 @@ export default function GovernmentProfileStorageWorkspace({
         open={addCategoryOpen}
         title="문서 분류 추가"
         value={addCategoryName}
+        inputClassName="gov-form-control"
         onChange={setAddCategoryName}
         onClose={() => setAddCategoryOpen(false)}
         onSubmit={submitAddCategory}

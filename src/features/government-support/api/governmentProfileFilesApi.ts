@@ -1,4 +1,5 @@
 import { apiRequest } from '../../../lib/apiClient'
+import { govCategoryToFolderId } from '../lib/governmentProfileDocumentCategories'
 import type { GovProfileFile } from '../types/governmentProfile.types'
 
 function unwrapData<T>(raw: unknown): T | null {
@@ -116,11 +117,13 @@ export async function deleteGovProfileFile(
 /** StorageFileList 호환 매핑 */
 export function govProfileFileToStorageRow(file: GovProfileFile) {
   const idNum = Number(file.id)
+  const category = String(file.category ?? '').trim()
+  const folderId = category ? govCategoryToFolderId(category) : null
   return {
     id: Number.isFinite(idNum) ? idNum : 0,
     customerId: null,
     teamId: null,
-    folderId: null,
+    folderId,
     content: file.description ?? '',
     fileName: file.fileName,
     originalName: file.fileName,
@@ -136,6 +139,7 @@ export function govProfileFileToStorageRow(file: GovProfileFile) {
     expiresAt: null,
     deletedAt: file.archivedAt,
     govFileId: file.id,
+    govCategory: category,
   }
 }
 

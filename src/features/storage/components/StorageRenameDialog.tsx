@@ -6,6 +6,7 @@ type StorageRenameDialogProps = {
   title: string
   value: string
   loading?: boolean
+  inputClassName?: string
   onChange: (value: string) => void
   onClose: () => void
   onSubmit: () => void
@@ -16,6 +17,7 @@ export default function StorageRenameDialog({
   title,
   value,
   loading = false,
+  inputClassName = '',
   onChange,
   onClose,
   onSubmit,
@@ -29,7 +31,13 @@ export default function StorageRenameDialog({
           onSubmit()
         }}
       >
-        <FormInput value={value} onChange={(event) => onChange(event.target.value)} maxLength={120} autoFocus />
+        <FormInput
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          maxLength={120}
+          autoFocus
+          className={inputClassName || undefined}
+        />
         <div className="flex justify-end gap-2 mt-4">
           <FormButton htmlType="button" variant="secondary" onClick={onClose} disabled={loading}>
             취소

@@ -19,6 +19,12 @@ import {
 } from './governmentProfileWorkspaceContext'
 import type { GovernmentProfileWorkspaceLayoutViewProps } from './governmentProfileWorkspaceViewProps'
 import type { GovernmentProfileWorkspaceTab } from '../../config/governmentProfileWorkspaceTabs'
+import {
+  addStoredProfileDocumentCategory,
+  isGovProfileCardCollapsed,
+  listStoredProfileDocumentCategories,
+  setGovProfileCardCollapsed,
+} from '../../lib/governmentProfileDocumentCategories'
 import '../../government-support.css'
 
 function parseProfileIdFromPath(pathname: string): string | null {
@@ -75,25 +81,53 @@ export default function GovernmentProfileWorkspaceLayout() {
     }
   }, [selectedProfileIdFromPath, selectedId, setSelectedId])
 
-  const prevPathProfileIdRef = useRef<string | null>(null)
-  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null)
+  const prevPathProfileIdRef = useRef<string | null | undefined>(undefined)
+  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(() => {
+    if (!selectedProfileIdFromPath) return null
+    return isGovProfileCardCollapsed(selectedProfileIdFromPath) ? null : selectedProfileIdFromPath
+  })
 
   useEffect(() => {
-    if (selectedProfileIdFromPath !== prevPathProfileIdRef.current) {
+    if (prevPathProfileIdRef.current === undefined) {
       prevPathProfileIdRef.current = selectedProfileIdFromPath
-      setExpandedProfileId(selectedProfileIdFromPath)
+      if (selectedProfileIdFromPath && !isGovProfileCardCollapsed(selectedProfileIdFromPath)) {
+        setExpandedProfileId(selectedProfileIdFromPath)
+      }
+      return
     }
+    if (selectedProfileIdFromPath === prevPathProfileIdRef.current) {
+      return
+    }
+    prevPathProfileIdRef.current = selectedProfileIdFromPath
+    if (!selectedProfileIdFromPath) {
+      setExpandedProfileId(null)
+      return
+    }
+    if (isGovProfileCardCollapsed(selectedProfileIdFromPath)) {
+      setExpandedProfileId(null)
+      return
+    }
+    setExpandedProfileId(selectedProfileIdFromPath)
   }, [selectedProfileIdFromPath])
 
   const onToggleProfileCard = useCallback(
     (profileId: string) => {
-      if (profileId === selectedProfileIdFromPath) {
-        setExpandedProfileId((prev) => (prev === profileId ? null : profileId))
+      const normalizedId = String(profileId ?? '').trim()
+      if (!normalizedId) return
+
+      if (normalizedId === selectedProfileIdFromPath) {
+        setExpandedProfileId((prev) => {
+          const next = prev === normalizedId ? null : normalizedId
+          setGovProfileCardCollapsed(normalizedId, next === null)
+          return next
+        })
         return
       }
+
+      setGovProfileCardCollapsed(normalizedId, false)
       const tab = activeTab ?? 'basic'
-      setExpandedProfileId(profileId)
-      navigate(governmentProfileWorkspacePath(profileId, tab), { replace: true })
+      setExpandedProfileId(normalizedId)
+      navigate(governmentProfileWorkspacePath(normalizedId, tab), { replace: true })
     },
     [activeTab, navigate, selectedProfileIdFromPath],
   )
@@ -151,6 +185,19 @@ export default function GovernmentProfileWorkspaceLayout() {
     setFilesRefreshNonce((n) => n + 1)
   }, [])
 
+  const [documentCategoriesVersion, setDocumentCategoriesVersion] = useState(0)
+  const listProfileDocumentCategories = useCallback(
+    (profileId: string) => listStoredProfileDocumentCategories(profileId),
+    [documentCategoriesVersion],
+  )
+  const addProfileDocumentCategory = useCallback((profileId: string, name: string) => {
+    const result = addStoredProfileDocumentCategory(profileId, name)
+    if (result.ok) {
+      setDocumentCategoriesVersion((n) => n + 1)
+    }
+    return result
+  }, [])
+
   const contextValue = useMemo<GovernmentProfileWorkspaceContextValue>(
     () => ({
       ...wsRest,
@@ -162,8 +209,24 @@ export default function GovernmentProfileWorkspaceLayout() {
       onToggleProfileCard,
       filesRefreshNonce,
       bumpFilesRefresh,
+      documentCategoriesVersion,
+      listProfileDocumentCategories,
+      addProfileDocumentCategory,
     }),
-    [wsRest, selectedId, setSelectedId, selectedProfileIdFromPath, expandedProfileId, onSelectProfile, onToggleProfileCard, filesRefreshNonce, bumpFilesRefresh],
+    [
+      wsRest,
+      selectedId,
+      setSelectedId,
+      selectedProfileIdFromPath,
+      expandedProfileId,
+      onSelectProfile,
+      onToggleProfileCard,
+      filesRefreshNonce,
+      bumpFilesRefresh,
+      documentCategoriesVersion,
+      listProfileDocumentCategories,
+      addProfileDocumentCategory,
+    ],
   )
 
   const viewProps: GovernmentProfileWorkspaceLayoutViewProps = {
