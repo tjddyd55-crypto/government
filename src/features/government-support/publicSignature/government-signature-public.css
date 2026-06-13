@@ -140,13 +140,18 @@ body.government-public-signature-active .consent-signature-backdrop input:not([t
   box-shadow: none;
 }
 
-.government-public-signature-page .gov-form-control:focus,
-.government-public-signature-page .form-input:focus:not(:disabled),
+.government-public-signature-page .gov-form-control:focus:not(:disabled):not([readonly]),
+.government-public-signature-page .gov-form-control:focus-visible:not(:disabled):not([readonly]),
+.government-public-signature-page .form-input:focus:not(:disabled):not([readonly]),
+.government-public-signature-page .form-input:focus-visible:not(:disabled):not([readonly]),
 .government-public-signature-page .form-select:focus:not(:disabled),
-.government-public-signature-page .form-textarea:focus:not(:disabled) {
-  outline: none;
+.government-public-signature-page .form-select:focus-visible:not(:disabled),
+.government-public-signature-page .form-textarea:focus:not(:disabled):not([readonly]),
+.government-public-signature-page .form-textarea:focus-visible:not(:disabled):not([readonly]) {
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
   border-color: #f2b800;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+  box-shadow: none;
 }
 
 .government-public-signature-page .gov-form-control::placeholder,
@@ -586,12 +591,16 @@ body.government-public-signature-active .public-pdf-preview-modal__footer {
   color: var(--placeholder);
 }
 
-.contract-public-sign-page .form-input:focus:not(:disabled),
+.contract-public-sign-page .form-input:focus:not(:disabled):not([readonly]),
+.contract-public-sign-page .form-input:focus-visible:not(:disabled):not([readonly]),
 .contract-public-sign-page .form-select:focus:not(:disabled),
-.contract-public-sign-page .form-textarea:focus:not(:disabled) {
-  outline: none;
-  border-color: var(--focus-ring);
-  box-shadow: 0 0 0 2px var(--primary-soft);
+.contract-public-sign-page .form-select:focus-visible:not(:disabled),
+.contract-public-sign-page .form-textarea:focus:not(:disabled):not([readonly]),
+.contract-public-sign-page .form-textarea:focus-visible:not(:disabled):not([readonly]) {
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
+  border-color: #f2b800;
+  box-shadow: none;
 }
 
 .contract-public-sign-page .form-input[type='checkbox'] {
@@ -1025,11 +1034,14 @@ body.government-public-signature-active .public-pdf-preview-modal__footer {
   color: var(--placeholder);
 }
 
-.contract-public-link-page .form-input:focus:not(:disabled),
-.contract-public-link-page .form-select:focus:not(:disabled) {
-  outline: none;
-  border-color: var(--focus-ring);
-  box-shadow: 0 0 0 2px var(--primary-soft);
+.contract-public-link-page .form-input:focus:not(:disabled):not([readonly]),
+.contract-public-link-page .form-input:focus-visible:not(:disabled):not([readonly]),
+.contract-public-link-page .form-select:focus:not(:disabled),
+.contract-public-link-page .form-select:focus-visible:not(:disabled) {
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
+  border-color: #f2b800;
+  box-shadow: none;
 }
 
 .contract-public-link-page .status {

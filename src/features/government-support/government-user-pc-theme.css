@@ -220,15 +220,22 @@
   color: #94a3b8;
 }
 
-.government-user-layout--pc-user .form-input:focus,
-.government-user-layout--pc-user .form-select:focus,
-.government-user-layout--pc-user .form-textarea:focus,
-.government-user-layout--pc-user input:focus,
-.government-user-layout--pc-user textarea:focus,
-.government-user-layout--pc-user select:focus {
-  outline: none;
-  border-color: var(--gov-workspace-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gov-workspace-primary) 22%, transparent);
+.government-user-layout--pc-user .form-input:focus:not(:disabled):not([readonly]),
+.government-user-layout--pc-user .form-input:focus-visible:not(:disabled):not([readonly]),
+.government-user-layout--pc-user .form-select:focus:not(:disabled),
+.government-user-layout--pc-user .form-select:focus-visible:not(:disabled),
+.government-user-layout--pc-user .form-textarea:focus:not(:disabled):not([readonly]),
+.government-user-layout--pc-user .form-textarea:focus-visible:not(:disabled):not([readonly]),
+.government-user-layout--pc-user input:focus:not(:disabled):not([readonly]),
+.government-user-layout--pc-user input:focus-visible:not(:disabled):not([readonly]),
+.government-user-layout--pc-user textarea:focus:not(:disabled):not([readonly]),
+.government-user-layout--pc-user textarea:focus-visible:not(:disabled):not([readonly]),
+.government-user-layout--pc-user select:focus:not(:disabled),
+.government-user-layout--pc-user select:focus-visible:not(:disabled) {
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
+  border-color: #f2b800;
+  box-shadow: none;
 }
 
 .government-user-layout--pc-user .form-label,
@@ -656,9 +663,10 @@
 .government-user-layout--mobile .government-profile-workspace select:focus,
 .government-user-layout--mobile .government-profile-workspace textarea:focus,
 .government-profile-edit-modal .field__control:focus {
-  outline: none;
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
   border-color: #f2b800;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+  box-shadow: none;
 }
 
 .government-user-layout--pc-user .government-profile-workspace .field__control:disabled,
@@ -829,9 +837,10 @@
 
 .government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel input.storage-workspace__search:focus,
 .government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel select.storage-workspace__kind-filter:focus {
-  outline: none;
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
   border-color: #f2b800;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+  box-shadow: none;
 }
 
 .government-user-layout--pc-user .government-profile-workspace-pc__right .government-profile-workspace-right-documents-panel .storage-workspace__filter-reset {

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { StatusMessage } from '../../../../../components/feedback'
 import { FieldWrapper, FormButton, FormInput, FormSelect, FormTextarea } from '../../../../../components/form'
 import { formatAssigneeLabel } from '../../../hooks/useGovernmentOperationalAssigneeOptions'
 import {
@@ -31,8 +30,12 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
   }
 
   const renderDetail = () => {
-    if (p.detailLoading) return <div className="claim-inbox__empty">상세를 불러오는 중…</div>
-    if (!p.detail) return <div className="claim-inbox__empty">목록에서 요청서류를 선택해 주세요.</div>
+    if (p.detailLoading) {
+      return <div className="gov-status-loading claim-inbox__empty">상세를 불러오는 중…</div>
+    }
+    if (!p.detail) {
+      return <div className="gov-status-empty claim-inbox__empty">목록에서 요청서류를 선택해 주세요.</div>
+    }
 
     const detail = p.detail
     return (
@@ -61,7 +64,7 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
         <div className="claim-inbox__detail-section">
           <h3>요청 항목</h3>
           {detail.items.length === 0 ? (
-            <div className="claim-inbox__empty claim-inbox__empty--small">요청 항목이 없습니다.</div>
+            <div className="gov-status-empty claim-inbox__empty claim-inbox__empty--small">요청 항목이 없습니다.</div>
           ) : (
             <ul className="claim-inbox__history-list">
               {detail.items.map((item) => (
@@ -84,9 +87,14 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
                             <div className="claim-inbox__file-meta">{formatGovInboxFileSize(file.fileSize)}</div>
                           </div>
                           <div className="claim-inbox__file-actions">
-                            <button type="button" onClick={() => void p.onDownloadFile(file, item.id)}>
+                            <FormButton
+                              htmlType="button"
+                              variant="secondary"
+                              className="gov-btn gov-btn--secondary gov-btn--sm"
+                              onClick={() => void p.onDownloadFile(file, item.id)}
+                            >
                               다운
-                            </button>
+                            </FormButton>
                           </div>
                         </div>
                       ))}
@@ -103,6 +111,7 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
           <div className="claim-inbox__status-editor-row">
             <FieldWrapper label="담당 직원" className="admin-modal-field">
               <FormSelect
+                className="gov-form-control"
                 value={p.assigneeTarget}
                 onChange={(e) => p.setAssigneeTarget(e.target.value)}
                 options={p.assignOptions}
@@ -112,6 +121,7 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
             <FormButton
               htmlType="button"
               variant="secondary"
+              className="gov-btn gov-btn--secondary"
               onClick={() => void p.onAssigneeSave()}
               loading={p.assignBusy}
             >
@@ -128,30 +138,46 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
       className={`government-admin-page claim-inbox government-admin-document-requests-page government-admin-document-requests-page--${variant}`}
       data-testid="government-admin-document-requests-page"
     >
-      <StatusMessage message={p.error} tone="error" />
-      <StatusMessage message={p.notice} tone="success" />
+      {p.error ? (
+        <div className="gov-status-error-card admin-user-management__error-card" role="alert">
+          {p.error}
+        </div>
+      ) : null}
+      {p.notice ? <p className="status admin-ga-management__status-success m-0 mb-3">{p.notice}</p> : null}
 
       <section className="claim-inbox__hero">
         <div>
           <h1 className="claim-inbox__title">요청서류 관리</h1>
           <p className="claim-inbox__subtitle">이용자에게 요청서류를 발송하고 제출 여부를 확인합니다.</p>
         </div>
-        <div className="claim-inbox__detail-actions">
-          <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" onClick={() => p.setComposeOpen((v) => !v)}>
+        <div className="claim-inbox__detail-actions government-admin-toolbar__actions">
+          <FormButton
+            htmlType="button"
+            variant="primary"
+            className="gov-btn gov-btn--primary"
+            onClick={() => p.setComposeOpen((v) => !v)}
+          >
             {p.composeOpen ? '발송 닫기' : '요청서류 발송'}
           </FormButton>
-          <FormButton htmlType="button" variant="secondary" className="gov-btn gov-btn--secondary" onClick={() => void p.loadRows()} loading={p.loading}>
+          <FormButton
+            htmlType="button"
+            variant="secondary"
+            className="gov-btn gov-btn--secondary"
+            onClick={() => void p.loadRows()}
+            loading={p.loading}
+          >
             새로고침
           </FormButton>
         </div>
       </section>
 
       {p.composeOpen ? (
-        <section className="claim-inbox__detail-section">
+        <section className="claim-inbox__detail-section government-admin-document-requests-compose">
           <h3>요청서류 발송</h3>
           <div className="government-form-grid">
             <FieldWrapper label="대상 사업장" className="admin-modal-field">
               <FormSelect
+                className="gov-form-control"
                 value={p.composeProfileId}
                 onChange={(e) => p.setComposeProfileId(e.target.value)}
                 options={p.profileOptions}
@@ -163,7 +189,7 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
                 value={p.composeTitle}
                 onChange={(e) => p.setComposeTitle(e.target.value)}
                 placeholder="예) 2026년 서류 제출 요청"
-                className="admin-form-input"
+                className="gov-form-control"
               />
             </FieldWrapper>
             <FieldWrapper label="안내 메시지" className="admin-modal-field government-ops-form-grid__full">
@@ -172,7 +198,7 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
                 onChange={(e) => p.setComposeMessage(e.target.value)}
                 rows={3}
                 placeholder="이용자에게 전달할 안내 메시지"
-                className="claim-inbox__status-memo"
+                className="gov-form-control"
               />
             </FieldWrapper>
             {p.composeItems.map((item, index) => (
@@ -185,7 +211,7 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
                     p.setComposeItems(next)
                   }}
                   placeholder={`예) ${index === 0 ? '사업자등록증' : '재무제표'}`}
-                  className="admin-form-input"
+                  className="gov-form-control"
                 />
               </FieldWrapper>
             ))}
@@ -194,11 +220,18 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
             <FormButton
               htmlType="button"
               variant="secondary"
+              className="gov-btn gov-btn--secondary"
               onClick={() => p.setComposeItems((items) => [...items, ''])}
             >
               항목 추가
             </FormButton>
-            <FormButton htmlType="button" variant="primary" onClick={() => void handleCreate()} loading={p.composeBusy}>
+            <FormButton
+              htmlType="button"
+              variant="primary"
+              className="gov-btn gov-btn--primary"
+              onClick={() => void handleCreate()}
+              loading={p.composeBusy}
+            >
               발송
             </FormButton>
           </div>
@@ -224,31 +257,33 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
         </div>
       </section>
 
-      <section className="claim-inbox__toolbar">
-        <label className="claim-inbox__filter-label">
-          상태
+      <section className="claim-inbox__toolbar government-admin-toolbar__filters">
+        <FieldWrapper label="상태" className="government-admin-toolbar__field claim-inbox__filter-label">
           <FormSelect
+            className="gov-form-control"
             value={p.statusFilter}
             onChange={(e) => p.setStatusFilter(e.target.value)}
             options={[...GOV_ADMIN_DOC_REQUEST_STATUS_OPTIONS]}
             aria-label="요청서류 상태"
           />
-        </label>
-        <label className="claim-inbox__filter-label">
-          담당자
+        </FieldWrapper>
+        <FieldWrapper label="담당자" className="government-admin-toolbar__field claim-inbox__filter-label">
           <FormSelect
+            className="gov-form-control"
             value={p.assigneeFilter}
             onChange={(e) => p.setAssigneeFilter(e.target.value)}
             options={p.filterOptions}
             aria-label="담당자 필터"
           />
-        </label>
+        </FieldWrapper>
       </section>
 
       <div className={`claim-inbox__layout${isMobile ? ' claim-inbox__layout--mobile' : ''}`}>
         <section className="claim-inbox__list-panel">
-          {p.loading ? <div className="claim-inbox__empty">목록을 불러오는 중…</div> : null}
-          {!p.loading && p.rows.length === 0 ? <div className="claim-inbox__empty">요청서류가 없습니다.</div> : null}
+          {p.loading ? <div className="gov-status-loading claim-inbox__empty">목록을 불러오는 중…</div> : null}
+          {!p.loading && p.rows.length === 0 ? (
+            <div className="gov-status-empty claim-inbox__empty">요청서류가 없습니다.</div>
+          ) : null}
           <ul className="claim-inbox__list">
             {p.rows.map((row) => (
               <li key={row.id}>
@@ -278,12 +313,17 @@ export default function GovernmentAdminDocumentRequestsBody({ variant, ...p }: P
       </div>
 
       {isMobile && mobileDetailOpen ? (
-        <div className="claim-inbox__mobile-modal" role="dialog" aria-modal="true">
+        <div className="claim-inbox__mobile-modal government-admin-modal-panel" role="dialog" aria-modal="true">
           <div className="claim-inbox__mobile-modal-head">
             <strong>요청서류 상세</strong>
-            <button type="button" onClick={() => setMobileDetailOpen(false)}>
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              className="gov-btn gov-btn--secondary gov-btn--sm"
+              onClick={() => setMobileDetailOpen(false)}
+            >
               닫기
-            </button>
+            </FormButton>
           </div>
           <div className="claim-inbox__mobile-modal-body">{renderDetail()}</div>
         </div>

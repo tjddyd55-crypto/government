@@ -407,13 +407,20 @@
   color: #94a3b8;
 }
 
-.government-customer-app-page .form-input:focus,
-.government-customer-app-page .form-textarea:focus,
-.government-customer-app .gov-form-control:focus,
-.government-customer-app-page .customer-app-claim-textarea:focus,
-.government-customer-app-page .customer-app-claim-input:focus {
+.government-customer-app-page .form-input:focus:not(:disabled):not([readonly]),
+.government-customer-app-page .form-input:focus-visible:not(:disabled):not([readonly]),
+.government-customer-app-page .form-textarea:focus:not(:disabled):not([readonly]),
+.government-customer-app-page .form-textarea:focus-visible:not(:disabled):not([readonly]),
+.government-customer-app .gov-form-control:focus:not(:disabled):not([readonly]),
+.government-customer-app .gov-form-control:focus-visible:not(:disabled):not([readonly]),
+.government-customer-app-page .customer-app-claim-textarea:focus:not(:disabled):not([readonly]),
+.government-customer-app-page .customer-app-claim-textarea:focus-visible:not(:disabled):not([readonly]),
+.government-customer-app-page .customer-app-claim-input:focus:not(:disabled):not([readonly]),
+.government-customer-app-page .customer-app-claim-input:focus-visible:not(:disabled):not([readonly]) {
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
   border-color: #f2b800;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+  box-shadow: none;
 }
 
 .government-customer-app-page .government-customer-app-compose label,

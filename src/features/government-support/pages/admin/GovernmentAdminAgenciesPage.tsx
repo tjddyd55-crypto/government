@@ -4,12 +4,14 @@ import { EmptyState, LoadingState, StatusMessage } from '../../../../components/
 import { FieldWrapper, FormButton, FormInput } from '../../../../components/form'
 import { copyTextToClipboard } from '../../../../lib/clipboard'
 import { useAuth } from '../../../auth/AuthProvider'
+import GovernmentAdminModalFooter from '../../components/GovernmentAdminModalFooter'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import { createGovAgency, fetchGovAgencies } from '../../api/governmentProfilesApi'
 import {
   buildGovernmentAgencyJoinPath,
   buildGovernmentAgencyJoinUrl,
 } from '../../lib/governmentAgencyJoinUrl'
+import { mapGovernmentAdminApiError } from '../../lib/mapGovernmentAdminApiError'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 import '../../government-support.css'
 
@@ -61,7 +63,7 @@ export default function GovernmentAdminAgenciesPage() {
     try {
       setRows(await fetchGovAgencies(token))
     } catch (e) {
-      setLoadError(e instanceof Error ? e.message : '목록을 불러오지 못했습니다.')
+      setLoadError(mapGovernmentAdminApiError(e, '목록을 불러오지 못했습니다.'))
     } finally {
       setLoading(false)
     }
@@ -88,7 +90,7 @@ export default function GovernmentAdminAgenciesPage() {
       setCreateOpen(false)
       await load()
     } catch (err) {
-      setCreateErr(err instanceof Error ? err.message : '저장에 실패했습니다.')
+      setCreateErr(mapGovernmentAdminApiError(err, '저장에 실패했습니다.'))
     } finally {
       setCreateBusy(false)
     }
@@ -120,7 +122,7 @@ export default function GovernmentAdminAgenciesPage() {
             <FormButton
               htmlType="button"
               variant="secondary"
-              className="button button--secondary"
+              className="gov-btn gov-btn--secondary gov-btn--sm"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -165,7 +167,7 @@ export default function GovernmentAdminAgenciesPage() {
           <FormButton
             htmlType="button"
             variant="secondary"
-            className="button button--secondary"
+            className="gov-btn gov-btn--secondary gov-btn--sm"
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -183,63 +185,79 @@ export default function GovernmentAdminAgenciesPage() {
   return (
     <GovernmentAdminPageShell
       title="대행사 관리"
-      description={loadError || '대행사(수행기관)를 등록하고 가입 링크를 발급할 수 있습니다.'}
+      description="대행사(수행기관)를 등록하고 가입 링크를 발급할 수 있습니다."
       toolbar={
-        <>
-          <FormButton
-            htmlType="button"
-            variant="primary"
-            className="button button--primary"
-            onClick={() => {
-              setCreateErr('')
-              setCreateOpen(true)
-            }}
-            disabled={loading}
-          >
-            대행사 등록
-          </FormButton>
-          {loading ? <LoadingState message="불러오는 중…" className="m-0 text-sm text-[var(--text-sub)]" /> : null}
-        </>
+        <div className="government-admin-toolbar">
+          <div className="government-admin-toolbar__actions">
+            <FormButton
+              htmlType="button"
+              variant="primary"
+              className="gov-btn gov-btn--primary"
+              onClick={() => {
+                setCreateErr('')
+                setCreateOpen(true)
+              }}
+              disabled={loading}
+            >
+              대행사 등록
+            </FormButton>
+          </div>
+        </div>
       }
     >
+      {loadError ? (
+        <div className="gov-status-error-card admin-user-management__error-card" role="alert">
+          {loadError}
+        </div>
+      ) : null}
       {copyErr || copyMsg ? (
         <div className="admin-ga-management__alerts">
-          <StatusMessage message={copyErr} tone="error" className="m-0" />
+          {copyErr ? (
+            <div className="gov-status-error-card" role="alert">
+              {copyErr}
+            </div>
+          ) : null}
           {copyMsg ? <p className="status admin-ga-management__status-success m-0">{copyMsg}</p> : null}
         </div>
       ) : null}
 
-      <div className="table-container table-container--desktop">
-        <table className="admin-data-table">
-          <thead>
-            <tr>
-              <th>대행사명</th>
-              <th>기관 코드</th>
-              <th>상태</th>
-              <th className="admin-table-cell--actions">가입 링크</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && !loading ? (
-              <tr>
-                <td colSpan={4} className="admin-data-table__empty-cell">
-                  등록된 대행사가 없습니다.
-                </td>
-              </tr>
-            ) : (
-              rows.map((r) => renderAgencyRow(r))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {loading ? <LoadingState message="불러오는 중…" className="gov-status-loading" /> : null}
 
-      <div className="admin-responsive-card-list">
-        {rows.length === 0 && !loading ? (
-          <EmptyState message="등록된 대행사가 없습니다." className="m-0 px-1 py-2 text-[var(--text-sub)]" />
-        ) : (
-          rows.map((r) => renderAgencyCard(r))
-        )}
-      </div>
+      {!loading ? (
+        <>
+          <div className="table-container table-container--desktop">
+            <table className="admin-data-table">
+              <thead>
+                <tr>
+                  <th>대행사명</th>
+                  <th>기관 코드</th>
+                  <th>상태</th>
+                  <th className="admin-table-cell--actions">가입 링크</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="admin-data-table__empty-cell">
+                      등록된 대행사가 없습니다.
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map((r) => renderAgencyRow(r))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="admin-responsive-card-list">
+            {rows.length === 0 ? (
+              <EmptyState message="등록된 대행사가 없습니다." className="gov-status-empty m-0" />
+            ) : (
+              rows.map((r) => renderAgencyCard(r))
+            )}
+          </div>
+        </>
+      ) : null}
 
       {createOpen ? (
         <FormDialog
@@ -250,16 +268,16 @@ export default function GovernmentAdminAgenciesPage() {
             }
           }}
           title="대행사 등록"
-          panelClassName="admin-modal-panel"
-          overlayClassName="admin-modal-backdrop"
-          closeOnBackdrop={!createBusy}
+          panelClassName="government-admin-modal-panel"
+          overlayClassName="government-admin-modal-backdrop"
+          closeOnBackdrop={false}
           closeOnEsc={!createBusy}
         >
-          <form className="admin-modal-content" onSubmit={submitCreate}>
-            <StatusMessage message={createErr} tone="error" className="m-0" />
+          <form className="government-admin-modal-body" onSubmit={submitCreate}>
+            <StatusMessage message={createErr} tone="error" className="m-0 mb-3" />
             <FieldWrapper label="대행사명" className="admin-modal-field">
               <FormInput
-                className="admin-form-input"
+                className="gov-form-control"
                 value={createName}
                 onChange={(e) => setCreateName(e.target.value)}
                 placeholder="예) 서울 정부지원센터"
@@ -270,7 +288,7 @@ export default function GovernmentAdminAgenciesPage() {
             </FieldWrapper>
             <FieldWrapper label="기관 코드" className="admin-modal-field">
               <FormInput
-                className="admin-form-input"
+                className="gov-form-control"
                 value={createCode}
                 onChange={(e) => setCreateCode(e.target.value.toUpperCase())}
                 placeholder="영문 대문자·숫자 3자 이상"
@@ -279,11 +297,11 @@ export default function GovernmentAdminAgenciesPage() {
                 autoComplete="off"
               />
             </FieldWrapper>
-            <div className="admin-modal-actions">
+            <GovernmentAdminModalFooter>
               <FormButton
                 htmlType="button"
                 variant="secondary"
-                className="button button--secondary"
+                className="gov-btn gov-btn--secondary"
                 disabled={createBusy}
                 onClick={() => setCreateOpen(false)}
               >
@@ -292,13 +310,13 @@ export default function GovernmentAdminAgenciesPage() {
               <FormButton
                 htmlType="submit"
                 variant="primary"
-                className="button button--primary"
+                className="gov-btn gov-btn--primary"
                 loading={createBusy}
                 loadingText="저장 중…"
               >
                 저장
               </FormButton>
-            </div>
+            </GovernmentAdminModalFooter>
           </form>
         </FormDialog>
       ) : null}

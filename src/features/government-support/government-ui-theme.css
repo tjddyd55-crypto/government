@@ -17,6 +17,9 @@
   --gov-ui-bg-soft-yellow: #fffdf0;
   --gov-ui-danger: #dc2626;
   --gov-ui-danger-soft: #fff1f2;
+  --gov-ui-focus-border: #f2b800;
+  --gov-ui-focus-outline: 2px solid #f2b800;
+  --gov-ui-focus-outline-offset: 2px;
 }
 
 /* 공통 카드 */
@@ -90,21 +93,40 @@
   opacity: 1;
 }
 
-.government-auth-white-theme input:focus,
-.government-auth-white-theme select:focus,
-.government-auth-white-theme textarea:focus,
-.government-user-white-theme input:focus,
-.government-user-white-theme select:focus,
-.government-user-white-theme textarea:focus,
-.government-admin-white-theme input:focus,
-.government-admin-white-theme select:focus,
-.government-admin-white-theme textarea:focus,
-.government-auth-white-theme .field__control:focus,
-.government-user-white-theme .field__control:focus,
-.government-admin-white-theme .field__control:focus {
-  outline: none;
-  border-color: var(--gov-ui-primary);
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+.government-auth-white-theme input:focus:not(:disabled):not([readonly]),
+.government-auth-white-theme input:focus-visible:not(:disabled):not([readonly]),
+.government-auth-white-theme select:focus:not(:disabled),
+.government-auth-white-theme select:focus-visible:not(:disabled),
+.government-auth-white-theme textarea:focus:not(:disabled):not([readonly]),
+.government-auth-white-theme textarea:focus-visible:not(:disabled):not([readonly]),
+.government-user-white-theme input:focus:not(:disabled):not([readonly]),
+.government-user-white-theme input:focus-visible:not(:disabled):not([readonly]),
+.government-user-white-theme select:focus:not(:disabled),
+.government-user-white-theme select:focus-visible:not(:disabled),
+.government-user-white-theme textarea:focus:not(:disabled):not([readonly]),
+.government-user-white-theme textarea:focus-visible:not(:disabled):not([readonly]),
+.government-admin-white-theme input:focus:not(:disabled):not([readonly]),
+.government-admin-white-theme input:focus-visible:not(:disabled):not([readonly]),
+.government-admin-white-theme select:focus:not(:disabled),
+.government-admin-white-theme select:focus-visible:not(:disabled),
+.government-admin-white-theme textarea:focus:not(:disabled):not([readonly]),
+.government-admin-white-theme textarea:focus-visible:not(:disabled):not([readonly]),
+.government-auth-white-theme .field__control:focus:not(:disabled):not([readonly]),
+.government-auth-white-theme .field__control:focus-visible:not(:disabled):not([readonly]),
+.government-user-white-theme .field__control:focus:not(:disabled):not([readonly]),
+.government-user-white-theme .field__control:focus-visible:not(:disabled):not([readonly]),
+.government-admin-white-theme .field__control:focus:not(:disabled):not([readonly]),
+.government-admin-white-theme .field__control:focus-visible:not(:disabled):not([readonly]),
+.government-auth-white-theme .gov-form-control:focus:not(:disabled):not([readonly]),
+.government-auth-white-theme .gov-form-control:focus-visible:not(:disabled):not([readonly]),
+.government-user-white-theme .gov-form-control:focus:not(:disabled):not([readonly]),
+.government-user-white-theme .gov-form-control:focus-visible:not(:disabled):not([readonly]),
+.government-admin-white-theme .gov-form-control:focus:not(:disabled):not([readonly]),
+.government-admin-white-theme .gov-form-control:focus-visible:not(:disabled):not([readonly]) {
+  outline: var(--gov-ui-focus-outline);
+  outline-offset: var(--gov-ui-focus-outline-offset);
+  border-color: var(--gov-ui-focus-border);
+  box-shadow: none;
 }
 
 .government-auth-white-theme .field__label,
@@ -248,9 +270,10 @@
 .government-profile-workspace textarea:focus,
 .government-profile-workspace-right-documents-panel input:focus,
 .government-profile-workspace-right-documents-panel select:focus {
-  outline: none;
-  border-color: #f2b800;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+  outline: var(--gov-ui-focus-outline);
+  outline-offset: var(--gov-ui-focus-outline-offset);
+  border-color: var(--gov-ui-focus-border);
+  box-shadow: none;
 }
 
 .government-user-layout input:disabled,
@@ -394,9 +417,10 @@
 .government-admin-white-theme .claim-inbox select:focus,
 .government-admin-white-theme .claim-inbox textarea:focus,
 .government-admin-white-theme .claim-inbox input:focus {
-  outline: none;
-  border-color: #f2b800;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+  outline: var(--gov-ui-focus-outline);
+  outline-offset: var(--gov-ui-focus-outline-offset);
+  border-color: var(--gov-ui-focus-border);
+  box-shadow: none;
 }
 
 /* 이용자 primary 버튼 (form-button / button--primary) */
@@ -439,9 +463,10 @@
 .government-user-layout--mobile main.insurance-dark-forms.contract-signature-console input:focus,
 .government-user-layout--mobile main.insurance-dark-forms.contract-signature-console select:focus,
 .government-user-layout--mobile main.insurance-dark-forms.contract-signature-console textarea:focus {
-  outline: none;
-  border-color: #f2b800;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+  outline: var(--gov-ui-focus-outline);
+  outline-offset: var(--gov-ui-focus-outline-offset);
+  border-color: var(--gov-ui-focus-border);
+  box-shadow: none;
 }
 
 /* PC 전자서명 내역 검색/정렬 */
@@ -456,9 +481,10 @@
 
 .government-user-layout--pc-user main.gov-user-signatures-page input:focus,
 .government-user-layout--pc-user main.gov-user-signatures-page select:focus {
-  outline: none;
-  border-color: #f2b800;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+  outline: var(--gov-ui-focus-outline);
+  outline-offset: var(--gov-ui-focus-outline-offset);
+  border-color: var(--gov-ui-focus-border);
+  box-shadow: none;
 }
 
 /*
@@ -503,9 +529,10 @@
 .government-admin-white-theme input:focus:not(:disabled),
 .government-admin-white-theme select:focus:not(:disabled),
 .government-admin-white-theme textarea:focus:not(:disabled) {
-  outline: none;
-  border-color: #f2b800;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+  outline: var(--gov-ui-focus-outline);
+  outline-offset: var(--gov-ui-focus-outline-offset);
+  border-color: var(--gov-ui-focus-border);
+  box-shadow: none;
 }
 
 /* storage 검색·필터 — 전역 legacy 최종 보정 */
@@ -536,9 +563,10 @@
 
 .government-user-layout input.storage-workspace__search:focus,
 .government-user-layout select.storage-workspace__kind-filter:focus {
-  outline: none;
-  border-color: #f2b800 !important;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18) !important;
+  outline: var(--gov-ui-focus-outline);
+  outline-offset: var(--gov-ui-focus-outline-offset);
+  border-color: var(--gov-ui-focus-border) !important;
+  box-shadow: none !important;
 }
 
 /* 주소 검색 필드 */
@@ -699,4 +727,75 @@
   padding: 20px 16px;
   color: #64748b;
   font-size: 0.875rem;
+}
+
+/* —— 입력 focus 통일 (layout / customer / public / form-grid) —— */
+.government-user-layout input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']):focus:not(:disabled):not([readonly]),
+.government-user-layout input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']):focus-visible:not(:disabled):not([readonly]),
+.government-user-layout select:focus:not(:disabled),
+.government-user-layout select:focus-visible:not(:disabled),
+.government-user-layout textarea:focus:not(:disabled):not([readonly]),
+.government-user-layout textarea:focus-visible:not(:disabled):not([readonly]),
+.government-admin-layout input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']):focus:not(:disabled):not([readonly]),
+.government-admin-layout input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']):focus-visible:not(:disabled):not([readonly]),
+.government-admin-layout select:focus:not(:disabled),
+.government-admin-layout select:focus-visible:not(:disabled),
+.government-admin-layout textarea:focus:not(:disabled):not([readonly]),
+.government-admin-layout textarea:focus-visible:not(:disabled):not([readonly]),
+.government-profile-workspace input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):focus:not(:disabled):not([readonly]),
+.government-profile-workspace input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):focus-visible:not(:disabled):not([readonly]),
+.government-profile-workspace select:focus:not(:disabled),
+.government-profile-workspace select:focus-visible:not(:disabled),
+.government-profile-workspace textarea:focus:not(:disabled):not([readonly]),
+.government-profile-workspace textarea:focus-visible:not(:disabled):not([readonly]),
+.government-form-grid input:focus:not(:disabled):not([readonly]),
+.government-form-grid input:focus-visible:not(:disabled):not([readonly]),
+.government-form-grid select:focus:not(:disabled),
+.government-form-grid select:focus-visible:not(:disabled),
+.government-form-grid textarea:focus:not(:disabled):not([readonly]),
+.government-form-grid textarea:focus-visible:not(:disabled):not([readonly]),
+.government-customer-app .gov-form-control:focus:not(:disabled):not([readonly]),
+.government-customer-app .gov-form-control:focus-visible:not(:disabled):not([readonly]),
+.government-customer-app-page .form-input:focus:not(:disabled):not([readonly]),
+.government-customer-app-page .form-input:focus-visible:not(:disabled):not([readonly]),
+.government-customer-app-page .form-textarea:focus:not(:disabled):not([readonly]),
+.government-customer-app-page .form-textarea:focus-visible:not(:disabled):not([readonly]),
+.government-public-signature-page .gov-form-control:focus:not(:disabled):not([readonly]),
+.government-public-signature-page .gov-form-control:focus-visible:not(:disabled):not([readonly]),
+.government-public-signature-page .form-input:focus:not(:disabled):not([readonly]),
+.government-public-signature-page .form-input:focus-visible:not(:disabled):not([readonly]),
+.government-public-signature-page .form-select:focus:not(:disabled),
+.government-public-signature-page .form-select:focus-visible:not(:disabled),
+.government-public-signature-page .form-textarea:focus:not(:disabled):not([readonly]),
+.government-public-signature-page .form-textarea:focus-visible:not(:disabled):not([readonly]) {
+  outline: var(--gov-ui-focus-outline);
+  outline-offset: var(--gov-ui-focus-outline-offset);
+  border-color: var(--gov-ui-focus-border);
+  box-shadow: none;
+}
+
+.government-auth-white-theme .gov-btn:focus-visible,
+.government-user-white-theme .gov-btn:focus-visible,
+.government-admin-white-theme .gov-btn:focus-visible,
+.government-user-layout .gov-btn:focus-visible,
+.government-customer-app .gov-btn:focus-visible {
+  outline: var(--gov-ui-focus-outline);
+  outline-offset: var(--gov-ui-focus-outline-offset);
+}
+
+.government-auth-white-theme input:disabled:focus,
+.government-auth-white-theme select:disabled:focus,
+.government-auth-white-theme textarea:disabled:focus,
+.government-user-white-theme input:disabled:focus,
+.government-user-white-theme select:disabled:focus,
+.government-user-white-theme textarea:disabled:focus,
+.government-admin-white-theme input:disabled:focus,
+.government-admin-white-theme select:disabled:focus,
+.government-admin-white-theme textarea:disabled:focus,
+.government-auth-white-theme input[readonly]:focus,
+.government-user-white-theme input[readonly]:focus,
+.government-admin-white-theme input[readonly]:focus {
+  outline: none;
+  box-shadow: none;
+  border-color: var(--gov-ui-border-strong);
 }

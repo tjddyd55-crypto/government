@@ -202,12 +202,16 @@
   opacity: 1;
 }
 
-.government-form-grid input:focus,
-.government-form-grid select:focus,
-.government-form-grid textarea:focus {
-  outline: none;
+.government-form-grid input:focus:not(:disabled):not([readonly]),
+.government-form-grid input:focus-visible:not(:disabled):not([readonly]),
+.government-form-grid select:focus:not(:disabled),
+.government-form-grid select:focus-visible:not(:disabled),
+.government-form-grid textarea:focus:not(:disabled):not([readonly]),
+.government-form-grid textarea:focus-visible:not(:disabled):not([readonly]) {
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
   border-color: #f2b800;
-  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+  box-shadow: none;
 }
 
 .government-page--mobile .government-workspace__body {
@@ -2311,10 +2315,11 @@
   font-size: 14px;
 }
 
-.government-upload-category-field__select:focus {
-  outline: none;
-  border-color: var(--gov-workspace-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gov-workspace-primary) 28%, transparent);
+.government-upload-category-field__select:focus:not(:disabled) {
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
+  border-color: #f2b800;
+  box-shadow: none;
 }
 
 .government-upload-category-field__hint {
@@ -2486,12 +2491,16 @@
   color: #94a3b8;
 }
 
-.government-profile-workspace input:focus,
-.government-profile-workspace textarea:focus,
-.government-profile-workspace select:focus {
-  outline: none;
-  border-color: var(--gov-workspace-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gov-workspace-primary) 24%, transparent);
+.government-profile-workspace input:focus:not(:disabled):not([readonly]),
+.government-profile-workspace input:focus-visible:not(:disabled):not([readonly]),
+.government-profile-workspace textarea:focus:not(:disabled):not([readonly]),
+.government-profile-workspace textarea:focus-visible:not(:disabled):not([readonly]),
+.government-profile-workspace select:focus:not(:disabled),
+.government-profile-workspace select:focus-visible:not(:disabled) {
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
+  border-color: #f2b800;
+  box-shadow: none;
 }
 
 .government-profile-workspace .customer-workspace-record-item {
