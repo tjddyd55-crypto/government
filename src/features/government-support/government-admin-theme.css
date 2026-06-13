@@ -524,3 +524,133 @@
   border: 1px solid #cbd5e1;
   border-radius: 10px;
 }
+
+/* —— admin gate / forbidden / search / mobile menu (화이트·옐로 SSOT) —— */
+
+.government-admin-gate {
+  width: 100%;
+  min-height: calc(100vh - 48px);
+  padding: 24px;
+  box-sizing: border-box;
+  background: var(--gov-ui-bg);
+  color: var(--gov-ui-text);
+}
+
+.government-admin-white-theme .admin-ga-management,
+.government-admin-white-theme .admin-user-management,
+.government-admin-white-theme .government-admin-page {
+  min-height: calc(100vh - 56px);
+  padding: 24px;
+}
+
+.government-admin-forbidden-card {
+  margin-top: 16px;
+  padding: 20px 24px;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  color: #0f172a;
+  max-width: 640px;
+}
+
+.government-admin-forbidden-card__title {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.government-admin-forbidden-card__message {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+.government-admin-search-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.government-admin-search-field .gov-form-control {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.government-admin-search-field .gov-btn {
+  flex: 0 0 auto;
+}
+
+.government-admin-white-theme .gov-status-error-card,
+.government-admin-white-theme .admin-user-management__error-card {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #fca5a5;
+  border-radius: 14px;
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
+
+/* 모바일 admin drawer — index.css 다크 drawer override */
+.government-admin-white-theme.government-admin-layout--mobile .mobile-workspace-drawer,
+.government-admin-white-theme .government-admin-mobile-menu.mobile-workspace-drawer {
+  background: #ffffff;
+  border-bottom: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+.government-admin-white-theme.government-admin-layout--mobile .mobile-workspace-drawer__section {
+  color: #64748b;
+  border-top-color: #e2e8f0;
+}
+
+.government-admin-white-theme.government-admin-layout--mobile .workspace-sidebar__menu-item,
+.government-admin-white-theme .government-admin-mobile-menu__item {
+  background: transparent;
+  color: #0f172a;
+  border: none;
+  border-radius: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.government-admin-white-theme.government-admin-layout--mobile .workspace-sidebar__menu-item:hover:not(:disabled),
+.government-admin-white-theme .government-admin-mobile-menu__item:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.government-admin-white-theme.government-admin-layout--mobile .workspace-sidebar__menu-item--active,
+.government-admin-white-theme .government-admin-mobile-menu__item--active {
+  background: #fff9db;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.government-admin-white-theme.government-admin-layout--mobile .workspace-sidebar__menu-item--active::before,
+.government-admin-white-theme .government-admin-mobile-menu__item--active::before {
+  background: #f2b800;
+}
+
+.government-admin-white-theme.government-admin-layout--mobile .mobile-workspace-drawer__logout {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #d7dee8;
+  border-radius: 10px;
+  margin: 12px 16px 16px;
+  width: calc(100% - 32px);
+}
+
+.government-admin-white-theme.government-admin-layout--mobile .mobile-workspace-drawer__logout:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.government-admin-white-theme.government-admin-layout--mobile .admin-user-card,
+.government-admin-white-theme.government-admin-layout--mobile .admin-responsive-card-list .admin-user-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  color: #0f172a;
+}

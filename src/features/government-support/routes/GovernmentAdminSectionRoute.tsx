@@ -7,21 +7,27 @@ import {
   resolveGovernmentHomePath,
 } from '../lib/governmentHome'
 import { useGovernmentAccessContext } from '../context/GovernmentAccessContext'
+import GovernmentAdminForbiddenCard from '../components/GovernmentAdminForbiddenCard'
 
 function GovernmentAdminGateLoading() {
   return (
-    <main className="page government-page government-page--gate">
-      <p className="government-page__muted">권한을 확인하는 중…</p>
-    </main>
+    <div
+      className="government-admin-gate government-admin-white-theme"
+      data-testid="government-admin-page"
+    >
+      <div className="gov-status-loading">권한을 확인하는 중…</div>
+    </div>
   )
 }
 
 function GovernmentAdminGateDenied({ message }: { message: string }) {
   return (
-    <main className="page government-page government-page--gate">
-      <h1 className="government-page__title">접근할 수 없습니다</h1>
-      <p className="government-page__muted">{message}</p>
-    </main>
+    <div
+      className="government-admin-gate government-admin-white-theme"
+      data-testid="government-admin-page"
+    >
+      <GovernmentAdminForbiddenCard message={message} />
+    </div>
   )
 }
 
@@ -61,13 +67,13 @@ export function GovernmentAdminOperationalRoute() {
   return <Outlet />
 }
 
-/** 공지·자료 — 대행사 관리자·직원만 */
+/** 공지·자료 — 업종 관리자(global) + 대행사 관리자·직원 */
 export function GovernmentAdminNoticesRoute() {
   const { summary, accessState } = useAdminSectionAccess()
   if (accessState === 'loading') return <GovernmentAdminGateLoading />
   if (!canManageGovernmentNotices(summary)) {
     return (
-      <GovernmentAdminGateDenied message="공지·자료 관리는 대행사 관리자·직원만 이용할 수 있습니다." />
+      <GovernmentAdminGateDenied message="공지·자료 관리는 운영 관리자·대행사 관리자·직원만 이용할 수 있습니다." />
     )
   }
   return <Outlet />

@@ -22,9 +22,11 @@ import {
   labelForStatus,
 } from '../../constants/governmentOperations'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
-import { canManageGovernmentNotices } from '../../lib/governmentHome'
-import { canManageGovernmentUsers } from '../../lib/governmentAccess'
+import { useGovernmentAdminTextSearch } from '../../hooks/useGovernmentAdminTextSearch'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
+import GovernmentAdminSearchField from '../../components/GovernmentAdminSearchField'
+import { mapGovernmentAdminApiError } from '../../lib/mapGovernmentAdminApiError'
+import { canManageGovernmentUsers } from '../../lib/governmentAccess'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 
 type ResourceForm = {
@@ -51,6 +53,7 @@ export default function GovernmentAdminResourcesPage() {
   const { token } = useAuth()
   const { summary } = useGovernmentAccess(token)
   const { confirm, confirmDialog } = useConfirmDialog()
+  const isIndustryAdmin = Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
   const isAgencyAdmin = canManageGovernmentUsers(summary)
   const defaultTenantId =
     summary?.governmentAgencyAdminTenantIds[0] ??
@@ -63,7 +66,7 @@ export default function GovernmentAdminResourcesPage() {
   const [error, setError] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
-  const [filterQ, setFilterQ] = useState('')
+  const textSearch = useGovernmentAdminTextSearch()
   const [editorOpen, setEditorOpen] = useState(false)
   const [editing, setEditing] = useState<GovernmentResourceRow | null>(null)
   const [form, setForm] = useState<ResourceForm>({ ...EMPTY_FORM, tenantId: defaultTenantId })
@@ -85,15 +88,15 @@ export default function GovernmentAdminResourcesPage() {
           managerView: true,
           status: filterStatus || undefined,
           category: filterCategory || undefined,
-          q: filterQ.trim() || undefined,
+          q: textSearch.query.trim() || undefined,
         }),
       )
     } catch (e) {
-      setError(e instanceof Error ? e.message : '자료 목록을 불러오지 못했습니다.')
+      setError(mapGovernmentAdminApiError(e, '자료 목록을 불러오지 못했습니다.'))
     } finally {
       setLoading(false)
     }
-  }, [token, filterStatus, filterCategory, filterQ])
+  }, [token, filterStatus, filterCategory, textSearch.query])
 
   useEffect(() => {
     if (!token || !isAgencyAdmin) return
@@ -103,14 +106,6 @@ export default function GovernmentAdminResourcesPage() {
   useEffect(() => {
     void load()
   }, [load])
-
-  if (!canManageGovernmentNotices(summary)) {
-    return (
-      <GovernmentAdminPageShell title="접근할 수 없습니다" description="자료실/서식함은 대행사 운영 계정만 이용할 수 있습니다.">
-        <EmptyState message="권한이 없습니다." />
-      </GovernmentAdminPageShell>
-    )
-  }
 
   const openCreate = () => {
     setEditing(null)
@@ -144,8 +139,8 @@ export default function GovernmentAdminResourcesPage() {
         description: form.description,
         category: form.category,
         status: form.status,
-        scopeType: 'agency',
-        tenantId: form.tenantId || defaultTenantId,
+        scopeType: isIndustryAdmin ? 'global' : 'agency',
+        tenantId: isIndustryAdmin ? undefined : form.tenantId || defaultTenantId,
       }
       if (editing && !form.file) {
         await updateGovernmentResource(token, editing.id, meta)
@@ -202,17 +197,29 @@ export default function GovernmentAdminResourcesPage() {
   return (
     <GovernmentAdminPageShell
       title="자료실/서식함"
-      description="소속 대행사 이용자용 신청 서식·안내문 등을 관리합니다."
+      description={
+        isIndustryAdmin
+          ? '전체 이용자용 신청 서식·안내문 등을 관리합니다.'
+          : '소속 대행사 이용자용 신청 서식·안내문 등을 관리합니다.'
+      }
+      testId="government-admin-resources-page"
       toolbar={
         <>
-          <FormButton htmlType="button" variant="primary" className="button button--primary" onClick={openCreate}>
+          <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" onClick={openCreate}>
             자료 등록
           </FormButton>
-          <FieldWrapper label="검색">
-            <FormInput value={filterQ} onChange={(e) => setFilterQ(e.target.value)} placeholder="제목·설명" />
-          </FieldWrapper>
+          <GovernmentAdminSearchField
+            draft={textSearch.draft}
+            onDraftChange={textSearch.setDraft}
+            onApply={textSearch.apply}
+            onReset={textSearch.reset}
+            onKeyDown={textSearch.onKeyDown}
+            placeholder="제목·설명"
+            disabled={loading}
+          />
           <FieldWrapper label="카테고리">
             <FormSelect
+              className="gov-form-control"
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
               options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_CATEGORIES]}
@@ -220,6 +227,7 @@ export default function GovernmentAdminResourcesPage() {
           </FieldWrapper>
           <FieldWrapper label="상태">
             <FormSelect
+              className="gov-form-control"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               options={[{ value: '', label: '전체' }, ...GOVERNMENT_RESOURCE_STATUSES]}
@@ -228,7 +236,11 @@ export default function GovernmentAdminResourcesPage() {
         </>
       }
     >
-      {error ? <StatusMessage message={error} tone="error" className="m-0 mb-3" /> : null}
+      {error ? (
+        <div className="admin-user-management__error-card gov-status-error-card" role="alert">
+          {error}
+        </div>
+      ) : null}
       {loading ? <LoadingState message="불러오는 중…" /> : null}
       {!loading && rows.length === 0 ? <EmptyState message="등록된 자료가 없습니다." /> : null}
 

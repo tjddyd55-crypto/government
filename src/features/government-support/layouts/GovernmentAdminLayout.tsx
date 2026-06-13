@@ -77,6 +77,7 @@ export default function GovernmentAdminLayout() {
     return (
       <main
         className={`page government-page government-admin-layout government-admin-layout--mobile government-admin-white-theme ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
+        data-testid="government-admin-white-theme"
       >
         <GovernmentMobileWorkspaceShell
           title="정부지원 CRM · 관리"
@@ -101,6 +102,7 @@ export default function GovernmentAdminLayout() {
   return (
     <main
       className={`page government-page government-admin-layout government-admin-layout--insurance-shell government-admin-layout--pc-admin government-admin-white-theme ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
+      data-testid="government-admin-white-theme"
     >
       <GovernmentWorkspaceChrome
         brand={`${GOVERNMENT_APP_TITLE} · 관리`}

@@ -29,7 +29,10 @@ export default function GovernmentMobileWorkspaceShell({
   useBackButtonClose(drawerOpen, () => setDrawerOpen(false))
 
   return (
-    <div className="mobile-root mobile-workspace-layout government-mobile-workspace-shell">
+    <div
+      className="mobile-root mobile-workspace-layout government-mobile-workspace-shell"
+      data-testid="government-admin-mobile-shell"
+    >
       {isMobile ? (
         <header className="mobile-topbar" aria-label="모바일 상단바">
           <FormButton

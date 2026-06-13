@@ -96,9 +96,9 @@ async function main() {
       status: 'published',
       scopeType: 'global',
     },
-    expectStatus: 403,
+    expectStatus: 200,
   })
-  pass('industry admin notice create forbidden')
+  pass('industry admin global notice create')
 
   const aa = await login(uAA)
   const noticeA = await api('/government-support/admin/notices', {
@@ -272,8 +272,9 @@ async function main() {
   if (ids.has(String(globalDraft.json?.data?.id))) pass('manager draft visible')
   else fail('manager draft visible')
 
-  await api('/government-support/notices?managerView=true', { token: industry, expectStatus: 403 })
-  pass('industry admin manager view forbidden')
+  const mgrIndustry = await api('/government-support/notices?managerView=true', { token: industry })
+  if (mgrIndustry.status === 200) pass('industry admin manager view')
+  else fail('industry admin manager view', String(mgrIndustry.status))
 
   const failed = summary()
   process.exit(failed > 0 ? 1 : 0)

@@ -21,9 +21,10 @@ export function canManageGovernmentSignatures(summary: GovernmentAccessSummary |
   return false
 }
 
-/** 공지·전달사항·자료실 — 대행사 관리자·직원만 */
+/** 공지·전달사항·자료실 — 업종 관리자(global) + 대행사 관리자·직원(소속 대행사) */
 export function canManageGovernmentNotices(summary: GovernmentAccessSummary | null): boolean {
   if (!summary || isGovernmentProgramUser(summary)) return false
+  if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return true
   if ((summary.governmentAgencyAdminTenantIds?.length ?? 0) > 0) return true
   if ((summary.governmentStaffTenantIds?.length ?? 0) > 0) return true
   return false

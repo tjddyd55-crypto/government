@@ -34,7 +34,7 @@ export default function GovernmentMobileWorkspaceDrawer({
         aria-hidden
         onClick={onClose}
       />
-      <div className="mobile-workspace-drawer mobile-workspace-drawer--overlay" role="presentation">
+      <div className="mobile-workspace-drawer mobile-workspace-drawer--overlay government-admin-mobile-menu" role="presentation" data-testid="government-admin-mobile-menu">
         <nav className="mobile-workspace-drawer__nav" aria-label="모바일 주요 메뉴">
           {items.map((item, index) => {
             if (item.type === 'divider') {
@@ -62,7 +62,7 @@ export default function GovernmentMobileWorkspaceDrawer({
                 key={`${item.path}-${item.label}-${index}`}
                 htmlType="button"
                 variant="secondary"
-                className={`workspace-sidebar__menu-item${isActive ? ' workspace-sidebar__menu-item--active' : ''}`}
+                className={`workspace-sidebar__menu-item government-admin-mobile-menu__item${isActive ? ' workspace-sidebar__menu-item--active government-admin-mobile-menu__item--active' : ''}`}
                 disabled={isDisabled}
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => {
@@ -85,7 +85,7 @@ export default function GovernmentMobileWorkspaceDrawer({
           <FormButton
             htmlType="button"
             variant="secondary"
-            className="mobile-workspace-drawer__logout"
+            className="mobile-workspace-drawer__logout gov-btn gov-btn--secondary"
             onClick={() => {
               onLogout()
               navigate(logoutRedirectPath, { replace: true })

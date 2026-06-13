@@ -1,9 +1,14 @@
 /**
  * 공지/자료실 운영 접근 제어 (유저 사업장 데이터와 분리).
- * 대행사 관리자·직원만 자기 tenant 범위에서 CRUD. global/industry admin 운영 CRUD 없음.
+ * - 업종 관리자·super: global 범위 CRUD
+ * - 대행사 관리자·직원: 소속 tenant agency 범위 CRUD
  * @module governmentOperationsAccess
  */
-import { isGovernmentProgramUser } from './governmentAccess.js'
+import {
+  isGovernmentIndustryAdmin,
+  isGovernmentProgramUser,
+  isGovernmentSuperAdmin,
+} from './governmentAccess.js'
 import { GOVERNMENT_SCOPE_AGENCY, GOVERNMENT_SCOPE_GLOBAL } from './governmentOperationsConstants.js'
 
 /**
@@ -12,6 +17,9 @@ import { GOVERNMENT_SCOPE_AGENCY, GOVERNMENT_SCOPE_GLOBAL } from './governmentOp
 export function canManageGovernmentOperations(ctx) {
   if (!ctx || isGovernmentProgramUser(ctx)) {
     return false
+  }
+  if (isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)) {
+    return true
   }
   return (
     (ctx.governmentAgencyAdminTenantIds?.length ?? 0) > 0 ||
@@ -29,8 +37,8 @@ export function isGovernmentAgencyAdmin(ctx) {
 /**
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
  */
-export function canCreateGlobalScope(_ctx) {
-  return false
+export function canCreateGlobalScope(ctx) {
+  return isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)
 }
 
 /**
@@ -53,7 +61,7 @@ export function canDeleteOperationalRecord(ctx, row) {
   const scopeType = String(row?.scope_type ?? GOVERNMENT_SCOPE_AGENCY)
   const tenantId = row?.tenant_id != null ? String(row.tenant_id) : null
   if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
-    return false
+    return canCreateGlobalScope(ctx)
   }
   if ((ctx.governmentAgencyAdminTenantIds ?? []).includes(tenantId ?? '')) {
     return true
@@ -69,7 +77,7 @@ export function canDeleteOperationalRecord(ctx, row) {
 export function canWriteOperationalScope(ctx, tenantId, scopeType) {
   const scope = String(scopeType ?? GOVERNMENT_SCOPE_AGENCY)
   if (scope === GOVERNMENT_SCOPE_GLOBAL) {
-    return false
+    return canCreateGlobalScope(ctx)
   }
   const tid = tenantId != null ? String(tenantId).trim() : ''
   if (!tid) {
@@ -91,7 +99,16 @@ export function canReadOperationalRecord(ctx, row, opts = {}) {
   const tenantId = row?.tenant_id != null ? String(row.tenant_id) : null
 
   if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
-    return false
+    if (managerView && canCreateGlobalScope(ctx)) {
+      return true
+    }
+    if (status !== 'published') {
+      return false
+    }
+    if (isGovernmentProgramUser(ctx)) {
+      return true
+    }
+    return canCreateGlobalScope(ctx)
   }
 
   if (managerView && canManageGovernmentOperations(ctx)) {
@@ -135,15 +152,22 @@ export function buildOperationalListQuery(ctx, filters = {}, kind = 'notice', al
   const bodyCol = kind === 'notice' ? col('content') : col('description')
 
   if (managerView && canManageGovernmentOperations(ctx)) {
-    const ids = getOperationalTenantIds(ctx)
-    if (ids.length === 0) {
-      return { ok: false, status: 403, message: '조회 권한이 없습니다.' }
-    }
-    params.push(ids)
-    where.push(`${col('tenant_id')}::text = ANY($${params.length}::text[])`)
-    if (filters.status) {
-      params.push(String(filters.status))
-      where.push(`${col('status')} = $${params.length}`)
+    if (canCreateGlobalScope(ctx)) {
+      if (filters.status) {
+        params.push(String(filters.status))
+        where.push(`${col('status')} = $${params.length}`)
+      }
+    } else {
+      const ids = getOperationalTenantIds(ctx)
+      if (ids.length === 0) {
+        return { ok: false, status: 403, message: '조회 권한이 없습니다.' }
+      }
+      params.push(ids)
+      where.push(`${col('tenant_id')}::text = ANY($${params.length}::text[])`)
+      if (filters.status) {
+        params.push(String(filters.status))
+        where.push(`${col('status')} = $${params.length}`)
+      }
     }
   } else {
     params.push('published')
@@ -154,7 +178,7 @@ export function buildOperationalListQuery(ctx, filters = {}, kind = 'notice', al
         return { ok: false, status: 403, message: '조회 권한이 없습니다.' }
       }
       params.push(ids)
-      where.push(`${col('tenant_id')}::text = ANY($${params.length}::text[])`)
+      where.push(`(${col('scope_type')} = '${GOVERNMENT_SCOPE_GLOBAL}' OR ${col('tenant_id')}::text = ANY($${params.length}::text[]))`)
     } else {
       return { ok: false, status: 403, message: '조회 권한이 없습니다.' }
     }

@@ -4,6 +4,9 @@ import { EmptyState, LoadingState } from '../../../../components/feedback'
 import { FieldWrapper, FormInput, FormSelect } from '../../../../components/form'
 import { useAuth } from '../../../auth/AuthProvider'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
+import GovernmentAdminSearchField from '../../components/GovernmentAdminSearchField'
+import { useGovernmentAdminTextSearch } from '../../hooks/useGovernmentAdminTextSearch'
+import { mapGovernmentAdminApiError } from '../../lib/mapGovernmentAdminApiError'
 import { fetchGovernmentAdminUsers } from '../../api/governmentAdminUsersApi'
 import { fetchGovAgencies } from '../../api/governmentProfilesApi'
 import { GOVERNMENT_ROLE_LABELS } from '../../constants/governmentRoles'
@@ -75,7 +78,7 @@ export default function GovernmentAdminProgramUsersPage() {
   const [loadError, setLoadError] = useState('')
   const [filterTenant, setFilterTenant] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
-  const [filterQ, setFilterQ] = useState('')
+  const textSearch = useGovernmentAdminTextSearch()
 
   const tenantFilterOptions = useMemo(
     () => [
@@ -104,16 +107,16 @@ export default function GovernmentAdminProgramUsersPage() {
         role: 'government_user',
         tenantId: filterTenant || undefined,
         status: filterStatus || undefined,
-        q: filterQ.trim() || undefined,
+        q: textSearch.query.trim() || undefined,
       })
       setRows(list)
     } catch (e) {
-      setLoadError(e instanceof Error ? e.message : '이용자 목록을 불러오지 못했습니다.')
+      setLoadError(mapGovernmentAdminApiError(e, '이용자 목록을 불러오지 못했습니다.'))
       setRows([])
     } finally {
       setLoading(false)
     }
-  }, [token, filterTenant, filterStatus, filterQ])
+  }, [token, filterTenant, filterStatus, textSearch.query])
 
   useEffect(() => {
     void loadAgencies()
@@ -127,25 +130,23 @@ export default function GovernmentAdminProgramUsersPage() {
     <GovernmentAdminPageShell
       managementKind="user"
       title="이용자 관리"
-      description={
-        loadError ||
-        '기관 코드로 가입한 프로그램 이용자 계정·상태만 확인합니다. 사업장·신청 데이터는 이용자 본인 워크스페이스에서 관리합니다.'
-      }
+      description="기관 코드로 가입한 프로그램 이용자 계정·상태만 확인합니다. 사업장·신청 데이터는 이용자 본인 워크스페이스에서 관리합니다."
+      testId="government-admin-page"
       toolbar={
         <>
-          <FieldWrapper label="검색" className="admin-modal-field admin-user-management__filter-field">
-            <FormInput
-              className="admin-form-input"
-              value={filterQ}
-              onChange={(e) => setFilterQ(e.target.value)}
-              placeholder="아이디·이름"
-              disabled={loading}
-              aria-label="아이디·이름 검색"
-            />
-          </FieldWrapper>
+          <GovernmentAdminSearchField
+            draft={textSearch.draft}
+            onDraftChange={textSearch.setDraft}
+            onApply={textSearch.apply}
+            onReset={textSearch.reset}
+            onKeyDown={textSearch.onKeyDown}
+            placeholder="아이디·이름"
+            disabled={loading}
+            testId="government-admin-user-search"
+          />
           <FieldWrapper label="대행사 선택" className="admin-modal-field admin-user-management__filter-field">
             <FormSelect
-              className="admin-form-input"
+              className="gov-form-control admin-form-input"
               value={filterTenant}
               onChange={(e) => setFilterTenant(e.target.value)}
               options={tenantFilterOptions}
@@ -156,7 +157,7 @@ export default function GovernmentAdminProgramUsersPage() {
           </FieldWrapper>
           <FieldWrapper label="상태" className="admin-modal-field admin-user-management__filter-field">
             <FormSelect
-              className="admin-form-input"
+              className="gov-form-control admin-form-input"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               options={STATUS_FILTER_OPTIONS}
@@ -164,10 +165,15 @@ export default function GovernmentAdminProgramUsersPage() {
               aria-label="상태"
             />
           </FieldWrapper>
-          {loading ? <LoadingState message="불러오는 중…" className="m-0 text-sm text-[var(--text-sub)]" /> : null}
+          {loading ? <LoadingState message="불러오는 중…" className="gov-status-loading m-0" /> : null}
         </>
       }
     >
+      {loadError ? (
+        <div className="admin-user-management__error-card gov-status-error-card" role="alert">
+          {loadError}
+        </div>
+      ) : null}
       <ProgramUsersTable rows={rows} isLoading={loading} />
     </GovernmentAdminPageShell>
   )

@@ -20,6 +20,9 @@ import {
 } from '../../constants/governmentRoles'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
+import GovernmentAdminSearchField from '../../components/GovernmentAdminSearchField'
+import { useGovernmentAdminTextSearch } from '../../hooks/useGovernmentAdminTextSearch'
+import { mapGovernmentAdminApiError } from '../../lib/mapGovernmentAdminApiError'
 import type { GovAgencyRow } from '../../types/governmentProfile.types'
 import type {
   GovernmentAdminUserRow,
@@ -115,7 +118,7 @@ export default function GovernmentAdminUsersPage() {
   const [filterRole, setFilterRole] = useState('')
   const [filterTenant, setFilterTenant] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
-  const [filterQ, setFilterQ] = useState('')
+  const textSearch = useGovernmentAdminTextSearch()
 
   const [createOpen, setCreateOpen] = useState(false)
   const [createUsername, setCreateUsername] = useState('')
@@ -174,18 +177,19 @@ export default function GovernmentAdminUsersPage() {
         role: filterRole || undefined,
         tenantId: filterTenant || undefined,
         status: filterStatus || undefined,
-        q: filterQ.trim() || undefined,
+        q: textSearch.query.trim() || undefined,
       })
       if (!filterRole) {
         list = list.filter((r) => r.role !== 'government_user')
       }
       setRows(list)
     } catch (e) {
-      setLoadError(e instanceof Error ? e.message : '사용자 목록을 불러오지 못했습니다.')
+      setLoadError(mapGovernmentAdminApiError(e, '사용자 목록을 불러오지 못했습니다.'))
+      setRows([])
     } finally {
       setLoading(false)
     }
-  }, [token, filterRole, filterTenant, filterStatus, filterQ])
+  }, [token, filterRole, filterTenant, filterStatus, textSearch.query])
 
   useEffect(() => {
     void loadAgencies()
@@ -319,30 +323,32 @@ export default function GovernmentAdminUsersPage() {
     <GovernmentAdminPageShell
       managementKind="user"
       title="대행사 직원"
-      description={loadError || defaultDescription}
+      description={defaultDescription}
+      testId="government-admin-page"
       toolbar={
         <>
           <FormButton
             htmlType="button"
             variant="primary"
-            className="button button--primary"
+            className="gov-btn gov-btn--primary"
             onClick={openCreate}
             disabled={loading}
           >
             등록
           </FormButton>
-          <FieldWrapper label="검색" className="admin-modal-field admin-user-management__filter-field">
-            <FormInput
-              className="admin-form-input"
-              value={filterQ}
-              onChange={(e) => setFilterQ(e.target.value)}
-              placeholder="아이디·이름"
-              disabled={loading}
-            />
-          </FieldWrapper>
+          <GovernmentAdminSearchField
+            draft={textSearch.draft}
+            onDraftChange={textSearch.setDraft}
+            onApply={textSearch.apply}
+            onReset={textSearch.reset}
+            onKeyDown={textSearch.onKeyDown}
+            placeholder="아이디·이름"
+            disabled={loading}
+            testId="government-admin-staff-search"
+          />
           <FieldWrapper label="권한" className="admin-modal-field admin-user-management__filter-field">
             <FormSelect
-              className="admin-form-input"
+              className="gov-form-control admin-form-input"
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
               options={filterRoleOptions}
@@ -352,7 +358,7 @@ export default function GovernmentAdminUsersPage() {
           </FieldWrapper>
           <FieldWrapper label="소속" className="admin-modal-field admin-user-management__filter-field">
             <FormSelect
-              className="admin-form-input"
+              className="gov-form-control admin-form-input"
               value={filterTenant}
               onChange={(e) => setFilterTenant(e.target.value)}
               options={tenantFilterOptions}
@@ -362,7 +368,7 @@ export default function GovernmentAdminUsersPage() {
           </FieldWrapper>
           <FieldWrapper label="상태" className="admin-modal-field admin-user-management__filter-field">
             <FormSelect
-              className="admin-form-input"
+              className="gov-form-control admin-form-input"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               options={STATUS_FILTER_OPTIONS}
@@ -370,10 +376,15 @@ export default function GovernmentAdminUsersPage() {
               aria-label="상태"
             />
           </FieldWrapper>
-          {loading ? <LoadingState message="불러오는 중…" className="m-0 text-sm text-[var(--text-sub)]" /> : null}
+          {loading ? <LoadingState message="불러오는 중…" className="gov-status-loading m-0" /> : null}
         </>
       }
     >
+      {loadError ? (
+        <div className="admin-user-management__error-card gov-status-error-card" role="alert">
+          {loadError}
+        </div>
+      ) : null}
       {successMsg ? (
         <div className="admin-user-management__alerts">
           <p className="status admin-user-management__status-success m-0">{successMsg}</p>

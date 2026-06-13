@@ -11,6 +11,7 @@ import {
 } from './governmentOperationsConstants.js'
 import {
   buildOperationalListQuery,
+  canCreateGlobalScope,
   canDeleteOperationalRecord,
   canManageGovernmentOperations,
   canReadOperationalRecord,
@@ -129,16 +130,20 @@ export async function createGovernmentResource(pool, ctx, body) {
     return { ok: false, status: 403, message: '자료 등록 권한이 없습니다.' }
   }
   const scopeType = parseScopeType(body.scopeType ?? body.scope_type)
+  let tenantId = null
   if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
-    return { ok: false, status: 403, message: '전체 자료는 지원하지 않습니다. 소속 대행사 자료만 등록할 수 있습니다.' }
-  }
-  const tenantIdRaw = body.tenantId ?? body.tenant_id ?? null
-  const tenantId = tenantIdRaw != null ? String(tenantIdRaw).trim() : null
-  if (!tenantId) {
-    return { ok: false, status: 400, message: '대행사 자료는 tenantId가 필요합니다.' }
-  }
-  if (!canWriteOperationalScope(ctx, tenantId, scopeType)) {
-    return { ok: false, status: 403, message: '해당 범위에 자료를 등록할 수 없습니다.' }
+    if (!canCreateGlobalScope(ctx)) {
+      return { ok: false, status: 403, message: '전체 자료는 업종 관리자만 등록할 수 있습니다.' }
+    }
+  } else {
+    const tenantIdRaw = body.tenantId ?? body.tenant_id ?? null
+    tenantId = tenantIdRaw != null ? String(tenantIdRaw).trim() : null
+    if (!tenantId) {
+      return { ok: false, status: 400, message: '대행사 자료는 tenantId가 필요합니다.' }
+    }
+    if (!canWriteOperationalScope(ctx, tenantId, scopeType)) {
+      return { ok: false, status: 403, message: '해당 범위에 자료를 등록할 수 없습니다.' }
+    }
   }
   const title = String(body.title ?? '').trim()
   const fileKey = String(body.fileKey ?? body.file_key ?? '').trim()
@@ -195,14 +200,18 @@ export async function updateGovernmentResource(pool, ctx, id, body) {
   const scopeType = body.scopeType != null || body.scope_type != null
     ? parseScopeType(body.scopeType ?? body.scope_type)
     : existing.data.scopeType
-  if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
-    return { ok: false, status: 403, message: '전체 자료는 지원하지 않습니다.' }
-  }
-  const tenantId =
+  let tenantId =
     body.tenantId != null || body.tenant_id != null
-      ? String(body.tenantId ?? body.tenant_id).trim()
+      ? body.tenantId != null
+        ? String(body.tenantId).trim()
+        : String(body.tenant_id).trim()
       : existing.data.tenantId
-  if (!canWriteOperationalScope(ctx, tenantId, scopeType)) {
+  if (scopeType === GOVERNMENT_SCOPE_GLOBAL) {
+    if (!canCreateGlobalScope(ctx)) {
+      return { ok: false, status: 403, message: '전체 자료는 업종 관리자만 수정할 수 있습니다.' }
+    }
+    tenantId = null
+  } else if (!canWriteOperationalScope(ctx, tenantId, scopeType)) {
     return { ok: false, status: 403, message: '해당 범위의 자료를 수정할 수 없습니다.' }
   }
   const nextStatus = body.status != null ? parseResourceStatus(body.status) : existing.data.status
