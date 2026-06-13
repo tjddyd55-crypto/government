@@ -410,9 +410,8 @@ async function main() {
     'data-profile-id',
     'gov-profile-workspace-collapsed-profile-ids',
     '/file-categories',
-    'fetchGovProfileFileCategories',
-    'createGovProfileFileCategory',
-    '이미 같은 이름의 문서 분류가 있습니다.',
+    'mergeProfileDocumentCategoryViews',
+    'refreshProfileFileCategories',
   ]) {
     if (basicTabSpa.js.includes(m)) pass(`profile basic tab bundle contains ${m}`)
     else fail(`profile basic tab bundle contains ${m}`)
@@ -427,7 +426,7 @@ async function main() {
   const filesTabSpa = await fetchHtml(filesTabPath)
   if (filesTabSpa.status === 200) pass('GET profile files tab SPA', filesTabSpa.bundle ?? '')
   else fail('GET profile files tab SPA', String(filesTabSpa.status))
-  for (const m of ['government-storage-search-input', 'storage-workspace__search', 'gov-form-control', '/file-categories', '문서 분류 추가', 'fetchGovProfileFileCategories']) {
+  for (const m of ['government-storage-search-input', 'storage-workspace__search', 'gov-form-control', '/file-categories', '문서 분류 추가', 'mergeProfileDocumentCategoryViews']) {
     if (filesTabSpa.js.includes(m)) pass(`profile files tab bundle contains ${m}`)
     else fail(`profile files tab bundle contains ${m}`)
   }
