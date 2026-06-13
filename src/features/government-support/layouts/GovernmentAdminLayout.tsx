@@ -21,6 +21,7 @@ import { canAccessUserOwnedWorkspace, canManageGovernmentSignatures } from '../l
 import { useGovernmentAccessShared } from '../context/GovernmentAccessContext'
 import '../government-support.css'
 import '../government-admin-theme.css'
+import '../government-admin-inquiries-pages.css'
 
 function filterSignatureNavItems(items: GovernmentAdminNavItem[], allowSignatureSetup: boolean) {
   if (allowSignatureSetup) return items

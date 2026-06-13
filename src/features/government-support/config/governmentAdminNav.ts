@@ -49,7 +49,6 @@ export const GOVERNMENT_AGENCY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: GOVERNMENT_ROUTE_PATHS.adminRoot, label: '운영 대시보드', end: true },
   { to: GOVERNMENT_ROUTE_PATHS.adminUsers, label: '대행사 직원' },
   { to: GOVERNMENT_ROUTE_PATHS.adminProgramUsers, label: '이용자 관리' },
-  { to: GOVERNMENT_ROUTE_PATHS.adminDocumentRequests, label: '요청서류 관리' },
   { to: GOVERNMENT_ROUTE_PATHS.adminInquiries, label: '문의 관리' },
   { to: GOVERNMENT_ROUTE_PATHS.adminNotifications, label: '알림' },
   SIGNATURE_TEMPLATES_NAV,
@@ -62,7 +61,6 @@ export const GOVERNMENT_AGENCY_ADMIN_NAV: GovernmentAdminNavItem[] = [
 /** 대행사 직원 — 요청서류·문의·공지·운영 업무 중심 */
 export const GOVERNMENT_STAFF_NAV: GovernmentAdminNavItem[] = [
   { to: GOVERNMENT_ROUTE_PATHS.adminRoot, label: '운영 대시보드', end: true },
-  { to: GOVERNMENT_ROUTE_PATHS.adminDocumentRequests, label: '요청서류 관리' },
   { to: GOVERNMENT_ROUTE_PATHS.adminInquiries, label: '문의 관리' },
   { to: GOVERNMENT_ROUTE_PATHS.adminNotifications, label: '알림' },
   SIGNATURE_TEMPLATES_NAV,

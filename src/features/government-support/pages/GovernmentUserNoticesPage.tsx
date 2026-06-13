@@ -47,7 +47,7 @@ export default function GovernmentUserNoticesPage() {
   const ordered = [...pinned, ...normal]
 
   return (
-    <main className="page page--with-back government-user-notices-page gov-user-page">
+    <main className="page page--with-back government-user-notices-page gov-user-notices-page gov-user-page">
       <section className="government-user-notices-hero">
         <h1 className="government-user-notices-hero__title">공지사항</h1>
         <p className="government-user-notices-hero__subtitle">소속 대행사 공지를 확인할 수 있습니다.</p>

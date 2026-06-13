@@ -30,13 +30,13 @@ export function govAdminInquiryStatusLabel(status: string): string {
 export function govAdminInquiryStatusClass(status: string): string {
   switch (status) {
     case 'open':
-      return 'claim-inbox__status claim-inbox__status--requested'
+      return 'government-admin-inquiries-status-badge government-admin-inquiries-status-badge--open'
     case 'replied':
-      return 'claim-inbox__status claim-inbox__status--processing'
+      return 'government-admin-inquiries-status-badge government-admin-inquiries-status-badge--replied'
     case 'closed':
-      return 'claim-inbox__status claim-inbox__status--done'
+      return 'government-admin-inquiries-status-badge government-admin-inquiries-status-badge--closed'
     default:
-      return 'claim-inbox__status'
+      return 'government-admin-inquiries-status-badge'
   }
 }
 

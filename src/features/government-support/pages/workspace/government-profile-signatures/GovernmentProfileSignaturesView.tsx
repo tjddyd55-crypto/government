@@ -4,7 +4,6 @@ import { formatSenderFieldLabel } from '../../../signatures/governmentSignatureU
 import { SendSessionStatusBadge } from '../../../signatures/components/SendSessionStatusBadge'
 import { ContractTableDateCell } from '../../../signatures/components/GovernmentSignatureTableCells'
 import type { GovernmentProfileSignaturesViewProps } from './governmentProfileSignaturesViewProps'
-import '../../../signatureTemplates/government-signature-console.css'
 
 type Props = GovernmentProfileSignaturesViewProps & {
   variant: 'pc' | 'mobile'
@@ -46,17 +45,16 @@ export default function GovernmentProfileSignaturesView({
   const templateNames = (names: string[]) => (names.length > 0 ? names.join(', ') : '—')
 
   return (
-    <div className="government-profile-signatures-panel contract-signature-console">
-      <section className="contract-signature-console__section government-profile-signatures-panel__section">
-        <h2 className="contract-signature-console__section-title">전자서명 발송</h2>
-        <p className="contract-signature-console__hint">
-          선택한 사업장 담당자에게 전자서명 링크를 발송합니다. 연락처는 사업장 정보에서만 사용됩니다.
+    <div className="government-profile-signatures-panel gov-workspace-tab-page">
+      <section className="government-profile-signatures-panel__compose-card">
+        <h2 className="government-profile-signatures-panel__card-title">전자서명 발송</h2>
+        <p className="government-profile-signatures-panel__card-desc">
+          선택한 사업장 담당자에게 전자서명 링크를 발송합니다.
         </p>
 
-        <div className="contract-signature-console__selected-card government-profile-signatures-panel__recipient">
-          <div className="contract-signature-console__selected-card-title">수신자</div>
-          <div>{recipient.name}</div>
-          <div className="contract-signature-console__hint">
+        <div className="government-profile-signatures-panel__recipient-card">
+          <div className="government-profile-signatures-panel__recipient-name">수신자 · {recipient.name}</div>
+          <div className="government-profile-signatures-panel__recipient-meta">
             연락처 {recipient.hasPhone ? recipient.maskedPhone : '등록된 휴대폰 없음'}
           </div>
           {!recipient.hasPhone ? (
@@ -66,17 +64,15 @@ export default function GovernmentProfileSignaturesView({
           ) : null}
         </div>
 
-        <h3 className="contract-signature-console__section-title government-profile-signatures-panel__subheading">
-          전자서명 템플릿
-        </h3>
-        {templatesLoading ? <p className="contract-signature-console__hint">템플릿을 불러오는 중…</p> : null}
+        <h3 className="government-profile-signatures-panel__subheading">전자서명 템플릿</h3>
+        {templatesLoading ? <p className="gov-muted-text">템플릿을 불러오는 중…</p> : null}
         {templatesError ? (
           <p className="contract-signature-console__inline-error" role="alert">
             {templatesError}
           </p>
         ) : null}
         {!templatesLoading && !templatesError && templates.length === 0 ? (
-          <p className="contract-signature-console__hint">사용 가능한 전자서명 템플릿이 없습니다.</p>
+          <p className="gov-muted-text">사용 가능한 전자서명 템플릿이 없습니다.</p>
         ) : null}
         {!templatesLoading && templates.length > 0 ? (
           <div className={isMobile ? 'contract-send-mobile-template-list' : 'contract-signature-console__pick-table-wrap'}>
@@ -90,17 +86,13 @@ export default function GovernmentProfileSignaturesView({
                   key={tpl.id}
                   htmlType="button"
                   variant="secondary"
-                  className={rowClass}
+                  className={`gov-btn gov-btn--secondary ${rowClass}`}
                   aria-pressed={active}
                   onClick={() => onSelectTemplate(tpl.id)}
                 >
                   <span className="contract-pick-row__title">{tpl.title}</span>
-                  {tpl.description ? (
-                    <span className="contract-signature-console__hint">{tpl.description}</span>
-                  ) : null}
-                  {tpl.pdfEngineTitle ? (
-                    <span className="contract-signature-console__hint">문서: {tpl.pdfEngineTitle}</span>
-                  ) : null}
+                  {tpl.description ? <span className="gov-muted-text">{tpl.description}</span> : null}
+                  {tpl.pdfEngineTitle ? <span className="gov-muted-text">문서: {tpl.pdfEngineTitle}</span> : null}
                 </FormButton>
               )
             })}
@@ -109,9 +101,7 @@ export default function GovernmentProfileSignaturesView({
 
         {selectedTemplate && (selectedTemplate.senderFieldsForSend?.length ?? 0) > 0 ? (
           <div className="government-profile-signatures-panel__sender-fields">
-            <h3 className="contract-signature-console__section-title government-profile-signatures-panel__subheading">
-              발송 전 입력
-            </h3>
+            <h3 className="government-profile-signatures-panel__subheading">발송 전 입력</h3>
             {selectedTemplate.senderFieldsForSend.map((field) => (
               <label key={field.fieldKey} className="government-profile-signatures-panel__field">
                 <span className="government-profile-signatures-panel__field-label">
@@ -120,12 +110,14 @@ export default function GovernmentProfileSignaturesView({
                 </span>
                 {field.fieldType === 'textarea' ? (
                   <FormTextarea
+                    className="gov-form-control"
                     rows={3}
                     value={senderInputValues[field.fieldKey] ?? ''}
                     onChange={(e) => onSenderFieldChange(field.fieldKey, e.target.value)}
                   />
                 ) : (
                   <FormInput
+                    className="gov-form-control"
                     value={senderInputValues[field.fieldKey] ?? ''}
                     onChange={(e) => onSenderFieldChange(field.fieldKey, e.target.value)}
                   />
@@ -137,9 +129,7 @@ export default function GovernmentProfileSignaturesView({
 
         {selectedTemplate?.templateMode === 'confirmation_only' && confirmationFields.length > 0 ? (
           <div className="government-profile-signatures-panel__sender-fields">
-            <h3 className="contract-signature-console__section-title government-profile-signatures-panel__subheading">
-              확인서 항목
-            </h3>
+            <h3 className="government-profile-signatures-panel__subheading">확인서 항목</h3>
             {confirmationFields.map((field) => (
               <label key={field.fieldKey} className="government-profile-signatures-panel__field">
                 <span className="government-profile-signatures-panel__field-label">
@@ -148,12 +138,14 @@ export default function GovernmentProfileSignaturesView({
                 </span>
                 {field.inputType === 'textarea' ? (
                   <FormTextarea
+                    className="gov-form-control"
                     rows={3}
                     value={confirmationFieldValues[field.fieldKey] ?? ''}
                     onChange={(e) => onConfirmationFieldChange(field.fieldKey, e.target.value)}
                   />
                 ) : (
                   <FormInput
+                    className="gov-form-control"
                     value={confirmationFieldValues[field.fieldKey] ?? ''}
                     onChange={(e) => onConfirmationFieldChange(field.fieldKey, e.target.value)}
                   />
@@ -166,6 +158,7 @@ export default function GovernmentProfileSignaturesView({
         <label className="government-profile-signatures-panel__field">
           <span className="government-profile-signatures-panel__field-label">고객 안내 메시지 (선택)</span>
           <FormTextarea
+            className="gov-form-control"
             rows={3}
             value={guideMessage}
             onChange={(e) => onGuideMessageChange(e.target.value)}
@@ -189,16 +182,16 @@ export default function GovernmentProfileSignaturesView({
         />
       </section>
 
-      <section className="contract-signature-console__section government-profile-signatures-panel__section">
-        <h2 className="contract-signature-console__section-title">발송 내역</h2>
-        {historyLoading ? <p className="contract-signature-console__hint">불러오는 중…</p> : null}
+      <section className="government-profile-signatures-panel__history-card">
+        <h2 className="government-profile-signatures-panel__card-title">발송 내역</h2>
+        {historyLoading ? <p className="gov-muted-text">불러오는 중…</p> : null}
         {historyError ? (
           <p className="contract-signature-console__inline-error" role="alert">
             {historyError}
           </p>
         ) : null}
         {!historyLoading && historyRows.length === 0 ? (
-          <p className="contract-signature-console__empty-state-text">이 사업장의 발송 내역이 없습니다.</p>
+          <div className="government-profile-signatures-panel__empty-card">이 사업장의 발송 내역이 없습니다.</div>
         ) : null}
         {!historyLoading && historyRows.length > 0 ? (
           <div className={isMobile ? 'contract-history-mobile-cards' : 'contract-history-table-wrap'}>
@@ -229,6 +222,7 @@ export default function GovernmentProfileSignaturesView({
                         htmlType="button"
                         variant="secondary"
                         size="sm"
+                        className="gov-btn gov-btn--secondary gov-btn--sm"
                         disabled={!row.canCopyLink}
                         onClick={() => void copySignLink(row.signToken)}
                       >
@@ -238,6 +232,7 @@ export default function GovernmentProfileSignaturesView({
                         htmlType="button"
                         variant="secondary"
                         size="sm"
+                        className="gov-btn gov-btn--secondary gov-btn--sm"
                         disabled={!row.hasSignedPdfFile || downloadBusyId === row.id}
                         onClick={() => void onDownloadCompletedPdf(row)}
                       >
@@ -247,7 +242,7 @@ export default function GovernmentProfileSignaturesView({
                   </div>
                 ))
               : (
-                  <table className="contract-history-table">
+                  <table className="contract-history-table pdf-engine-table">
                     <thead>
                       <tr>
                         <th>문서</th>
@@ -283,6 +278,7 @@ export default function GovernmentProfileSignaturesView({
                                 htmlType="button"
                                 variant="secondary"
                                 size="sm"
+                                className="gov-btn gov-btn--secondary gov-btn--sm"
                                 disabled={!row.canCopyLink}
                                 onClick={() => void copySignLink(row.signToken)}
                               >
@@ -292,6 +288,7 @@ export default function GovernmentProfileSignaturesView({
                                 htmlType="button"
                                 variant="secondary"
                                 size="sm"
+                                className="gov-btn gov-btn--secondary gov-btn--sm"
                                 disabled={!row.hasSignedPdfFile || downloadBusyId === row.id}
                                 onClick={() => void onDownloadCompletedPdf(row)}
                               >

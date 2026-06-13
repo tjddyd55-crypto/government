@@ -136,6 +136,28 @@
   font-weight: 700;
 }
 
+.government-auth-white-theme .gov-link,
+.government-user-white-theme .gov-link,
+.government-admin-white-theme .gov-link {
+  color: #92400e;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.government-auth-white-theme .gov-link:hover,
+.government-user-white-theme .gov-link:hover,
+.government-admin-white-theme .gov-link:hover {
+  text-decoration: underline;
+}
+
+.government-auth-white-theme .gov-muted-text,
+.government-user-white-theme .gov-muted-text,
+.government-admin-white-theme .gov-muted-text {
+  color: #64748b;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
 .government-auth-white-theme .gov-btn,
 .government-user-white-theme .gov-btn,
 .government-admin-white-theme .gov-btn {

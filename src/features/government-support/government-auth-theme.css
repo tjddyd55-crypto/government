@@ -138,8 +138,19 @@
 .government-auth-white-theme.auth-page.government-auth-page .field select.gov-form-control:focus,
 .government-auth-white-theme.auth-page.government-auth-page .field select.gov-form-control:focus-visible,
 .government-auth-white-theme.auth-page.government-auth-page .field textarea:focus,
-.government-auth-white-theme.auth-page.government-auth-page .field textarea:focus-visible {
+.government-auth-white-theme.auth-page.government-auth-page .field textarea:focus-visible,
+.government-auth-white-theme.auth-page.government-auth-page .field textarea.gov-form-control:focus,
+.government-auth-white-theme.auth-page.government-auth-page .field textarea.gov-form-control:focus-visible {
   outline: none;
-  border-color: #f2b800;
+  border: 2px solid #f2b800;
   box-shadow: none;
+}
+
+.government-auth-white-theme.auth-page.government-auth-page .field input:-webkit-autofill,
+.government-auth-white-theme.auth-page.government-auth-page .field input:-webkit-autofill:focus,
+.government-auth-white-theme.auth-page.government-auth-page .field input:-webkit-autofill:focus-visible {
+  -webkit-text-fill-color: #0f172a;
+  box-shadow: 0 0 0 1000px #ffffff inset;
+  border: 2px solid #f2b800;
+  outline: none;
 }

@@ -12,6 +12,8 @@ export const GOVERNMENT_ROUTE_PATHS = Object.freeze({
   me: '/government/me',
   notices: '/government/notices',
   resources: '/government/resources',
+  inquiries: '/government/inquiries',
+  inquiriesNew: '/government/inquiries/new',
   appRoot: '/government/app',
   appRequests: '/government/app/requests',
   appInquiries: '/government/app/inquiries',
@@ -51,4 +53,8 @@ export function governmentAppRequestDetailPath(requestId: string | number): stri
 
 export function governmentAppInquiryDetailPath(inquiryId: string | number): string {
   return `${GOVERNMENT_ROUTE_PATHS.appInquiries}/${encodeURIComponent(String(inquiryId))}`
+}
+
+export function governmentUserInquiryDetailPath(inquiryId: string | number): string {
+  return `${GOVERNMENT_ROUTE_PATHS.inquiries}/${encodeURIComponent(String(inquiryId))}`
 }

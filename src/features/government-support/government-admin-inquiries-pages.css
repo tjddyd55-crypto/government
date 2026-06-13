@@ -1,0 +1,276 @@
+/* —— 정부지원 관리자 문의 관리 (claim-inbox 비의존 white theme) —— */
+
+.government-admin-inquiries-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 24px;
+  box-sizing: border-box;
+  background: #f5f7fb;
+  color: #0f172a;
+  min-height: 0;
+}
+
+.government-admin-inquiries-hero,
+.government-admin-inquiries-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: none;
+}
+
+.government-admin-inquiries-toolbar {
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.government-admin-inquiries-hero__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.government-admin-inquiries-hero__subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.government-admin-inquiries-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.95fr) minmax(0, 1.35fr);
+  gap: 14px;
+  min-height: 0;
+}
+
+.government-admin-inquiries-list,
+.government-admin-inquiries-detail {
+  min-width: 0;
+  min-height: 0;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: none;
+}
+
+.government-admin-inquiries-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.government-admin-inquiries-card {
+  width: 100%;
+  display: block;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #d7dee8;
+  background: #ffffff;
+  color: #0f172a;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.government-admin-inquiries-card:hover,
+.government-admin-inquiries-card--selected {
+  background: #fffdf0;
+  border-color: #f2b800;
+}
+
+.government-admin-inquiries-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.government-admin-inquiries-card__head strong {
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.government-admin-inquiries-card__meta,
+.government-admin-inquiries-detail__meta {
+  margin-top: 5px;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.government-admin-inquiries-empty {
+  padding: 16px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px dashed #d7dee8;
+  color: #64748b;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.government-admin-inquiries-detail__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.government-admin-inquiries-detail__title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.government-admin-inquiries-detail__body {
+  padding: 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 10px 0 14px;
+}
+
+.government-admin-inquiries-detail__section {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.government-admin-inquiries-detail__section h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.government-admin-inquiries-message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.government-admin-inquiries-message-item {
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+.government-admin-inquiries-message-item strong {
+  display: block;
+  font-size: 0.8125rem;
+  margin-bottom: 4px;
+}
+
+.government-admin-inquiries-message-item span {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.government-admin-inquiries-message-item p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.government-admin-inquiries-detail__actions-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 10px;
+}
+
+.government-admin-inquiries-status-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border: 1px solid #d7dee8;
+  background: #fff8d6;
+  color: #92400e;
+}
+
+.government-admin-inquiries-status-badge--open {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.government-admin-inquiries-status-badge--replied {
+  background: #fff8d6;
+  color: #92400e;
+  border-color: #f2b800;
+}
+
+.government-admin-inquiries-status-badge--closed {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.government-admin-inquiries-mobile-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.government-admin-inquiries-mobile-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #d7dee8;
+  background: #ffffff;
+}
+
+.government-admin-inquiries-mobile-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+@media (max-width: 900px) {
+  .government-admin-inquiries-layout {
+    grid-template-columns: 1fr;
+  }
+}

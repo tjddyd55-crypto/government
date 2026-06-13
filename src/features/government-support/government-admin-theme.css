@@ -1,13 +1,30 @@
 @import './government-ui-theme.css';
 
 .government-admin-layout--pc-admin.government-admin-white-theme.government-page {
-  width: 100%;
+  width: 100vw;
   max-width: none;
   margin: 0;
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
   background: var(--gov-ui-bg);
+  box-sizing: border-box;
+}
+
+.app-root .government-admin-layout--pc-admin.government-admin-white-theme.government-page {
+  width: 100vw;
+  max-width: none;
+  margin: 0;
+}
+
+.app-root .government-admin-layout--pc-admin .government-admin-pc-shell,
+.app-root .government-admin-layout--pc-admin .government-workspace-chrome--admin-shell,
+.app-root .government-admin-layout--pc-admin .government-workspace-chrome__topbar,
+.app-root .government-admin-layout--pc-admin .government-workspace-topbar {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .government-admin-white-theme .government-workspace-chrome--admin-shell .government-workspace-chrome__content {

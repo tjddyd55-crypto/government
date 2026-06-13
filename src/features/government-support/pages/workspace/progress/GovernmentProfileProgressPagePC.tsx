@@ -37,8 +37,8 @@ export default function GovernmentProfileProgressPagePC({
         data-testid="government-profile-progress-compose-inline"
       >
         <div className="gov-workspace-compose-card__header">
-          <h2 className="gov-workspace-compose-card__title">진행 이력</h2>
-          <p className="gov-workspace-compose-card__desc">진행 일자·상태·메모를 등록합니다.</p>
+          <h2 className="gov-workspace-compose-card__title">진행 이력 작성</h2>
+          <p className="gov-workspace-compose-card__desc">진행 일자·접수 상태·메모를 등록합니다.</p>
         </div>
         <form onSubmit={onSubmit} className="gov-workspace-compose-card__form">
           <label className="gov-workspace-compose-card__field">
@@ -113,7 +113,7 @@ export default function GovernmentProfileProgressPagePC({
                       </div>
                       {r.status ? (
                         <span
-                          className={`government-status-summary-card__badge government-status-summary-card__badge--${tone}`}
+                          className={`gov-workspace-status-summary-card__badge gov-workspace-status-summary-card__badge--${tone}`}
                         >
                           {getGovernmentProgressStatusLabel(r.status)}
                         </span>

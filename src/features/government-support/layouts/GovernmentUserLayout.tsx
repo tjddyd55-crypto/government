@@ -16,6 +16,7 @@ import {
 import '../government-support.css'
 import '../government-user-pc-theme.css'
 import '../government-user-ops-pages.css'
+import '../government-user-inquiries-pages.css'
 
 export default function GovernmentUserLayout() {
   useDocumentTitle(GOVERNMENT_APP_TITLE)

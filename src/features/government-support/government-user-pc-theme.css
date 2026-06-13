@@ -568,11 +568,23 @@
   color: #0f172a;
 }
 
+.government-user-layout--pc-user main.gov-user-signatures-page.contract-signature-history-page .contract-signature-console__section {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
 .government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-empty {
+  margin-top: 14px;
   padding: 20px 24px;
   background: #ffffff;
   border: 1px solid #d7dee8;
   border-radius: 14px;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-toolbar {
+  margin-bottom: 2px;
 }
 
 .government-user-layout--pc-user main.gov-user-signatures-page .gov-signature-history-empty__link {

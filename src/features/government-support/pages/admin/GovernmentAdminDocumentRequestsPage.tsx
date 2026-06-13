@@ -1,21 +1,7 @@
-import ResponsiveLayout from '../../../../components/ResponsiveLayout'
-import { useAuth } from '../../../auth/AuthProvider'
-import {
-  useGovernmentAdminDocumentRequestsState,
-  type GovernmentAdminDocumentRequestsViewProps,
-} from '../../hooks/useGovernmentAdminDocumentRequestsState'
-import GovernmentAdminDocumentRequestsMobileView from './government-admin-document-requests/GovernmentAdminDocumentRequestsMobileView'
-import GovernmentAdminDocumentRequestsPCView from './government-admin-document-requests/GovernmentAdminDocumentRequestsPCView'
+import { Navigate } from 'react-router-dom'
+import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
 
+/** 관리자 메뉴에서 숨김 — 직접 URL 접근 시 대시보드로 이동 (API/DB 유지) */
 export default function GovernmentAdminDocumentRequestsPage() {
-  const { token } = useAuth()
-  const viewProps = useGovernmentAdminDocumentRequestsState(token)
-
-  return (
-    <ResponsiveLayout<GovernmentAdminDocumentRequestsViewProps>
-      PC={GovernmentAdminDocumentRequestsPCView}
-      Mobile={GovernmentAdminDocumentRequestsMobileView}
-      viewProps={viewProps}
-    />
-  )
+  return <Navigate to={GOVERNMENT_ROUTE_PATHS.adminRoot} replace />
 }

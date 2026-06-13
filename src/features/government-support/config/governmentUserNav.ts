@@ -16,6 +16,7 @@ export const GOVERNMENT_USER_NAV: GovernmentUserNavItem[] = [
     matchPrefix: GOVERNMENT_ROUTE_PATHS.myApplications,
   },
   { to: GOVERNMENT_ROUTE_PATHS.signatures, label: '전자서명' },
+  { to: GOVERNMENT_ROUTE_PATHS.inquiries, label: '문의/요청' },
   { to: GOVERNMENT_ROUTE_PATHS.notices, label: '공지사항' },
   { to: GOVERNMENT_ROUTE_PATHS.resources, label: '자료실' },
   { to: GOVERNMENT_ROUTE_PATHS.me, label: '내 정보' },

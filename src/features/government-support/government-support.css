@@ -1626,9 +1626,76 @@
 }
 
 .government-profile-signatures-panel__field-label {
-  color: #cbd5e1;
-  font-size: 0.8rem;
-  font-weight: 600;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.government-profile-signatures-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+}
+
+.government-profile-signatures-panel__compose-card,
+.government-profile-signatures-panel__history-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-sizing: border-box;
+}
+
+.government-profile-signatures-panel__card-title {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.government-profile-signatures-panel__card-desc {
+  margin: 0 0 14px;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.government-profile-signatures-panel__recipient-card {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  margin-bottom: 14px;
+}
+
+.government-profile-signatures-panel__recipient-name {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.government-profile-signatures-panel__recipient-meta {
+  margin-top: 4px;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.government-profile-signatures-panel__subheading {
+  margin: 16px 0 10px;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.government-profile-signatures-panel__empty-card {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px dashed #d7dee8;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-top: 8px;
 }
 
 .government-profile-signatures-panel__sender-fields {
@@ -2837,6 +2904,106 @@
   flex-wrap: wrap;
   gap: 8px;
   padding-top: 4px;
+}
+
+/* 진행상황 summary card — customer-detail-read 부모 없이 워크스페이스 white card */
+.government-profile-workspace .gov-workspace-status-summary-card {
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--gov-workspace-text);
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border: 1px solid #d7dee8;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__badge--blue {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__badge--amber {
+  background: #fff8d6;
+  border-color: #f2b800;
+  color: #92400e;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__badge--green {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__badge--red {
+  background: #fff1f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__badge--neutral {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__line,
+.government-profile-workspace .gov-workspace-status-summary-card__empty {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  color: var(--gov-workspace-muted);
+  line-height: 1.5;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__cell {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__cell-label {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.government-profile-workspace .gov-workspace-status-summary-card__cell-value {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #0f172a;
 }
 
 .government-profile-workspace .gov-workspace-record-section {

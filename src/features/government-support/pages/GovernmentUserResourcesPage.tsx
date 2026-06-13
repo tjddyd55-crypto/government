@@ -60,7 +60,7 @@ export default function GovernmentUserResourcesPage() {
   }
 
   return (
-    <main className="page page--with-back government-user-resources-page gov-user-page">
+    <main className="page page--with-back government-user-resources-page gov-user-resources-page gov-user-page">
       <section className="government-user-resources-hero">
         <h1 className="government-user-resources-hero__title">자료실/서식함</h1>
         <p className="government-user-resources-hero__subtitle">소속 대행사 자료를 다운로드할 수 있습니다.</p>
