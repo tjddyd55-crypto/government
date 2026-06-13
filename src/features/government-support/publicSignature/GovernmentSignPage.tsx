@@ -17,8 +17,10 @@ import {
 } from './governmentSignaturePublicClient'
 
 import { staffDocumentStatusLabel } from '../signatures/sendSessionStaffDisplay'
+import { useGovernmentPublicSignatureBodyClass } from './useGovernmentPublicSignatureBodyClass'
 
 export default function GovernmentSignPage() {
+  useGovernmentPublicSignatureBodyClass()
   const { token: tokenParam } = useParams<{ token: string }>()
   const signToken = String(tokenParam ?? '').trim()
 
@@ -176,28 +178,24 @@ export default function GovernmentSignPage() {
     )
   } else if (session.completed) {
     body = (
-      <div className="contract-public-sign-page__panel-success">
-        <p className="contract-public-sign-page__panel-success-title">서명이 완료되었습니다.</p>
+      <div className="contract-public-sign-page__panel-success" data-testid="government-public-signature-complete">
+        <p className="contract-public-sign-page__panel-success-title">전자서명이 완료되었습니다.</p>
         <p>담당자가 확인할 수 있도록 저장되었습니다.</p>
       </div>
     )
   } else if (session.sendSession.authenticationRequired) {
     const masked = session.sendSession.maskedPhone ?? '지정된 번호'
     body = (
-      <div className="contract-public-link-page__stack">
-        <div className="contract-public-sign-page__card">
-          <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text-main)' }}>
+      <div className="contract-public-link-page__stack" data-testid="government-public-signature-otp">
+        <div className="contract-public-sign-page__card government-public-signature-card">
+          <h2 className="contract-public-sign-page__card-title">본인 확인</h2>
+          <p className="contract-public-sign-page__notice mt-2">
             {session.sendSession.customerDisplayName}님, 전자서명 문서 확인을 위해 휴대폰 인증이 필요합니다.
           </p>
-          <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-sub)' }}>
-            인증번호는 문서 발송 시 지정된 번호로만 발송됩니다.
+          <p className="contract-public-sign-page__notice contract-public-sign-page__notice--secondary">
+            휴대폰으로 받은 인증번호를 입력해 주세요. 인증번호는 문서 발송 시 지정된 번호로만 발송됩니다.
           </p>
-          <p
-            className="mt-3 text-base font-semibold tracking-wide"
-            style={{ color: 'var(--text-main)' }}
-          >
-            {masked}
-          </p>
+          <p className="contract-public-sign-page__meta mt-3 text-base font-semibold tracking-wide">{masked}</p>
         </div>
 
         {otpError ? <StatusMessage tone="error" message={otpError} /> : null}
@@ -205,13 +203,14 @@ export default function GovernmentSignPage() {
         <div className="contract-public-link-page__actions-col">
           <FormButton
             htmlType="button"
-            variant="primary"
+            variant="secondary"
             fullWidth
+            className="gov-btn gov-btn--secondary"
             disabled={otpSending || cooldownSec > 0}
             loading={otpSending}
             onClick={() => void handleSendOtp()}
           >
-            {cooldownSec > 0 ? `인증번호 받기 (${cooldownSec}초 후)` : '인증번호 받기'}
+            {cooldownSec > 0 ? `인증번호 재전송 (${cooldownSec}초 후)` : '인증번호 받기'}
           </FormButton>
         </div>
 
@@ -227,12 +226,13 @@ export default function GovernmentSignPage() {
             onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
             placeholder="6자리"
             maxLength={6}
-            className="text-center text-lg tracking-widest"
+            className="gov-form-control text-center text-lg tracking-widest"
           />
           <FormButton
             htmlType="button"
-            variant={otpCodeValid ? 'primary' : 'secondary'}
+            variant="primary"
             fullWidth
+            className="gov-btn gov-btn--primary"
             disabled={otpVerifying || !otpCodeValid}
             loading={otpVerifying}
             onClick={() => void handleVerify()}
@@ -249,11 +249,11 @@ export default function GovernmentSignPage() {
   } else {
     const docList = documents ?? session.documents
     body = (
-      <div className="contract-public-link-page__stack">
-        <div className="contract-public-sign-page__card">
+      <div className="contract-public-link-page__stack" data-testid="government-public-signature-card">
+        <div className="contract-public-sign-page__card government-public-signature-card">
           <p className="contract-public-sign-page__card-title">서명할 문서</p>
           <p className="contract-public-sign-page__notice mt-2">
-            필수 문서를 모두 완료해야 전체 제출이 가능합니다. (서명 저장은 다음 단계에서 연결됩니다.)
+            필수 문서를 모두 완료해야 전체 제출이 가능합니다.
           </p>
         </div>
         <ul className="contract-public-link-page__doc-list">
@@ -285,9 +285,15 @@ export default function GovernmentSignPage() {
   }
 
   return (
-    <div className="contract-public-link-page">
+    <div
+      className="government-public-signature-page contract-public-link-page"
+      data-testid="government-public-signature-page"
+    >
       <div className="contract-public-link-page__inner">
-        <h1 className="contract-public-link-page__title">전자서명 문서</h1>
+        <header className="government-public-signature-brand">
+          <p className="government-public-signature-brand__eyebrow">정부지원 CRM</p>
+          <h1 className="contract-public-link-page__title">전자서명</h1>
+        </header>
         {body}
       </div>
     </div>

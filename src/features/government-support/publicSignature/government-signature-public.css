@@ -1,7 +1,206 @@
 /**
- * 고객 공개 전자서명 플로우 — 앱 다크 테마 토큰(var(--*)) 기준 시각 통일
+ * 고객 공개 전자서명 플로우 — 정부지원 CRM 화이트/옐로 운영 테마
  * PDF/캔버스에 그려지는 원문 페이지 배경은 변경하지 않는다(UI만).
  */
+
+/* ── SSOT 토큰 (페이지 루트 + body: portal 모달용) ── */
+.government-public-signature-page,
+body.government-public-signature-active {
+  --bg-main: #f5f7fb;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --bg-soft: #fffdf0;
+  --bg-elevated: #ffffff;
+  --text-main: #0f172a;
+  --text-sub: #64748b;
+  --border: #d7dee8;
+  --primary: #f2b800;
+  --primary-hover: #d99f00;
+  --primary-soft: rgba(242, 184, 0, 0.18);
+  --focus-ring: #f2b800;
+  --link: #0f172a;
+  --placeholder: #94a3b8;
+  --danger-text: #dc2626;
+  --danger-bg: #fff1f2;
+  --danger-border: #fecdd3;
+  --success: #16a34a;
+  --hint-bg: #fffdf0;
+  --hint-border: #f2b800;
+  --hint-text: #0f172a;
+  --overlay-backdrop: rgba(15, 23, 42, 0.45);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-modal: 0 12px 40px rgba(15, 23, 42, 0.12);
+  --status-warn: #d97706;
+  --disabled-bg: #f8fafc;
+  --disabled-text: #64748b;
+  --result-paper-bg: #ffffff;
+  --result-ink: #0f172a;
+  --radius-md: 10px;
+}
+
+.government-public-signature-brand {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.government-public-signature-brand__eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.government-public-signature-page .contract-public-link-page__title,
+.government-public-signature-page .contract-public-sign-page__h1 {
+  margin: 0;
+}
+
+/* gov-btn / legacy button — 공개 서명 scope */
+.government-public-signature-page .gov-btn,
+body.government-public-signature-active .gov-btn,
+.government-public-signature-page .button,
+.government-public-signature-page .form-button,
+body.government-public-signature-active .consent-signature-backdrop .consent-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+.government-public-signature-page .gov-btn--primary,
+.government-public-signature-page .button--primary,
+.government-public-signature-page .form-button--primary,
+body.government-public-signature-active .consent-signature-backdrop .consent-btn:not(.consent-btn--secondary) {
+  background: #f2b800;
+  border-color: #f2b800;
+  color: #0f172a;
+}
+
+.government-public-signature-page .gov-btn--primary:hover:not(:disabled),
+.government-public-signature-page .button--primary:hover:not(:disabled),
+.government-public-signature-page .form-button--primary:hover:not(:disabled),
+body.government-public-signature-active .consent-signature-backdrop .consent-btn:not(.consent-btn--secondary):hover:not(:disabled) {
+  background: #d99f00;
+  border-color: #d99f00;
+}
+
+.government-public-signature-page .gov-btn--secondary,
+.government-public-signature-page .button--secondary,
+.government-public-signature-page .form-button--secondary,
+body.government-public-signature-active .consent-signature-backdrop .consent-btn--secondary {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.government-public-signature-page .gov-btn--danger,
+.government-public-signature-page .button--danger,
+.government-public-signature-page .form-button--danger {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #dc2626;
+}
+
+.government-public-signature-page .button--full,
+.government-public-signature-page .form-button--full,
+.government-public-signature-page .gov-btn--full {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .government-public-signature-page .gov-btn,
+  .government-public-signature-page .button,
+  .government-public-signature-page .form-button {
+    min-height: 44px;
+  }
+}
+
+/* gov-form-control — 전역 dark input override */
+.government-public-signature-page .gov-form-control,
+.government-public-signature-page .form-input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+.government-public-signature-page .form-select,
+.government-public-signature-page .form-textarea,
+body.government-public-signature-active .consent-signature-backdrop input:not([type='checkbox']) {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.government-public-signature-page .gov-form-control:focus,
+.government-public-signature-page .form-input:focus:not(:disabled),
+.government-public-signature-page .form-select:focus:not(:disabled),
+.government-public-signature-page .form-textarea:focus:not(:disabled) {
+  outline: none;
+  border-color: #f2b800;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.18);
+}
+
+.government-public-signature-page .gov-form-control::placeholder,
+.government-public-signature-page .form-input::placeholder,
+.government-public-signature-page .form-textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.government-public-signature-card {
+  border-radius: 16px;
+  border: 1px solid #d7dee8;
+  background: #ffffff;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .government-public-signature-card {
+    padding: 16px;
+  }
+}
+
+/* consent 서명 모달 — body class 로 portal 스타일 */
+body.government-public-signature-active .consent-signature-backdrop {
+  --consent-signature-bg: #ffffff;
+  --consent-signature-ink: #0f172a;
+  color: #0f172a;
+}
+
+body.government-public-signature-active .consent-signature-dialog {
+  background: #ffffff;
+  border-color: #d7dee8;
+  border-radius: 16px;
+}
+
+body.government-public-signature-active .consent-signature-canvas-surface {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+}
+
+body.government-public-signature-active .public-pdf-preview-modal {
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+body.government-public-signature-active .public-pdf-preview-modal__header,
+body.government-public-signature-active .public-pdf-preview-modal__toolbar,
+body.government-public-signature-active .public-pdf-preview-modal__pager,
+body.government-public-signature-active .public-pdf-preview-modal__footer {
+  background: #ffffff;
+  border-color: #d7dee8;
+}
 
 .contract-public-sign-page {
   min-height: 100vh;
@@ -31,11 +230,17 @@
 }
 
 .contract-public-sign-page__card {
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--bg-card);
-  padding: 16px;
-  box-shadow: 0 1px 2px var(--shadow-card);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+@media (max-width: 480px) {
+  .contract-public-sign-page__card {
+    padding: 16px;
+  }
 }
 
 .contract-public-sign-page__card-title {
@@ -638,8 +843,8 @@
 }
 
 .contract-public-sign-page__step-card--active {
-  border-left-color: rgba(34, 197, 94, 0.95);
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2);
+  border-left-color: #f2b800;
+  box-shadow: 0 0 0 1px rgba(242, 184, 0, 0.22);
 }
 
 .contract-public-sign-page__step-card--locked {
@@ -648,7 +853,7 @@
 }
 
 .contract-public-sign-page__step-card--completed {
-  border-left-color: rgba(22, 163, 74, 0.88);
+  border-left-color: rgba(242, 184, 0, 0.65);
   box-shadow: none;
 }
 
@@ -725,13 +930,13 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--bg-card);
   color: var(--text-main);
   text-align: left;
   text-decoration: none;
-  box-shadow: 0 1px 2px var(--shadow-card);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   overflow-wrap: anywhere;
   transition:
     border-color 0.1s ease,
@@ -740,7 +945,8 @@
 }
 
 .contract-public-link-page__doc-link:hover {
-  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  border-color: #f2b800;
+  background: #fffdf0;
 }
 
 .contract-public-link-page__doc-title {

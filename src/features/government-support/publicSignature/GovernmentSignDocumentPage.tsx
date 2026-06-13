@@ -23,6 +23,7 @@ import { PublicPdfPreviewModal } from './components/PublicPdfPreviewModal'
 import { GovernmentSignatureAttachmentReviewModal } from './components/GovernmentSignatureAttachmentReviewModal'
 import { resolveApiUrl } from '../../../lib/apiClient'
 import { publicSignatureFieldLabel } from '../signatures/governmentSignatureUserDisplay'
+import { useGovernmentPublicSignatureBodyClass } from './useGovernmentPublicSignatureBodyClass'
 
 type PublicStepStatus = 'pending' | 'active' | 'complete' | 'skipped'
 
@@ -49,8 +50,8 @@ function PublicSignedPdfAnchor({
 }) {
   const cls =
     variant === 'primary'
-      ? `button button--primary button--full ${className}`.trim()
-      : `button button--secondary button--full ${className}`.trim()
+      ? `gov-btn gov-btn--primary gov-btn--full ${className}`.trim()
+      : `gov-btn gov-btn--secondary gov-btn--full ${className}`.trim()
   return (
     <a
       href={href}
@@ -596,6 +597,7 @@ function signatureRequirementsComplete(detail: ContractDocumentDetailPayload): b
 }
 
 export default function GovernmentSignDocumentPage() {
+  useGovernmentPublicSignatureBodyClass()
   const { token: tokenParam, documentInstanceId: docIdParam } = useParams<{
     token: string
     documentInstanceId: string
@@ -1398,6 +1400,7 @@ export default function GovernmentSignDocumentPage() {
           <div
             ref={coRefContentSection}
             className={publicStepCardClassNameByStatus(confirmationStepState?.content.status ?? 'pending')}
+            data-testid="government-public-signature-fields"
           >
             <p className="contract-public-sign-page__card-title">1단계. 확인서 내용 작성/확인</p>
             <p className="contract-public-sign-page__notice mt-2">
@@ -1682,6 +1685,7 @@ export default function GovernmentSignDocumentPage() {
             className={`${publicStepCardClassNameByStatus(
               confirmationStepState?.signature.status ?? 'pending',
             )} contract-public-sign-page__co-sign-card`}
+            data-testid="government-public-signature-pad"
           >
             <p className="contract-public-sign-page__card-title">전자서명</p>
             {!confirmationContentComplete || !confirmationStepComplete ? (
@@ -1923,6 +1927,7 @@ export default function GovernmentSignDocumentPage() {
             <div
               ref={pdfRefStep1}
               className={publicStepCardClassNameByStatus(coordinateStepState?.input.status ?? 'pending')}
+              data-testid="government-public-signature-fields"
             >
               <p className="contract-public-sign-page__card-title">1단계. 필수 정보 입력</p>
               <p className="contract-public-sign-page__notice mt-2">
@@ -2177,6 +2182,7 @@ export default function GovernmentSignDocumentPage() {
             <div
               ref={pdfRefStep3}
               className={publicStepCardClassNameByStatus(coordinateStepState?.signature.status ?? 'pending')}
+              data-testid="government-public-signature-pad"
             >
               <p className="contract-public-sign-page__card-title">3단계. 전자서명</p>
               <p className="contract-public-sign-page__notice mt-2">
@@ -2473,9 +2479,15 @@ export default function GovernmentSignDocumentPage() {
   const successIsConfirmation = (detail?.templateMode ?? 'coordinate_pdf') === 'confirmation_only'
 
   return (
-    <div className="contract-public-sign-page">
+    <div
+      className="government-public-signature-page contract-public-sign-page"
+      data-testid="government-public-signature-page"
+    >
       <div className="contract-public-sign-page__inner">
-        <h1 className="contract-public-sign-page__h1">전자서명 문서</h1>
+        <header className="government-public-signature-brand">
+          <p className="government-public-signature-brand__eyebrow">정부지원 CRM</p>
+          <h1 className="contract-public-sign-page__h1">전자서명</h1>
+        </header>
         {body}
         {successOpen && completeResult && detail ? (
           <div
@@ -2483,11 +2495,13 @@ export default function GovernmentSignDocumentPage() {
             role="dialog"
             aria-modal="true"
             aria-label={successIsConfirmation ? '전자확인서 완료' : '전송 완료'}
+            data-testid="government-public-signature-complete"
           >
             <div className="contract-public-sign-page__success-dialog">
               <h2 className="contract-public-sign-page__success-dialog-title">
-                {successIsConfirmation ? '전자확인서가 완료되었습니다.' : '전자서명이 전송되었습니다.'}
+                {successIsConfirmation ? '전자확인서가 완료되었습니다.' : '전자서명이 완료되었습니다.'}
               </h2>
+              <p className="contract-public-sign-page__success-dialog-lead">완료된 문서를 다운로드할 수 있습니다.</p>
               <p className="contract-public-sign-page__success-dialog-lead">
                 문서명: <span className="font-medium">{detail.document.title || '문서'}</span>
               </p>
@@ -2522,6 +2536,7 @@ export default function GovernmentSignDocumentPage() {
                   htmlType="button"
                   variant="secondary"
                   fullWidth
+                  className="gov-btn gov-btn--secondary"
                   onClick={() => {
                     setSuccessOpen(false)
                     window.close()

@@ -558,6 +558,19 @@ async function main() {
     const pubHtml = await fetchHtml(`/government/sign/${encodeURIComponent(signToken)}`)
     if (pubHtml.status === 200) pass('public sign SPA route')
     else failWrap('public sign SPA route', String(pubHtml.status))
+    for (const m of [
+      'government-public-signature-page',
+      'government-public-signature-otp',
+      'government-public-signature-card',
+      'government-public-signature-fields',
+      'government-public-signature-pad',
+      'government-public-signature-complete',
+      'gov-btn--primary',
+      'gov-form-control',
+    ]) {
+      if (pubHtml.js.includes(m)) pass(`public sign bundle contains ${m}`)
+      else failWrap(`public sign bundle contains ${m}`)
+    }
 
     const otpSend = await api(`/government-support/public/signatures/${encodeURIComponent(signToken)}/otp/send`, {
       method: 'POST',
