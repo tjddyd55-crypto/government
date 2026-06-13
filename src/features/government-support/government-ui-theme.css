@@ -18,8 +18,6 @@
   --gov-ui-danger: #dc2626;
   --gov-ui-danger-soft: #fff1f2;
   --gov-ui-focus-border: #f2b800;
-  --gov-ui-focus-outline: 2px solid #f2b800;
-  --gov-ui-focus-outline-offset: 2px;
 }
 
 /* 공통 카드 */
@@ -62,7 +60,7 @@
   background-color: #ffffff;
   background: #ffffff;
   color: var(--gov-ui-text);
-  border: 1px solid var(--gov-ui-border-strong);
+  border: 2px solid #cbd5e1;
   border-radius: 10px;
   min-height: 38px;
   padding: 0 12px;
@@ -123,8 +121,7 @@
 .government-user-white-theme .gov-form-control:focus-visible:not(:disabled):not([readonly]),
 .government-admin-white-theme .gov-form-control:focus:not(:disabled):not([readonly]),
 .government-admin-white-theme .gov-form-control:focus-visible:not(:disabled):not([readonly]) {
-  outline: var(--gov-ui-focus-outline);
-  outline-offset: var(--gov-ui-focus-outline-offset);
+  outline: none;
   border-color: var(--gov-ui-focus-border);
   box-shadow: none;
 }
@@ -229,7 +226,7 @@
   background-color: #ffffff;
   background: #ffffff;
   color: #0f172a;
-  border: 1px solid #cbd5e1;
+  border: 2px solid #cbd5e1;
   border-radius: 10px;
   min-height: 38px;
   padding: 0 12px;
@@ -237,6 +234,7 @@
   line-height: 1.4;
   box-shadow: none;
   box-sizing: border-box;
+  outline: none;
   -webkit-appearance: none;
   appearance: none;
 }
@@ -270,8 +268,7 @@
 .government-profile-workspace textarea:focus,
 .government-profile-workspace-right-documents-panel input:focus,
 .government-profile-workspace-right-documents-panel select:focus {
-  outline: var(--gov-ui-focus-outline);
-  outline-offset: var(--gov-ui-focus-outline-offset);
+  outline: none;
   border-color: var(--gov-ui-focus-border);
   box-shadow: none;
 }
@@ -320,10 +317,11 @@
   background-color: #ffffff;
   background: #ffffff;
   color: #0f172a;
-  border: 1px solid #cbd5e1;
+  border: 2px solid #cbd5e1;
   border-radius: 10px;
   min-height: 38px;
   box-shadow: none;
+  outline: none;
 }
 
 .government-user-layout .claim-inbox .field__label {
@@ -331,17 +329,106 @@
   font-weight: 700;
 }
 
-.government-user-layout--mobile .gov-user-notices-page .claim-inbox__hero,
-.government-user-layout--mobile .gov-user-notices-page .claim-inbox__toolbar,
-.government-user-layout--mobile .gov-user-notices-page .claim-inbox__list-panel,
-.government-user-layout--mobile .gov-user-notices-page .claim-inbox__detail-panel,
-.government-user-layout--mobile .gov-user-resources-page .claim-inbox__hero,
-.government-user-layout--mobile .gov-user-resources-page .claim-inbox__toolbar,
 .government-user-layout--mobile .gov-user-resources-page .claim-inbox__list-panel {
   background: #ffffff;
   border: 1px solid #d7dee8;
   color: #0f172a;
   box-shadow: none;
+}
+
+/* —— 이용자 공지/자료실: claim-inbox 다크 base 전면 white override —— */
+.government-user-layout .gov-user-notices-page.claim-inbox,
+.government-user-layout .gov-user-resources-page.claim-inbox {
+  background: transparent;
+  color: #0f172a;
+  gap: 14px;
+  max-width: none;
+}
+
+.government-user-layout .gov-user-notices-page .claim-inbox__hero,
+.government-user-layout .gov-user-notices-page .claim-inbox__toolbar,
+.government-user-layout .gov-user-notices-page .claim-inbox__list-panel,
+.government-user-layout .gov-user-notices-page .claim-inbox__detail-panel,
+.government-user-layout .gov-user-resources-page .claim-inbox__hero,
+.government-user-layout .gov-user-resources-page .claim-inbox__toolbar,
+.government-user-layout .gov-user-resources-page .claim-inbox__list-panel {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  color: #0f172a;
+  box-shadow: none;
+}
+
+.government-user-layout .gov-user-notices-page .claim-inbox__title,
+.government-user-layout .gov-user-resources-page .claim-inbox__title,
+.government-user-layout .gov-user-notices-page .claim-inbox__detail-title,
+.government-user-layout .gov-user-resources-page .claim-inbox__list-item-top strong {
+  color: #0f172a;
+}
+
+.government-user-layout .gov-user-notices-page .claim-inbox__subtitle,
+.government-user-layout .gov-user-notices-page .claim-inbox__list-item-meta,
+.government-user-layout .gov-user-notices-page .claim-inbox__detail-meta,
+.government-user-layout .gov-user-resources-page .claim-inbox__subtitle,
+.government-user-layout .gov-user-resources-page .claim-inbox__list-item-meta {
+  color: #64748b;
+}
+
+.government-user-layout .gov-user-notices-page .claim-inbox__list-item,
+.government-user-layout .gov-user-resources-page .gov-user-resource-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+  box-shadow: none;
+}
+
+.government-user-layout .gov-user-notices-page .claim-inbox__list-item--active,
+.government-user-layout .gov-user-notices-page .claim-inbox__list-item:hover {
+  background: #fffdf0;
+  border-color: #f2b800;
+}
+
+.government-user-layout .gov-user-notices-page .claim-inbox__detail-memo,
+.government-user-layout .gov-user-resources-page .claim-inbox__detail-memo {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.government-user-layout .gov-user-resources-page .claim-inbox__list {
+  gap: 12px;
+}
+
+.government-user-layout .gov-user-resources-page .claim-inbox__status {
+  background: #fff8d6;
+  border: 1px solid #f2b800;
+  color: #92400e;
+}
+
+.government-user-layout .gov-user-notices-page .government-ops-badge {
+  background: #fff8d6;
+  color: #92400e;
+  border: 1px solid #f2b800;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.government-user-layout .gov-user-notices-page .claim-inbox__layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .government-user-layout .gov-user-notices-page .claim-inbox__layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* storage / 검색·필터 */
@@ -417,8 +504,7 @@
 .government-admin-white-theme .claim-inbox select:focus,
 .government-admin-white-theme .claim-inbox textarea:focus,
 .government-admin-white-theme .claim-inbox input:focus {
-  outline: var(--gov-ui-focus-outline);
-  outline-offset: var(--gov-ui-focus-outline-offset);
+  outline: none;
   border-color: var(--gov-ui-focus-border);
   box-shadow: none;
 }
@@ -463,8 +549,7 @@
 .government-user-layout--mobile main.insurance-dark-forms.contract-signature-console input:focus,
 .government-user-layout--mobile main.insurance-dark-forms.contract-signature-console select:focus,
 .government-user-layout--mobile main.insurance-dark-forms.contract-signature-console textarea:focus {
-  outline: var(--gov-ui-focus-outline);
-  outline-offset: var(--gov-ui-focus-outline-offset);
+  outline: none;
   border-color: var(--gov-ui-focus-border);
   box-shadow: none;
 }
@@ -481,8 +566,7 @@
 
 .government-user-layout--pc-user main.gov-user-signatures-page input:focus,
 .government-user-layout--pc-user main.gov-user-signatures-page select:focus {
-  outline: var(--gov-ui-focus-outline);
-  outline-offset: var(--gov-ui-focus-outline-offset);
+  outline: none;
   border-color: var(--gov-ui-focus-border);
   box-shadow: none;
 }
@@ -529,8 +613,7 @@
 .government-admin-white-theme input:focus:not(:disabled),
 .government-admin-white-theme select:focus:not(:disabled),
 .government-admin-white-theme textarea:focus:not(:disabled) {
-  outline: var(--gov-ui-focus-outline);
-  outline-offset: var(--gov-ui-focus-outline-offset);
+  outline: none;
   border-color: var(--gov-ui-focus-border);
   box-shadow: none;
 }
@@ -563,8 +646,7 @@
 
 .government-user-layout input.storage-workspace__search:focus,
 .government-user-layout select.storage-workspace__kind-filter:focus {
-  outline: var(--gov-ui-focus-outline);
-  outline-offset: var(--gov-ui-focus-outline-offset);
+  outline: none;
   border-color: var(--gov-ui-focus-border) !important;
   box-shadow: none !important;
 }
@@ -768,8 +850,7 @@
 .government-public-signature-page .form-select:focus-visible:not(:disabled),
 .government-public-signature-page .form-textarea:focus:not(:disabled):not([readonly]),
 .government-public-signature-page .form-textarea:focus-visible:not(:disabled):not([readonly]) {
-  outline: var(--gov-ui-focus-outline);
-  outline-offset: var(--gov-ui-focus-outline-offset);
+  outline: none;
   border-color: var(--gov-ui-focus-border);
   box-shadow: none;
 }
@@ -779,8 +860,8 @@
 .government-admin-white-theme .gov-btn:focus-visible,
 .government-user-layout .gov-btn:focus-visible,
 .government-customer-app .gov-btn:focus-visible {
-  outline: var(--gov-ui-focus-outline);
-  outline-offset: var(--gov-ui-focus-outline-offset);
+  outline: 2px solid #f2b800;
+  outline-offset: 2px;
 }
 
 .government-auth-white-theme input:disabled:focus,

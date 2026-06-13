@@ -97,7 +97,7 @@ export default function GovernmentUserResourcesPage() {
           <ul className="claim-inbox__list">
             {rows.map((row) => (
               <li key={row.id}>
-                <article className="claim-inbox__list-item claim-inbox__detail">
+                <article className="gov-user-resource-card claim-inbox__list-item">
                   <div className="claim-inbox__list-item-top">
                     <strong>{row.title}</strong>
                     <span className="claim-inbox__status">{labelForResourceCategory(row.category)}</span>

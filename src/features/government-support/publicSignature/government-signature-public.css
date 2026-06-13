@@ -135,9 +135,10 @@ body.government-public-signature-active .consent-signature-backdrop .consent-btn
 body.government-public-signature-active .consent-signature-backdrop input:not([type='checkbox']) {
   background: #ffffff;
   color: #0f172a;
-  border: 1px solid #cbd5e1;
+  border: 2px solid #cbd5e1;
   border-radius: 10px;
   box-shadow: none;
+  outline: none;
 }
 
 .government-public-signature-page .gov-form-control:focus:not(:disabled):not([readonly]),
@@ -148,8 +149,7 @@ body.government-public-signature-active .consent-signature-backdrop input:not([t
 .government-public-signature-page .form-select:focus-visible:not(:disabled),
 .government-public-signature-page .form-textarea:focus:not(:disabled):not([readonly]),
 .government-public-signature-page .form-textarea:focus-visible:not(:disabled):not([readonly]) {
-  outline: 2px solid #f2b800;
-  outline-offset: 2px;
+  outline: none;
   border-color: #f2b800;
   box-shadow: none;
 }
@@ -597,8 +597,7 @@ body.government-public-signature-active .public-pdf-preview-modal__footer {
 .contract-public-sign-page .form-select:focus-visible:not(:disabled),
 .contract-public-sign-page .form-textarea:focus:not(:disabled):not([readonly]),
 .contract-public-sign-page .form-textarea:focus-visible:not(:disabled):not([readonly]) {
-  outline: 2px solid #f2b800;
-  outline-offset: 2px;
+  outline: none;
   border-color: #f2b800;
   box-shadow: none;
 }
@@ -1038,8 +1037,7 @@ body.government-public-signature-active .public-pdf-preview-modal__footer {
 .contract-public-link-page .form-input:focus-visible:not(:disabled):not([readonly]),
 .contract-public-link-page .form-select:focus:not(:disabled),
 .contract-public-link-page .form-select:focus-visible:not(:disabled) {
-  outline: 2px solid #f2b800;
-  outline-offset: 2px;
+  outline: none;
   border-color: #f2b800;
   box-shadow: none;
 }

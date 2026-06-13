@@ -417,8 +417,7 @@
 .government-customer-app-page .customer-app-claim-textarea:focus-visible:not(:disabled):not([readonly]),
 .government-customer-app-page .customer-app-claim-input:focus:not(:disabled):not([readonly]),
 .government-customer-app-page .customer-app-claim-input:focus-visible:not(:disabled):not([readonly]) {
-  outline: 2px solid #f2b800;
-  outline-offset: 2px;
+  outline: none;
   border-color: #f2b800;
   box-shadow: none;
 }

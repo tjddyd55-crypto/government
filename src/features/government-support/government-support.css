@@ -179,7 +179,7 @@
 .government-form-grid select,
 .government-form-grid textarea {
   background: #ffffff;
-  border: 1px solid #cbd5e1;
+  border: 2px solid #cbd5e1;
   border-radius: 10px;
   color: #0f172a;
   min-height: 38px;
@@ -208,8 +208,7 @@
 .government-form-grid select:focus-visible:not(:disabled),
 .government-form-grid textarea:focus:not(:disabled):not([readonly]),
 .government-form-grid textarea:focus-visible:not(:disabled):not([readonly]) {
-  outline: 2px solid #f2b800;
-  outline-offset: 2px;
+  outline: none;
   border-color: #f2b800;
   box-shadow: none;
 }
@@ -2308,7 +2307,7 @@
   width: 100%;
   min-width: 0;
   background: #ffffff;
-  border: 1px solid #cbd5e1;
+  border: 2px solid #cbd5e1;
   color: var(--gov-workspace-text);
   border-radius: 8px;
   padding: 8px 10px;
@@ -2316,8 +2315,7 @@
 }
 
 .government-upload-category-field__select:focus:not(:disabled) {
-  outline: 2px solid #f2b800;
-  outline-offset: 2px;
+  outline: none;
   border-color: #f2b800;
   box-shadow: none;
 }
@@ -2476,7 +2474,7 @@
 .government-profile-workspace select {
   background: #ffffff;
   color: var(--gov-workspace-text);
-  border: 1px solid #cbd5e1;
+  border: 2px solid #cbd5e1;
   border-radius: 10px;
   min-height: 36px;
   box-sizing: border-box;
@@ -2497,8 +2495,7 @@
 .government-profile-workspace textarea:focus-visible:not(:disabled):not([readonly]),
 .government-profile-workspace select:focus:not(:disabled),
 .government-profile-workspace select:focus-visible:not(:disabled) {
-  outline: 2px solid #f2b800;
-  outline-offset: 2px;
+  outline: none;
   border-color: #f2b800;
   box-shadow: none;
 }
