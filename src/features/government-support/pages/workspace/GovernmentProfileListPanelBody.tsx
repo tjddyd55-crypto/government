@@ -7,6 +7,7 @@ import {
   governmentProfileWorkspacePath,
 } from '../../config/governmentProfileWorkspaceTabs'
 import { getGovernmentProgressStatusLabel } from '../../constants/governmentProgressStatus'
+import { displayGovField } from '../../lib/governmentProfileDisplay'
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 import GovernmentProfileEditModal from './GovernmentProfileEditModal'
 import GovernmentProfileListExpandDetail from './GovernmentProfileListExpandDetail'
@@ -41,16 +42,17 @@ export default function GovernmentProfileListPanelBody() {
       })
       if (!ok) return
 
-      const deletedId = profile.id
-      const remaining = ws.profiles.filter((p) => p.id !== deletedId)
+      const deletedId = normalizeGovProfileId(profile.id)
+      const remaining = ws.profiles.filter((p) => normalizeGovProfileId(p.id) !== deletedId)
       const wasSelected =
-        deletedId === ws.selectedProfileIdFromPath || deletedId === ws.selectedId
+        isSameGovProfileId(deletedId, ws.selectedProfileIdFromPath) ||
+        isSameGovProfileId(deletedId, ws.selectedId)
 
       setDeletingId(deletedId)
       try {
         await ws.removeProfile(deletedId)
         if (wasSelected) {
-          const next = remaining.find((p) => p.id !== deletedId)
+          const next = remaining.find((p) => normalizeGovProfileId(p.id) !== deletedId)
           if (next) {
             navigate(governmentProfileWorkspacePath(next.id, 'basic'), { replace: true })
           } else {
@@ -62,6 +64,13 @@ export default function GovernmentProfileListPanelBody() {
       }
     },
     [confirm, navigate, ws],
+  )
+
+  const handleToggleCard = useCallback(
+    (profileId: string) => {
+      ws.onToggleProfileCard(profileId)
+    },
+    [ws],
   )
 
   return (
@@ -98,16 +107,20 @@ export default function GovernmentProfileListPanelBody() {
           {EMPTY_LIST_HINT}
         </p>
       ) : (
-        <ul className="record-list customer-expand-list customer-list customers-page__customer-list">
+        <ul className="record-list customer-expand-list customer-list customers-page__customer-list government-profile-list-panel__list">
           {ws.profiles.map((row) => {
             const profileId = normalizeGovProfileId(row.id)
             const pathId = normalizeGovProfileId(ws.selectedProfileIdFromPath)
             const selected = isSameGovProfileId(profileId, pathId)
             const expanded = isSameGovProfileId(profileId, ws.expandedProfileId)
-            const title = row.businessName || row.customerName || '이름 없음'
+            const title = row.businessName?.trim() || row.customerName?.trim() || '이름 없음'
+            const metaCustomer = row.customerName?.trim() ? `${row.customerName.trim()} · ` : ''
+            const metaPhone = row.phone?.trim() ? row.phone.trim() : '연락처 없음'
+            const metaStatus = getGovernmentProgressStatusLabel(row.progressStatus)
+
             return (
               <li
-                key={row.id}
+                key={profileId}
                 className={`record-card customer-card customer-expand-card government-profile-list-card transition-all duration-150 ease-out${
                   selected ? ' government-profile-list-card--active' : ''
                 }${expanded ? ' customer-expand-card--focal government-profile-list-card--expanded' : ''}`}
@@ -115,41 +128,50 @@ export default function GovernmentProfileListPanelBody() {
                 data-profile-selected={selected ? 'true' : 'false'}
                 data-profile-expanded={expanded ? 'true' : 'false'}
               >
-                <div className="customer-expand-card__main">
-                  <button
-                    type="button"
-                    className="customer-expand-summary customer-expand-summary--toggle transition-transform duration-100 ease-out active:scale-[0.98]"
-                    aria-expanded={expanded}
-                    aria-label={`${title} 상세 ${expanded ? '접기' : '펼치기'}`}
-                    onClick={() => ws.onToggleProfileCard(profileId)}
-                  >
-                    <span className="customer-expand-summary__content w-full min-w-0">
-                      <div className="flex justify-between items-center gap-2 w-full min-w-0">
-                        <div className="min-w-0 flex-1">
-                          <strong className="font-semibold">{title}</strong>
-                          <div className="text-sm text-[var(--text-secondary)] customer-card-summary-meta mt-0.5">
-                            <div className="gov-customer-list-summary">
-                              <div className="gov-customer-list-meta-line">
-                                {row.customerName ? `${row.customerName} · ` : null}
-                                {row.phone || '연락처 없음'} · {getGovernmentProgressStatusLabel(row.progressStatus)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <span className="customer-expand-summary__hint shrink-0" aria-hidden="true">
-                          {expanded ? '▲' : '▼'}
+                <div className="customer-expand-card__main government-profile-list-card__main">
+                  <div className="government-profile-list-card__summary-row">
+                    <button
+                      type="button"
+                      className="customer-expand-summary customer-expand-summary--toggle government-profile-list-card__summary"
+                      aria-expanded={expanded}
+                      aria-controls={`government-profile-expand-${profileId}`}
+                      aria-label={`${title} 상세 ${expanded ? '접기' : '펼치기'}`}
+                      onClick={() => handleToggleCard(profileId)}
+                    >
+                      <span className="customer-expand-summary__content">
+                        <strong className="government-profile-list-card__title">{title}</strong>
+                        <span className="customer-card-summary-meta gov-customer-list-meta-line government-profile-list-card__meta">
+                          {metaCustomer}
+                          {metaPhone} · {metaStatus}
                         </span>
-                      </div>
-                    </span>
-                  </button>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="customer-expand-summary__hint government-profile-list-card__chevron"
+                      aria-expanded={expanded}
+                      aria-label={`${title} 상세 ${expanded ? '접기' : '펼치기'}`}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        handleToggleCard(profileId)
+                      }}
+                    >
+                      {expanded ? '▲' : '▼'}
+                    </button>
+                  </div>
 
                   {expanded ? (
-                    <GovernmentProfileListExpandDetail
-                      profile={row}
-                      onEdit={() => setEditTarget(row)}
-                      onDelete={() => void handleDeleteProfile(row)}
-                      deleting={deletingId === row.id}
-                    />
+                    <div
+                      id={`government-profile-expand-${profileId}`}
+                      className="government-profile-list-card__detail-wrap"
+                    >
+                      <GovernmentProfileListExpandDetail
+                        profile={row}
+                        onEdit={() => setEditTarget(row)}
+                        onDelete={() => void handleDeleteProfile(row)}
+                        deleting={isSameGovProfileId(deletingId, profileId)}
+                      />
+                    </div>
                   ) : null}
                 </div>
               </li>

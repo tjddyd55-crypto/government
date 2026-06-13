@@ -1,41 +1,9 @@
 import FormButton from '../../../../components/form/FormButton'
-import { getGovernmentProgressStatusLabel } from '../../constants/governmentProgressStatus'
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 import {
+  buildGovernmentProfileListExpandRows,
   displayGovField,
-  formatGovProfileDateTime,
-  maskBusinessNumber,
 } from '../../lib/governmentProfileDisplay'
-
-type ExpandRow = {
-  label: string
-  value: string
-}
-
-function buildExpandRows(profile: GovSupportProfile): ExpandRow[] {
-  return [
-    { label: '사업장/신청명', value: displayGovField(profile.businessName || profile.customerName) },
-    { label: '담당자명', value: displayGovField(profile.customerName) },
-    { label: '연락처', value: displayGovField(profile.phone) },
-    { label: '상담 상태', value: displayGovField(profile.docStatus) },
-    { label: '신청 상태', value: displayGovField(getGovernmentProgressStatusLabel(profile.progressStatus)) },
-    { label: '주소', value: displayGovField(profile.businessAddress || profile.homeAddress) },
-    { label: '개업일', value: displayGovField(profile.businessOpenedAt) },
-    {
-      label: '사업자등록번호',
-      value: profile.businessNumber?.trim() ? maskBusinessNumber(profile.businessNumber) : '—',
-    },
-    {
-      label: '업태/종목',
-      value: [profile.businessType, profile.businessCategory].filter((v) => String(v ?? '').trim()).join(' · ') || '—',
-    },
-    { label: '필요자금', value: displayGovField(profile.requiredFunds) },
-    { label: '수임료', value: displayGovField(profile.fee) },
-    { label: '특이사항', value: displayGovField(profile.specialNote || profile.note) },
-    { label: '등록일', value: formatGovProfileDateTime(profile.createdAt) },
-    { label: '수정일', value: formatGovProfileDateTime(profile.updatedAt) },
-  ]
-}
 
 type Props = {
   profile: GovSupportProfile
@@ -50,24 +18,26 @@ export default function GovernmentProfileListExpandDetail({
   onDelete,
   deleting = false,
 }: Props) {
-  const rows = buildExpandRows(profile)
+  const rows = buildGovernmentProfileListExpandRows(profile)
+  const title = displayGovField(profile.businessName || profile.customerName)
 
   return (
     <div
       className="customer-expand-detail government-profile-list-expand-detail"
+      data-testid="government-profile-list-expand-detail"
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
     >
-      <div className="customer-detail-toolbar">
-        <div className="customer-detail-toolbar__title">
+      <div className="customer-detail-toolbar government-profile-list-expand-detail__toolbar">
+        <div className="customer-detail-toolbar__title government-profile-list-expand-detail__title">
           <span className="customer-info-label">
             <span className="customer-info-label__icon" aria-hidden>
               🏢
             </span>
-            {profile.businessName || profile.customerName || '사업장'}
+            {title}
           </span>
         </div>
-        <div className="customer-detail-action-bar">
+        <div className="customer-detail-action-bar government-profile-list-expand-detail__actions">
           <FormButton
             htmlType="button"
             variant="secondary"
@@ -103,21 +73,31 @@ export default function GovernmentProfileListExpandDetail({
       </div>
 
       <div className="customer-detail-read government-profile-list-expand-detail__body">
-        <div className="customer-detail-read__info-list">
+        <div
+          className="government-profile-list-expand-detail__rows"
+          data-testid="government-profile-list-expand-rows"
+        >
           {rows.map((row) => (
-            <div key={row.label} className="customer-detail-read__info-row">
-              <span className="customer-detail-read__info-bullet" aria-hidden>
-                •
+            <div
+              key={row.label}
+              className="government-profile-list-expand-row customer-detail-read__info-row"
+              data-testid="government-profile-list-expand-row"
+            >
+              <span className="government-profile-list-expand-row__label customer-detail-read__info-label">
+                {row.label}
               </span>
-              <div className="customer-detail-read__info-main">
-                <span className="customer-detail-read__info-label">{row.label}:</span>{' '}
-                <span className="customer-detail-read__info-value">{row.value}</span>
-              </div>
+              <span
+                className={`government-profile-list-expand-row__value customer-detail-read__info-value${
+                  row.isEmpty ? ' government-profile-list-expand-empty-value' : ''
+                }`}
+                data-empty={row.isEmpty ? 'true' : 'false'}
+              >
+                {row.value}
+              </span>
             </div>
           ))}
         </div>
       </div>
-      <div className="customer-expand-section-divider" role="presentation" />
     </div>
   )
 }

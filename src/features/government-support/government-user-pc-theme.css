@@ -97,7 +97,7 @@
 /* —— PC 좌측 사업장 카드: 선택 세로 바 —— */
 .government-user-layout--pc-user .government-profile-list-panel--pc .government-profile-list-card--active {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .government-user-layout--pc-user .government-profile-list-panel--pc .government-profile-list-card--active::before {
