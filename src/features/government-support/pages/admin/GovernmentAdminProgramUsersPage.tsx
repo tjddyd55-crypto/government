@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { EmptyState, LoadingState } from '../../../../components/feedback'
-import { FieldWrapper, FormButton, FormInput, FormSelect } from '../../../../components/form'
+import { EmptyState, LoadingState, StatusMessage } from '../../../../components/feedback'
+import { FieldWrapper, FormButton, FormSelect } from '../../../../components/form'
 import { useAuth } from '../../../auth/AuthProvider'
 import GovernmentAdminPageShell from '../../components/GovernmentAdminPageShell'
 import GovernmentAdminSearchField from '../../components/GovernmentAdminSearchField'
 import { useGovernmentAdminTextSearch } from '../../hooks/useGovernmentAdminTextSearch'
+import { useGovernmentProgramUserAdminActions } from '../../hooks/useGovernmentProgramUserAdminActions'
 import { mapGovernmentAdminApiError } from '../../lib/mapGovernmentAdminApiError'
 import { fetchGovernmentAdminUsers } from '../../api/governmentAdminUsersApi'
 import { fetchGovAgencies } from '../../api/governmentProfilesApi'
@@ -18,16 +19,16 @@ import type {
 import '../../government-support.css'
 
 const STATUS_FILTER_OPTIONS = [
-  { value: '', label: '상태 전체' },
+  { value: '', label: '운영 중 (정상·정지)' },
   { value: 'active', label: '정상' },
-  { value: 'blocked', label: '접근금지' },
-  { value: 'inactive', label: '비활성' },
+  { value: 'blocked', label: '정지' },
+  { value: 'inactive', label: '삭제/보관' },
 ]
 
 const STATUS_LABEL: Record<GovernmentUserEntityStatus, string> = {
   active: '정상',
-  blocked: '접근금지',
-  inactive: '비활성',
+  blocked: '정지',
+  inactive: '삭제/보관',
 }
 
 const EMPTY_MESSAGE = '표시할 이용자가 없습니다.'
@@ -70,6 +71,75 @@ function roleLabel(row: GovernmentAdminUserRow): string {
   return GOVERNMENT_ROLE_LABELS[row.role] ?? row.role
 }
 
+function displayNameFor(row: GovernmentAdminUserRow): string {
+  return row.displayName?.trim() || row.username
+}
+
+type ProgramUserActionsProps = {
+  row: GovernmentAdminUserRow
+  actingUserId: string | null
+  isSelf: (userId: string) => boolean
+  onSuspend: (userId: string, name: string) => void
+  onUnsuspend: (userId: string, name: string) => void
+  onArchive: (userId: string, name: string) => void
+}
+
+function ProgramUserActions({
+  row,
+  actingUserId,
+  isSelf,
+  onSuspend,
+  onUnsuspend,
+  onArchive,
+}: ProgramUserActionsProps) {
+  const name = displayNameFor(row)
+  const busy = actingUserId === row.id
+  const self = isSelf(row.id)
+  const status = normalizeUserStatus(row.status)
+
+  if (self) {
+    return <span className="government-admin-program-user-actions__hint">본인</span>
+  }
+
+  return (
+    <>
+      {status === 'active' ? (
+        <FormButton
+          htmlType="button"
+          variant="secondary"
+          className="gov-btn gov-btn--secondary gov-btn--sm"
+          disabled={busy}
+          onClick={() => onSuspend(row.id, name)}
+        >
+          정지
+        </FormButton>
+      ) : null}
+      {status === 'blocked' ? (
+        <FormButton
+          htmlType="button"
+          variant="primary"
+          className="gov-btn gov-btn--primary gov-btn--sm"
+          disabled={busy}
+          onClick={() => onUnsuspend(row.id, name)}
+        >
+          해제
+        </FormButton>
+      ) : null}
+      {status !== 'inactive' ? (
+        <FormButton
+          htmlType="button"
+          variant="danger"
+          className="gov-btn gov-btn--danger gov-btn--sm"
+          disabled={busy}
+          onClick={() => onArchive(row.id, name)}
+        >
+          삭제
+        </FormButton>
+      ) : null}
+    </>
+  )
+}
+
 export default function GovernmentAdminProgramUsersPage() {
   const { token } = useAuth()
   const [agencies, setAgencies] = useState<GovAgencyRow[]>([])
@@ -79,6 +149,42 @@ export default function GovernmentAdminProgramUsersPage() {
   const [filterTenant, setFilterTenant] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const textSearch = useGovernmentAdminTextSearch()
+
+  const loadUsers = useCallback(async () => {
+    if (!token) return
+    setLoading(true)
+    setLoadError('')
+    try {
+      const list = await fetchGovernmentAdminUsers(token, {
+        role: 'government_user',
+        tenantId: filterTenant || undefined,
+        status: filterStatus === 'inactive' ? 'inactive' : filterStatus || undefined,
+        includeDeleted: filterStatus === 'inactive',
+        q: textSearch.query.trim() || undefined,
+      })
+      setRows(list)
+    } catch (e) {
+      setLoadError(mapGovernmentAdminApiError(e, '이용자 목록을 불러오지 못했습니다.'))
+      setRows([])
+    } finally {
+      setLoading(false)
+    }
+  }, [token, filterTenant, filterStatus, textSearch.query])
+
+  const {
+    confirmDialog,
+    actingUserId,
+    actionError,
+    suspendUser,
+    unsuspendUser,
+    archiveUser,
+    isSelf,
+  } = useGovernmentProgramUserAdminActions({ onChanged: loadUsers })
+
+  const visibleRows = useMemo(() => {
+    if (filterStatus) return rows
+    return rows.filter((row) => row.status === 'active' || row.status === 'blocked')
+  }, [rows, filterStatus])
 
   const tenantFilterOptions = useMemo(
     () => [
@@ -98,26 +204,6 @@ export default function GovernmentAdminProgramUsersPage() {
     }
   }, [token])
 
-  const loadUsers = useCallback(async () => {
-    if (!token) return
-    setLoading(true)
-    setLoadError('')
-    try {
-      const list = await fetchGovernmentAdminUsers(token, {
-        role: 'government_user',
-        tenantId: filterTenant || undefined,
-        status: filterStatus || undefined,
-        q: textSearch.query.trim() || undefined,
-      })
-      setRows(list)
-    } catch (e) {
-      setLoadError(mapGovernmentAdminApiError(e, '이용자 목록을 불러오지 못했습니다.'))
-      setRows([])
-    } finally {
-      setLoading(false)
-    }
-  }, [token, filterTenant, filterStatus, textSearch.query])
-
   useEffect(() => {
     void loadAgencies()
   }, [loadAgencies])
@@ -136,7 +222,7 @@ export default function GovernmentAdminProgramUsersPage() {
     <GovernmentAdminPageShell
       managementKind="user"
       title="이용자 관리"
-      description="기관 코드로 가입한 프로그램 이용자 계정·상태만 확인합니다. 사업장·신청 데이터는 이용자 본인 워크스페이스에서 관리합니다."
+      description="기관 코드로 가입한 프로그램 이용자 계정·상태를 관리합니다. 사업장·신청 데이터는 이용자 본인 워크스페이스에서 보존됩니다."
       testId="government-admin-page"
       toolbar={
         <div className="government-admin-toolbar">
@@ -190,13 +276,35 @@ export default function GovernmentAdminProgramUsersPage() {
           {loadError}
         </div>
       ) : null}
+      {actionError ? <StatusMessage message={actionError} tone="error" className="m-0 mb-3" /> : null}
       {loading ? <LoadingState message="불러오는 중…" className="gov-status-loading" /> : null}
-      {!loading ? <ProgramUsersTable rows={rows} isLoading={loading} /> : null}
+      {!loading ? (
+        <ProgramUsersTable
+          rows={visibleRows}
+          isLoading={loading}
+          actingUserId={actingUserId}
+          isSelf={isSelf}
+          onSuspend={(id, name) => void suspendUser(id, name)}
+          onUnsuspend={(id, name) => void unsuspendUser(id, name)}
+          onArchive={(id, name) => void archiveUser(id, name)}
+        />
+      ) : null}
+      {confirmDialog}
     </GovernmentAdminPageShell>
   )
 }
 
-function ProgramUsersTable(props: { rows: GovernmentAdminUserRow[]; isLoading: boolean }) {
+type ProgramUsersTableProps = {
+  rows: GovernmentAdminUserRow[]
+  isLoading: boolean
+  actingUserId: string | null
+  isSelf: (userId: string) => boolean
+  onSuspend: (userId: string, name: string) => void
+  onUnsuspend: (userId: string, name: string) => void
+  onArchive: (userId: string, name: string) => void
+}
+
+function ProgramUsersTable(props: ProgramUsersTableProps) {
   return (
     <>
       <div className="table-container table-container--desktop">
@@ -240,6 +348,14 @@ function ProgramUsersTable(props: { rows: GovernmentAdminUserRow[]; isLoading: b
                       >
                         상세
                       </Link>
+                      <ProgramUserActions
+                        row={row}
+                        actingUserId={props.actingUserId}
+                        isSelf={props.isSelf}
+                        onSuspend={props.onSuspend}
+                        onUnsuspend={props.onUnsuspend}
+                        onArchive={props.onArchive}
+                      />
                     </div>
                   </td>
                 </tr>
@@ -253,14 +369,27 @@ function ProgramUsersTable(props: { rows: GovernmentAdminUserRow[]; isLoading: b
         {props.rows.length === 0 && !props.isLoading ? (
           <EmptyState message={EMPTY_MESSAGE} className="m-0 px-1 py-2 text-[var(--text-sub)]" />
         ) : (
-          props.rows.map((row) => <ProgramUserMobileCard key={row.id} row={row} />)
+          props.rows.map((row) => (
+            <ProgramUserMobileCard
+              key={row.id}
+              row={row}
+              actingUserId={props.actingUserId}
+              isSelf={props.isSelf}
+              onSuspend={props.onSuspend}
+              onUnsuspend={props.onUnsuspend}
+              onArchive={props.onArchive}
+            />
+          ))
         )}
       </div>
     </>
   )
 }
 
-function ProgramUserMobileCard({ row }: { row: GovernmentAdminUserRow }) {
+type ProgramUserMobileCardProps = ProgramUserActionsProps
+
+function ProgramUserMobileCard(props: ProgramUserMobileCardProps) {
+  const { row } = props
   return (
     <article className="admin-user-card">
       <div className="admin-user-card__row">
@@ -296,6 +425,7 @@ function ProgramUserMobileCard({ row }: { row: GovernmentAdminUserRow }) {
         >
           상세
         </Link>
+        <ProgramUserActions {...props} />
       </div>
     </article>
   )

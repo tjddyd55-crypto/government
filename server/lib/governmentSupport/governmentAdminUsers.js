@@ -245,13 +245,33 @@ export function membershipInsertParams(role, tenantId, industryId) {
  * @param {{ fullAccess: boolean, tenantIds: string[], industryId: string, allowedRoles: readonly string[] }} scope
  * @param {{ role?: string, tenantId?: string, status?: string, q?: string }} filters
  */
+/**
+ * @param {string|null|undefined} actorUserId
+ * @param {string} targetUserId
+ * @param {string} actionLabel
+ */
+export function assertActorNotSelf(actorUserId, targetUserId, actionLabel) {
+  const actorId = String(actorUserId ?? '').trim()
+  const targetId = String(targetUserId ?? '').trim()
+  if (actorId && targetId && actorId === targetId) {
+    return { ok: false, status: 403, message: `자기 자신은 ${actionLabel}할 수 없습니다.` }
+  }
+  return { ok: true }
+}
+
+/**
+ * @param {import('pg').Pool} pool
+ * @param {{ fullAccess: boolean, tenantIds: string[], industryId: string, allowedRoles: readonly string[] }} scope
+ * @param {{ role?: string, tenantId?: string, status?: string, q?: string, includeDeleted?: boolean|string }} filters
+ */
 export async function listGovernmentAdminUsers(pool, scope, filters = {}) {
   const params = [GOVERNMENT_INDUSTRY_CODE]
-  const where = [
-    `COALESCE(u.is_deleted, false) IS NOT TRUE`,
-    `m.role IN ${LISTABLE_GOVERNMENT_ROLES_SQL}`,
-    `LOWER(TRIM(i.code)) = $1`,
-  ]
+  const where = [`m.role IN ${LISTABLE_GOVERNMENT_ROLES_SQL}`, `LOWER(TRIM(i.code)) = $1`]
+  const includeDeleted =
+    filters.includeDeleted === true || String(filters.includeDeleted ?? '').toLowerCase() === 'true'
+  if (!includeDeleted) {
+    where.push(`COALESCE(u.is_deleted, false) IS NOT TRUE`)
+  }
   let n = 2
 
   if (!scope.fullAccess) {
@@ -506,7 +526,7 @@ function readBootstrapLoginId() {
  * @param {string} userId
  * @param {object} body
  */
-export async function patchGovernmentAdminUser(pool, scope, userId, body) {
+export async function patchGovernmentAdminUser(pool, scope, userId, body, actorUserId = null) {
   const access = await assertCanManageGovernmentUser(pool, scope, userId)
   if (!access.ok) {
     return access
@@ -538,6 +558,24 @@ export async function patchGovernmentAdminUser(pool, scope, userId, body) {
     const st = parseGovernmentEntityStatus(body.status)
     if (st && st !== 'active') {
       return { ok: false, status: 403, message: '시스템 관리자 계정의 상태는 변경할 수 없습니다.' }
+    }
+  }
+
+  if (hasStatus) {
+    const selfGuard = assertActorNotSelf(actorUserId, userId, '상태 변경')
+    if (!selfGuard.ok) {
+      return selfGuard
+    }
+    const st = parseGovernmentEntityStatus(body.status)
+    const currentRole = access.membership ? String(access.membership.role) : ''
+    if (
+      st &&
+      st !== 'active' &&
+      (currentRole === 'government_industry_admin' ||
+        currentRole === 'government_agency_admin' ||
+        currentRole === 'government_staff')
+    ) {
+      return { ok: false, status: 403, message: '관리자·직원 계정은 정지할 수 없습니다.' }
     }
   }
 
@@ -676,4 +714,63 @@ export async function resetGovernmentAdminUserPassword(pool, scope, userId, body
     return { ok: false, status: 404, message: '사용자를 찾을 수 없습니다.' }
   }
   return { ok: true, message: '비밀번호가 변경되었습니다.' }
+}
+
+/**
+ * 이용자(program user) soft delete — 사업장·신청·파일 기록은 보존.
+ * @param {import('pg').Pool} pool
+ * @param {{ fullAccess: boolean, tenantIds: string[] }} scope
+ * @param {string|null|undefined} actorUserId
+ * @param {string} userId
+ */
+export async function softDeleteGovernmentProgramUser(pool, scope, actorUserId, userId) {
+  const access = await assertCanManageGovernmentUser(pool, scope, userId)
+  if (!access.ok) {
+    return access
+  }
+
+  const selfGuard = assertActorNotSelf(actorUserId, userId, '삭제')
+  if (!selfGuard.ok) {
+    return selfGuard
+  }
+
+  const role = access.membership ? String(access.membership.role) : ''
+  if (role !== GOVERNMENT_PROGRAM_USER_ROLE) {
+    return { ok: false, status: 403, message: '이용자 계정만 삭제할 수 있습니다.' }
+  }
+
+  const u = await pool.query(
+    `
+    SELECT id, username, COALESCE(is_deleted, false) AS is_deleted
+    FROM users
+    WHERE id = $1
+    LIMIT 1
+    `,
+    [userId],
+  )
+  if ((u.rowCount ?? 0) === 0) {
+    return { ok: false, status: 404, message: '사용자를 찾을 수 없습니다.' }
+  }
+  if (u.rows[0].is_deleted === true) {
+    return { ok: false, status: 409, message: '이미 삭제된 이용자입니다.' }
+  }
+
+  const username = String(u.rows[0].username ?? '').trim()
+  if (username === readBootstrapLoginId()) {
+    return { ok: false, status: 403, message: '시스템 관리자 계정은 삭제할 수 없습니다.' }
+  }
+
+  const r = await pool.query(
+    `
+    UPDATE users
+    SET is_deleted = true, status = 'inactive'
+    WHERE id = $1 AND COALESCE(is_deleted, false) IS NOT TRUE
+    RETURNING id
+    `,
+    [userId],
+  )
+  if ((r.rowCount ?? 0) === 0) {
+    return { ok: false, status: 404, message: '사용자를 찾을 수 없습니다.' }
+  }
+  return { ok: true, message: '이용자를 삭제(보관)했습니다.' }
 }

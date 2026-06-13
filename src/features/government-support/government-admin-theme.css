@@ -1,9 +1,10 @@
 @import './government-ui-theme.css';
 
 .government-admin-layout--pc-admin.government-admin-white-theme.government-page {
-  width: 100vw;
+  width: 100%;
   max-width: none;
   margin: 0;
+  padding: 0;
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
@@ -12,9 +13,10 @@
 }
 
 .app-root .government-admin-layout--pc-admin.government-admin-white-theme.government-page {
-  width: 100vw;
+  width: 100%;
   max-width: none;
   margin: 0;
+  padding: 0;
 }
 
 .app-root .government-admin-layout--pc-admin .government-admin-pc-shell,
@@ -119,12 +121,16 @@
 
 /* 대시보드 */
 .government-admin-white-theme .platform-admin-page,
+.government-admin-white-theme .platform-admin-page--pc,
+.government-admin-white-theme .platform-admin-page--mobile,
+.government-admin-white-theme .platform-admin-page__toolbar,
 .government-admin-white-theme .government-admin-dashboard-page {
   background: transparent;
   color: var(--gov-ui-text);
   width: 100%;
   max-width: none;
-  padding: 18px 20px;
+  margin: 0;
+  padding: 24px;
   box-sizing: border-box;
 }
 
@@ -178,9 +184,23 @@
 .government-admin-white-theme .government-admin-page {
   width: 100%;
   max-width: none;
-  padding: 18px 20px;
+  margin: 0;
+  padding: 24px;
   box-sizing: border-box;
   color: var(--gov-ui-text);
+}
+
+.government-admin-white-theme .admin-ga-management__table-wrap,
+.government-admin-white-theme .admin-user-management__table-wrap,
+.government-admin-white-theme .government-admin-table-wrap,
+.government-admin-white-theme .table-container {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.government-admin-white-theme .admin-data-table {
+  width: 100%;
 }
 
 .government-admin-white-theme .page-header h1,
@@ -587,7 +607,18 @@
 .government-admin-white-theme .admin-user-management,
 .government-admin-white-theme .government-admin-page {
   min-height: calc(100vh - 56px);
-  padding: 24px;
+}
+
+.government-admin-program-user-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.government-admin-program-user-actions__hint {
+  font-size: 0.8125rem;
+  color: var(--gov-ui-muted);
 }
 
 .government-admin-forbidden-card {

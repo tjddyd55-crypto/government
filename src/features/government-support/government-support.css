@@ -1284,6 +1284,7 @@
 
 .government-page--mobile.government-admin-layout .government-admin-layout__content > .page,
 .government-page--mobile.government-admin-layout .government-admin-layout__content .admin-ga-management.page,
+.government-page--mobile.government-admin-layout .government-admin-layout__content .admin-user-management.page,
 .government-page--mobile.government-admin-layout .government-admin-layout__content .platform-admin-page.page,
 .government-page--mobile.government-admin-layout .government-admin-layout__content .government-admin-notifications-page.page {
   width: 100%;
@@ -1300,37 +1301,45 @@
 }
 
 .government-page--mobile.government-admin-layout .admin-ga-management .card.auth-card,
-.government-page--mobile.government-admin-layout .admin-ga-management .admin-toolbar.auth-card {
+.government-page--mobile.government-admin-layout .admin-user-management .card.auth-card,
+.government-page--mobile.government-admin-layout .admin-ga-management .admin-toolbar.auth-card,
+.government-page--mobile.government-admin-layout .admin-user-management .admin-toolbar.auth-card {
   width: 100%;
   max-width: none;
   margin-inline: 0;
   box-sizing: border-box;
 }
 
-.government-page--mobile .admin-ga-management {
+.government-page--mobile .admin-ga-management,
+.government-page--mobile .admin-user-management {
   width: 100%;
   max-width: none;
   box-sizing: border-box;
 }
 
-.government-page--mobile .admin-ga-management .page-header {
+.government-page--mobile .admin-ga-management .page-header,
+.government-page--mobile .admin-user-management .page-header {
   margin: 0 0 0.75rem;
   padding: 0;
 }
 
-.government-page--mobile .admin-ga-management .page-header h1 {
+.government-page--mobile .admin-ga-management .page-header h1,
+.government-page--mobile .admin-user-management .page-header h1 {
   font-size: 1.125rem;
   margin: 0 0 0.35rem;
 }
 
-.government-page--mobile .admin-ga-management .page-header p {
+.government-page--mobile .admin-ga-management .page-header p,
+.government-page--mobile .admin-user-management .page-header p {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
 }
 
 .government-page--mobile .admin-ga-management .admin-toolbar,
-.government-page--mobile .admin-ga-management .admin-ga-management__table-wrap {
+.government-page--mobile .admin-user-management .admin-toolbar,
+.government-page--mobile .admin-ga-management .admin-ga-management__table-wrap,
+.government-page--mobile .admin-user-management .admin-user-management__table-wrap {
   max-width: none;
   margin-left: 0;
   margin-right: 0;

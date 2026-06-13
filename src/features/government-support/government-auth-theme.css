@@ -154,3 +154,34 @@
   border: 2px solid #f2b800;
   outline: none;
 }
+
+/* index.css 전역 input:not(...):focus (0,11,1) 보다 높은 specificity — 로그인/회원가입/코드가입 */
+.government-auth-white-theme.auth-page.government-auth-page input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']),
+.government-auth-white-theme.auth-page.government-auth-page select,
+.government-auth-white-theme.auth-page.government-auth-page textarea {
+  background: #ffffff;
+  color: #0f172a;
+  border: 2px solid #cbd5e1;
+  box-shadow: none;
+  outline: none;
+}
+
+.government-auth-white-theme.auth-page.government-auth-page input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):focus:not(:disabled),
+.government-auth-white-theme.auth-page.government-auth-page input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):focus-visible:not(:disabled),
+.government-auth-white-theme.auth-page.government-auth-page select:focus:not(:disabled),
+.government-auth-white-theme.auth-page.government-auth-page select:focus-visible:not(:disabled),
+.government-auth-white-theme.auth-page.government-auth-page textarea:focus:not(:disabled),
+.government-auth-white-theme.auth-page.government-auth-page textarea:focus-visible:not(:disabled) {
+  border-color: #f2b800 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.government-auth-white-theme.auth-page.government-auth-page input:-webkit-autofill,
+.government-auth-white-theme.auth-page.government-auth-page input:-webkit-autofill:focus,
+.government-auth-white-theme.auth-page.government-auth-page input:-webkit-autofill:focus-visible {
+  -webkit-text-fill-color: #0f172a !important;
+  border-color: #f2b800 !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  outline: none !important;
+}

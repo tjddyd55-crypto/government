@@ -36,6 +36,7 @@ import {
   patchGovernmentAdminUser,
   resetGovernmentAdminUserPassword,
   resolveGovernmentUserManagerScope,
+  softDeleteGovernmentProgramUser,
 } from './lib/governmentSupport/governmentAdminUsers.js'
 import { mapGovSupportProfileRow, profilePatchFromBody } from './lib/governmentSupport/profileMapper.js'
 import {
@@ -296,6 +297,7 @@ export function registerGovernmentSupportApi(router, deps) {
         tenantId: req.query.tenantId ?? req.query.tenant_id ?? req.query.agencyId,
         status: req.query.status,
         q: req.query.q ?? req.query.search,
+        includeDeleted: req.query.includeDeleted ?? req.query.include_deleted,
       })
       res.json({ success: true, data: rows })
     } catch (e) {
@@ -335,7 +337,13 @@ export function registerGovernmentSupportApi(router, deps) {
         res.status(scope.status).json({ message: scope.message })
         return
       }
-      const result = await patchGovernmentAdminUser(pool, scope, userId, req.body ?? {})
+      const result = await patchGovernmentAdminUser(
+        pool,
+        scope,
+        userId,
+        req.body ?? {},
+        req.user?.id ?? null,
+      )
       if (!result.ok) {
         res.status(result.status).json({ message: result.message })
         return
@@ -373,6 +381,30 @@ export function registerGovernmentSupportApi(router, deps) {
       }
     },
   )
+
+  router.delete('/government-support/admin/users/:userId', ...requireGovernmentUserManager, async (req, res) => {
+    try {
+      const userId = String(req.params.userId ?? '').trim()
+      if (!userId) {
+        res.status(400).json({ message: '잘못된 사용자 ID입니다.' })
+        return
+      }
+      const ctx = req.platformContext
+      const scope = await resolveGovernmentUserManagerScope(pool, ctx)
+      if (!scope.ok) {
+        res.status(scope.status).json({ message: scope.message })
+        return
+      }
+      const result = await softDeleteGovernmentProgramUser(pool, scope, req.user?.id ?? null, userId)
+      if (!result.ok) {
+        res.status(result.status).json({ message: result.message })
+        return
+      }
+      res.json({ success: true, message: result.message })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
 
   router.get('/government-support/profiles', ...requireGovernmentMember, async (req, res) => {
     try {

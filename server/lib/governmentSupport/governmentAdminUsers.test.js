@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  assertActorNotSelf,
   isGovernmentUserManager,
   membershipInsertParams,
   parseGovernmentEntityStatus,
@@ -54,5 +55,13 @@ describe('governmentAdminUsers helpers', () => {
     assert.equal(spec.scope_type, 'industry')
     assert.equal(spec.scope_id, '3')
     assert.equal(spec.tenant_id, null)
+  })
+
+  it('assertActorNotSelf blocks self action', () => {
+    const blocked = assertActorNotSelf('u1', 'u1', '삭제')
+    assert.equal(blocked.ok, false)
+    assert.equal(blocked.status, 403)
+    const allowed = assertActorNotSelf('u1', 'u2', '삭제')
+    assert.equal(allowed.ok, true)
   })
 })

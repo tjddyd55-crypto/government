@@ -23,6 +23,7 @@ export type GovernmentAdminUsersQuery = {
   tenantId?: string
   status?: string
   q?: string
+  includeDeleted?: boolean
 }
 
 export async function fetchGovernmentAdminUsers(
@@ -34,6 +35,7 @@ export async function fetchGovernmentAdminUsers(
   if (query?.tenantId) params.set('tenantId', query.tenantId)
   if (query?.status) params.set('status', query.status)
   if (query?.q) params.set('q', query.q)
+  if (query?.includeDeleted) params.set('includeDeleted', 'true')
   const qs = params.toString()
   const raw = await apiRequest<unknown>(
     `/api/government-support/admin/users${qs ? `?${qs}` : ''}`,
@@ -87,4 +89,12 @@ export async function resetGovernmentAdminUserPassword(
       body: JSON.stringify({ password }),
     },
   )
+}
+
+/** 이용자(program user) soft delete — 연결 데이터는 보존 */
+export async function deleteGovernmentProgramUser(token: string, userId: string): Promise<void> {
+  await apiRequest<unknown>(`/api/government-support/admin/users/${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+    token,
+  })
 }
