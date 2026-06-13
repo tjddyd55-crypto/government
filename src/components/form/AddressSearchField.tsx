@@ -46,6 +46,13 @@ export interface AddressSearchFieldProps {
   /** 비활성 여부(예: 저장 진행 중). */
   disabled?: boolean
   /**
+   * `gov`: 1행 우편번호+검색 버튼, 2행 주소, 3행 상세주소 (정부지원 CRM 운영형).
+   * `default`: 검색 버튼 단독 행 후 우편번호·주소·상세주소 (보험 CRM 등 기존).
+   */
+  layout?: 'default' | 'gov'
+  /** 수정 모달 등 상위 overlay 위에 띄울 때 z-index·배경 조정용. */
+  dialogOverlayClassName?: string
+  /**
    * 빌더 미리보기 전용 — 주소 검색 버튼·카카오 스크립트 로드·모달을 사용하지 않는다.
    * disabled 와 별도로 side effect 차단용이다.
    */
@@ -77,6 +84,8 @@ export default function AddressSearchField({
   searchButtonLabel = '주소 검색',
   zonecodePlaceholder = '우편번호',
   disabled,
+  layout = 'default',
+  dialogOverlayClassName = '',
   previewStatic = false,
 }: AddressSearchFieldProps) {
   const [open, setOpen] = useState(false)
@@ -144,38 +153,72 @@ export default function AddressSearchField({
   }, [open, handleSelect, previewStatic])
 
   const current = value ?? EMPTY_VALUE
-  const rootClass = ['customer-address-field', className].filter(Boolean).join(' ')
+  const isGovLayout = layout === 'gov'
+  const rootClass = [
+    'customer-address-field',
+    isGovLayout ? 'address-search-field--gov' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ')
   const frozen = Boolean(disabled || previewStatic)
+  const inputClass = isGovLayout ? 'field__control gov-form-control' : 'field__control'
+  const searchBtnClass = isGovLayout
+    ? 'gov-btn gov-btn--secondary address-search-field__search-btn'
+    : undefined
+  const dialogOverlay = [
+    isGovLayout ? 'z-[10050] address-search-field__overlay--nested' : '',
+    dialogOverlayClassName,
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  const searchButton = !previewStatic ? (
+    <FormButton
+      htmlType="button"
+      variant="secondary"
+      size="sm"
+      fullWidth={!isGovLayout}
+      className={searchBtnClass}
+      disabled={frozen}
+      onClick={openDialog}
+    >
+      {searchButtonLabel}
+    </FormButton>
+  ) : null
 
   return (
     <div className={rootClass}>
-      {!previewStatic ? (
-        <div className="customer-address-field__search-row">
-          <FormButton
-            htmlType="button"
-            variant="secondary"
-            size="sm"
-            fullWidth
+      {isGovLayout ? (
+        <div className="address-search-field__row address-search-field__row--postcode">
+          <FormInput
+            className={`${inputClass} address-search-field__zonecode`}
+            placeholder={zonecodePlaceholder}
+            value={current.zonecode}
+            readOnly
             disabled={frozen}
-            onClick={openDialog}
-          >
-            {searchButtonLabel}
-          </FormButton>
+            aria-label="우편번호"
+            onClick={previewStatic ? undefined : openDialog}
+          />
+          {searchButton}
         </div>
-      ) : null}
+      ) : (
+        <>
+          {searchButton ? <div className="customer-address-field__search-row">{searchButton}</div> : null}
+          <FormInput
+            className={`${inputClass} address-search-field__zonecode`}
+            placeholder={zonecodePlaceholder}
+            value={current.zonecode}
+            readOnly
+            disabled={frozen}
+            aria-label="우편번호"
+            onClick={previewStatic ? undefined : openDialog}
+          />
+        </>
+      )}
 
       <FormInput
-        className="field__control address-search-field__zonecode"
-        placeholder={zonecodePlaceholder}
-        value={current.zonecode}
-        readOnly
-        disabled={frozen}
-        aria-label="우편번호"
-        onClick={previewStatic ? undefined : openDialog}
-      />
-
-      <FormInput
-        className="field__control address-search-field__base"
+        className={`${inputClass} address-search-field__base`}
         placeholder={addressPlaceholder}
         value={current.baseAddress}
         readOnly
@@ -186,7 +229,7 @@ export default function AddressSearchField({
 
       <FormInput
         ref={detailInputRef}
-        className="field__control address-search-field__detail"
+        className={`${inputClass} address-search-field__detail`}
         placeholder={detailPlaceholder}
         value={current.detailAddress}
         readOnly={previewStatic}
@@ -201,6 +244,7 @@ export default function AddressSearchField({
           onClose={() => setOpen(false)}
           ariaLabel="주소 검색"
           panelClassName="address-search-field__dialog"
+          overlayClassName={dialogOverlay}
           usePortal
         >
           <div className="address-search-field__dialog-head">
@@ -209,6 +253,7 @@ export default function AddressSearchField({
               htmlType="button"
               variant="secondary"
               size="sm"
+              className={isGovLayout ? 'gov-btn gov-btn--secondary gov-btn--sm' : undefined}
               onClick={() => setOpen(false)}
               aria-label="닫기"
             >

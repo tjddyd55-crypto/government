@@ -58,5 +58,5 @@ export default function GovernmentProfileDetailPanels({ tab }: GovernmentProfile
     return <GovernmentProfileApplicationsPanel />
   }
 
-  return <EmptyState message="준비 중입니다." />
+  return <EmptyState message="표시할 내용이 없습니다." />
 }

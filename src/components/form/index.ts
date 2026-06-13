@@ -9,4 +9,4 @@ export {
   default as AddressSearchField,
   type AddressSearchFieldProps,
 } from './AddressSearchField'
-export { formatAddressForSave, type AddressSearchValue } from './addressSearchUtils'
+export { formatAddressForSave, parseAddressFromSave, type AddressSearchValue } from './addressSearchUtils'

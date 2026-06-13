@@ -2896,6 +2896,21 @@
   color: var(--gov-workspace-text);
 }
 
+.government-profile-workspace .gov-workspace-record-card__meta-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.government-profile-workspace .gov-workspace-record-card__subtitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--gov-workspace-text);
+  margin-bottom: 6px;
+}
+
 .government-profile-workspace .gov-workspace-record-card__body {
   min-width: 0;
 }

@@ -14,6 +14,7 @@
   --gov-ui-primary: #f2b800;
   --gov-ui-primary-hover: #d99f00;
   --gov-ui-primary-soft: #fff8d6;
+  --gov-ui-bg-soft-yellow: #fffdf0;
   --gov-ui-danger: #dc2626;
   --gov-ui-danger-soft: #fff1f2;
 }
@@ -579,4 +580,123 @@
   padding: 12px 16px;
   color: #dc2626;
   font-size: 14px;
+}
+
+/* 정부지원 운영형 주소 필드 (우편번호 + 검색 버튼 1행) */
+.government-user-layout .address-search-field--gov,
+.government-admin-white-theme .address-search-field--gov,
+.government-profile-edit-modal .address-search-field--gov {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.government-user-layout .address-search-field--gov .address-search-field__row--postcode,
+.government-admin-white-theme .address-search-field--gov .address-search-field__row--postcode,
+.government-profile-edit-modal .address-search-field--gov .address-search-field__row--postcode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.government-user-layout .address-search-field--gov .address-search-field__zonecode,
+.government-admin-white-theme .address-search-field--gov .address-search-field__zonecode,
+.government-profile-edit-modal .address-search-field--gov .address-search-field__zonecode {
+  flex: 0 0 120px;
+  width: 120px;
+  max-width: 40%;
+  min-width: 96px;
+}
+
+.government-user-layout .address-search-field--gov .address-search-field__search-btn,
+.government-admin-white-theme .address-search-field--gov .address-search-field__search-btn,
+.government-profile-edit-modal .address-search-field--gov .address-search-field__search-btn {
+  flex: 0 0 auto;
+  min-height: 38px;
+  width: auto;
+}
+
+.government-user-layout .address-search-field--gov .address-search-field__base,
+.government-user-layout .address-search-field--gov .address-search-field__detail,
+.government-admin-white-theme .address-search-field--gov .address-search-field__base,
+.government-admin-white-theme .address-search-field--gov .address-search-field__detail,
+.government-profile-edit-modal .address-search-field--gov .address-search-field__base,
+.government-profile-edit-modal .address-search-field--gov .address-search-field__detail {
+  width: 100%;
+}
+
+/* 주소 검색 레이어 — 수정 모달 위 중첩 시 단일 overlay 톤 */
+.address-search-field__overlay--nested {
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.government-user-layout .address-search-field__dialog,
+.government-admin-white-theme .address-search-field__dialog,
+.government-profile-edit-modal ~ .address-search-field__dialog {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  color: #0f172a;
+}
+
+.government-user-layout .address-search-field__dialog-head,
+.government-admin-white-theme .address-search-field__dialog-head {
+  color: #0f172a;
+}
+
+.government-user-layout .address-search-field__embed,
+.government-admin-white-theme .address-search-field__embed {
+  border-color: #d7dee8;
+  border-radius: 10px;
+}
+
+/* ghost 버튼 */
+.government-auth-white-theme .gov-btn--ghost,
+.government-user-white-theme .gov-btn--ghost,
+.government-admin-white-theme .gov-btn--ghost {
+  background: transparent;
+  color: var(--gov-ui-text);
+  border-color: transparent;
+}
+
+.government-auth-white-theme .gov-btn--ghost:hover:not(:disabled),
+.government-user-white-theme .gov-btn--ghost:hover:not(:disabled),
+.government-admin-white-theme .gov-btn--ghost:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+/* empty / loading / error 공통 */
+.government-user-layout .gov-status-empty,
+.government-admin-white-theme .gov-status-empty,
+.government-profile-workspace .gov-workspace-record-section__empty {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 24px 16px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.government-user-layout .gov-status-error,
+.government-admin-white-theme .gov-status-error {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+
+.government-user-layout .gov-status-loading,
+.government-admin-white-theme .gov-status-loading {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 20px 16px;
+  color: #64748b;
+  font-size: 0.875rem;
 }

@@ -458,10 +458,9 @@ async function main() {
   } else {
     pass('profile files tab bundle has no document category placeholder')
   }
-  if (basicTabSpa.js.includes('government-address-search-button')) {
-    pass('profile basic tab bundle contains government-address-search-button')
-  } else {
-    fail('profile basic tab bundle contains government-address-search-button')
+  for (const m of ['address-search-field--gov', 'parseAddressFromSave', 'formatAddressForSave']) {
+    if (basicTabSpa.js.includes(m)) pass(`profile basic tab bundle contains ${m}`)
+    else fail(`profile basic tab bundle contains ${m}`)
   }
 
   const progressTabPath = governmentProfileWorkspaceTabPath(profileAId, 'progress')
@@ -471,6 +470,17 @@ async function main() {
   for (const statusLabel of ['서류준비중', '서류발급 완료', '접수대기', '접수중', '심사중', '최종승인']) {
     if (progressTabSpa.js.includes(statusLabel)) pass(`progress tab bundle contains status ${statusLabel}`)
     else fail(`progress tab bundle contains status ${statusLabel}`)
+  }
+  for (const m of [
+    'government-profile-progress-compose-inline',
+    'government-profile-progress-record-list',
+    'gov-workspace-compose-card',
+    'gov-workspace-record-card',
+    'gov-btn--primary',
+    'gov-form-control',
+  ]) {
+    if (progressTabSpa.js.includes(m)) pass(`profile progress tab bundle contains ${m}`)
+    else fail(`profile progress tab bundle contains ${m}`)
   }
 
   const applicationsTabPath = governmentProfileWorkspaceTabPath(profileAId, 'applications')

@@ -26,3 +26,20 @@ export function formatAddressForSave(value: AddressSearchValue): string {
   const head = zip ? `(${zip})` : ''
   return [head, base, detail].filter(Boolean).join(' ').trim()
 }
+
+/** formatAddressForSave 로 저장된 단일 문자열을 입력 UI용 3튜플로 복원한다. */
+export function parseAddressFromSave(stored: string): AddressSearchValue {
+  const trimmed = stored.trim()
+  if (!trimmed) {
+    return { zonecode: '', baseAddress: '', detailAddress: '' }
+  }
+  const withZip = trimmed.match(/^\((\d{5})\)\s*(.*)$/)
+  if (withZip) {
+    return {
+      zonecode: withZip[1],
+      baseAddress: withZip[2].trim(),
+      detailAddress: '',
+    }
+  }
+  return { zonecode: '', baseAddress: trimmed, detailAddress: '' }
+}

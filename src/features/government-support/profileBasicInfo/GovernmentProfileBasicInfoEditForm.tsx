@@ -1,6 +1,7 @@
-import { useRef, type RefObject } from 'react'
+import { useMemo } from 'react'
 import { FormButton, FormInput, FormTextarea } from '../../../components/form'
-import GovernmentAddressSearchButton from '../components/GovernmentAddressSearchButton'
+import AddressSearchField from '../../../components/form/AddressSearchField'
+import { formatAddressForSave, parseAddressFromSave } from '../../../components/form/addressSearchUtils'
 import type { GovProfileBasicInfoFormState } from './governmentProfileBasicInfoFormState'
 import {
   GOVERNMENT_PROFILE_BASIC_INFO_SECTIONS,
@@ -22,8 +23,6 @@ type Props = {
 function AddressFieldControl({
   fieldKey,
   label,
-  wide,
-  textarea,
   profileId,
   value,
   disabled,
@@ -31,46 +30,25 @@ function AddressFieldControl({
 }: {
   fieldKey: GovProfileBasicInfoFieldKey
   label: string
-  wide?: boolean
-  textarea?: boolean
   profileId: string
   value: string
   disabled?: boolean
   onValueChange: (value: string) => void
 }) {
-  const inputRef = useRef<HTMLTextAreaElement | HTMLInputElement | null>(null)
+  const parsed = useMemo(() => parseAddressFromSave(value), [value])
 
   return (
-    <label className={`field government-address-field${wide ? ' field--wide' : ''}`}>
+    <label className="field field--wide government-address-field">
       <span className="field__label">{label}</span>
-      <div className="government-address-field__controls">
-        <GovernmentAddressSearchButton
-          disabled={disabled}
-          focusTargetRef={inputRef}
-          onAddressSelect={onValueChange}
-        />
-        {textarea ? (
-          <FormTextarea
-            ref={inputRef as RefObject<HTMLTextAreaElement>}
-            className="field__control gov-form-control customer-form-textarea government-address-field__input"
-            rows={3}
-            name={`${profileId}-${fieldKey}`}
-            value={value}
-            onChange={(e) => onValueChange(e.target.value)}
-            disabled={disabled}
-            placeholder="주소 검색 후 상세주소를 이어서 입력할 수 있습니다."
-          />
-        ) : (
-          <FormInput
-            ref={inputRef as RefObject<HTMLInputElement>}
-            className="field__control gov-form-control government-address-field__input"
-            name={`${profileId}-${fieldKey}`}
-            value={value}
-            onChange={(e) => onValueChange(e.target.value)}
-            disabled={disabled}
-          />
-        )}
-      </div>
+      <AddressSearchField
+        layout="gov"
+        className="government-address-field__search address-search-field"
+        value={parsed}
+        disabled={disabled}
+        addressPlaceholder="주소"
+        detailPlaceholder="상세주소를 입력하세요 (선택)"
+        onChange={(next) => onValueChange(formatAddressForSave(next))}
+      />
     </label>
   )
 }
@@ -115,8 +93,6 @@ export default function GovernmentProfileBasicInfoEditForm({
                     key={field.key}
                     fieldKey={field.key}
                     label={field.label}
-                    wide={field.wide}
-                    textarea={field.textarea}
                     profileId={profileId}
                     value={form[field.key] ?? ''}
                     disabled={saving}
