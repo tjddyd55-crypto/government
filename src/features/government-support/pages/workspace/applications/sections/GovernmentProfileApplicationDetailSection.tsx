@@ -8,9 +8,12 @@ import {
 
 type MaybePromise = void | Promise<void>
 
-type GovernmentProfileApplicationDetailBodyProps = {
+export type GovernmentProfileApplicationDetailBodyProps = {
   detail?: GovProfileApplication | null
   detailLoading?: boolean
+  editing?: boolean
+  /** 모바일 등 항상 수정 폼을 보여줄 때 */
+  alwaysEditing?: boolean
   statusTarget: GovernmentProfileApplicationStatus
   editTitle: string
   editContent: string
@@ -19,6 +22,9 @@ type GovernmentProfileApplicationDetailBodyProps = {
   actionBusy?: boolean
   statusOptions: Array<{ value: GovernmentProfileApplicationStatus; label: string }>
   statusNotice?: string
+  onStartEdit?: () => void
+  onCancelEdit?: () => void
+  onCloseDetail?: () => void
   onSetStatusTarget: (status: GovernmentProfileApplicationStatus) => void
   onSetEditTitle: (value: string) => void
   onSetEditContent: (value: string) => void
@@ -30,9 +36,20 @@ type GovernmentProfileApplicationDetailBodyProps = {
   statusLabel: (status: string) => string
 }
 
+function ReadOnlyField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="gov-application-detail-read__row">
+      <span className="gov-application-detail-read__label">{label}</span>
+      <span className="gov-application-detail-read__value">{value || '—'}</span>
+    </div>
+  )
+}
+
 export function GovernmentProfileApplicationDetailBody({
   detail,
   detailLoading = false,
+  editing = false,
+  alwaysEditing = false,
   statusTarget,
   editTitle,
   editContent,
@@ -41,6 +58,9 @@ export function GovernmentProfileApplicationDetailBody({
   actionBusy = false,
   statusOptions,
   statusNotice = '',
+  onStartEdit,
+  onCancelEdit,
+  onCloseDetail,
   onSetStatusTarget,
   onSetEditTitle,
   onSetEditContent,
@@ -59,21 +79,86 @@ export function GovernmentProfileApplicationDetailBody({
     return <div className="claim-requests-page__detail-empty">신청을 선택해 주세요.</div>
   }
 
+  const showEditForm = alwaysEditing || editing
   const saveStatusDisabled = statusTarget === detail.status
 
+  if (!showEditForm) {
+    return (
+      <div
+        className="gov-application-detail-read"
+        data-testid="government-profile-application-detail-read"
+      >
+        <div className="gov-application-detail-read__head">
+          <h3 className="gov-application-detail-read__title">
+            #{detail.id} {detail.title || '제목 없음'}
+          </h3>
+          <span className="gov-application-detail-read__status-badge">{statusLabel(detail.status)}</span>
+        </div>
+
+        <div className="gov-application-detail-read__grid">
+          <ReadOnlyField label="유형" value={detail.applicationType || '—'} />
+          <ReadOnlyField label="접수일" value={formatDateTime(detail.submittedAt ?? detail.createdAt)} />
+          <ReadOnlyField label="수정일" value={formatDateTime(detail.updatedAt)} />
+          {detail.completedAt ? (
+            <ReadOnlyField label="완료일" value={formatDateTime(detail.completedAt)} />
+          ) : null}
+          <div className="gov-application-detail-read__row gov-application-detail-read__row--block">
+            <span className="gov-application-detail-read__label">내용</span>
+            <div className="gov-application-detail-read__value gov-application-detail-read__value--multiline">
+              {detail.content?.trim() || '—'}
+            </div>
+          </div>
+        </div>
+
+        <div className="gov-application-detail-read__actions">
+          <FormButton
+            htmlType="button"
+            variant="primary"
+            className="gov-btn gov-btn--primary"
+            disabled={actionBusy}
+            onClick={() => onStartEdit?.()}
+          >
+            수정
+          </FormButton>
+          <FormButton
+            htmlType="button"
+            variant="danger"
+            size="sm"
+            className="gov-btn gov-btn--danger gov-btn--sm"
+            disabled={actionBusy}
+            onClick={() => void onDeleteApplication()}
+          >
+            삭제
+          </FormButton>
+          {onCloseDetail ? (
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              className="gov-btn gov-btn--secondary"
+              disabled={actionBusy}
+              onClick={onCloseDetail}
+            >
+              닫기
+            </FormButton>
+          ) : null}
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <>
+    <div
+      className="gov-application-detail-edit"
+      data-testid="government-profile-application-detail-edit"
+    >
       <div className="claim-requests-page__detail-section">
         <div className="claim-requests-page__detail-title">
           #{detail.id} {detail.title || '제목 없음'}
         </div>
         <div className="claim-requests-page__detail-meta">
-          상태 {statusLabel(detail.status)} · 접수 {formatDateTime(detail.submittedAt ?? detail.createdAt)}
+          접수 {formatDateTime(detail.submittedAt ?? detail.createdAt)}
+          {detail.updatedAt ? ` · 수정 ${formatDateTime(detail.updatedAt)}` : ''}
         </div>
-        {detail.completedAt ? (
-          <div className="claim-requests-page__detail-meta">완료 {formatDateTime(detail.completedAt)}</div>
-        ) : null}
-        <div className="claim-requests-page__detail-meta">신청 유형: {detail.applicationType || '—'}</div>
       </div>
 
       <div className="claim-requests-page__detail-section">
@@ -107,26 +192,6 @@ export function GovernmentProfileApplicationDetailBody({
           placeholder="신청 내용"
           maxLength={GOVERNMENT_PROFILE_APPLICATION_CONTENT_MAX}
         />
-        <div className="claim-requests-page__status-form-row customer-workspace-tab-submit-row">
-          <FormButton
-            htmlType="button"
-            variant="primary"
-            className="gov-btn gov-btn--primary"
-            onClick={() => void onSaveDetail()}
-            loading={actionBusy}
-          >
-            내용 저장
-          </FormButton>
-          <FormButton
-            htmlType="button"
-            variant="secondary"
-            className="gov-btn gov-btn--danger"
-            onClick={() => void onDeleteApplication()}
-            loading={actionBusy}
-          >
-            보관(삭제)
-          </FormButton>
-        </div>
       </div>
 
       <div className="claim-requests-page__detail-section claim-requests-page__detail-section--status">
@@ -157,11 +222,39 @@ export function GovernmentProfileApplicationDetailBody({
         ) : null}
       </div>
 
-      <div className="claim-requests-page__detail-section">
-        <div className="claim-requests-page__detail-subtitle">첨부 파일</div>
-        <div className="claim-requests-page__detail-empty">첨부 파일 연동은 후속 작업 예정입니다.</div>
+      <div className="gov-application-detail-edit__actions">
+        <FormButton
+          htmlType="button"
+          variant="primary"
+          className="gov-btn gov-btn--primary"
+          onClick={() => void onSaveDetail()}
+          loading={actionBusy}
+        >
+          저장
+        </FormButton>
+        {!alwaysEditing ? (
+          <FormButton
+            htmlType="button"
+            variant="secondary"
+            className="gov-btn gov-btn--secondary"
+            disabled={actionBusy}
+            onClick={() => onCancelEdit?.()}
+          >
+            취소
+          </FormButton>
+        ) : null}
+        <FormButton
+          htmlType="button"
+          variant="danger"
+          size="sm"
+          className="gov-btn gov-btn--danger gov-btn--sm"
+          onClick={() => void onDeleteApplication()}
+          loading={actionBusy}
+        >
+          삭제
+        </FormButton>
       </div>
-    </>
+    </div>
   )
 }
 

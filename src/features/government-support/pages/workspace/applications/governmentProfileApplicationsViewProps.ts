@@ -11,6 +11,7 @@ export type GovernmentProfileApplicationsViewProps = {
   selectedId: string | null
   detail: GovProfileApplication | null
   detailLoading: boolean
+  detailEditing: boolean
   mobileDetailOpen: boolean
   createTitle: string
   createType: string
@@ -27,7 +28,11 @@ export type GovernmentProfileApplicationsViewProps = {
   onSetCreateContent: (value: string) => void
   onSubmitCreate: (e: FormEvent) => void
   onSelectApplication: (id: string) => void
+  onStartDetailEdit: () => void
+  onCancelDetailEdit: () => void
+  onCloseDetail: () => void
   onCloseMobileDetail: () => void
+  onDeleteApplicationById: (id: string) => void
   onSetStatusTarget: (status: GovernmentProfileApplicationStatus) => void
   onSetEditTitle: (value: string) => void
   onSetEditContent: (value: string) => void

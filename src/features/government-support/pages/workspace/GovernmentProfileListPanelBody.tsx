@@ -82,8 +82,8 @@ export default function GovernmentProfileListPanelBody() {
           <FormButton
             htmlType="button"
             variant="primary"
-            size="sm"
-            className="gov-btn gov-btn--primary gov-btn--sm"
+            className="gov-btn gov-btn--primary government-profile-list-panel__add-btn"
+            data-testid="government-profile-list-add-btn"
             onClick={() => void ws.addProfile()}
           >
             + 사업장 추가
@@ -144,10 +144,11 @@ export default function GovernmentProfileListPanelBody() {
                     >
                       <span className="customer-expand-summary__content">
                         <strong className="government-profile-list-card__title">{title}</strong>
-                        <span className="customer-card-summary-meta gov-customer-list-meta-line government-profile-list-card__meta">
-                          {metaCustomer}
-                          {metaPhone} · {metaStatus}
-                        </span>
+                        {metaCustomer ? (
+                          <span className="government-profile-list-card__meta">{metaCustomer.replace(/ · $/, '')}</span>
+                        ) : null}
+                        <span className="government-profile-list-card__meta">{metaPhone}</span>
+                        <span className="government-profile-list-card__meta">{metaStatus}</span>
                       </span>
                     </button>
                     <button

@@ -415,6 +415,8 @@ async function main() {
     'government-profile-list-expand-row',
     'government-profile-list-expand-empty-value',
     'government-profile-list-card__chevron',
+    'summary-row--active',
+    'government-profile-list-add-btn',
     '/file-categories',
     'editableFolderIds',
     '문서 분류 이름 변경',
@@ -479,6 +481,19 @@ async function main() {
     pass('profile applications tab bundle contains white form markers')
   } else {
     fail('profile applications tab bundle contains white form markers')
+  }
+  for (const m of [
+    'government-profile-application-compose-inline',
+    'government-profile-application-record-list',
+    'government-profile-application-record-card',
+    'government-profile-application-detail-read',
+    'government-profile-application-detail-edit',
+    'gov-application-record-card',
+    'onStartDetailEdit',
+    'onCancelDetailEdit',
+  ]) {
+    if (applicationsTabSpa.js.includes(m)) pass(`profile applications tab bundle contains ${m}`)
+    else fail(`profile applications tab bundle contains ${m}`)
   }
 
   const patchedBizName = `E2E Biz Patched ${ts}`

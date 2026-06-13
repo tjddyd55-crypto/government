@@ -85,6 +85,7 @@ export default function GovernmentProfileApplicationsPageMobile(props: Governmen
           </div>
           <div className="workspace-mobile-outlet-modal__body customer-workspace-mobile-modal__body">
             <GovernmentProfileApplicationDetailSection
+              alwaysEditing
               detail={props.detail}
               detailLoading={props.detailLoading}
               statusTarget={props.statusTarget}

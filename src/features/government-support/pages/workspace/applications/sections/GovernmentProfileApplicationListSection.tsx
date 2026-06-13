@@ -6,7 +6,10 @@ type GovernmentProfileApplicationListSectionProps = {
   selectedId?: string | null
   loading?: boolean
   profileLabel: string
+  variant?: 'default' | 'workspace'
+  actionBusy?: boolean
   onSelectApplication: (id: string) => void
+  onDeleteApplication?: (id: string) => void
   formatDateTime: (iso: string | null | undefined) => string
   statusLabel: (status: string) => string
   statusBadgeClass: (status: string) => string
@@ -18,12 +21,90 @@ export default function GovernmentProfileApplicationListSection({
   selectedId,
   loading = false,
   profileLabel,
+  variant = 'default',
+  actionBusy = false,
   onSelectApplication,
+  onDeleteApplication,
   formatDateTime,
   statusLabel,
   statusBadgeClass,
   listPreviewText,
 }: GovernmentProfileApplicationListSectionProps) {
+  if (variant === 'workspace') {
+    return (
+      <section className="gov-workspace-record-section gov-applications-page__list-section">
+        <div className="gov-workspace-record-section__head">
+          <div>
+            <h3 className="gov-workspace-record-section__title">신청 목록</h3>
+            <p className="gov-applications-page__list-desc">{profileLabel} 사업장의 신청 건입니다.</p>
+          </div>
+          <span className="gov-workspace-record-section__count">총 {rows.length}건</span>
+        </div>
+
+        {loading ? <p className="gov-workspace-record-section__empty">신청 목록을 불러오는 중…</p> : null}
+        {!loading && rows.length === 0 ? (
+          <p className="gov-workspace-record-section__empty">등록된 신청이 없습니다.</p>
+        ) : null}
+
+        {rows.length > 0 ? (
+          <ul className="gov-workspace-record-list" data-testid="government-profile-application-record-list">
+            {rows.map((item) => {
+              const selected = item.id === selectedId
+              return (
+                <li
+                  key={item.id}
+                  className={`gov-workspace-record-card gov-application-record-card${
+                    selected ? ' gov-application-record-card--selected' : ''
+                  }`}
+                  data-testid="government-profile-application-record-card"
+                  data-application-selected={selected ? 'true' : 'false'}
+                >
+                  <div className="gov-application-record-card__main">
+                    <div className="gov-application-record-card__title">
+                      #{item.id} {item.title || '제목 없음'}
+                    </div>
+                    <div className="gov-application-record-card__meta">
+                      <span>{item.applicationType || '유형 미지정'}</span>
+                      <span>{formatDateTime(item.submittedAt ?? item.createdAt)}</span>
+                    </div>
+                    <div className="gov-application-record-card__preview">{listPreviewText(item)}</div>
+                    <span className={`gov-application-record-card__badge ${statusBadgeClass(item.status)}`}>
+                      {statusLabel(item.status)}
+                    </span>
+                  </div>
+                  <div className="gov-application-record-card__actions">
+                    <FormButton
+                      htmlType="button"
+                      variant="secondary"
+                      size="sm"
+                      className="gov-btn gov-btn--secondary gov-btn--sm"
+                      disabled={actionBusy}
+                      onClick={() => onSelectApplication(item.id)}
+                    >
+                      상세
+                    </FormButton>
+                    {onDeleteApplication ? (
+                      <FormButton
+                        htmlType="button"
+                        variant="danger"
+                        size="sm"
+                        className="gov-btn gov-btn--danger gov-btn--sm"
+                        disabled={actionBusy}
+                        onClick={() => void onDeleteApplication(item.id)}
+                      >
+                        삭제
+                      </FormButton>
+                    ) : null}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        ) : null}
+      </section>
+    )
+  }
+
   return (
     <section className="claim-requests-page__card claim-requests-page__list-section">
       <div className="claim-requests-page__section-header claim-requests-page__list-header">

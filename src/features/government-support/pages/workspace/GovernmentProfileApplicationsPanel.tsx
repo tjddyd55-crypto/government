@@ -42,6 +42,7 @@ export default function GovernmentProfileApplicationsPanel() {
   const [error, setError] = useState('')
   const [statusNotice, setStatusNotice] = useState('')
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false)
+  const [detailEditing, setDetailEditing] = useState(false)
 
   const [createTitle, setCreateTitle] = useState('')
   const [createType, setCreateType] = useState('')
@@ -98,6 +99,13 @@ export default function GovernmentProfileApplicationsPanel() {
     void loadList()
   }, [loadList])
 
+  const resetEditFieldsFromDetail = useCallback((row: GovProfileApplication) => {
+    setEditTitle(row.title)
+    setEditContent(row.content)
+    setEditType(row.applicationType)
+    setStatusTarget((row.status as GovernmentProfileApplicationStatus) || 'requested')
+  }, [])
+
   const loadDetail = useCallback(
     async (applicationId: string) => {
       if (!token?.trim() || !validId) {
@@ -108,10 +116,7 @@ export default function GovernmentProfileApplicationsPanel() {
       try {
         const row = await fetchGovProfileApplication(token, profileId, applicationId)
         setDetail(row)
-        setEditTitle(row.title)
-        setEditContent(row.content)
-        setEditType(row.applicationType)
-        setStatusTarget((row.status as GovernmentProfileApplicationStatus) || 'requested')
+        resetEditFieldsFromDetail(row)
       } catch (e) {
         setError(e instanceof Error ? e.message : '상세를 불러오지 못했습니다.')
         setDetail(null)
@@ -119,17 +124,35 @@ export default function GovernmentProfileApplicationsPanel() {
         setDetailLoading(false)
       }
     },
-    [profileId, token, validId],
+    [profileId, resetEditFieldsFromDetail, token, validId],
   )
 
   const onSelectApplication = useCallback(
     (id: string) => {
       setSelectedId(id)
+      setDetailEditing(false)
       setMobileDetailOpen(true)
       void loadDetail(id)
     },
     [loadDetail],
   )
+
+  const onStartDetailEdit = useCallback(() => {
+    setDetailEditing(true)
+  }, [])
+
+  const onCancelDetailEdit = useCallback(() => {
+    if (detail) {
+      resetEditFieldsFromDetail(detail)
+    }
+    setDetailEditing(false)
+  }, [detail, resetEditFieldsFromDetail])
+
+  const onCloseDetail = useCallback(() => {
+    setSelectedId(null)
+    setDetail(null)
+    setDetailEditing(false)
+  }, [])
 
   const onSubmitCreate = async (e: FormEvent) => {
     e.preventDefault()
@@ -190,6 +213,8 @@ export default function GovernmentProfileApplicationsPanel() {
         applicationType: editType.trim(),
       })
       setDetail(updated)
+      resetEditFieldsFromDetail(updated)
+      setDetailEditing(false)
       setStatusNotice('신청 내용을 저장했습니다.')
       await loadList()
     } catch (err) {
@@ -214,6 +239,8 @@ export default function GovernmentProfileApplicationsPanel() {
         status: statusTarget,
       })
       setDetail(updated)
+      resetEditFieldsFromDetail(updated)
+      setDetailEditing(false)
       setStatusNotice(`상태를 "${governmentProfileApplicationStatusLabel(updated.status)}"(으)로 변경했습니다.`)
       await loadList()
     } catch (err) {
@@ -223,33 +250,47 @@ export default function GovernmentProfileApplicationsPanel() {
     }
   }
 
+  const deleteApplicationById = useCallback(
+    async (applicationId: string) => {
+      if (!token?.trim() || !validId) {
+        return
+      }
+      const row = rows.find((item) => item.id === applicationId)
+      const confirmed = await confirm({
+        title: '신청 보관',
+        message: `#${applicationId} ${row?.title || '신청'}을(를) 보관(삭제)하시겠습니까?`,
+        confirmLabel: '보관',
+        tone: 'danger',
+      })
+      if (!confirmed) {
+        return
+      }
+      setBusy(true)
+      setError('')
+      try {
+        await deleteGovProfileApplication(token, profileId, applicationId)
+        if (selectedId === applicationId) {
+          setDetail(null)
+          setSelectedId(null)
+          setDetailEditing(false)
+          setMobileDetailOpen(false)
+        }
+        await loadList()
+        setStatusNotice('신청을 보관했습니다.')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '삭제에 실패했습니다.')
+      } finally {
+        setBusy(false)
+      }
+    },
+    [confirm, loadList, profileId, rows, selectedId, token, validId],
+  )
+
   const onDeleteApplication = async () => {
-    if (!token?.trim() || !validId || !detail) {
+    if (!detail) {
       return
     }
-    const confirmed = await confirm({
-      title: '신청 보관',
-      message: '이 신청을 보관(삭제)하시겠습니까?',
-      confirmLabel: '보관',
-      tone: 'danger',
-    })
-    if (!confirmed) {
-      return
-    }
-    setBusy(true)
-    setError('')
-    try {
-      await deleteGovProfileApplication(token, profileId, detail.id)
-      setDetail(null)
-      setSelectedId(null)
-      setMobileDetailOpen(false)
-      await loadList()
-      setStatusNotice('신청을 보관했습니다.')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '삭제에 실패했습니다.')
-    } finally {
-      setBusy(false)
-    }
+    await deleteApplicationById(detail.id)
   }
 
   if (!validId) {
@@ -269,6 +310,7 @@ export default function GovernmentProfileApplicationsPanel() {
     selectedId,
     detail,
     detailLoading,
+    detailEditing,
     mobileDetailOpen,
     createTitle,
     createType,
@@ -285,7 +327,11 @@ export default function GovernmentProfileApplicationsPanel() {
     onSetCreateContent: setCreateContent,
     onSubmitCreate,
     onSelectApplication,
+    onStartDetailEdit,
+    onCancelDetailEdit,
+    onCloseDetail,
     onCloseMobileDetail: () => setMobileDetailOpen(false),
+    onDeleteApplicationById: deleteApplicationById,
     onSetStatusTarget: setStatusTarget,
     onSetEditTitle: setEditTitle,
     onSetEditContent: setEditContent,

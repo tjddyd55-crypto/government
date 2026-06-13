@@ -1,4 +1,3 @@
-import PCOnlySection from '../../../../../components/PCOnlySection'
 import { StatusMessage } from '../../../../../components/feedback'
 import { FormButton, FormInput, FormSelect, FormTextarea } from '../../../../../components/form'
 import {
@@ -13,13 +12,19 @@ export default function GovernmentProfileApplicationsPagePC(props: GovernmentPro
   return (
     <main className="gov-applications-page government-profile-applications-page gov-user-page">
       <StatusMessage message={props.error} tone="error" />
+      {props.statusNotice ? (
+        <div className="claim-requests-page__status-notice gov-applications-page__status-notice" role="status" aria-live="polite">
+          {props.statusNotice}
+        </div>
+      ) : null}
 
-      <section className="gov-user-card gov-applications-page__create-card gov-workspace-compose-card">
-        <div className="claim-requests-page__section-header">
-          <div>
-            <h2 className="claim-requests-page__section-title">신청 등록</h2>
-            <p className="claim-requests-page__section-description">새 신청 건을 등록합니다.</p>
-          </div>
+      <section
+        className="gov-user-card gov-applications-page__create-card gov-workspace-compose-card"
+        data-testid="government-profile-application-compose-inline"
+      >
+        <div className="gov-workspace-compose-card__header">
+          <h2 className="gov-workspace-compose-card__title">신청 등록</h2>
+          <p className="gov-workspace-compose-card__desc">새 신청 건을 등록합니다.</p>
         </div>
         <form className="gov-applications-page__create-form" onSubmit={props.onSubmitCreate}>
           <div className="gov-applications-page__create-grid">
@@ -61,49 +66,44 @@ export default function GovernmentProfileApplicationsPagePC(props: GovernmentPro
         </form>
       </section>
 
-      <div className="gov-applications-page__grid claim-requests-page__claims-grid">
-        <article className="claim-requests-page__panel claim-requests-page__panel--list">
-          <div className="claim-requests-page__panel-head">
-            <h3>신청 관리</h3>
-            <div className="claim-requests-page__panel-head-tools">
-              <span>총 {props.rows.length}건</span>
-              <FormButton
-                htmlType="button"
-                variant="secondary"
-                className="gov-btn gov-btn--secondary gov-btn--sm"
-                onClick={() => void props.onReloadList()}
-                disabled={props.loading}
-              >
-                새로고침
-              </FormButton>
-            </div>
+      <div className="gov-applications-page__body">
+        <div className="gov-applications-page__list-column">
+          <div className="gov-applications-page__list-tools">
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              className="gov-btn gov-btn--secondary gov-btn--sm"
+              onClick={() => void props.onReloadList()}
+              disabled={props.loading}
+            >
+              새로고침
+            </FormButton>
           </div>
           <GovernmentProfileApplicationListSection
+            variant="workspace"
             rows={props.rows}
             selectedId={props.selectedId}
             loading={props.loading}
             profileLabel={props.profileLabel}
+            actionBusy={props.busy}
             onSelectApplication={props.onSelectApplication}
+            onDeleteApplication={(id) => void props.onDeleteApplicationById(id)}
             formatDateTime={props.formatDateTime}
             statusLabel={props.statusLabel}
             statusBadgeClass={props.statusBadgeClass}
             listPreviewText={props.listPreviewText}
           />
-        </article>
+        </div>
 
-        <article className="claim-requests-page__panel claim-requests-page__panel--detail">
-          <div className="claim-requests-page__panel-head">
-            <h3>신청 상세</h3>
+        <section className="gov-user-card gov-applications-page__detail-card">
+          <div className="gov-applications-page__detail-head">
+            <h3 className="gov-applications-page__detail-title">신청 상세</h3>
           </div>
-          <div className="claim-requests-page__detail-scroll">
-            {props.statusNotice ? (
-              <div className="claim-requests-page__status-notice" role="status" aria-live="polite">
-                {props.statusNotice}
-              </div>
-            ) : null}
+          <div className="gov-applications-page__detail-body">
             <GovernmentProfileApplicationDetailBody
               detail={props.detail}
               detailLoading={props.detailLoading}
+              editing={props.detailEditing}
               statusTarget={props.statusTarget}
               editTitle={props.editTitle}
               editContent={props.editContent}
@@ -111,6 +111,10 @@ export default function GovernmentProfileApplicationsPagePC(props: GovernmentPro
               applicationTypeOptions={props.applicationTypeOptions}
               actionBusy={props.busy}
               statusOptions={props.statusOptions}
+              statusNotice={props.statusNotice}
+              onStartEdit={props.onStartDetailEdit}
+              onCancelEdit={props.onCancelDetailEdit}
+              onCloseDetail={props.onCloseDetail}
               onSetStatusTarget={props.onSetStatusTarget}
               onSetEditTitle={props.onSetEditTitle}
               onSetEditContent={props.onSetEditContent}
@@ -122,18 +126,7 @@ export default function GovernmentProfileApplicationsPagePC(props: GovernmentPro
               statusLabel={props.statusLabel}
             />
           </div>
-        </article>
-
-        <PCOnlySection fallback={null}>
-          <article className="claim-requests-page__panel claim-requests-page__panel--timeline">
-            <div className="claim-requests-page__panel-head">
-              <h3>상태 이력</h3>
-            </div>
-            <div className="claim-requests-page__timeline-scroll">
-              <div className="claim-requests-page__timeline-empty">상태 이력 연동은 후속 작업 예정입니다.</div>
-            </div>
-          </article>
-        </PCOnlySection>
+        </section>
       </div>
     </main>
   )
