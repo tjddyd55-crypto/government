@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import ResponsiveLayout from '../../../../components/ResponsiveLayout'
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
@@ -25,6 +25,8 @@ import {
 } from '../../api/governmentProfileFileCategoriesApi'
 import {
   isGovProfileCardCollapsed,
+  isSameGovProfileId,
+  normalizeGovProfileId,
   setGovProfileCardCollapsed,
 } from '../../lib/governmentProfileDocumentCategories'
 import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
@@ -85,45 +87,60 @@ export default function GovernmentProfileWorkspaceLayout() {
   }, [selectedProfileIdFromPath, selectedId, setSelectedId])
 
   const prevPathProfileIdRef = useRef<string | null | undefined>(undefined)
-  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(() => {
+  const expandedProfileIdRef = useRef<string | null>(null)
+  const [expandedProfileId, setExpandedProfileIdRaw] = useState<string | null>(() => {
     if (!selectedProfileIdFromPath) return null
     return isGovProfileCardCollapsed(selectedProfileIdFromPath) ? null : selectedProfileIdFromPath
   })
 
+  const setExpandedProfileId = useCallback((updater: SetStateAction<string | null>) => {
+    setExpandedProfileIdRaw((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      expandedProfileIdRef.current = next
+      return next
+    })
+  }, [])
+
   useEffect(() => {
+    expandedProfileIdRef.current = expandedProfileId
+  }, [expandedProfileId])
+
+  useEffect(() => {
+    const pathId = normalizeGovProfileId(selectedProfileIdFromPath)
     if (prevPathProfileIdRef.current === undefined) {
-      prevPathProfileIdRef.current = selectedProfileIdFromPath
-      if (selectedProfileIdFromPath && !isGovProfileCardCollapsed(selectedProfileIdFromPath)) {
-        setExpandedProfileId(selectedProfileIdFromPath)
+      prevPathProfileIdRef.current = pathId || null
+      if (pathId && !isGovProfileCardCollapsed(pathId)) {
+        setExpandedProfileId(pathId)
       }
       return
     }
-    if (selectedProfileIdFromPath === prevPathProfileIdRef.current) {
+    const prevPathId = normalizeGovProfileId(prevPathProfileIdRef.current)
+    if (isSameGovProfileId(pathId, prevPathId)) {
       return
     }
-    prevPathProfileIdRef.current = selectedProfileIdFromPath
-    if (!selectedProfileIdFromPath) {
+    prevPathProfileIdRef.current = pathId || null
+    if (!pathId) {
       setExpandedProfileId(null)
       return
     }
-    if (isGovProfileCardCollapsed(selectedProfileIdFromPath)) {
+    if (isGovProfileCardCollapsed(pathId)) {
       setExpandedProfileId(null)
       return
     }
-    setExpandedProfileId(selectedProfileIdFromPath)
-  }, [selectedProfileIdFromPath])
+    setExpandedProfileId(pathId)
+  }, [selectedProfileIdFromPath, setExpandedProfileId])
 
   const onToggleProfileCard = useCallback(
     (profileId: string) => {
-      const normalizedId = String(profileId ?? '').trim()
+      const normalizedId = normalizeGovProfileId(profileId)
       if (!normalizedId) return
 
-      if (normalizedId === selectedProfileIdFromPath) {
-        setExpandedProfileId((prev) => {
-          const next = prev === normalizedId ? null : normalizedId
-          setGovProfileCardCollapsed(normalizedId, next === null)
-          return next
-        })
+      const pathId = normalizeGovProfileId(selectedProfileIdFromPath)
+      if (isSameGovProfileId(normalizedId, pathId)) {
+        const prev = expandedProfileIdRef.current
+        const next = isSameGovProfileId(prev, normalizedId) ? null : normalizedId
+        setGovProfileCardCollapsed(normalizedId, next === null)
+        setExpandedProfileId(next)
         return
       }
 
@@ -132,7 +149,7 @@ export default function GovernmentProfileWorkspaceLayout() {
       setExpandedProfileId(normalizedId)
       navigate(governmentProfileWorkspacePath(normalizedId, tab), { replace: true })
     },
-    [activeTab, navigate, selectedProfileIdFromPath],
+    [activeTab, navigate, selectedProfileIdFromPath, setExpandedProfileId],
   )
 
   const onSelectProfile = useCallback(
@@ -144,7 +161,9 @@ export default function GovernmentProfileWorkspaceLayout() {
 
   const selectedProfile = useMemo(() => {
     if (selectedProfileIdFromPath) {
-      return ws.profiles.find((p) => p.id === selectedProfileIdFromPath) ?? ws.selected
+      return (
+        ws.profiles.find((p) => isSameGovProfileId(p.id, selectedProfileIdFromPath)) ?? ws.selected
+      )
     }
     return ws.selected
   }, [selectedProfileIdFromPath, ws.profiles, ws.selected])
@@ -237,6 +256,23 @@ export default function GovernmentProfileWorkspaceLayout() {
     }
   }, [selectedProfileIdFromPath, token, refreshProfileFileCategories])
 
+  const [uploadCategoryByProfileId, setUploadCategoryByProfileId] = useState<Record<string, string | null>>({})
+
+  const getUploadCategoryName = useCallback(
+    (profileId: string) => {
+      const id = normalizeGovProfileId(profileId)
+      if (!id) return null
+      return uploadCategoryByProfileId[id] ?? null
+    },
+    [uploadCategoryByProfileId],
+  )
+
+  const setUploadCategoryName = useCallback((profileId: string, categoryName: string | null) => {
+    const id = normalizeGovProfileId(profileId)
+    if (!id) return
+    setUploadCategoryByProfileId((prev) => ({ ...prev, [id]: categoryName }))
+  }, [])
+
   const contextValue = useMemo<GovernmentProfileWorkspaceContextValue>(
     () => ({
       ...wsRest,
@@ -252,6 +288,8 @@ export default function GovernmentProfileWorkspaceLayout() {
       listProfileDocumentCategories,
       refreshProfileFileCategories,
       addProfileDocumentCategory,
+      getUploadCategoryName,
+      setUploadCategoryName,
     }),
     [
       wsRest,
@@ -267,6 +305,8 @@ export default function GovernmentProfileWorkspaceLayout() {
       listProfileDocumentCategories,
       refreshProfileFileCategories,
       addProfileDocumentCategory,
+      getUploadCategoryName,
+      setUploadCategoryName,
     ],
   )
 

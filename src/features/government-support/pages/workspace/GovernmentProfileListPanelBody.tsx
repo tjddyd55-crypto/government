@@ -10,6 +10,7 @@ import { getGovernmentProgressStatusLabel } from '../../constants/governmentProg
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 import GovernmentProfileEditModal from './GovernmentProfileEditModal'
 import GovernmentProfileListExpandDetail from './GovernmentProfileListExpandDetail'
+import { isSameGovProfileId, normalizeGovProfileId } from '../../lib/governmentProfileDocumentCategories'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
 
 const EMPTY_LIST_HINT = '등록된 사업장이 없습니다. 사업장을 먼저 등록해 주세요.'
@@ -99,8 +100,10 @@ export default function GovernmentProfileListPanelBody() {
       ) : (
         <ul className="record-list customer-expand-list customer-list customers-page__customer-list">
           {ws.profiles.map((row) => {
-            const selected = row.id === ws.selectedProfileIdFromPath
-            const expanded = row.id === ws.expandedProfileId
+            const profileId = normalizeGovProfileId(row.id)
+            const pathId = normalizeGovProfileId(ws.selectedProfileIdFromPath)
+            const selected = isSameGovProfileId(profileId, pathId)
+            const expanded = isSameGovProfileId(profileId, ws.expandedProfileId)
             const title = row.businessName || row.customerName || '이름 없음'
             return (
               <li
@@ -108,7 +111,7 @@ export default function GovernmentProfileListPanelBody() {
                 className={`record-card customer-card customer-expand-card government-profile-list-card transition-all duration-150 ease-out${
                   selected ? ' government-profile-list-card--active' : ''
                 }${expanded ? ' customer-expand-card--focal government-profile-list-card--expanded' : ''}`}
-                data-profile-id={row.id}
+                data-profile-id={profileId}
                 data-profile-selected={selected ? 'true' : 'false'}
                 data-profile-expanded={expanded ? 'true' : 'false'}
               >
@@ -118,7 +121,7 @@ export default function GovernmentProfileListPanelBody() {
                     className="customer-expand-summary customer-expand-summary--toggle transition-transform duration-100 ease-out active:scale-[0.98]"
                     aria-expanded={expanded}
                     aria-label={`${title} 상세 ${expanded ? '접기' : '펼치기'}`}
-                    onClick={() => ws.onToggleProfileCard(row.id)}
+                    onClick={() => ws.onToggleProfileCard(profileId)}
                   >
                     <span className="customer-expand-summary__content w-full min-w-0">
                       <div className="flex justify-between items-center gap-2 w-full min-w-0">

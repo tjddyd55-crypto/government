@@ -4,6 +4,20 @@ import { GOVERNMENT_PROFILE_FILE_NAME_MAX } from '../constants/governmentProfile
 
 const COLLAPSED_PROFILES_KEY = 'gov-profile-workspace-collapsed-profile-ids'
 
+/** path·API·state 간 profile id 비교용 (타입/공백 불일치 방지) */
+export function normalizeGovProfileId(id: string | number | null | undefined): string {
+  return String(id ?? '').trim()
+}
+
+export function isSameGovProfileId(
+  a: string | number | null | undefined,
+  b: string | number | null | undefined,
+): boolean {
+  const left = normalizeGovProfileId(a)
+  const right = normalizeGovProfileId(b)
+  return left !== '' && left === right
+}
+
 export type GovMergedDocumentCategory = {
   name: string
   folderId: number

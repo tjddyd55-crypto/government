@@ -18,6 +18,9 @@ export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovern
   ) => Promise<
     { ok: true; name: string; category: GovProfileFileCategory } | { ok: false; error: string }
   >
+  /** null = 미분류 업로드 */
+  getUploadCategoryName: (profileId: string) => string | null
+  setUploadCategoryName: (profileId: string, categoryName: string | null) => void
 }
 
 export const GovernmentProfileWorkspaceContext = createContext<GovernmentProfileWorkspaceContextValue | null>(

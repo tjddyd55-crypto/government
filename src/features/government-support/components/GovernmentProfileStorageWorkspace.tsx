@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FormButton } from '../../../components/form'
+import Modal from '../../../components/ui/Modal'
 import StorageDeleteDialog from '../../storage/components/StorageDeleteDialog'
 import StorageFileList from '../../storage/components/StorageFileList'
 import StorageRenameDialog from '../../storage/components/StorageRenameDialog'
@@ -128,11 +130,48 @@ export default function GovernmentProfileStorageWorkspace({
     folder: StorageFolderRow
     categoryId: string
   } | null>(null)
+  const [localUploadCategoryName, setLocalUploadCategoryName] = useState<string | null>(null)
+  const [moveCategoryTarget, setMoveCategoryTarget] = useState<{
+    file: StorageFileRow
+    value: string
+  } | null>(null)
 
   const serverCategories = useMemo(() => {
     void documentCategoriesVersion
-    return workspaceCtx?.listProfileDocumentCategories(profileId) ?? []
+    return (workspaceCtx?.listProfileDocumentCategories(profileId) ?? []).filter((row) => !row.archivedAt)
   }, [documentCategoriesVersion, profileId, workspaceCtx])
+
+  const selectedUploadCategoryName = workspaceCtx
+    ? workspaceCtx.getUploadCategoryName(profileId)
+    : localUploadCategoryName
+
+  const applyUploadCategoryName = useCallback(
+    (categoryName: string | null) => {
+      if (workspaceCtx) {
+        workspaceCtx.setUploadCategoryName(profileId, categoryName)
+        return
+      }
+      setLocalUploadCategoryName(categoryName)
+    },
+    [profileId, workspaceCtx],
+  )
+
+  const uploadCategoryOptions = useMemo(
+    () =>
+      serverCategories
+        .map((row) => ({
+          name: normalizeName(row.name),
+          serverCategoryId: row.id,
+        }))
+        .filter((row) => row.name),
+    [serverCategories],
+  )
+
+  const highlightFolderId = useMemo(() => {
+    const name = selectedUploadCategoryName?.trim()
+    if (!name) return null
+    return govCategoryToFolderId(name)
+  }, [selectedUploadCategoryName])
 
   const mergedCategories = useMemo(() => {
     const fileCategories = rawGovFiles.map((file) => file.category)
@@ -167,6 +206,17 @@ export default function GovernmentProfileStorageWorkspace({
       return next
     })
   }, [])
+
+  const handleFolderClick = useCallback(
+    (folderId: number) => {
+      toggleFolder(folderId)
+      const category = categoryByFolderId.get(folderId)
+      if (category?.serverCategoryId) {
+        applyUploadCategoryName(category.name)
+      }
+    },
+    [applyUploadCategoryName, categoryByFolderId, toggleFolder],
+  )
 
   const filteredFiles = useMemo(() => {
     const query = searchText.trim().toLowerCase()
@@ -256,6 +306,7 @@ export default function GovernmentProfileStorageWorkspace({
     setExpandedFolderIds(new Set())
     setAddCategoryOpen(false)
     setAddCategoryName('')
+    setMoveCategoryTarget(null)
   }, [profileId, token])
 
   useEffect(() => {
@@ -302,6 +353,7 @@ export default function GovernmentProfileStorageWorkspace({
       setUploading(true)
       setError('')
       const uploads = Array.isArray(selectedFiles) ? selectedFiles : Array.from(selectedFiles)
+      const uploadCategory = selectedUploadCategoryName?.trim() || undefined
       let failCount = 0
       for (const file of uploads) {
         const normalizedName = normalizeName(file.name)
@@ -316,6 +368,7 @@ export default function GovernmentProfileStorageWorkspace({
             fileName: normalizedName,
             contentType: mimeType,
             sizeBytes: file.size,
+            ...(uploadCategory ? { category: uploadCategory } : {}),
           })
           stagedFileId = presign.fileId
           const put = await fetch(presign.uploadUrl, {
@@ -347,10 +400,11 @@ export default function GovernmentProfileStorageWorkspace({
         }
       }
       await loadFiles()
+      workspaceCtx?.bumpFilesRefresh()
       setUploading(false)
       if (failCount > 0) setError(`${failCount}개 파일 업로드에 실패했습니다.`)
     },
-    [loadFiles, profileId, token, uploading],
+    [loadFiles, profileId, selectedUploadCategoryName, token, uploading, workspaceCtx],
   )
 
   const submitRename = useCallback(async () => {
@@ -417,12 +471,39 @@ export default function GovernmentProfileStorageWorkspace({
     }
     setAddCategoryOpen(false)
     setAddCategoryName('')
+    applyUploadCategoryName(result.name)
     setExpandedFolderIds((prev) => {
       const next = new Set(prev)
       next.add(govCategoryToFolderId(result.name))
       return next
     })
-  }, [addCategoryName, profileId, workspaceCtx])
+  }, [addCategoryName, applyUploadCategoryName, profileId, workspaceCtx])
+
+  const submitMoveCategory = useCallback(async () => {
+    if (!token?.trim() || !profileId || !moveCategoryTarget || submitting) return
+    setSubmitting(true)
+    setError('')
+    try {
+      const categoryValue = moveCategoryTarget.value.trim()
+      await patchGovProfileFile(token, profileId, resolveGovFileId(moveCategoryTarget.file), {
+        category: categoryValue,
+      })
+      await loadFiles()
+      setMoveCategoryTarget(null)
+      workspaceCtx?.bumpFilesRefresh()
+      if (categoryValue) {
+        setExpandedFolderIds((prev) => {
+          const next = new Set(prev)
+          next.add(govCategoryToFolderId(categoryValue))
+          return next
+        })
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '분류 변경에 실패했습니다.')
+    } finally {
+      setSubmitting(false)
+    }
+  }, [loadFiles, moveCategoryTarget, profileId, submitting, token, workspaceCtx])
 
   const submitRenameFolder = useCallback(async () => {
     if (!token?.trim() || !profileId || !renameFolderTarget || submitting) return
@@ -499,6 +580,9 @@ export default function GovernmentProfileStorageWorkspace({
             if (failures.length) setError(`${failures.length}개 파일이 형식·용량·이름 규칙에 맞지 않습니다.`)
           }}
           uploading={uploading}
+          uploadCategoryOptions={uploadCategoryOptions}
+          selectedUploadCategoryName={selectedUploadCategoryName}
+          onSelectUploadCategory={applyUploadCategoryName}
         />
 
         <div className="storage-workspace__filters" role="search">
@@ -546,7 +630,8 @@ export default function GovernmentProfileStorageWorkspace({
           selectedFileId={selectedFileId}
           expandedFolderIds={expandedFolderIds}
           editableFolderIds={editableFolderIds}
-          onToggleFolder={toggleFolder}
+          highlightFolderId={highlightFolderId}
+          onToggleFolder={handleFolderClick}
           onSelectFile={setSelectedFileId}
           onOpen={(file) => {
             void openFile(file)
@@ -555,6 +640,13 @@ export default function GovernmentProfileStorageWorkspace({
           downloadLinkFailedIds={fileDownloadFailedIds}
           onRename={(file) => setRenameTarget({ file, value: file.displayName })}
           onDelete={(file) => setDeleteTarget(file)}
+          onChangeFileCategory={(file) => {
+            const ext = file as GovStorageFileRow
+            setMoveCategoryTarget({
+              file,
+              value: String(ext.govCategory ?? '').trim(),
+            })
+          }}
           onRenameFolder={(folder) => {
             const category = categoryByFolderId.get(folder.id)
             if (!category?.serverCategoryId) return
@@ -568,7 +660,7 @@ export default function GovernmentProfileStorageWorkspace({
         />
       </div>
 
-      {isSidebar ? (
+      {workspaceCtx ? (
         <footer className="government-profile-storage-workspace__footer">
           <button
             type="button"
@@ -647,6 +739,62 @@ export default function GovernmentProfileStorageWorkspace({
         }}
         loading={submitting}
       />
+
+      <Modal
+        open={moveCategoryTarget != null}
+        onClose={() => setMoveCategoryTarget(null)}
+        ariaLabel="파일 분류 변경"
+        panelClassName="max-w-md"
+        closeOnBackdrop={false}
+      >
+        <div className="text-lg font-semibold mb-3 text-[var(--text-primary)]">파일 분류 변경</div>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            void submitMoveCategory()
+          }}
+        >
+          <label className="government-upload-category-field__label" htmlFor="gov-move-category-select">
+            저장 위치
+          </label>
+          <select
+            id="gov-move-category-select"
+            className="gov-form-control government-upload-category-field__select"
+            value={moveCategoryTarget?.value ?? ''}
+            disabled={submitting}
+            onChange={(event) => {
+              if (!moveCategoryTarget) return
+              setMoveCategoryTarget({ ...moveCategoryTarget, value: event.target.value })
+            }}
+          >
+            <option value="">미분류</option>
+            {uploadCategoryOptions.map((option) => (
+              <option key={option.serverCategoryId} value={option.name}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+          <div className="flex justify-end gap-2 mt-4">
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              className="gov-btn gov-btn--secondary"
+              onClick={() => setMoveCategoryTarget(null)}
+              disabled={submitting}
+            >
+              취소
+            </FormButton>
+            <FormButton
+              htmlType="submit"
+              variant="primary"
+              className="gov-btn gov-btn--primary"
+              disabled={submitting}
+            >
+              {submitting ? '저장 중…' : '저장'}
+            </FormButton>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }

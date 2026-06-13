@@ -23,6 +23,9 @@ type StorageFileListProps = {
   onDeleteFolder: (folder: StorageFolderRow) => void
   /** 지정 시 해당 folder id만 수정/삭제 버튼 표시 */
   editableFolderIds?: ReadonlySet<number>
+  /** 업로드 대상으로 선택된 폴더 강조 */
+  highlightFolderId?: number | null
+  onChangeFileCategory?: (file: StorageFileRow) => void
 }
 
 function renderFileIcon(file: StorageFileRow): string {
@@ -75,6 +78,8 @@ export default function StorageFileList({
   onRenameFolder,
   onDeleteFolder,
   editableFolderIds,
+  highlightFolderId = null,
+  onChangeFileCategory,
 }: StorageFileListProps) {
   if (loading) {
     return <p className="storage-file-list__empty">불러오는 중…</p>
@@ -181,6 +186,20 @@ export default function StorageFileList({
           >
             이름 변경
           </FormButton>
+          {onChangeFileCategory ? (
+            <FormButton
+              htmlType="button"
+              variant="secondary"
+              size="sm"
+              className="storage-file-list__action-button storage-file-list__action-button--move-category"
+              onClick={(event) => {
+                event.stopPropagation()
+                onChangeFileCategory(file)
+              }}
+            >
+              분류 변경
+            </FormButton>
+          ) : null}
           <FormButton
             htmlType="button"
             variant="danger"
@@ -219,10 +238,11 @@ export default function StorageFileList({
         const expanded = expandedFolderIds.has(folder.id)
         const folderFiles = filesByFolderId.get(folder.id) ?? []
         const folderEditable = editableFolderIds == null || editableFolderIds.has(folder.id)
+        const uploadTarget = highlightFolderId != null && highlightFolderId === folder.id
         return (
           <div key={folder.id} className="storage-tree__folder-block">
             <div
-              className="storage-tree__folder"
+              className={`storage-tree__folder${uploadTarget ? ' storage-tree__folder--upload-target' : ''}`}
               role="button"
               tabIndex={0}
               onClick={() => onToggleFolder(folder.id)}

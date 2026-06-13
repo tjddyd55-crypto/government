@@ -426,7 +426,22 @@ async function main() {
   const filesTabSpa = await fetchHtml(filesTabPath)
   if (filesTabSpa.status === 200) pass('GET profile files tab SPA', filesTabSpa.bundle ?? '')
   else fail('GET profile files tab SPA', String(filesTabSpa.status))
-  for (const m of ['government-storage-search-input', 'storage-workspace__search', 'gov-form-control', '/file-categories', '문서 분류 추가', 'editableFolderIds']) {
+  for (const m of [
+    'government-storage-search-input',
+    'storage-workspace__search',
+    'gov-form-control',
+    '/file-categories',
+    '문서 분류 추가',
+    'editableFolderIds',
+    'government-upload-category-field',
+    'government-upload-category-select',
+    'gov-upload-category-select',
+    '저장 위치',
+    '현재 업로드 위치',
+    '분류 변경',
+    'storage-tree__folder--upload-target',
+    'storage-file-list__action-button--move-category',
+  ]) {
     if (filesTabSpa.js.includes(m)) pass(`profile files tab bundle contains ${m}`)
     else fail(`profile files tab bundle contains ${m}`)
   }
@@ -1019,6 +1034,132 @@ async function main() {
   const serverCategoryLinkedId = String(serverCategoryLinked.json?.data?.id ?? '')
   if (serverCategoryLinkedId) pass('user A create server file category linked to file category', serverCategoryLinkedId)
   else fail('user A create server file category linked to file category')
+
+  const uploadCategoryName = `E2E 업로드 분류 ${ts}`
+  const uploadCategoryCreate = await api(`/government-support/profiles/${profileAId}/file-categories`, {
+    token: tokenA,
+    method: 'POST',
+    body: { name: uploadCategoryName },
+    expectStatus: 201,
+  })
+  const uploadCategoryId = String(uploadCategoryCreate.json?.data?.id ?? '')
+  if (uploadCategoryId) pass('user A create upload target file category', uploadCategoryId)
+  else fail('user A create upload target file category')
+
+  const uploadCategoryFileName = `e2e-cat-upload-${ts}.pdf`
+  const uploadCategoryFileBody = `E2E category upload ${ts}`
+  const uploadCategoryFileSize = uploadCategoryFileBody.length
+  const uploadCategoryPresign = await api(`/government-support/profiles/${profileAId}/files/presign`, {
+    token: tokenA,
+    method: 'POST',
+    body: {
+      fileName: uploadCategoryFileName,
+      contentType: 'application/pdf',
+      sizeBytes: uploadCategoryFileSize,
+      category: uploadCategoryName,
+    },
+    expectStatus: 201,
+  })
+  const {
+    uploadUrl: uploadCategoryUploadUrl,
+    objectKey: uploadCategoryObjectKey,
+    fileId: uploadCategoryFileId,
+  } = uploadCategoryPresign.json?.data ?? {}
+  if (uploadCategoryUploadUrl && uploadCategoryObjectKey && uploadCategoryFileId) {
+    pass('user A presign file with upload category', String(uploadCategoryFileId))
+  } else {
+    fail('user A presign file with upload category')
+  }
+
+  const uploadCategoryPut = await fetch(uploadCategoryUploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/pdf',
+      ...(uploadCategoryPresign.json?.data?.putHeaders ?? {}),
+    },
+    body: uploadCategoryFileBody,
+  })
+  if (uploadCategoryPut.status >= 200 && uploadCategoryPut.status < 300) {
+    pass('user A R2 PUT category upload file', String(uploadCategoryPut.status))
+  } else fail('user A R2 PUT category upload file', String(uploadCategoryPut.status))
+
+  await api(`/government-support/profiles/${profileAId}/files`, {
+    token: tokenA,
+    method: 'POST',
+    body: {
+      fileId: uploadCategoryFileId,
+      objectKey: uploadCategoryObjectKey,
+      fileName: uploadCategoryFileName,
+      fileSize: uploadCategoryFileSize,
+      mimeType: 'application/pdf',
+    },
+    expectStatus: 201,
+  })
+  const uploadCategoryList =
+    (await api(`/government-support/profiles/${profileAId}/files`, { token: tokenA })).json?.data ?? []
+  const uploadCategorySaved = uploadCategoryList.find((f) => String(f.id) === String(uploadCategoryFileId))
+  if (String(uploadCategorySaved?.category ?? '') === uploadCategoryName) {
+    pass('user A upload saved under selected category')
+  } else {
+    fail('user A upload saved under selected category', String(uploadCategorySaved?.category))
+  }
+
+  const uploadCategoryListRefetch =
+    (await api(`/government-support/profiles/${profileAId}/files`, { token: tokenA })).json?.data ?? []
+  const uploadCategorySavedRefetch = uploadCategoryListRefetch.find(
+    (f) => String(f.id) === String(uploadCategoryFileId),
+  )
+  if (String(uploadCategorySavedRefetch?.category ?? '') === uploadCategoryName) {
+    pass('user A category upload survives refetch')
+  } else fail('user A category upload survives refetch', String(uploadCategorySavedRefetch?.category))
+
+  const uncategorizedUploadName = `e2e-uncat-upload-${ts}.pdf`
+  const uncategorizedUploadBody = `E2E uncategorized upload ${ts}`
+  const uncategorizedUploadSize = uncategorizedUploadBody.length
+  const uncategorizedPresign = await api(`/government-support/profiles/${profileAId}/files/presign`, {
+    token: tokenA,
+    method: 'POST',
+    body: {
+      fileName: uncategorizedUploadName,
+      contentType: 'application/pdf',
+      sizeBytes: uncategorizedUploadSize,
+    },
+    expectStatus: 201,
+  })
+  const {
+    uploadUrl: uncategorizedUploadUrl,
+    objectKey: uncategorizedObjectKey,
+    fileId: uncategorizedFileId,
+  } = uncategorizedPresign.json?.data ?? {}
+  if (uncategorizedUploadUrl && uncategorizedObjectKey && uncategorizedFileId) {
+    pass('user A presign uncategorized upload file', String(uncategorizedFileId))
+  } else fail('user A presign uncategorized upload file')
+
+  await fetch(uncategorizedUploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/pdf',
+      ...(uncategorizedPresign.json?.data?.putHeaders ?? {}),
+    },
+    body: uncategorizedUploadBody,
+  })
+  await api(`/government-support/profiles/${profileAId}/files`, {
+    token: tokenA,
+    method: 'POST',
+    body: {
+      fileId: uncategorizedFileId,
+      objectKey: uncategorizedObjectKey,
+      fileName: uncategorizedUploadName,
+      fileSize: uncategorizedUploadSize,
+      mimeType: 'application/pdf',
+    },
+    expectStatus: 201,
+  })
+  const uncategorizedSaved = (
+    (await api(`/government-support/profiles/${profileAId}/files`, { token: tokenA })).json?.data ?? []
+  ).find((f) => String(f.id) === String(uncategorizedFileId))
+  if (!String(uncategorizedSaved?.category ?? '').trim()) pass('user A uncategorized upload has empty category')
+  else fail('user A uncategorized upload has empty category', String(uncategorizedSaved?.category))
 
   const serverCategoryDeleteBlocked = await api(
     `/government-support/profiles/${profileAId}/file-categories/${serverCategoryLinkedId}`,
