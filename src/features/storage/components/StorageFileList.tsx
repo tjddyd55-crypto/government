@@ -21,6 +21,8 @@ type StorageFileListProps = {
   onDelete: (file: StorageFileRow) => void
   onRenameFolder: (folder: StorageFolderRow) => void
   onDeleteFolder: (folder: StorageFolderRow) => void
+  /** 지정 시 해당 folder id만 수정/삭제 버튼 표시 */
+  editableFolderIds?: ReadonlySet<number>
 }
 
 function renderFileIcon(file: StorageFileRow): string {
@@ -72,6 +74,7 @@ export default function StorageFileList({
   onDelete,
   onRenameFolder,
   onDeleteFolder,
+  editableFolderIds,
 }: StorageFileListProps) {
   if (loading) {
     return <p className="storage-file-list__empty">불러오는 중…</p>
@@ -215,6 +218,7 @@ export default function StorageFileList({
       {folders.map((folder) => {
         const expanded = expandedFolderIds.has(folder.id)
         const folderFiles = filesByFolderId.get(folder.id) ?? []
+        const folderEditable = editableFolderIds == null || editableFolderIds.has(folder.id)
         return (
           <div key={folder.id} className="storage-tree__folder-block">
             <div
@@ -235,28 +239,30 @@ export default function StorageFileList({
                 <span className="storage-tree__label">{folder.name}</span>
                 <span className="storage-tree__count">{folderFiles.length}</span>
               </div>
-              <div className="storage-tree__folder-actions">
-                <FormButton
-                  htmlType="button"
-                  variant="action"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onRenameFolder(folder)
-                  }}
-                >
-                  ✏️
-                </FormButton>
-                <FormButton
-                  htmlType="button"
-                  variant="action"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onDeleteFolder(folder)
-                  }}
-                >
-                  🗑️
-                </FormButton>
-              </div>
+              {folderEditable ? (
+                <div className="storage-tree__folder-actions">
+                  <FormButton
+                    htmlType="button"
+                    variant="action"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onRenameFolder(folder)
+                    }}
+                  >
+                    ✏️
+                  </FormButton>
+                  <FormButton
+                    htmlType="button"
+                    variant="action"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onDeleteFolder(folder)
+                    }}
+                  >
+                    🗑️
+                  </FormButton>
+                </div>
+              ) : null}
             </div>
 
             {expanded ? folderFiles.map((file) => renderFileRow(file, true)) : null}

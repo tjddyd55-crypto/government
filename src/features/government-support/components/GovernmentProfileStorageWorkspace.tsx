@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import StorageDeleteDialog from '../../storage/components/StorageDeleteDialog'
 import StorageFileList from '../../storage/components/StorageFileList'
 import StorageRenameDialog from '../../storage/components/StorageRenameDialog'
-import type { StorageFileDownloadLinkEntry, StorageFileRow } from '../../storage/api/storageApi'
+import type { StorageFileDownloadLinkEntry, StorageFileRow, StorageFolderRow } from '../../storage/api/storageApi'
 import {
   GOVERNMENT_PROFILE_FILE_ALLOWED_MIME,
   GOVERNMENT_PROFILE_FILE_MAX_BYTES,
@@ -19,9 +19,14 @@ import {
   type GovStorageFileRow,
 } from '../api/governmentProfileFilesApi'
 import {
+  deleteGovProfileFileCategory,
+  patchGovProfileFileCategory,
+} from '../api/governmentProfileFileCategoriesApi'
+import {
   buildGovCategoryFolders,
   govCategoryToFolderId,
-  mergeProfileDocumentCategories,
+  mergeProfileDocumentCategoryViews,
+  type GovMergedDocumentCategory,
 } from '../lib/governmentProfileDocumentCategories'
 import GovernmentProfileStorageToolbar from './GovernmentProfileStorageToolbar'
 import { useGovernmentProfileWorkspaceContextOptional } from '../pages/workspace/governmentProfileWorkspaceContext'
@@ -114,17 +119,45 @@ export default function GovernmentProfileStorageWorkspace({
   const [deleteTarget, setDeleteTarget] = useState<StorageFileRow | null>(null)
   const [addCategoryOpen, setAddCategoryOpen] = useState(false)
   const [addCategoryName, setAddCategoryName] = useState('')
+  const [renameFolderTarget, setRenameFolderTarget] = useState<{
+    folder: StorageFolderRow
+    categoryId: string
+    value: string
+  } | null>(null)
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState<{
+    folder: StorageFolderRow
+    categoryId: string
+  } | null>(null)
 
-  const documentCategories = useMemo(() => {
+  const serverCategories = useMemo(() => {
     void documentCategoriesVersion
-    const fileCategories = rawGovFiles.map((file) => file.category)
-    return mergeProfileDocumentCategories(profileId, fileCategories)
-  }, [documentCategoriesVersion, profileId, rawGovFiles])
+    return workspaceCtx?.listProfileDocumentCategories(profileId) ?? []
+  }, [documentCategoriesVersion, profileId, workspaceCtx])
 
-  const categoryFolders = useMemo(
-    () => buildGovCategoryFolders(documentCategories),
-    [documentCategories],
+  const mergedCategories = useMemo(() => {
+    const fileCategories = rawGovFiles.map((file) => file.category)
+    return mergeProfileDocumentCategoryViews(serverCategories, fileCategories)
+  }, [rawGovFiles, serverCategories])
+
+  const categoryFolders = useMemo(() => buildGovCategoryFolders(mergedCategories), [mergedCategories])
+
+  const editableFolderIds = useMemo(
+    () =>
+      new Set(
+        mergedCategories
+          .filter((category) => category.serverCategoryId)
+          .map((category) => category.folderId),
+      ),
+    [mergedCategories],
   )
+
+  const categoryByFolderId = useMemo(() => {
+    const map = new Map<number, GovMergedDocumentCategory>()
+    for (const category of mergedCategories) {
+      map.set(category.folderId, category)
+    }
+    return map
+  }, [mergedCategories])
 
   const toggleFolder = useCallback((folderId: number) => {
     setExpandedFolderIds((prev) => {
@@ -364,7 +397,7 @@ export default function GovernmentProfileStorageWorkspace({
     setAddCategoryOpen(true)
   }, [])
 
-  const submitAddCategory = useCallback(() => {
+  const submitAddCategory = useCallback(async () => {
     const name = normalizeName(addCategoryName)
     if (!name) {
       setError('분류 이름을 입력해 주세요.')
@@ -374,20 +407,58 @@ export default function GovernmentProfileStorageWorkspace({
       setError('문서 분류를 추가할 수 없습니다.')
       return
     }
-    const result = workspaceCtx.addProfileDocumentCategory(profileId, name)
+    setSubmitting(true)
+    setError('')
+    const result = await workspaceCtx.addProfileDocumentCategory(profileId, name)
+    setSubmitting(false)
     if (!result.ok) {
       setError(result.error)
       return
     }
     setAddCategoryOpen(false)
     setAddCategoryName('')
-    setError('')
     setExpandedFolderIds((prev) => {
       const next = new Set(prev)
       next.add(govCategoryToFolderId(result.name))
       return next
     })
   }, [addCategoryName, profileId, workspaceCtx])
+
+  const submitRenameFolder = useCallback(async () => {
+    if (!token?.trim() || !profileId || !renameFolderTarget || submitting) return
+    const value = normalizeName(renameFolderTarget.value)
+    if (!value) {
+      setError('분류 이름을 입력해 주세요.')
+      return
+    }
+    setSubmitting(true)
+    setError('')
+    try {
+      await patchGovProfileFileCategory(token, profileId, renameFolderTarget.categoryId, { name: value })
+      await workspaceCtx?.refreshProfileFileCategories(profileId)
+      workspaceCtx?.bumpFilesRefresh()
+      setRenameFolderTarget(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '문서 분류 수정에 실패했습니다.')
+    } finally {
+      setSubmitting(false)
+    }
+  }, [profileId, renameFolderTarget, submitting, token, workspaceCtx])
+
+  const submitDeleteFolder = useCallback(async () => {
+    if (!token?.trim() || !profileId || !deleteFolderTarget || submitting) return
+    setSubmitting(true)
+    setError('')
+    try {
+      await deleteGovProfileFileCategory(token, profileId, deleteFolderTarget.categoryId)
+      await workspaceCtx?.refreshProfileFileCategories(profileId)
+      setDeleteFolderTarget(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '문서 분류 삭제에 실패했습니다.')
+    } finally {
+      setSubmitting(false)
+    }
+  }, [deleteFolderTarget, profileId, submitting, token, workspaceCtx])
 
   const openFile = useCallback(
     async (file: StorageFileRow) => {
@@ -474,6 +545,7 @@ export default function GovernmentProfileStorageWorkspace({
           listFetchError={filesListError}
           selectedFileId={selectedFileId}
           expandedFolderIds={expandedFolderIds}
+          editableFolderIds={editableFolderIds}
           onToggleFolder={toggleFolder}
           onSelectFile={setSelectedFileId}
           onOpen={(file) => {
@@ -483,8 +555,16 @@ export default function GovernmentProfileStorageWorkspace({
           downloadLinkFailedIds={fileDownloadFailedIds}
           onRename={(file) => setRenameTarget({ file, value: file.displayName })}
           onDelete={(file) => setDeleteTarget(file)}
-          onRenameFolder={() => {}}
-          onDeleteFolder={() => {}}
+          onRenameFolder={(folder) => {
+            const category = categoryByFolderId.get(folder.id)
+            if (!category?.serverCategoryId) return
+            setRenameFolderTarget({ folder, categoryId: category.serverCategoryId, value: folder.name })
+          }}
+          onDeleteFolder={(folder) => {
+            const category = categoryByFolderId.get(folder.id)
+            if (!category?.serverCategoryId) return
+            setDeleteFolderTarget({ folder, categoryId: category.serverCategoryId })
+          }}
         />
       </div>
 
@@ -505,9 +585,27 @@ export default function GovernmentProfileStorageWorkspace({
         title="문서 분류 추가"
         value={addCategoryName}
         inputClassName="gov-form-control"
+        loading={submitting}
         onChange={setAddCategoryName}
         onClose={() => setAddCategoryOpen(false)}
-        onSubmit={submitAddCategory}
+        onSubmit={() => {
+          void submitAddCategory()
+        }}
+      />
+
+      <StorageRenameDialog
+        open={renameFolderTarget != null}
+        title="문서 분류 이름 변경"
+        value={renameFolderTarget?.value ?? ''}
+        inputClassName="gov-form-control"
+        loading={submitting}
+        onChange={(value) => {
+          if (renameFolderTarget) setRenameFolderTarget({ ...renameFolderTarget, value })
+        }}
+        onClose={() => setRenameFolderTarget(null)}
+        onSubmit={() => {
+          void submitRenameFolder()
+        }}
       />
 
       <StorageRenameDialog
@@ -520,6 +618,21 @@ export default function GovernmentProfileStorageWorkspace({
         onClose={() => setRenameTarget(null)}
         onSubmit={() => {
           void submitRename()
+        }}
+        loading={submitting}
+      />
+
+      <StorageDeleteDialog
+        open={deleteFolderTarget != null}
+        title="문서 분류 삭제"
+        description={
+          deleteFolderTarget
+            ? `「${deleteFolderTarget.folder.name}」 분류를 삭제하시겠습니까? 파일이 있는 분류는 삭제할 수 없습니다.`
+            : ''
+        }
+        onClose={() => setDeleteFolderTarget(null)}
+        onConfirm={() => {
+          void submitDeleteFolder()
         }}
         loading={submitting}
       />

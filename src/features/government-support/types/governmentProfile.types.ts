@@ -174,3 +174,17 @@ export type GovProfileFile = {
   updatedAt: string
   archivedAt: string | null
 }
+
+export type GovProfileFileCategory = {
+  id: string
+  tenantId: string
+  profileId: string
+  ownerUserId: string
+  name: string
+  sortOrder: number
+  createdByUserId: string | null
+  updatedByUserId: string | null
+  createdAt: string
+  updatedAt: string
+  archivedAt: string | null
+}

@@ -20,11 +20,14 @@ import {
 import type { GovernmentProfileWorkspaceLayoutViewProps } from './governmentProfileWorkspaceViewProps'
 import type { GovernmentProfileWorkspaceTab } from '../../config/governmentProfileWorkspaceTabs'
 import {
-  addStoredProfileDocumentCategory,
+  createGovProfileFileCategory,
+  fetchGovProfileFileCategories,
+} from '../../api/governmentProfileFileCategoriesApi'
+import {
   isGovProfileCardCollapsed,
-  listStoredProfileDocumentCategories,
   setGovProfileCardCollapsed,
 } from '../../lib/governmentProfileDocumentCategories'
+import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
 import '../../government-support.css'
 
 function parseProfileIdFromPath(pathname: string): string | null {
@@ -186,17 +189,53 @@ export default function GovernmentProfileWorkspaceLayout() {
   }, [])
 
   const [documentCategoriesVersion, setDocumentCategoriesVersion] = useState(0)
-  const listProfileDocumentCategories = useCallback(
-    (profileId: string) => listStoredProfileDocumentCategories(profileId),
-    [documentCategoriesVersion],
-  )
-  const addProfileDocumentCategory = useCallback((profileId: string, name: string) => {
-    const result = addStoredProfileDocumentCategory(profileId, name)
-    if (result.ok) {
+  const [profileFileCategoriesById, setProfileFileCategoriesById] = useState<
+    Record<string, GovProfileFileCategory[]>
+  >({})
+
+  const refreshProfileFileCategories = useCallback(
+    async (profileId: string) => {
+      const id = String(profileId ?? '').trim()
+      if (!token?.trim() || !id) {
+        return
+      }
+      const rows = await fetchGovProfileFileCategories(token, id)
+      setProfileFileCategoriesById((prev) => ({ ...prev, [id]: rows }))
       setDocumentCategoriesVersion((n) => n + 1)
+    },
+    [token],
+  )
+
+  const listProfileDocumentCategories = useCallback(
+    (profileId: string) => profileFileCategoriesById[String(profileId ?? '').trim()] ?? [],
+    [profileFileCategoriesById],
+  )
+
+  const addProfileDocumentCategory = useCallback(
+    async (profileId: string, name: string) => {
+      const id = String(profileId ?? '').trim()
+      if (!token?.trim() || !id) {
+        return { ok: false as const, error: '문서 분류를 추가할 수 없습니다.' }
+      }
+      try {
+        const category = await createGovProfileFileCategory(token, id, name)
+        await refreshProfileFileCategories(id)
+        return { ok: true as const, name: category.name, category }
+      } catch (e) {
+        return {
+          ok: false as const,
+          error: e instanceof Error ? e.message : '문서 분류 추가에 실패했습니다.',
+        }
+      }
+    },
+    [refreshProfileFileCategories, token],
+  )
+
+  useEffect(() => {
+    if (selectedProfileIdFromPath && token?.trim()) {
+      void refreshProfileFileCategories(selectedProfileIdFromPath)
     }
-    return result
-  }, [])
+  }, [selectedProfileIdFromPath, token, refreshProfileFileCategories])
 
   const contextValue = useMemo<GovernmentProfileWorkspaceContextValue>(
     () => ({
@@ -211,6 +250,7 @@ export default function GovernmentProfileWorkspaceLayout() {
       bumpFilesRefresh,
       documentCategoriesVersion,
       listProfileDocumentCategories,
+      refreshProfileFileCategories,
       addProfileDocumentCategory,
     }),
     [
@@ -225,6 +265,7 @@ export default function GovernmentProfileWorkspaceLayout() {
       bumpFilesRefresh,
       documentCategoriesVersion,
       listProfileDocumentCategories,
+      refreshProfileFileCategories,
       addProfileDocumentCategory,
     ],
   )

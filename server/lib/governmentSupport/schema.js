@@ -332,6 +332,32 @@ export async function ensureGovernmentSupportSchema(executor) {
   `)
 
   await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_support_profile_file_categories (
+      id BIGSERIAL PRIMARY KEY,
+      tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      profile_id BIGINT NOT NULL REFERENCES gov_support_profiles(id) ON DELETE CASCADE,
+      owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL DEFAULT '',
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_profile_file_categories_profile
+    ON gov_support_profile_file_categories (profile_id, sort_order ASC, name ASC)
+    WHERE archived_at IS NULL
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_profile_file_categories_owner
+    ON gov_support_profile_file_categories (owner_user_id, profile_id)
+    WHERE archived_at IS NULL
+  `)
+
+  await executor.query(`
     CREATE TABLE IF NOT EXISTS gov_support_document_requests (
       id BIGSERIAL PRIMARY KEY,
       tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,

@@ -409,7 +409,9 @@ async function main() {
     'data-profile-selected',
     'data-profile-id',
     'gov-profile-workspace-collapsed-profile-ids',
-    'gov-profile-document-categories',
+    '/file-categories',
+    'fetchGovProfileFileCategories',
+    'createGovProfileFileCategory',
     '이미 같은 이름의 문서 분류가 있습니다.',
   ]) {
     if (basicTabSpa.js.includes(m)) pass(`profile basic tab bundle contains ${m}`)
@@ -425,7 +427,7 @@ async function main() {
   const filesTabSpa = await fetchHtml(filesTabPath)
   if (filesTabSpa.status === 200) pass('GET profile files tab SPA', filesTabSpa.bundle ?? '')
   else fail('GET profile files tab SPA', String(filesTabSpa.status))
-  for (const m of ['government-storage-search-input', 'storage-workspace__search', 'gov-form-control', 'gov-profile-document-categories', '문서 분류 추가']) {
+  for (const m of ['government-storage-search-input', 'storage-workspace__search', 'gov-form-control', '/file-categories', '문서 분류 추가', 'fetchGovProfileFileCategories']) {
     if (filesTabSpa.js.includes(m)) pass(`profile files tab bundle contains ${m}`)
     else fail(`profile files tab bundle contains ${m}`)
   }
@@ -958,6 +960,96 @@ async function main() {
   if (String(categorizedFile?.category ?? '') === fileCategoryName) pass('user A file category in list refresh')
   else fail('user A file category in list refresh', String(categorizedFile?.category))
 
+  const serverCategoryEmpty = `E2E 빈 분류 ${ts}`
+  const serverCategoryCreate = await api(`/government-support/profiles/${profileAId}/file-categories`, {
+    token: tokenA,
+    method: 'POST',
+    body: { name: serverCategoryEmpty },
+    expectStatus: 201,
+  })
+  const serverCategoryEmptyId = String(serverCategoryCreate.json?.data?.id ?? '')
+  if (serverCategoryEmptyId && String(serverCategoryCreate.json?.data?.name ?? '') === serverCategoryEmpty) {
+    pass('user A create server file category', serverCategoryEmptyId)
+  } else fail('user A create server file category')
+
+  const serverCategoryList =
+    (await api(`/government-support/profiles/${profileAId}/file-categories`, { token: tokenA })).json?.data ?? []
+  if (serverCategoryList.some((c) => String(c.id) === serverCategoryEmptyId && String(c.name) === serverCategoryEmpty)) {
+    pass('user A server file category in list')
+  } else fail('user A server file category in list')
+
+  const serverCategoryListRefetch =
+    (await api(`/government-support/profiles/${profileAId}/file-categories`, { token: tokenA })).json?.data ?? []
+  if (serverCategoryListRefetch.some((c) => String(c.id) === serverCategoryEmptyId)) {
+    pass('user A server file category survives refetch')
+  } else fail('user A server file category survives refetch')
+
+  const serverCategoryDup = await api(`/government-support/profiles/${profileAId}/file-categories`, {
+    token: tokenA,
+    method: 'POST',
+    body: { name: serverCategoryEmpty },
+  })
+  if (serverCategoryDup.status === 409) pass('user A duplicate server file category rejected')
+  else fail('user A duplicate server file category rejected', String(serverCategoryDup.status))
+
+  const serverCategoryEmptyName = await api(`/government-support/profiles/${profileAId}/file-categories`, {
+    token: tokenA,
+    method: 'POST',
+    body: { name: '   ' },
+  })
+  if (serverCategoryEmptyName.status === 400) pass('user A empty server file category rejected')
+  else fail('user A empty server file category rejected', String(serverCategoryEmptyName.status))
+
+  await api(`/government-support/profiles/${profileAId}/file-categories/${serverCategoryEmptyId}`, {
+    token: tokenA,
+    method: 'DELETE',
+    expectStatus: 200,
+  })
+  const serverCategoryAfterEmptyDelete =
+    (await api(`/government-support/profiles/${profileAId}/file-categories`, { token: tokenA })).json?.data ?? []
+  if (!serverCategoryAfterEmptyDelete.some((c) => String(c.id) === serverCategoryEmptyId)) {
+    pass('user A delete empty server file category')
+  } else fail('user A delete empty server file category')
+
+  const serverCategoryLinked = await api(`/government-support/profiles/${profileAId}/file-categories`, {
+    token: tokenA,
+    method: 'POST',
+    body: { name: fileCategoryName },
+    expectStatus: 201,
+  })
+  const serverCategoryLinkedId = String(serverCategoryLinked.json?.data?.id ?? '')
+  if (serverCategoryLinkedId) pass('user A create server file category linked to file category', serverCategoryLinkedId)
+  else fail('user A create server file category linked to file category')
+
+  const serverCategoryDeleteBlocked = await api(
+    `/government-support/profiles/${profileAId}/file-categories/${serverCategoryLinkedId}`,
+    { token: tokenA, method: 'DELETE' },
+  )
+  if (serverCategoryDeleteBlocked.status === 409) {
+    pass('user A delete file category blocked when files exist')
+  } else {
+    fail('user A delete file category blocked when files exist', String(serverCategoryDeleteBlocked.status))
+  }
+
+  const serverCategoryPatch = await api(
+    `/government-support/profiles/${profileAId}/file-categories/${serverCategoryLinkedId}`,
+    {
+      token: tokenA,
+      method: 'PATCH',
+      body: { name: `E2E 분류 patched ${ts}` },
+      expectStatus: 200,
+    },
+  )
+  if (String(serverCategoryPatch.json?.data?.name ?? '').includes('patched')) pass('user A patch server file category')
+  else fail('user A patch server file category')
+
+  const fileAfterCategoryRename =
+    (await api(`/government-support/profiles/${profileAId}/files`, { token: tokenA })).json?.data ?? []
+  const renamedCategoryFile = fileAfterCategoryRename.find((f) => String(f.id) === profileFileId)
+  if (String(renamedCategoryFile?.category ?? '').includes('patched')) {
+    pass('user A file category synced after server category rename')
+  } else fail('user A file category synced after server category rename', String(renamedCategoryFile?.category))
+
   const createdSameNameA = await api('/government-support/profiles', {
     token: tokenA,
     method: 'POST',
@@ -1133,6 +1225,20 @@ async function main() {
   const fileBList = await api(`/government-support/profiles/${profileAId}/files`, { token: tokenB })
   if (fileBList.status === 403 || fileBList.status === 404) pass('user B file list blocked')
   else fail('user B file list blocked', String(fileBList.status))
+
+  const fileCategoryBList = await api(`/government-support/profiles/${profileAId}/file-categories`, { token: tokenB })
+  if (fileCategoryBList.status === 403 || fileCategoryBList.status === 404) {
+    pass('user B file category list blocked')
+  } else fail('user B file category list blocked', String(fileCategoryBList.status))
+
+  const fileCategoryBCreate = await api(`/government-support/profiles/${profileAId}/file-categories`, {
+    token: tokenB,
+    method: 'POST',
+    body: { name: `E2E blocked ${ts}` },
+  })
+  if (fileCategoryBCreate.status === 403 || fileCategoryBCreate.status === 404) {
+    pass('user B file category create blocked')
+  } else fail('user B file category create blocked', String(fileCategoryBCreate.status))
 
   const fileBDownload = await api(`/government-support/profiles/${profileAId}/files/${profileFileId}/download`, {
     token: tokenB,

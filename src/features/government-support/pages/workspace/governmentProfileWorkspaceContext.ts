@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { useGovernmentWorkspaceState } from '../../hooks/useGovernmentWorkspaceState'
+import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
 
 export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovernmentWorkspaceState> & {
   selectedProfileIdFromPath: string | null
@@ -9,11 +10,14 @@ export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovern
   filesRefreshNonce: number
   bumpFilesRefresh: () => void
   documentCategoriesVersion: number
-  listProfileDocumentCategories: (profileId: string) => string[]
+  listProfileDocumentCategories: (profileId: string) => GovProfileFileCategory[]
+  refreshProfileFileCategories: (profileId: string) => Promise<void>
   addProfileDocumentCategory: (
     profileId: string,
     name: string,
-  ) => { ok: true; name: string } | { ok: false; error: string }
+  ) => Promise<
+    { ok: true; name: string; category: GovProfileFileCategory } | { ok: false; error: string }
+  >
 }
 
 export const GovernmentProfileWorkspaceContext = createContext<GovernmentProfileWorkspaceContextValue | null>(

@@ -1,27 +1,14 @@
 import type { StorageFolderRow } from '../../storage/api/storageApi'
+import type { GovProfileFileCategory } from '../types/governmentProfile.types'
 import { GOVERNMENT_PROFILE_FILE_NAME_MAX } from '../constants/governmentProfileFiles.config'
 
-const CATEGORIES_STORAGE_KEY = 'gov-profile-document-categories'
 const COLLAPSED_PROFILES_KEY = 'gov-profile-workspace-collapsed-profile-ids'
 
-type CategoryStore = Record<string, string[]>
-
-function readCategoryStore(): CategoryStore {
-  if (typeof window === 'undefined') return {}
-  try {
-    const raw = window.localStorage.getItem(CATEGORIES_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw) as unknown
-    if (!parsed || typeof parsed !== 'object') return {}
-    return parsed as CategoryStore
-  } catch {
-    return {}
-  }
-}
-
-function writeCategoryStore(store: CategoryStore): void {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(store))
+export type GovMergedDocumentCategory = {
+  name: string
+  folderId: number
+  sortOrder: number
+  serverCategoryId: string | null
 }
 
 function normalizeCategoryName(raw: string): string {
@@ -45,61 +32,45 @@ export function govCategoryToFolderId(categoryName: string): number {
   return hash === 0 ? -1 : -Math.abs(hash) - 1
 }
 
-export function listStoredProfileDocumentCategories(profileId: string): string[] {
-  const id = String(profileId ?? '').trim()
-  if (!id) return []
-  const store = readCategoryStore()
-  const rows = store[id]
-  if (!Array.isArray(rows)) return []
-  const seen = new Set<string>()
-  const out: string[] = []
-  for (const row of rows) {
-    const name = normalizeCategoryName(String(row ?? ''))
+export function mergeProfileDocumentCategoryViews(
+  serverRows: GovProfileFileCategory[],
+  fileCategoryNames: string[],
+): GovMergedDocumentCategory[] {
+  const map = new Map<string, GovMergedDocumentCategory>()
+
+  for (const row of serverRows) {
+    const name = normalizeCategoryName(row.name)
     const key = categoryKey(name)
-    if (!name || seen.has(key)) continue
-    seen.add(key)
-    out.push(name)
-  }
-  return out
-}
-
-export function mergeProfileDocumentCategories(profileId: string, fileCategories: string[]): string[] {
-  const seen = new Set<string>()
-  const out: string[] = []
-  for (const name of [...listStoredProfileDocumentCategories(profileId), ...fileCategories]) {
-    const normalized = normalizeCategoryName(name)
-    const key = categoryKey(normalized)
-    if (!normalized || seen.has(key)) continue
-    seen.add(key)
-    out.push(normalized)
-  }
-  return out.sort((a, b) => a.localeCompare(b, 'ko'))
-}
-
-export function addStoredProfileDocumentCategory(
-  profileId: string,
-  rawName: string,
-): { ok: true; name: string } | { ok: false; error: string } {
-  const id = String(profileId ?? '').trim()
-  const name = normalizeCategoryName(rawName)
-  if (!id) return { ok: false, error: '사업장을 선택해 주세요.' }
-  if (!name) return { ok: false, error: '분류 이름을 입력해 주세요.' }
-
-  const store = readCategoryStore()
-  const current = listStoredProfileDocumentCategories(id)
-  if (current.some((row) => categoryKey(row) === categoryKey(name))) {
-    return { ok: false, error: '이미 같은 이름의 문서 분류가 있습니다.' }
+    if (!name || map.has(key)) continue
+    map.set(key, {
+      name,
+      folderId: govCategoryToFolderId(name),
+      sortOrder: Number.isFinite(row.sortOrder) ? row.sortOrder : 0,
+      serverCategoryId: row.id,
+    })
   }
 
-  store[id] = [...current, name]
-  writeCategoryStore(store)
-  return { ok: true, name }
+  for (const raw of fileCategoryNames) {
+    const name = normalizeCategoryName(raw)
+    const key = categoryKey(name)
+    if (!name || map.has(key)) continue
+    map.set(key, {
+      name,
+      folderId: govCategoryToFolderId(name),
+      sortOrder: 100000,
+      serverCategoryId: null,
+    })
+  }
+
+  return [...map.values()].sort(
+    (a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, 'ko'),
+  )
 }
 
-export function buildGovCategoryFolders(categories: string[]): StorageFolderRow[] {
-  return categories.map((name) => ({
-    id: govCategoryToFolderId(name),
-    name,
+export function buildGovCategoryFolders(categories: GovMergedDocumentCategory[]): StorageFolderRow[] {
+  return categories.map((category) => ({
+    id: category.folderId,
+    name: category.name,
     createdAt: '',
   }))
 }

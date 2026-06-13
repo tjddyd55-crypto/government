@@ -66,6 +66,13 @@ import {
   resolveGovProfileFileContentType,
 } from './lib/governmentSupport/governmentProfileFiles.js'
 import {
+  hasActiveGovProfileFileCategoryName,
+  countActiveGovProfileFilesInCategory,
+  mapGovSupportProfileFileCategoryRow,
+  normalizeGovProfileFileCategoryName,
+  parseGovProfileFileCategoryPatchBody,
+} from './lib/governmentSupport/governmentProfileFileCategories.js'
+import {
   assertGovernmentProfileFileObjectKey,
   buildGovernmentProfileFileObjectKey,
 } from './lib/governmentSupport/governmentProfileFileStorage.js'
@@ -2386,6 +2393,175 @@ export function registerGovernmentSupportApi(router, deps) {
           )
         }
         res.json({ success: true, data: { id: fileId, ok: true } })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.get('/government-support/profiles/:profileId/file-categories', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const profileId = String(req.params.profileId ?? '').trim()
+      const access = await requireGovProfileFileAccess(req, res, profileId)
+      if (!access) return
+      const r = await pool.query(
+        `
+        SELECT *
+        FROM gov_support_profile_file_categories
+        WHERE profile_id = $1::bigint AND archived_at IS NULL
+        ORDER BY sort_order ASC, name ASC, id ASC
+        `,
+        [profileId],
+      )
+      res.json({ success: true, data: r.rows.map(mapGovSupportProfileFileCategoryRow) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.post('/government-support/profiles/:profileId/file-categories', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const profileId = String(req.params.profileId ?? '').trim()
+      const access = await requireGovProfileFileAccess(req, res, profileId)
+      if (!access) return
+      const { ctx, profileRow } = access
+      const normalized = normalizeGovProfileFileCategoryName(req.body?.name)
+      if (!normalized.ok) {
+        res.status(normalized.status).json({ message: normalized.message })
+        return
+      }
+      const duplicate = await hasActiveGovProfileFileCategoryName(pool, profileId, normalized.name)
+      if (duplicate) {
+        res.status(409).json({ message: '이미 같은 이름의 문서 분류가 있습니다.' })
+        return
+      }
+      const ownerUserId = String(profileRow.owner_user_id ?? ctx.userId)
+      const tenantId = String(profileRow.tenant_id ?? '')
+      const sortOrder = Number(req.body?.sortOrder ?? req.body?.sort_order ?? 0)
+      const r = await pool.query(
+        `
+        INSERT INTO gov_support_profile_file_categories (
+          tenant_id, profile_id, owner_user_id, name, sort_order,
+          created_by_user_id, updated_by_user_id
+        ) VALUES ($1::bigint, $2::bigint, $3, $4, $5, $6, $6)
+        RETURNING *
+        `,
+        [tenantId, profileId, ownerUserId, normalized.name, Number.isFinite(sortOrder) ? Math.trunc(sortOrder) : 0, ctx.userId],
+      )
+      res.status(201).json({ success: true, data: mapGovSupportProfileFileCategoryRow(r.rows[0]) })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.patch(
+    '/government-support/profiles/:profileId/file-categories/:categoryId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const profileId = String(req.params.profileId ?? '').trim()
+        const categoryId = String(req.params.categoryId ?? '').trim()
+        const access = await requireGovProfileFileAccess(req, res, profileId)
+        if (!access) return
+        const { ctx } = access
+        const existing = await pool.query(
+          `
+          SELECT *
+          FROM gov_support_profile_file_categories
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          `,
+          [categoryId, profileId],
+        )
+        if (!existing.rows[0]) {
+          res.status(404).json({ message: '문서 분류를 찾을 수 없습니다.' })
+          return
+        }
+        const row = existing.rows[0]
+        const parsed = parseGovProfileFileCategoryPatchBody(req.body ?? {})
+        if (!parsed.ok) {
+          res.status(parsed.status).json({ message: parsed.message })
+          return
+        }
+        const { patch } = parsed
+        if (patch.name) {
+          const duplicate = await hasActiveGovProfileFileCategoryName(pool, profileId, patch.name, categoryId)
+          if (duplicate) {
+            res.status(409).json({ message: '이미 같은 이름의 문서 분류가 있습니다.' })
+            return
+          }
+        }
+        const oldName = String(row.name ?? '')
+        const nextName = patch.name ?? oldName
+        const nextSort = patch.sortOrder ?? Number(row.sort_order ?? 0)
+        const updated = await pool.query(
+          `
+          UPDATE gov_support_profile_file_categories
+          SET name = $3,
+              sort_order = $4,
+              updated_by_user_id = $5,
+              updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          RETURNING *
+          `,
+          [categoryId, profileId, nextName, nextSort, ctx.userId],
+        )
+        if (patch.name && patch.name !== oldName) {
+          await pool.query(
+            `
+            UPDATE gov_support_profile_files
+            SET category = $3, updated_by_user_id = $4, updated_at = NOW()
+            WHERE profile_id = $1::bigint
+              AND archived_at IS NULL
+              AND upload_status = 'active'
+              AND LOWER(TRIM(category)) = LOWER(TRIM($2))
+            `,
+            [profileId, oldName, nextName, ctx.userId],
+          )
+        }
+        res.json({ success: true, data: mapGovSupportProfileFileCategoryRow(updated.rows[0]) })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.delete(
+    '/government-support/profiles/:profileId/file-categories/:categoryId',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const profileId = String(req.params.profileId ?? '').trim()
+        const categoryId = String(req.params.categoryId ?? '').trim()
+        const access = await requireGovProfileFileAccess(req, res, profileId)
+        if (!access) return
+        const { ctx } = access
+        const existing = await pool.query(
+          `
+          SELECT *
+          FROM gov_support_profile_file_categories
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          `,
+          [categoryId, profileId],
+        )
+        if (!existing.rows[0]) {
+          res.status(404).json({ message: '문서 분류를 찾을 수 없습니다.' })
+          return
+        }
+        const categoryName = String(existing.rows[0].name ?? '')
+        const fileCount = await countActiveGovProfileFilesInCategory(pool, profileId, categoryName)
+        if (fileCount > 0) {
+          res.status(409).json({ message: '해당 분류에 파일이 있어 삭제할 수 없습니다.' })
+          return
+        }
+        await pool.query(
+          `
+          UPDATE gov_support_profile_file_categories
+          SET archived_at = NOW(), updated_by_user_id = $3, updated_at = NOW()
+          WHERE id = $1::bigint AND profile_id = $2::bigint AND archived_at IS NULL
+          `,
+          [categoryId, profileId, ctx.userId],
+        )
+        res.json({ success: true, data: { id: categoryId, ok: true } })
       } catch (e) {
         handleDbError(e, req, res)
       }
