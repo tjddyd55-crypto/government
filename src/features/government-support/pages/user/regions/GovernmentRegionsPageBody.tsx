@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EmptyState, LoadingState, StatusMessage } from '../../../../../components/feedback'
 import { FormButton, FormInput, FormSelect } from '../../../../../components/form'
@@ -41,133 +42,138 @@ export default function GovernmentRegionsPageBody(props: GovernmentRegionsViewPr
     onResetFilters,
   } = props
 
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false)
+
+  const hasAdvancedFilters =
+    Boolean(filters.eupmyeondong) || Boolean(filters.progressStatus) || Boolean(filters.docStatus)
+
   return (
     <main
       className="page page--with-back government-region-page gov-user-page"
       data-testid="government-region-page"
     >
-      <section className="government-region-page__hero">
-        <h1 className="government-region-page__title">지역별 보기</h1>
-        <p className="government-region-page__description">
-          등록된 사업장을 주소지 기준으로 모아볼 수 있습니다.
-        </p>
-      </section>
+      <header className="government-region-page-header">
+        <div className="government-region-page-heading">
+          <h1 className="government-region-page-heading__title">지역별 보기</h1>
+          <p className="government-region-page-heading__description">
+            등록된 사업장을 주소지 기준으로 모아볼 수 있습니다.
+          </p>
+        </div>
+        <div
+          className="government-region-summary-chips"
+          data-testid="government-region-summary-grid"
+          aria-label="사업장 현황"
+        >
+          <span className="government-region-summary-chip">
+            전체 <strong>{summary.total}</strong>
+          </span>
+          <span className="government-region-summary-chip">
+            주소 있음 <strong>{summary.withAddress}</strong>
+          </span>
+          <span className="government-region-summary-chip">
+            주소 없음 <strong>{summary.withoutAddress}</strong>
+          </span>
+          <span className="government-region-summary-chip">
+            선택 지역 <strong>{summary.selectedRegionCount}</strong>
+          </span>
+        </div>
+      </header>
 
-      <section className="government-region-summary-grid" data-testid="government-region-summary-grid">
-        <article className="government-region-summary-card">
-          <span className="government-region-summary-card__label">전체 사업장</span>
-          <strong className="government-region-summary-card__value">{summary.total}</strong>
-        </article>
-        <article className="government-region-summary-card">
-          <span className="government-region-summary-card__label">주소 있음</span>
-          <strong className="government-region-summary-card__value">{summary.withAddress}</strong>
-        </article>
-        <article className="government-region-summary-card">
-          <span className="government-region-summary-card__label">주소 없음</span>
-          <strong className="government-region-summary-card__value">{summary.withoutAddress}</strong>
-        </article>
-        <article className="government-region-summary-card">
-          <span className="government-region-summary-card__label">선택 지역</span>
-          <strong className="government-region-summary-card__value">{summary.selectedRegionCount}</strong>
-        </article>
-      </section>
+      <section
+        className={`government-region-compact-toolbar${
+          advancedFiltersOpen ? ' government-region-compact-toolbar--advanced-open' : ''
+        }`}
+        data-testid="government-region-filter-card"
+      >
+        <div className="government-region-compact-toolbar__main">
+          <FormInput
+            className="gov-form-control government-region-search-input"
+            value={filters.searchQuery}
+            onChange={(event) => onSetSearchQuery(event.target.value)}
+            placeholder="사업장명 · 대표자 · 주소 · 사업자등록번호"
+            aria-label="검색"
+          />
+          <FormSelect
+            className="gov-form-control government-region-filter-select"
+            value={filters.sido}
+            onChange={(event) => onSetSido(event.target.value)}
+            options={[
+              { value: '', label: '시/도' },
+              ...filterOptions.sidos.map((sido) => ({ value: sido, label: sido })),
+            ]}
+          />
+          <FormSelect
+            className="gov-form-control government-region-filter-select"
+            value={filters.sigungu}
+            onChange={(event) => onSetSigungu(event.target.value)}
+            disabled={!filters.sido}
+            options={[
+              { value: '', label: '시/군/구' },
+              ...sigunguOptions.map((sigungu) => ({ value: sigungu, label: sigungu })),
+            ]}
+          />
+          <FormSelect
+            className="gov-form-control government-region-filter-select government-region-filter-select--sort"
+            value={filters.sort}
+            onChange={(event) => onSetSort(event.target.value as typeof filters.sort)}
+            options={GOVERNMENT_REGION_SORT_OPTIONS}
+          />
+          <FormButton
+            htmlType="button"
+            variant="secondary"
+            className={`gov-btn gov-btn--secondary government-region-advanced-filter-toggle${
+              hasAdvancedFilters ? ' government-region-advanced-filter-toggle--active' : ''
+            }`}
+            onClick={() => setAdvancedFiltersOpen((open) => !open)}
+            aria-expanded={advancedFiltersOpen}
+          >
+            {advancedFiltersOpen ? '상세 필터 닫기' : '상세 필터'}
+          </FormButton>
+          <FormButton
+            htmlType="button"
+            variant="secondary"
+            className="gov-btn gov-btn--secondary government-region-reset-button"
+            onClick={onResetFilters}
+          >
+            초기화
+          </FormButton>
+        </div>
 
-      <section className="government-region-filter-card" data-testid="government-region-filter-card">
-        <div className="government-region-filter-card__grid">
-          <label className="government-region-filter-card__field government-region-filter-card__field--wide">
-            <span className="government-region-filter-card__label">검색</span>
-            <FormInput
-              className="gov-form-control government-region-search-input"
-              value={filters.searchQuery}
-              onChange={(event) => onSetSearchQuery(event.target.value)}
-              placeholder="사업장명 · 대표자 · 주소 · 사업자등록번호"
-            />
-          </label>
-          <label className="government-region-filter-card__field">
-            <span className="government-region-filter-card__label">시/도</span>
-            <FormSelect
-              className="gov-form-control government-region-filter-select"
-              value={filters.sido}
-              onChange={(event) => onSetSido(event.target.value)}
-              options={[
-                { value: '', label: '전체' },
-                ...filterOptions.sidos.map((sido) => ({ value: sido, label: sido })),
-              ]}
-            />
-          </label>
-          <label className="government-region-filter-card__field">
-            <span className="government-region-filter-card__label">시/군/구</span>
-            <FormSelect
-              className="gov-form-control government-region-filter-select"
-              value={filters.sigungu}
-              onChange={(event) => onSetSigungu(event.target.value)}
-              disabled={!filters.sido}
-              options={[
-                { value: '', label: '전체' },
-                ...sigunguOptions.map((sigungu) => ({ value: sigungu, label: sigungu })),
-              ]}
-            />
-          </label>
-          <label className="government-region-filter-card__field">
-            <span className="government-region-filter-card__label">세부지역</span>
+        {advancedFiltersOpen ? (
+          <div className="government-region-compact-toolbar__advanced">
             <FormSelect
               className="gov-form-control government-region-filter-select"
               value={filters.eupmyeondong}
               onChange={(event) => onSetEupmyeondong(event.target.value)}
               disabled={!filters.sigungu}
               options={[
-                { value: '', label: '전체' },
+                { value: '', label: '세부지역' },
                 ...eupmyeondongOptions.map((eup) => ({ value: eup, label: eup })),
               ]}
             />
-          </label>
-          <label className="government-region-filter-card__field">
-            <span className="government-region-filter-card__label">신청 상태</span>
             <FormSelect
               className="gov-form-control government-region-filter-select"
               value={filters.progressStatus}
               onChange={(event) => onSetProgressStatus(event.target.value)}
               options={[
-                { value: '', label: '전체' },
+                { value: '', label: '신청 상태' },
                 ...filterOptions.progressStatuses.map((status) => ({
                   value: status,
                   label: getGovernmentProgressStatusLabel(status),
                 })),
               ]}
             />
-          </label>
-          <label className="government-region-filter-card__field">
-            <span className="government-region-filter-card__label">서류 상태</span>
             <FormSelect
               className="gov-form-control government-region-filter-select"
               value={filters.docStatus}
               onChange={(event) => onSetDocStatus(event.target.value)}
               options={[
-                { value: '', label: '전체' },
+                { value: '', label: '서류 상태' },
                 ...filterOptions.docStatuses.map((status) => ({ value: status, label: status })),
               ]}
             />
-          </label>
-          <label className="government-region-filter-card__field">
-            <span className="government-region-filter-card__label">정렬</span>
-            <FormSelect
-              className="gov-form-control government-region-filter-select"
-              value={filters.sort}
-              onChange={(event) => onSetSort(event.target.value as typeof filters.sort)}
-              options={GOVERNMENT_REGION_SORT_OPTIONS}
-            />
-          </label>
-          <div className="government-region-filter-card__actions">
-            <FormButton
-              htmlType="button"
-              variant="secondary"
-              className="gov-btn gov-btn--secondary government-region-reset-button"
-              onClick={onResetFilters}
-            >
-              초기화
-            </FormButton>
           </div>
-        </div>
+        ) : null}
       </section>
 
       {error ? <StatusMessage message={error} tone="error" className="status-message--flush-top" /> : null}
@@ -215,18 +221,21 @@ export default function GovernmentRegionsPageBody(props: GovernmentRegionsViewPr
                     : '—'
                   return (
                     <article key={profile.id} className="government-region-result-card">
-                      <div className="government-region-result-card__head">
+                      <div className="government-region-result-card__header">
                         <strong className="government-region-result-card__title">
                           {profileDisplayName(profile)}
                         </strong>
-                        <Link
-                          to={governmentMyApplicationTabPath(profile.id, 'basic')}
-                          className="gov-btn gov-btn--primary gov-btn--sm government-region-result-card__detail-link"
-                        >
-                          상세 보기
-                        </Link>
+                        <div className="government-region-result-card__actions">
+                          <Link
+                            to={governmentMyApplicationTabPath(profile.id, 'basic')}
+                            className="gov-btn gov-btn--primary gov-btn--sm government-region-result-card__detail-link"
+                          >
+                            상세 보기
+                          </Link>
+                        </div>
                       </div>
-                      <dl className="government-region-result-card__meta">
+                      <p className="government-region-result-card__address">{displayGovField(address)}</p>
+                      <dl className="government-region-result-card__meta-grid">
                         <div>
                           <dt>대표자/담당자</dt>
                           <dd>{displayGovField(profile.customerName)}</dd>
@@ -234,10 +243,6 @@ export default function GovernmentRegionsPageBody(props: GovernmentRegionsViewPr
                         <div>
                           <dt>연락처</dt>
                           <dd>{displayGovField(profile.phone)}</dd>
-                        </div>
-                        <div className="government-region-result-card__meta-row--wide">
-                          <dt>사업장 주소</dt>
-                          <dd>{displayGovField(address)}</dd>
                         </div>
                         <div>
                           <dt>사업자등록번호</dt>

@@ -184,8 +184,8 @@ async function main() {
       label: 'regions',
       markers: [
         'government-region-page',
-        'government-region-summary-grid',
-        'government-region-filter-card',
+        'government-region-summary-chips',
+        'government-region-compact-toolbar',
         'government-region-layout',
         'government-region-group-panel',
         'government-region-results-panel',

@@ -1,125 +1,177 @@
-/* 정부지원 CRM — 지역별 보기 페이지 */
+/* 정부지원 CRM — 지역별 보기 페이지 (compact layout) */
 
 .government-user-layout .government-region-page {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
   min-width: 0;
+  min-height: calc(100vh - 120px);
   background: #f5f7fb;
-  padding: 20px;
+  padding: 16px 20px 20px;
   box-sizing: border-box;
 }
 
-.government-user-layout .government-region-page__hero {
+.government-user-layout .government-region-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.government-user-layout .government-region-page-heading {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.government-user-layout .government-region-page__title {
-  margin: 0;
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.government-user-layout .government-region-page__description {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #64748b;
-  line-height: 1.5;
-}
-
-.government-user-layout .government-region-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.government-user-layout .government-region-summary-card {
-  background: #ffffff;
-  border: 1px solid #d7dee8;
-  border-radius: 16px;
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 
-.government-user-layout .government-region-summary-card__label {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: #64748b;
-}
-
-.government-user-layout .government-region-summary-card__value {
-  font-size: 1.5rem;
+.government-user-layout .government-region-page-heading__title {
+  margin: 0;
+  font-size: 1.2rem;
   font-weight: 800;
   color: #0f172a;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
-.government-user-layout .government-region-filter-card {
-  background: #ffffff;
-  border: 1px solid #d7dee8;
-  border-radius: 16px;
-  padding: 18px 20px;
-}
-
-.government-user-layout .government-region-filter-card__grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  align-items: end;
-}
-
-.government-user-layout .government-region-filter-card__field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.government-user-layout .government-region-filter-card__field--wide {
-  grid-column: span 2;
-}
-
-.government-user-layout .government-region-filter-card__label {
+.government-user-layout .government-region-page-heading__description {
+  margin: 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.government-user-layout .government-region-summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.government-user-layout .government-region-summary-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid #d7dee8;
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
   color: #475569;
+  white-space: nowrap;
 }
 
-.government-user-layout .government-region-filter-card__actions {
+.government-user-layout .government-region-summary-chip strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.government-user-layout .government-region-compact-toolbar {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+.government-user-layout .government-region-compact-toolbar__main {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.government-user-layout .government-region-search-input {
+  flex: 1 1 220px;
+  min-width: 160px;
+  min-height: 38px;
+  height: 38px;
+}
+
+.government-user-layout .government-region-filter-select {
+  flex: 0 0 160px;
+  width: 160px;
+  min-height: 38px;
+  height: 38px;
+}
+
+.government-user-layout .government-region-filter-select--sort {
+  flex-basis: 140px;
+  width: 140px;
+}
+
+.government-user-layout .government-region-advanced-filter-toggle,
+.government-user-layout .government-region-reset-button {
+  flex-shrink: 0;
+  min-height: 38px;
+  height: 38px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.government-user-layout .government-region-advanced-filter-toggle--active {
+  border-color: #f2b800;
+  background: #fffdf0;
+  color: #92400e;
+}
+
+.government-user-layout .government-region-compact-toolbar__advanced {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.government-user-layout .government-region-compact-toolbar__advanced .government-region-filter-select {
+  flex: 1 1 160px;
+  width: auto;
+  max-width: 220px;
 }
 
 .government-user-layout .government-region-layout {
   display: grid;
-  grid-template-columns: minmax(240px, 0.85fr) minmax(0, 1.15fr);
+  grid-template-columns: 340px minmax(0, 1fr);
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
   min-width: 0;
 }
 
 .government-user-layout .government-region-group-panel,
 .government-user-layout .government-region-results-panel {
+  display: flex;
+  flex-direction: column;
   background: #ffffff;
   border: 1px solid #d7dee8;
   border-radius: 16px;
-  padding: 18px 20px;
+  padding: 14px 16px;
   min-width: 0;
+  min-height: 420px;
+  max-height: calc(100vh - 220px);
+  overflow: hidden;
 }
 
 .government-user-layout .government-region-group-panel__title,
 .government-user-layout .government-region-results-panel__title {
-  margin: 0 0 14px;
-  font-size: 1rem;
+  flex-shrink: 0;
+  margin: 0 0 10px;
+  font-size: 0.9375rem;
   font-weight: 800;
   color: #0f172a;
+}
+
+.government-user-layout .government-region-group-list,
+.government-user-layout .government-region-result-table {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .government-user-layout .government-region-group-list {
@@ -137,9 +189,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #ffffff;
   color: #0f172a;
   text-align: left;
@@ -147,7 +199,7 @@
 }
 
 .government-user-layout .government-region-group-item__label {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1.4;
   word-break: break-word;
@@ -155,7 +207,7 @@
 
 .government-user-layout .government-region-group-item__count {
   flex-shrink: 0;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 800;
   color: #64748b;
 }
@@ -169,72 +221,85 @@
 .government-user-layout .government-region-result-table {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .government-user-layout .government-region-result-card {
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 12px 14px;
   background: #ffffff;
 }
 
-.government-user-layout .government-region-result-card__head {
+.government-user-layout .government-region-result-card__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .government-user-layout .government-region-result-card__title {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 800;
   color: #0f172a;
   word-break: break-word;
+  line-height: 1.35;
+}
+
+.government-user-layout .government-region-result-card__actions {
+  flex-shrink: 0;
 }
 
 .government-user-layout .government-region-result-card__detail-link {
-  flex-shrink: 0;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.government-user-layout .government-region-result-card__meta {
+.government-user-layout .government-region-result-card__address {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.government-user-layout .government-region-result-card__meta-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 12px;
   margin: 0;
 }
 
-.government-user-layout .government-region-result-card__meta div {
+.government-user-layout .government-region-result-card__meta-grid div {
   min-width: 0;
 }
 
-.government-user-layout .government-region-result-card__meta dt {
+.government-user-layout .government-region-result-card__meta-grid dt {
   margin: 0 0 2px;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   color: #64748b;
 }
 
-.government-user-layout .government-region-result-card__meta dd {
+.government-user-layout .government-region-result-card__meta-grid dd {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #0f172a;
   word-break: break-word;
 }
 
-.government-user-layout .government-region-result-card__meta-row--wide {
-  grid-column: 1 / -1;
-}
-
 .government-user-layout .government-region-empty {
   margin: 0;
-  padding: 18px;
+  padding: 16px;
   border: 1px dashed #cbd5e1;
   border-radius: 12px;
   text-align: center;
@@ -244,16 +309,16 @@
 }
 
 @media (max-width: 1200px) {
-  .government-user-layout .government-region-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .government-user-layout .government-region-compact-toolbar__main {
+    flex-wrap: wrap;
   }
 
-  .government-user-layout .government-region-filter-card__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .government-user-layout .government-region-search-input {
+    flex: 1 1 100%;
   }
 
-  .government-user-layout .government-region-filter-card__field--wide {
-    grid-column: span 2;
+  .government-user-layout .government-region-result-card__meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -261,31 +326,65 @@
   .government-user-layout .government-region-layout {
     grid-template-columns: 1fr;
   }
+
+  .government-user-layout .government-region-group-panel,
+  .government-user-layout .government-region-results-panel {
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .government-user-layout .government-region-group-list,
+  .government-user-layout .government-region-result-table {
+    overflow: visible;
+  }
 }
 
 @media (max-width: 768px) {
   .government-user-layout .government-region-page {
-    padding: 16px;
+    padding: 14px 16px 16px;
+    min-height: 0;
+    gap: 10px;
   }
 
-  .government-user-layout .government-region-summary-grid,
-  .government-user-layout .government-region-filter-card__grid,
-  .government-user-layout .government-region-result-card__meta {
-    grid-template-columns: 1fr;
-  }
-
-  .government-user-layout .government-region-filter-card__field--wide {
-    grid-column: auto;
-  }
-
-  .government-user-layout .government-region-filter-card__actions,
-  .government-user-layout .government-region-result-card__head {
+  .government-user-layout .government-region-page-header {
     flex-direction: column;
     align-items: stretch;
   }
 
+  .government-user-layout .government-region-compact-toolbar__main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .government-user-layout .government-region-search-input,
+  .government-user-layout .government-region-filter-select,
+  .government-user-layout .government-region-filter-select--sort {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
+  }
+
+  .government-user-layout .government-region-advanced-filter-toggle,
   .government-user-layout .government-region-reset-button,
   .government-user-layout .government-region-result-card__detail-link {
     width: 100%;
+  }
+
+  .government-user-layout .government-region-compact-toolbar__advanced {
+    flex-direction: column;
+  }
+
+  .government-user-layout .government-region-compact-toolbar__advanced .government-region-filter-select {
+    max-width: none;
+  }
+
+  .government-user-layout .government-region-result-card__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .government-user-layout .government-region-result-card__meta-grid {
+    grid-template-columns: 1fr;
   }
 }
