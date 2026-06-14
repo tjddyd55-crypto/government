@@ -1,7 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ResponsiveLayout from '../../../../components/ResponsiveLayout'
-import { useConfirmDialog } from '../../../../components/dialog'
+import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
 import { useAuth } from '../../../auth/AuthProvider'
 import { localYmd } from '../../../customers/utils/consultationBodyFormat'
 import {
@@ -26,7 +26,7 @@ export default function GovernmentProfileProgressPanel() {
   const { token } = useAuth()
   const ws = useGovernmentProfileWorkspaceContext()
   const profile = ws.selected
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
 
   const [rows, setRows] = useState<GovProfileProgressEvent[]>([])
   const [status, setStatus] = useState(() =>
@@ -113,8 +113,9 @@ export default function GovernmentProfileProgressPanel() {
     }
     const confirmed = await confirm({
       title: '진행 이력 삭제',
-      message: '정말 삭제하시겠습니까?',
+      message: '이 진행 이력을 삭제하시겠습니까?',
       confirmLabel: '삭제',
+      cancelLabel: '취소',
       tone: 'danger',
     })
     if (!confirmed) {

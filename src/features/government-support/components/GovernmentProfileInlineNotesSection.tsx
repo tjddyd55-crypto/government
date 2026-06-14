@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useConfirmDialog } from '../../../components/dialog'
+import { useGovernmentConfirmDialog } from '../hooks/useGovernmentConfirmDialog'
 import { FormTextarea, FormButton } from '../../../components/form'
 import Modal from '../../../components/ui/Modal'
 import {
@@ -48,7 +48,7 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
     setLocalMemos(memos)
   }, [serverMemosSignature, memos])
 
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
 
   const sortedItems = useMemo(() => {
     return [...localMemos].sort(
@@ -216,12 +216,7 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
     }
     const ok = await confirm({
       title: '메모 삭제',
-      message: (
-        <>
-          <p className="m-0 mb-2">메모를 삭제하시겠습니까?</p>
-          <p className="m-0 text-sm text-[var(--text-secondary)]">삭제한 메모는 되돌릴 수 없습니다.</p>
-        </>
-      ),
+      message: '메모를 삭제하시겠습니까? 삭제한 메모는 되돌릴 수 없습니다.',
       confirmLabel: '삭제',
       cancelLabel: '취소',
       tone: 'danger',

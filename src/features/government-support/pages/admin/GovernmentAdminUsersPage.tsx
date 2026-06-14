@@ -1,6 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FormDialog, useConfirmDialog } from '../../../../components/dialog'
+import { FormDialog } from '../../../../components/dialog'
+import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
 import { EmptyState, LoadingState, StatusMessage } from '../../../../components/feedback'
 import { FieldWrapper, FormButton, FormInput, FormSelect } from '../../../../components/form'
 import { useAuth } from '../../../auth/AuthProvider'
@@ -104,7 +105,7 @@ function roleFilterOptions(): { value: string; label: string }[] {
 export default function GovernmentAdminUsersPage() {
   const { token } = useAuth()
   const { summary } = useGovernmentAccess(token)
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
 
   const isFullAccess = Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
   const staffRoleOptions = useMemo(() => roleOptionsForManager(isFullAccess), [isFullAccess])

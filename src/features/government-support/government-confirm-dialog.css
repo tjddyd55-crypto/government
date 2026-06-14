@@ -1,0 +1,93 @@
+/* 정부지원 CRM — 확인/삭제/정지 모달 (화이트 패널 + 옐로 primary) */
+
+.government-confirm-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+  box-sizing: border-box;
+}
+
+.government-confirm-dialog__panel {
+  width: min(100%, 480px);
+  max-height: min(86vh, 640px);
+  overflow: auto;
+  padding: 20px 22px;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+  outline: none;
+}
+
+.government-confirm-dialog__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.government-confirm-dialog__message {
+  margin: 12px 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: #64748b;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.government-confirm-dialog__message p {
+  margin: 0 0 8px;
+  color: #64748b;
+}
+
+.government-confirm-dialog__message p:last-child {
+  margin-bottom: 0;
+}
+
+.government-confirm-dialog__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* legacy ConfirmDialog(BaseDialog) 잔존 호출 대비 — 정부 scope 패널 white 강제 */
+.government-user-layout .customer-ui-modal-panel:not(.government-admin-modal-panel),
+.government-admin-white-theme .customer-ui-modal-panel:not(.government-admin-modal-panel),
+.government-auth-white-theme .customer-ui-modal-panel:not(.government-admin-modal-panel),
+.government-page .customer-ui-modal-panel:not(.government-admin-modal-panel) {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  color: #0f172a;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.government-user-layout .customer-ui-modal-backdrop,
+.government-admin-white-theme .customer-ui-modal-backdrop,
+.government-auth-white-theme .customer-ui-modal-backdrop,
+.government-page .customer-ui-modal-backdrop {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.government-user-layout .customer-ui-modal-panel:not(.government-admin-modal-panel) h3,
+.government-admin-white-theme .customer-ui-modal-panel:not(.government-admin-modal-panel) h3 {
+  color: #0f172a;
+}
+
+.government-user-layout .customer-ui-modal-panel:not(.government-admin-modal-panel) .dialog-actions,
+.government-admin-white-theme .customer-ui-modal-panel:not(.government-admin-modal-panel) .dialog-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}

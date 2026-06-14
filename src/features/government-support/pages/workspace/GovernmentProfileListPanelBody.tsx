@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useConfirmDialog } from '../../../../components/dialog'
+import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
 import FormButton from '../../../../components/form/FormButton'
 import {
   GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH,
@@ -19,7 +19,7 @@ const EMPTY_LIST_HINT = '등록된 사업장이 없습니다. 사업장을 먼�
 export default function GovernmentProfileListPanelBody() {
   const ws = useGovernmentProfileWorkspaceContext()
   const navigate = useNavigate()
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
   const [editTarget, setEditTarget] = useState<GovSupportProfile | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 

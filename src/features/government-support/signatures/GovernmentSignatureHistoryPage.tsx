@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FormButton, FormInput, FormSelect } from '../../../components/form'
-import { useConfirmDialog } from '../../../components/dialog'
+import { useGovernmentConfirmDialog } from '../hooks/useGovernmentConfirmDialog'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import '../../pdf-engine/pdf-engine.css'
 import '../signatureTemplates/government-signature-console.css'
@@ -35,7 +35,7 @@ const HISTORY_MOBILE_MQ = '(max-width: 768px)'
 export default function GovernmentSignatureHistoryPage() {
   const navigate = useNavigate()
   const { token } = useAuth()
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
   const t = token?.trim() ?? ''
   const historyMobile = useMediaQuery(HISTORY_MOBILE_MQ)
 

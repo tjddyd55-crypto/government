@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { FormDialog, useConfirmDialog } from '../../../../components/dialog'
+import { FormDialog } from '../../../../components/dialog'
+import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
 import { EmptyState, LoadingState, StatusMessage } from '../../../../components/feedback'
 import { FieldWrapper, FormButton, FormInput, FormSelect, FormTextarea } from '../../../../components/form'
 import { useAuth } from '../../../auth/AuthProvider'
@@ -52,7 +53,7 @@ const EMPTY_FORM: NoticeForm = {
 export default function GovernmentAdminNoticesPage() {
   const { token } = useAuth()
   const { summary } = useGovernmentAccess(token)
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
   const isIndustryAdmin = Boolean(summary?.isSuperAdmin || summary?.isGovernmentIndustryAdmin)
   const canPickScope = isIndustryAdmin
   const isAgencyAdmin = canManageGovernmentUsers(summary)

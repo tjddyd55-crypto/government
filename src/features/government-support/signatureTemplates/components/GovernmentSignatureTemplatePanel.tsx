@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useState } from 'react'
-import { useConfirmDialog } from '../../../../components/dialog'
+import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
 import { FormButton, FormInput, FormSelect, FormTextarea } from '../../../../components/form'
 import { useMediaQuery } from '../../../../hooks/useMediaQuery'
 import type { GovernmentSignatureTemplateDetail, GovernmentSignatureTemplateListItem } from '../governmentSignatureTemplateClient'
@@ -149,7 +149,7 @@ export function GovernmentSignatureTemplatePanel({
   onCreateTemplate,
   onClearPdfFilter,
 }: Props) {
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
   const isAdminMobile = useMediaQuery('(max-width: 768px)')
   const [modal, setModal] = useState<{ kind: ModalKind; templateId: string } | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)

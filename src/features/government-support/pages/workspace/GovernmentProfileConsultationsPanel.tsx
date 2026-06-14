@@ -1,7 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ResponsiveLayout from '../../../../components/ResponsiveLayout'
-import { useConfirmDialog } from '../../../../components/dialog'
+import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
 import { useAuth } from '../../../auth/AuthProvider'
 import { TodoEditorDialog, type TodoCreatePrefill } from '../../../todos/components/TodoEditorDialog'
 import { firstLineTodoTitle } from '../../../todos/utils/todoCopy'
@@ -26,7 +26,7 @@ export default function GovernmentProfileConsultationsPanel() {
   const profile = ws.selected
   const gaIdNumeric =
     user?.gaId != null && Number.isFinite(Number(user.gaId)) ? Number(user.gaId) : null
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
 
   const [todoDialogOpen, setTodoDialogOpen] = useState(false)
   const [todoDialogSession, setTodoDialogSession] = useState(0)
@@ -93,8 +93,9 @@ export default function GovernmentProfileConsultationsPanel() {
     }
     const confirmed = await confirm({
       title: '상담 삭제',
-      message: '정말 삭제하시겠습니까?',
+      message: '이 상담 기록을 삭제하시겠습니까?',
       confirmLabel: '삭제',
+      cancelLabel: '취소',
       tone: 'danger',
     })
     if (!confirmed) {

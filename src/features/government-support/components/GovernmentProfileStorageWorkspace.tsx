@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FormButton } from '../../../components/form'
 import Modal from '../../../components/ui/Modal'
-import StorageDeleteDialog from '../../storage/components/StorageDeleteDialog'
 import StorageFileList from '../../storage/components/StorageFileList'
 import StorageRenameDialog from '../../storage/components/StorageRenameDialog'
+import { GovernmentConfirmDialog } from './GovernmentConfirmDialog'
 import type { StorageFileDownloadLinkEntry, StorageFileRow, StorageFolderRow } from '../../storage/api/storageApi'
 import {
   GOVERNMENT_PROFILE_FILE_ALLOWED_MIME,
@@ -714,30 +714,36 @@ export default function GovernmentProfileStorageWorkspace({
         loading={submitting}
       />
 
-      <StorageDeleteDialog
+      <GovernmentConfirmDialog
         open={deleteFolderTarget != null}
         title="문서 분류 삭제"
-        description={
+        message={
           deleteFolderTarget
             ? `「${deleteFolderTarget.folder.name}」 분류를 삭제하시겠습니까? 파일이 있는 분류는 삭제할 수 없습니다.`
             : ''
         }
-        onClose={() => setDeleteFolderTarget(null)}
+        confirmLabel="삭제"
+        cancelLabel="취소"
+        tone="danger"
+        busy={submitting}
+        onCancel={() => setDeleteFolderTarget(null)}
         onConfirm={() => {
           void submitDeleteFolder()
         }}
-        loading={submitting}
       />
 
-      <StorageDeleteDialog
+      <GovernmentConfirmDialog
         open={deleteTarget != null}
         title="파일 삭제"
-        description={deleteTarget ? `「${deleteTarget.displayName}」 파일을 삭제하시겠습니까?` : ''}
-        onClose={() => setDeleteTarget(null)}
+        message={deleteTarget ? `「${deleteTarget.displayName}」 파일을 삭제하시겠습니까?` : ''}
+        confirmLabel="삭제"
+        cancelLabel="취소"
+        tone="danger"
+        busy={submitting}
+        onCancel={() => setDeleteTarget(null)}
         onConfirm={() => {
           void submitDelete()
         }}
-        loading={submitting}
       />
 
       <Modal

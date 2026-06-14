@@ -1,7 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ResponsiveLayout from '../../../../components/ResponsiveLayout'
-import { useConfirmDialog } from '../../../../components/dialog'
+import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
 import { useAuth } from '../../../auth/AuthProvider'
 import {
   createGovProfileApplication,
@@ -31,7 +31,7 @@ export default function GovernmentProfileApplicationsPanel() {
   const { token } = useAuth()
   const ws = useGovernmentProfileWorkspaceContext()
   const profile = ws.selected
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
 
   const [rows, setRows] = useState<GovProfileApplication[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)

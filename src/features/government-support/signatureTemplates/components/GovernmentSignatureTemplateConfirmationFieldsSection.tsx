@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useState } from 'react'
-import { useConfirmDialog } from '../../../../components/dialog'
+import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
 import { FormButton, FormInput, FormSelect, FormTextarea } from '../../../../components/form'
 import { mapGovernmentSignatureApiError } from '../../signatures/governmentSignatureUserDisplay'
 import {
@@ -91,7 +91,7 @@ export function GovernmentSignatureTemplateConfirmationFieldsSection({
   disabled,
   onError,
 }: Props) {
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<GovernmentSignatureTemplateConfirmationField[]>([])
   const [submitting, setSubmitting] = useState(false)

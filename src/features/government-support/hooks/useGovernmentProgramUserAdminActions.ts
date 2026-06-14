@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { useConfirmDialog } from '../../../components/dialog'
+import { useGovernmentConfirmDialog } from './useGovernmentConfirmDialog'
 import { useAuth } from '../../auth/AuthProvider'
 import {
   deleteGovernmentProgramUser,
@@ -14,7 +14,7 @@ type UseGovernmentProgramUserAdminActionsOptions = {
 
 export function useGovernmentProgramUserAdminActions(options: UseGovernmentProgramUserAdminActionsOptions = {}) {
   const { token, user } = useAuth()
-  const { confirm, confirmDialog } = useConfirmDialog()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
   const [actingUserId, setActingUserId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
@@ -42,7 +42,7 @@ export function useGovernmentProgramUserAdminActions(options: UseGovernmentProgr
         message: `"${displayName}" 이용자를 정지하시겠습니까? 정지된 이용자는 서비스를 사용할 수 없습니다.`,
         confirmLabel: '정지',
         cancelLabel: '취소',
-        tone: 'default',
+        tone: 'danger',
       })
       if (!ok) return
       await runAction(targetUserId, async () => {
@@ -71,7 +71,7 @@ export function useGovernmentProgramUserAdminActions(options: UseGovernmentProgr
   const archiveUser = useCallback(
     async (targetUserId: string, displayName: string) => {
       const ok = await confirm({
-        title: '이용자 삭제(보관)',
+        title: '이용자 삭제',
         message: `"${displayName}" 이용자를 삭제/보관하시겠습니까? 사업장·신청·파일 기록은 삭제되지 않습니다.`,
         confirmLabel: '삭제',
         cancelLabel: '취소',
