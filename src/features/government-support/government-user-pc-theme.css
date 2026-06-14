@@ -1052,8 +1052,12 @@
 
 .government-user-layout--pc-user .government-profile-workspace .gov-workspace-compose-card__actions .form-button,
 .government-user-layout--pc-user .government-profile-workspace .gov-workspace-compose-card__actions .button,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-progress-compose-actions .form-button,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-progress-compose-actions .button,
 .government-user-layout--pc-user .government-profile-workspace .gov-workspace-record-card__actions .form-button,
 .government-user-layout--pc-user .government-profile-workspace .gov-workspace-record-card__actions .button,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-progress-history-actions .form-button,
+.government-user-layout--pc-user .government-profile-workspace .government-profile-progress-history-actions .button,
 .government-user-layout--pc-user .government-profile-workspace .gov-workspace-record-section__head .form-button,
 .government-user-layout--pc-user .government-profile-workspace .customers-page__action-row--gov .form-button,
 .government-user-layout--pc-user .government-profile-workspace .government-profile-basic-info-panel__edit-actions .form-button {

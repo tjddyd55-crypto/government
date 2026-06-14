@@ -1,0 +1,361 @@
+/* 정부지원 CRM — 프로필 진행상황 탭 전용 레이아웃 */
+
+.government-profile-workspace .government-profile-progress-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.government-profile-workspace .government-profile-progress-summary-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+.government-profile-workspace .government-profile-progress-summary-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.government-profile-workspace .government-profile-progress-summary-title {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.government-profile-workspace .government-profile-progress-summary-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.government-profile-workspace .government-profile-progress-summary-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border: 1px solid #d7dee8;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.government-profile-workspace .government-profile-progress-summary-badge--blue {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.government-profile-workspace .government-profile-progress-summary-badge--amber {
+  background: #fff8d6;
+  border-color: #f2b800;
+  color: #92400e;
+}
+
+.government-profile-workspace .government-profile-progress-summary-badge--green {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.government-profile-workspace .government-profile-progress-summary-badge--red {
+  background: #fff1f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.government-profile-workspace .government-profile-progress-summary-badge--neutral {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+.government-profile-workspace .government-profile-progress-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.government-profile-workspace .government-profile-progress-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  min-width: 0;
+}
+
+.government-profile-workspace .government-profile-progress-summary-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.government-profile-workspace .government-profile-progress-summary-value {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.government-profile-workspace .government-profile-progress-summary-value--blue {
+  color: #1d4ed8;
+}
+
+.government-profile-workspace .government-profile-progress-summary-value--amber {
+  color: #92400e;
+}
+
+.government-profile-workspace .government-profile-progress-summary-value--green {
+  color: #166534;
+}
+
+.government-profile-workspace .government-profile-progress-summary-value--red {
+  color: #b91c1c;
+}
+
+.government-profile-workspace .government-profile-progress-summary-value--neutral {
+  color: #64748b;
+}
+
+.government-profile-workspace .government-profile-progress-summary-empty {
+  margin: 0;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.government-profile-workspace .government-profile-progress-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  gap: 16px;
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+}
+
+.government-profile-workspace .government-profile-progress-compose-card,
+.government-profile-workspace .government-profile-progress-history-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 16px;
+  padding: 18px 20px;
+  min-width: 0;
+}
+
+.government-profile-workspace .government-profile-progress-compose-header,
+.government-profile-workspace .government-profile-progress-history-header {
+  margin-bottom: 14px;
+}
+
+.government-profile-workspace .government-profile-progress-compose-title,
+.government-profile-workspace .government-profile-progress-history-title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.government-profile-workspace .government-profile-progress-compose-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.government-profile-workspace .government-profile-progress-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.government-profile-workspace .government-profile-progress-history-count {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.government-profile-workspace .government-profile-progress-compose-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.government-profile-workspace .government-profile-progress-compose-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.government-profile-workspace .government-profile-progress-compose-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.government-profile-workspace .government-profile-progress-compose-label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.government-profile-workspace .government-profile-progress-compose-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.government-profile-workspace .government-profile-progress-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.government-profile-workspace .government-profile-progress-history-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.government-profile-workspace .government-profile-progress-history-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.government-profile-workspace .government-profile-progress-history-date {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.government-profile-workspace .government-profile-progress-history-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  border: 1px solid #d7dee8;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.government-profile-workspace .government-profile-progress-history-status--blue {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.government-profile-workspace .government-profile-progress-history-status--amber {
+  background: #fff8d6;
+  border-color: #f2b800;
+  color: #92400e;
+}
+
+.government-profile-workspace .government-profile-progress-history-status--green {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.government-profile-workspace .government-profile-progress-history-status--red {
+  background: #fff1f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.government-profile-workspace .government-profile-progress-history-status--neutral {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+.government-profile-workspace .government-profile-progress-history-title-text {
+  margin-bottom: 6px;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.government-profile-workspace .government-profile-progress-history-note {
+  font-size: 0.875rem;
+  color: #334155;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.government-profile-workspace .government-profile-progress-history-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.government-profile-workspace .government-profile-progress-history-empty {
+  margin: 0;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 1024px) {
+  .government-profile-workspace .government-profile-progress-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .government-profile-workspace .government-profile-progress-summary-card,
+  .government-profile-workspace .government-profile-progress-compose-card,
+  .government-profile-workspace .government-profile-progress-history-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .government-profile-workspace .government-profile-progress-compose-row {
+    grid-template-columns: 1fr;
+  }
+
+  .government-profile-workspace .government-profile-progress-compose-actions,
+  .government-profile-workspace .government-profile-progress-history-actions {
+    justify-content: stretch;
+  }
+
+  .government-profile-workspace .government-profile-progress-submit-button,
+  .government-profile-workspace .government-profile-progress-history-actions .gov-btn {
+    width: 100%;
+  }
+}

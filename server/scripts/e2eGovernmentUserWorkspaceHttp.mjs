@@ -476,10 +476,12 @@ async function main() {
     else fail(`progress tab bundle contains status ${statusLabel}`)
   }
   for (const m of [
-    'government-profile-progress-compose-inline',
+    'government-profile-progress-page',
+    'government-profile-progress-summary-card',
+    'government-profile-progress-content-grid',
+    'government-profile-progress-compose-card',
+    'government-profile-progress-history-card',
     'government-profile-progress-record-list',
-    'gov-workspace-compose-card',
-    'gov-workspace-record-card',
     'gov-btn--primary',
     'gov-form-control',
   ]) {
