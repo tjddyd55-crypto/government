@@ -1,18 +1,18 @@
 import { Link } from 'react-router-dom'
-import { EmptyState, LoadingState, StatusMessage } from '../../../../components/feedback'
-import { FormButton, FormInput, FormSelect } from '../../../../components/form'
-import { getGovernmentProgressStatusLabel } from '../../constants/governmentProgressStatus'
-import { governmentMyApplicationTabPath } from '../../constants/governmentRouteKeys'
+import { EmptyState, LoadingState, StatusMessage } from '../../../../../components/feedback'
+import { FormButton, FormInput, FormSelect } from '../../../../../components/form'
+import { getGovernmentProgressStatusLabel } from '../../../constants/governmentProgressStatus'
+import { governmentMyApplicationTabPath } from '../../../constants/governmentRouteKeys'
 import {
   displayGovField,
   formatGovProfileDateTime,
   maskBusinessNumber,
-} from '../../lib/governmentProfileDisplay'
+} from '../../../lib/governmentProfileDisplay'
 import {
   getGovernmentProfileAddress,
   GOVERNMENT_REGION_SORT_OPTIONS,
-} from '../../utils/governmentAddressRegionUtils'
-import type { GovernmentRegionsViewProps } from '../../hooks/useGovernmentRegionsState'
+} from '../../../utils/governmentAddressRegionUtils'
+import type { GovernmentRegionsViewProps } from '../../../hooks/useGovernmentRegionsState'
 
 function profileDisplayName(profile: GovernmentRegionsViewProps['profiles'][number]) {
   return profile.businessName?.trim() || profile.customerName?.trim() || '—'
