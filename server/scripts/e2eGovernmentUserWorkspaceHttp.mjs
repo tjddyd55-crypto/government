@@ -145,6 +145,8 @@ async function main() {
     'gov-btn--primary',
     '/government/my-applications',
     '내 사업장/신청',
+    '지역별 보기',
+    '/government/regions',
     '/government/me',
     '기본정보',
     'government-profile-basic-info-panel',
@@ -177,6 +179,19 @@ async function main() {
   const userThemePageChecks = [
     { path: '/government/my-applications', label: 'applications shell', markers: ['gov-form-control', 'gov-applications-page'] },
     { path: '/government/notices', label: 'notices', markers: ['gov-user-notices-page', 'gov-form-control'] },
+    {
+      path: '/government/regions',
+      label: 'regions',
+      markers: [
+        'government-region-page',
+        'government-region-summary-grid',
+        'government-region-filter-card',
+        'government-region-layout',
+        'government-region-group-panel',
+        'government-region-results-panel',
+        'gov-form-control',
+      ],
+    },
     { path: '/government/resources', label: 'resources', markers: ['gov-user-resources-page', 'gov-form-control'] },
     { path: '/government/me', label: 'me', markers: ['gov-user-me-page'] },
     { path: '/government/signatures', label: 'signatures', markers: ['gov-user-signatures-page', 'gov-form-control'] },

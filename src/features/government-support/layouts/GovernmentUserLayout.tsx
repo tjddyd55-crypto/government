@@ -18,6 +18,7 @@ import '../government-user-pc-theme.css'
 import '../government-user-ops-pages.css'
 import '../government-user-inquiries-pages.css'
 import '../government-profile-progress-pages.css'
+import '../government-regions-pages.css'
 import '../government-confirm-dialog.css'
 
 export default function GovernmentUserLayout() {

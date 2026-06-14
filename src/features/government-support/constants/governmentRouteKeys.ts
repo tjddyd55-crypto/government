@@ -9,6 +9,7 @@ export const GOVERNMENT_ROUTE_PATHS = Object.freeze({
   workspace: '/government/workspace',
   myApplications: '/government/my-applications',
   myApplicationsIndex: '/government/my-applications/',
+  regions: '/government/regions',
   me: '/government/me',
   notices: '/government/notices',
   resources: '/government/resources',

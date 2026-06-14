@@ -15,6 +15,7 @@ export const GOVERNMENT_USER_NAV: GovernmentUserNavItem[] = [
     label: '내 사업장/신청',
     matchPrefix: GOVERNMENT_ROUTE_PATHS.myApplications,
   },
+  { to: GOVERNMENT_ROUTE_PATHS.regions, label: '지역별 보기' },
   { to: GOVERNMENT_ROUTE_PATHS.signatures, label: '전자서명' },
   { to: GOVERNMENT_ROUTE_PATHS.inquiries, label: '문의/요청' },
   { to: GOVERNMENT_ROUTE_PATHS.notices, label: '공지사항' },

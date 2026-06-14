@@ -76,6 +76,7 @@ export function buildGovernmentUserMobileMenu(): GaTenantDashboardMenuEntry[] {
 export function buildGovernmentUserHomeMenu(): GaTenantDashboardMenuEntry[] {
   return [
     { type: 'link', label: '내 사업장/신청', path: GOVERNMENT_ROUTE_PATHS.myApplications },
+    { type: 'link', label: '지역별 보기', path: GOVERNMENT_ROUTE_PATHS.regions },
     { type: 'link', label: '문의/요청', path: GOVERNMENT_ROUTE_PATHS.inquiries },
     { type: 'link', label: '전자서명', path: GOVERNMENT_ROUTE_PATHS.appSignatures },
     { type: 'divider', label: '' },
@@ -104,6 +105,9 @@ export function isGovernmentMobileMenuPathActive(pathname: string, itemPath: str
       pathname === GOVERNMENT_ROUTE_PATHS.myApplications ||
       pathname.startsWith(`${GOVERNMENT_ROUTE_PATHS.myApplications}/`)
     )
+  }
+  if (itemPath === GOVERNMENT_ROUTE_PATHS.regions) {
+    return pathname === GOVERNMENT_ROUTE_PATHS.regions || pathname.startsWith(`${GOVERNMENT_ROUTE_PATHS.regions}/`)
   }
   if (itemPath === GOVERNMENT_ROUTE_PATHS.appRequests) {
     return (

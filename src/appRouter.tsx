@@ -152,6 +152,7 @@ import GovernmentUserNoticesPage from './features/government-support/pages/Gover
 import GovernmentUserInquiriesPage from './features/government-support/pages/GovernmentUserInquiriesPage'
 import GovernmentUserInquiryDetailPage from './features/government-support/pages/GovernmentUserInquiryDetailPage'
 import GovernmentUserResourcesPage from './features/government-support/pages/GovernmentUserResourcesPage'
+import GovernmentRegionsPage from './features/government-support/pages/user/GovernmentRegionsPage'
 import GovernmentPlaceholderPage from './features/government-support/components/GovernmentPlaceholderPage'
 import GovernmentProtectedRoute from './features/government-support/routes/GovernmentProtectedRoute'
 import { GovernmentAdminAccessShell } from './features/government-support/routes/GovernmentAdminAccessShell'
@@ -238,6 +239,7 @@ export const appRouter = createBrowserRouter([
                 ],
               },
               { path: 'government/notices', element: <GovernmentUserNoticesPage /> },
+              { path: 'government/regions', element: <GovernmentRegionsPage /> },
               { path: 'government/resources', element: <GovernmentUserResourcesPage /> },
               { path: 'government/inquiries', element: <GovernmentUserInquiriesPage /> },
               { path: 'government/inquiries/:inquiryId', element: <GovernmentUserInquiryDetailPage /> },
