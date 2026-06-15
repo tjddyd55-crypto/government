@@ -354,6 +354,56 @@
   color: var(--gov-ui-muted);
 }
 
+/* admin 전자서명 템플릿 (government-admin-signature-page — insurance-dark-forms 미사용 경로) */
+.government-admin-white-theme main.government-admin-signature-page.contract-signature-console {
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-admin-white-theme main.government-admin-signature-page .contract-signature-console__section,
+.government-admin-white-theme main.government-admin-signature-page .contract-signature-console__notice,
+.government-admin-white-theme main.government-admin-signature-page .government-admin-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+.government-admin-white-theme main.government-admin-signature-page .contract-signature-console__section-title,
+.government-admin-white-theme main.government-admin-signature-page .contract-signature-console__subsection-title,
+.government-admin-white-theme main.government-admin-signature-page .page-header h1 {
+  color: #0f172a;
+}
+
+.government-admin-white-theme main.government-admin-signature-page .contract-signature-console__body-text,
+.government-admin-white-theme main.government-admin-signature-page .contract-signature-console__hint,
+.government-admin-white-theme main.government-admin-signature-page .page-header p {
+  color: #64748b;
+}
+
+.government-admin-white-theme main.government-admin-signature-page .contract-signature-console__template-table th,
+.government-admin-white-theme main.government-admin-signature-page .pdf-engine-table th {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.government-admin-white-theme main.government-admin-signature-page .form-button--primary,
+.government-admin-white-theme main.government-admin-signature-page .button--primary {
+  background: #f2b800;
+  border-color: #f2b800;
+  color: #111827;
+}
+
+.government-admin-white-theme main.government-admin-signature-page .form-button--primary:hover:not(:disabled),
+.government-admin-white-theme main.government-admin-signature-page .button--primary:hover:not(:disabled) {
+  background: #d9a600;
+  border-color: #d9a600;
+}
+
+.government-admin-white-theme main.government-admin-signature-page .pdf-engine-editor__label {
+  color: #0f172a;
+  font-weight: 600;
+}
+
 /* 모달 */
 .government-admin-white-theme .government-profile-edit-modal,
 .government-admin-white-theme .admin-modal-panel,

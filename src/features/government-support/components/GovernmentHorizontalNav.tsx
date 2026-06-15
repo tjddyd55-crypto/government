@@ -1,21 +1,8 @@
 import { NavLink, useLocation } from 'react-router-dom'
+import type { GovernmentAdminNavItem } from '../config/governmentAdminNav'
+import { isGovernmentAdminNavItemActive } from '../config/governmentAdminNavActive'
 
-export type GovernmentHorizontalNavItem = {
-  to: string
-  label: string
-  end?: boolean
-  matchPrefix?: string
-}
-
-function isNavItemActive(pathname: string, item: GovernmentHorizontalNavItem): boolean {
-  if (item.matchPrefix) {
-    return pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`)
-  }
-  if (item.end) {
-    return pathname === item.to
-  }
-  return pathname === item.to || pathname.startsWith(`${item.to}/`)
-}
+export type GovernmentHorizontalNavItem = GovernmentAdminNavItem
 
 type GovernmentHorizontalNavProps = {
   items: GovernmentHorizontalNavItem[]
@@ -35,7 +22,7 @@ export default function GovernmentHorizontalNav({
     <nav className={['government-horizontal-nav', className].filter(Boolean).join(' ')} aria-label={ariaLabel}>
       <div className="government-horizontal-nav__items">
         {items.map((item) => {
-          const active = isNavItemActive(pathname, item)
+          const active = isGovernmentAdminNavItemActive(pathname, item)
           return (
             <NavLink
               key={item.to}

@@ -30,6 +30,8 @@ export type GaTenantDashboardMenuEntry =
       preparing?: boolean
       /** "개발중" 같이 항목 옆에 표시되는 짧은 배지 라벨(정보 전용). */
       badge?: string
+      /** 정부지원 admin: 템플릿/PDF 메뉴 active 분리 */
+      isActive?: (pathname: string) => boolean
     }
   | { type: 'divider' }
   | { type: 'section'; label: string }

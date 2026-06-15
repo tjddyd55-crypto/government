@@ -11,6 +11,7 @@ import {
   GOVERNMENT_STAFF_NAV,
   type GovernmentAdminNavItem,
 } from './governmentAdminNav'
+import { isGovernmentAdminNavItemActive } from './governmentAdminNavActive'
 
 function filterSignatureNavItems(items: GovernmentAdminNavItem[], allowSignatureSetup: boolean) {
   if (allowSignatureSetup) return items
@@ -26,6 +27,7 @@ function navToMenuEntries(items: GovernmentAdminNavItem[]): GaTenantDashboardMen
     type: 'link' as const,
     label: item.label,
     path: item.to,
+    isActive: item.isActive,
   }))
 }
 
@@ -86,7 +88,10 @@ export function buildGovernmentUserHomeMenu(): GaTenantDashboardMenuEntry[] {
   ]
 }
 
-export function isGovernmentMobileMenuPathActive(pathname: string, itemPath: string): boolean {
+export function isGovernmentMobileMenuPathActive(pathname: string, itemPath: string, isActive?: (pathname: string) => boolean): boolean {
+  if (isActive) {
+    return isActive(pathname)
+  }
   if (itemPath === GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH) {
     return (
       pathname === itemPath ||

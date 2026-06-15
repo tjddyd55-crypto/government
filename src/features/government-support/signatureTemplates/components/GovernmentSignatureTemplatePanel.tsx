@@ -264,14 +264,14 @@ export function GovernmentSignatureTemplatePanel({
             <span className="contract-signature-console__body-text">
               현재 &lsquo;{pdfTitle?.trim() || '선택한 PDF'}&rsquo; PDF 기반 템플릿만 표시 중입니다.
             </span>
-            <FormButton
-              htmlType="button"
-              variant="secondary"
-              size="sm"
-              className="contract-signature-console__filter-btn"
-              disabled={busy}
-              onClick={() => onClearPdfFilter()}
-            >
+        <FormButton
+          htmlType="button"
+          variant="secondary"
+          size="sm"
+          className="gov-btn gov-btn--secondary contract-signature-console__filter-btn"
+          disabled={busy}
+          onClick={() => onClearPdfFilter()}
+        >
               필터 해제
             </FormButton>
           </>
@@ -299,6 +299,7 @@ export function GovernmentSignatureTemplatePanel({
           htmlType="button"
           variant="primary"
           size="sm"
+          className="gov-btn gov-btn--primary"
           disabled={busy || pdfTemplateId == null}
           title={pdfTemplateId == null ? '먼저 원본 PDF 템플릿을 선택하세요.' : undefined}
           onClick={() => void runOp(onCreateTemplate)}
@@ -309,6 +310,7 @@ export function GovernmentSignatureTemplatePanel({
           htmlType="button"
           variant="secondary"
           size="sm"
+          className="gov-btn gov-btn--secondary"
           disabled={busy}
           onClick={() => {
             setConfirmOnlyTitle('')
@@ -396,7 +398,7 @@ export function GovernmentSignatureTemplatePanel({
                       htmlType="button"
                       variant="secondary"
                       size="sm"
-                      className="contract-signature-console__template-card-btn"
+                      className="gov-btn gov-btn--secondary contract-signature-console__template-card-btn"
                       disabled={busy}
                       onClick={() => setModal({ kind: 'detail', templateId: trow.id })}
                     >
@@ -406,7 +408,7 @@ export function GovernmentSignatureTemplatePanel({
                       htmlType="button"
                       variant="secondary"
                       size="sm"
-                      className="contract-signature-console__template-card-btn"
+                      className="gov-btn gov-btn--secondary contract-signature-console__template-card-btn"
                       disabled={busy}
                       onClick={() => openEdit(trow)}
                     >
@@ -416,7 +418,7 @@ export function GovernmentSignatureTemplatePanel({
                       htmlType="button"
                       variant="secondary"
                       size="sm"
-                      className="contract-signature-console__template-card-btn"
+                      className="gov-btn gov-btn--secondary contract-signature-console__template-card-btn"
                       disabled={busy}
                       onClick={() => openStatus(trow)}
                     >
@@ -426,7 +428,7 @@ export function GovernmentSignatureTemplatePanel({
                       htmlType="button"
                       variant="secondary"
                       size="sm"
-                      className="contract-signature-console__template-card-btn"
+                      className="gov-btn gov-btn--secondary contract-signature-console__template-card-btn"
                       disabled={busy}
                       onClick={() =>
                         void runOp(async () => {
@@ -576,6 +578,7 @@ export function GovernmentSignatureTemplatePanel({
                             htmlType="button"
                             variant="secondary"
                             size="sm"
+                            className="gov-btn gov-btn--secondary contract-signature-console__template-actions-btn"
                             disabled={busy}
                             onClick={() => setModal({ kind: 'detail', templateId: trow.id })}
                           >
@@ -585,6 +588,7 @@ export function GovernmentSignatureTemplatePanel({
                             htmlType="button"
                             variant="secondary"
                             size="sm"
+                            className="gov-btn gov-btn--secondary contract-signature-console__template-actions-btn"
                             disabled={busy}
                             onClick={() => openEdit(trow)}
                           >
@@ -594,6 +598,7 @@ export function GovernmentSignatureTemplatePanel({
                             htmlType="button"
                             variant="secondary"
                             size="sm"
+                            className="gov-btn gov-btn--secondary contract-signature-console__template-actions-btn"
                             disabled={busy}
                             onClick={() => openStatus(trow)}
                           >
@@ -603,6 +608,7 @@ export function GovernmentSignatureTemplatePanel({
                             htmlType="button"
                             variant="secondary"
                             size="sm"
+                            className="gov-btn gov-btn--secondary contract-signature-console__template-actions-btn"
                             disabled={busy}
                             onClick={() =>
                               void runOp(async () => {
@@ -617,6 +623,7 @@ export function GovernmentSignatureTemplatePanel({
                               htmlType="button"
                               variant="secondary"
                               size="sm"
+                              className="gov-btn gov-btn--secondary contract-signature-console__template-actions-btn"
                               disabled={busy}
                               title="보관(archived)로 전환하면 발송 목록에서 쓰지 않을 수 있습니다."
                               onClick={() =>
@@ -642,6 +649,7 @@ export function GovernmentSignatureTemplatePanel({
                             htmlType="button"
                             variant="secondary"
                             size="sm"
+                            className="gov-btn gov-btn--danger contract-signature-console__template-actions-btn"
                             disabled={busy || !canDelete}
                             title={deleteTitle}
                             aria-describedby={!canDelete && blockReason ? `tpl-del-dt-${trow.id}` : undefined}

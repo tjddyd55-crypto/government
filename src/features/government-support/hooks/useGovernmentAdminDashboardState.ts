@@ -125,8 +125,22 @@ export function useGovernmentAdminDashboardState(
         description: '운영 자료·서식 파일 관리',
       },
     )
+    if (canManageSignatures) {
+      list.push(
+        {
+          to: GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
+          title: '전자서명 템플릿',
+          description: '전자서명 발송용 문서 템플릿 관리',
+        },
+        {
+          to: GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+          title: 'PDF 좌표 설정',
+          description: 'PDF 업로드 및 서명 좌표 편집',
+        },
+      )
+    }
     return list
-  }, [agencyCount, programUserCount, showUserMgmt])
+  }, [agencyCount, programUserCount, showUserMgmt, canManageSignatures])
 
   const signatureSetupCards = useMemo((): GovernmentAdminDashboardHubCard[] => {
     if (!canManageSignatures) return []

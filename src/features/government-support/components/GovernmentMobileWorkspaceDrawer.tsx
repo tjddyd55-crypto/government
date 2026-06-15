@@ -56,7 +56,7 @@ export default function GovernmentMobileWorkspaceDrawer({
               !isDisabled &&
               item.path.trim() !== '' &&
               item.path !== '#' &&
-              isGovernmentMobileMenuPathActive(pathname, item.path)
+              isGovernmentMobileMenuPathActive(pathname, item.path, item.isActive)
             return (
               <FormButton
                 key={`${item.path}-${item.label}-${index}`}
