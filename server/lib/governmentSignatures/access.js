@@ -7,6 +7,7 @@
 
 import {
   canAccessGovernmentTenant,
+  isGovernmentIndustryAdmin,
   isGovernmentProgramUser,
   isGovernmentSuperAdmin,
 } from '../governmentSupport/governmentAccess.js'
@@ -65,8 +66,15 @@ export function isGovernmentSignatureOperationalActor(ctx) {
 }
 
 /**
+ * @param {import('../platformRbac.js').EffectivePlatformContext | undefined} ctx
+ */
+export function isGovernmentSignatureIndustryActor(ctx) {
+  return isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)
+}
+
+/**
  * @param {import('express').Request} req
- * @returns {{ mode: 'program'; userId: string } | { mode: 'operational'; userId: string; tenantIds: string[] } | null}
+ * @returns {{ mode: 'program'; userId: string; tenantIds?: string[] } | { mode: 'industry'; userId: string } | { mode: 'operational'; userId: string; tenantIds: string[] } | null}
  */
 export function resolveGovernmentSignatureAccessScope(req) {
   const ctx = getGovernmentSignaturePlatformContext(req)
@@ -78,6 +86,9 @@ export function resolveGovernmentSignatureAccessScope(req) {
     const tenantIds = getProgramUserTenantIds(ctx)
     return { mode: 'program', userId, tenantIds }
   }
+  if (isGovernmentSignatureIndustryActor(ctx)) {
+    return { mode: 'industry', userId }
+  }
   const tenantIds = getOperationalTenantIds(ctx)
   if (tenantIds.length === 0) {
     return null
@@ -86,7 +97,8 @@ export function resolveGovernmentSignatureAccessScope(req) {
 }
 
 /**
- * 템플릿/PDF 생성 시 저장할 tenant_id (operational·program 공통).
+ * 템플릿/PDF 생성 시 저장할 tenant_id (operational·program·industry).
+ * industry: scopeType global → null(전체 대행사), agency → tenantId
  * @param {import('express').Request} req
  * @returns {string | null}
  */
@@ -95,7 +107,22 @@ export function resolveGovSignatureTemplateTenantId(req) {
   if (!scope) {
     return null
   }
+  if (scope.mode === 'industry') {
+    const scopeType = String(
+      req.body?.scopeType ?? req.body?.scope_type ?? req.query?.scopeType ?? req.query?.scope_type ?? 'agency',
+    ).trim()
+    if (scopeType === 'global') {
+      return null
+    }
+    const raw = req.body?.tenantId ?? req.body?.tenant_id ?? req.query?.tenantId ?? req.query?.tenant_id
+    const tid = raw != null ? String(raw).trim() : ''
+    return tid || null
+  }
   if (scope.mode === 'operational') {
+    const scopeType = String(req.body?.scopeType ?? req.body?.scope_type ?? '').trim()
+    if (scopeType === 'global') {
+      return null
+    }
     if (scope.tenantIds.length === 1) {
       return scope.tenantIds[0]
     }
@@ -114,20 +141,26 @@ export function resolveGovSignatureTemplateTenantId(req) {
 }
 
 /**
- * @param {{ mode: 'program'; userId: string } | { mode: 'operational'; userId: string; tenantIds: string[] }} scope
+ * @param {{ mode: 'program'; userId: string; tenantIds?: string[] } | { mode: 'industry'; userId: string } | { mode: 'operational'; userId: string; tenantIds: string[] }} scope
  * @param {string} [alias]
  */
 export function buildGovSignatureTemplateListWhere(scope, alias = 't') {
   if (!scope) {
     return { sql: 'FALSE', params: [] }
   }
+  if (scope.mode === 'industry') {
+    return { sql: 'TRUE', params: [] }
+  }
   if (scope.mode === 'program') {
     const tenantIds = scope.tenantIds ?? []
     if (tenantIds.length === 0) {
-      return { sql: `${alias}.owner_user_id = $1`, params: [scope.userId] }
+      return {
+        sql: `(${alias}.owner_user_id = $1 OR ${alias}.tenant_id IS NULL)`,
+        params: [scope.userId],
+      }
     }
     return {
-      sql: `(${alias}.owner_user_id = $1 OR ${alias}.tenant_id::text = ANY($2::text[]))`,
+      sql: `(${alias}.owner_user_id = $1 OR ${alias}.tenant_id IS NULL OR ${alias}.tenant_id::text = ANY($2::text[]))`,
       params: [scope.userId, tenantIds],
     }
   }
@@ -146,11 +179,17 @@ export function canAccessGovSignatureTemplateRow(req, row) {
   if (!scope || !row) {
     return false
   }
+  if (scope.mode === 'industry') {
+    return true
+  }
   if (scope.mode === 'program') {
     if (String(row.owner_user_id ?? '') === scope.userId) {
       return true
     }
-    const tid = row.tenant_id != null ? String(row.tenant_id) : ''
+    if (row.tenant_id == null) {
+      return true
+    }
+    const tid = String(row.tenant_id)
     const tenantIds = scope.tenantIds ?? getProgramUserTenantIds(getGovernmentSignaturePlatformContext(req) ?? {})
     return Boolean(tid && tenantIds.includes(tid))
   }
@@ -174,11 +213,17 @@ export function canAccessGovPdfTemplateRow(req, row) {
   if (row.gov_owner_user_id == null && row.gov_tenant_id == null) {
     return false
   }
+  if (scope.mode === 'industry') {
+    return true
+  }
   if (scope.mode === 'program') {
     if (String(row.gov_owner_user_id ?? '') === scope.userId) {
       return true
     }
-    const tid = row.gov_tenant_id != null ? String(row.gov_tenant_id) : ''
+    if (row.gov_tenant_id == null) {
+      return true
+    }
+    const tid = String(row.gov_tenant_id)
     const tenantIds = scope.tenantIds ?? getProgramUserTenantIds(getGovernmentSignaturePlatformContext(req) ?? {})
     return Boolean(tid && tenantIds.includes(tid))
   }
@@ -202,6 +247,9 @@ export function canManageGovPdfTemplateRow(req, row) {
   if (row.gov_owner_user_id == null && row.gov_tenant_id == null) {
     return false
   }
+  if (scope.mode === 'industry') {
+    return true
+  }
   if (scope.mode === 'program') {
     return String(row.gov_owner_user_id ?? '') === scope.userId
   }
@@ -213,19 +261,25 @@ export function canManageGovPdfTemplateRow(req, row) {
 }
 
 /**
- * @param {{ mode: 'program'; userId: string; tenantIds?: string[] } | { mode: 'operational'; userId: string; tenantIds: string[] }} scope
+ * @param {{ mode: 'program'; userId: string; tenantIds?: string[] } | { mode: 'industry'; userId: string } | { mode: 'operational'; userId: string; tenantIds: string[] }} scope
  */
 export function buildGovPdfTemplateListWhere(scope) {
   if (!scope) {
     return { sql: 'FALSE', params: [] }
   }
+  if (scope.mode === 'industry') {
+    return { sql: 'gov_owner_user_id IS NOT NULL', params: [] }
+  }
   if (scope.mode === 'program') {
     const tenantIds = scope.tenantIds ?? []
     if (tenantIds.length === 0) {
-      return { sql: 'gov_owner_user_id = $1', params: [scope.userId] }
+      return {
+        sql: '(gov_owner_user_id = $1 OR gov_tenant_id IS NULL)',
+        params: [scope.userId],
+      }
     }
     return {
-      sql: '(gov_owner_user_id = $1 OR gov_tenant_id::text = ANY($2::text[]))',
+      sql: '(gov_owner_user_id = $1 OR gov_tenant_id IS NULL OR gov_tenant_id::text = ANY($2::text[]))',
       params: [scope.userId, tenantIds],
     }
   }

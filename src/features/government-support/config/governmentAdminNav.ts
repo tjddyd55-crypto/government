@@ -18,17 +18,17 @@ const RESOURCES_NAV: GovernmentAdminNavItem = {
   label: '자료실/서식함',
 }
 
-const SIGNATURE_TEMPLATES_NAV: GovernmentAdminNavItem = {
+const SIGNATURE_MANAGEMENT_NAV: GovernmentAdminNavItem = {
   to: GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
-  label: '전자서명 템플릿',
-  end: true,
+  label: '전자서명 관리',
+  matchPrefix: GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
 }
 
-const SIGNATURE_PDF_COORDINATES_NAV: GovernmentAdminNavItem = {
-  to: GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
-  label: 'PDF 좌표 설정',
-  matchPrefix: `${GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH}/pdf`,
-}
+/** @deprecated PDF 좌표는 전자서명 관리 페이지 내에서 접근 */
+const SIGNATURE_TEMPLATES_NAV: GovernmentAdminNavItem = SIGNATURE_MANAGEMENT_NAV
+
+/** @deprecated PDF 좌표는 전자서명 관리 페이지 내에서 접근 */
+const SIGNATURE_PDF_COORDINATES_NAV: GovernmentAdminNavItem = SIGNATURE_MANAGEMENT_NAV
 
 const SETTINGS_NAV: GovernmentAdminNavItem = {
   to: '/government/admin/settings',
@@ -39,6 +39,7 @@ const SETTINGS_NAV: GovernmentAdminNavItem = {
 export const GOVERNMENT_INDUSTRY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: GOVERNMENT_ROUTE_PATHS.adminRoot, label: '대시보드', end: true },
   { to: GOVERNMENT_ROUTE_PATHS.adminAgencies, label: '대행사 관리' },
+  SIGNATURE_MANAGEMENT_NAV,
   { to: GOVERNMENT_ROUTE_PATHS.adminNotices, label: '공지/전달사항' },
   RESOURCES_NAV,
   SETTINGS_NAV,
@@ -51,8 +52,7 @@ export const GOVERNMENT_AGENCY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: GOVERNMENT_ROUTE_PATHS.adminProgramUsers, label: '이용자 관리' },
   { to: GOVERNMENT_ROUTE_PATHS.adminInquiries, label: '문의 관리' },
   { to: GOVERNMENT_ROUTE_PATHS.adminNotifications, label: '알림' },
-  SIGNATURE_TEMPLATES_NAV,
-  SIGNATURE_PDF_COORDINATES_NAV,
+  SIGNATURE_MANAGEMENT_NAV,
   { to: GOVERNMENT_ROUTE_PATHS.adminNotices, label: '공지/전달사항' },
   RESOURCES_NAV,
   SETTINGS_NAV,
@@ -63,8 +63,7 @@ export const GOVERNMENT_STAFF_NAV: GovernmentAdminNavItem[] = [
   { to: GOVERNMENT_ROUTE_PATHS.adminRoot, label: '운영 대시보드', end: true },
   { to: GOVERNMENT_ROUTE_PATHS.adminInquiries, label: '문의 관리' },
   { to: GOVERNMENT_ROUTE_PATHS.adminNotifications, label: '알림' },
-  SIGNATURE_TEMPLATES_NAV,
-  SIGNATURE_PDF_COORDINATES_NAV,
+  SIGNATURE_MANAGEMENT_NAV,
   { to: GOVERNMENT_ROUTE_PATHS.adminNotices, label: '공지/전달사항' },
   RESOURCES_NAV,
   { to: '/government/admin/settings', label: '내 정보' },

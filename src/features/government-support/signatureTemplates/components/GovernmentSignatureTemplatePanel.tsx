@@ -2,7 +2,7 @@
 import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
 import { FormButton, FormInput, FormSelect, FormTextarea } from '../../../../components/form'
 import { useMediaQuery } from '../../../../hooks/useMediaQuery'
-import type { GovernmentSignatureTemplateDetail, GovernmentSignatureTemplateListItem } from '../governmentSignatureTemplateClient'
+import type { GovernmentSignatureTemplateDetail, GovernmentSignatureTemplateListItem, GovernmentSignatureTemplateMode } from '../governmentSignatureTemplateClient'
 import {
   createConfirmationOnlyGovernmentSignatureTemplate,
   deleteGovernmentSignatureTemplate,
@@ -13,6 +13,7 @@ import {
   setGovernmentSignatureTemplateStatus,
 } from '../governmentSignatureTemplateClient'
 import { publicSignatureFieldLabel, mapGovernmentSignatureApiError, mapGovernmentSignatureErrorMessage } from '../../signatures/governmentSignatureUserDisplay'
+import type { GovernmentSignatureScopePayload } from '../../hooks/useGovernmentSignatureScopeFields'
 import { GovernmentSignatureTemplateConfirmationFieldsSection } from './GovernmentSignatureTemplateConfirmationFieldsSection'
 
 type FieldSettingDraft = {
@@ -42,6 +43,7 @@ type Props = {
   onReload: () => Promise<void>
   onCreateTemplate: () => Promise<void>
   onClearPdfFilter: () => void
+  resolveCreateScope?: () => GovernmentSignatureScopePayload
 }
 
 type ModalKind = 'detail' | 'edit' | 'status' | null
@@ -148,6 +150,7 @@ export function GovernmentSignatureTemplatePanel({
   onReload,
   onCreateTemplate,
   onClearPdfFilter,
+  resolveCreateScope,
 }: Props) {
   const { confirm, confirmDialog } = useGovernmentConfirmDialog()
   const isAdminMobile = useMediaQuery('(max-width: 768px)')
@@ -1085,7 +1088,7 @@ export function GovernmentSignatureTemplatePanel({
                   void runOp(async () => {
                     await createConfirmationOnlyGovernmentSignatureTemplate(token, role, {
                       title,
-                      tenantGaId,
+                      scope: resolveCreateScope?.(),
                     })
                     setConfirmOnlyCreateOpen(false)
                     setConfirmOnlyTitle('')

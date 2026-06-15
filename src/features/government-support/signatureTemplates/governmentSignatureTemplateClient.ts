@@ -8,7 +8,7 @@ import {
   listGovSignaturePdfTemplates,
 } from './governmentSignaturePdfTemplateClient'
 import { searchCustomers } from '../../customers/api/customersApi'
-import type { CustomerRecord } from '../../customers/domain/types'
+import type { GovernmentSignatureScopePayload } from '../hooks/useGovernmentSignatureScopeFields'
 
 export type GovernmentSignatureTemplateMode = 'coordinate_pdf' | 'confirmation_only'
 
@@ -159,20 +159,15 @@ export type SendSessionDetail = {
   sendSessionAttachments?: SendSessionAttachmentDetail[]
 }
 
-function tenantQs(tenantGaId: number | null, isSuper: boolean): string {
-  if (!isSuper || tenantGaId == null || !Number.isFinite(tenantGaId)) {
-    return ''
-  }
-  const q = new URLSearchParams()
-  q.set('tenant_owner_user_id', String(tenantGaId))
-  return `?${q.toString()}`
-}
-
-function tenantBody(tenantGaId: number | null, isSuper: boolean): Record<string, number> {
-  if (!isSuper || tenantGaId == null || !Number.isFinite(tenantGaId)) {
+function scopeBody(scope?: GovernmentSignatureScopePayload): Record<string, string> {
+  if (!scope) {
     return {}
   }
-  return { tenant_owner_user_id: tenantGaId }
+  const out: Record<string, string> = { scopeType: scope.scopeType }
+  if (scope.scopeType === 'agency' && scope.tenantId) {
+    out.tenantId = scope.tenantId
+  }
+  return out
 }
 
 export async function listPdfTemplatesForGovSignature(
@@ -213,13 +208,11 @@ export function countPdfFieldStats(detail: PdfTemplateDetail): {
 
 export async function listGovernmentSignatureTemplates(
   token: string,
-  role: string | undefined,
-  tenantGaId: number | null,
+  _role: string | undefined,
+  _tenantGaId: number | null,
 ): Promise<GovernmentSignatureTemplateListItem[]> {
-  const isSuper = role === 'SUPER_ADMIN'
-  const qs = tenantQs(tenantGaId, isSuper)
   const body = await apiRequest<{ templates?: GovernmentSignatureTemplateListItem[] }>(
-    `/api/government-support/signature-templates${qs}`,
+    `/api/government-support/signature-templates`,
     { method: 'GET', token },
   )
   const raw = body as { templates?: GovernmentSignatureTemplateListItem[] }
@@ -236,14 +229,12 @@ export async function listGovernmentSignatureTemplates(
 
 export async function fetchGovernmentSignatureTemplateDetail(
   token: string,
-  role: string | undefined,
+  _role: string | undefined,
   templateId: string,
-  tenantGaId: number | null,
+  _tenantGaId: number | null,
 ): Promise<GovernmentSignatureTemplateDetail> {
-  const isSuper = role === 'SUPER_ADMIN'
-  const qs = tenantQs(tenantGaId, isSuper)
   const body = await apiRequest<{ template?: GovernmentSignatureTemplateDetail }>(
-    `/api/government-support/signature-templates/${encodeURIComponent(templateId)}${qs}`,
+    `/api/government-support/signature-templates/${encodeURIComponent(templateId)}`,
     { method: 'GET', token },
   )
   const tpl = (body as { template?: GovernmentSignatureTemplateDetail }).template
@@ -259,45 +250,45 @@ export async function fetchGovernmentSignatureTemplateDetail(
 
 export async function patchGovernmentSignatureTemplateFieldInputSettings(
   token: string,
-  role: string | undefined,
+  _role: string | undefined,
   templateId: string,
   payload: { fieldSettings: Array<{ fieldKey: string; inputRole: string; fixedValue?: string | null }> },
-  tenantGaId: number | null,
+  _tenantGaId: number | null,
 ): Promise<void> {
-  const isSuper = role === 'SUPER_ADMIN'
-  const qs = tenantQs(tenantGaId, isSuper)
   await apiRequest(
-    `/api/government-support/signature-templates/${encodeURIComponent(templateId)}/field-input-settings${qs}`,
+    `/api/government-support/signature-templates/${encodeURIComponent(templateId)}/field-input-settings`,
     {
       method: 'PATCH',
       token,
-      body: JSON.stringify({ fieldSettings: payload.fieldSettings, ...tenantBody(tenantGaId, isSuper) }),
+      body: JSON.stringify({ fieldSettings: payload.fieldSettings }),
     },
   )
 }
 
 export async function patchGovernmentSignatureTemplate(
   token: string,
-  role: string | undefined,
+  _role: string | undefined,
   templateId: string,
   payload: { title?: string; description?: string | null },
-  tenantGaId: number | null,
+  _tenantGaId: number | null,
 ): Promise<void> {
-  const isSuper = role === 'SUPER_ADMIN'
-  const qs = tenantQs(tenantGaId, isSuper)
-  await apiRequest(`/api/government-support/signature-templates/${encodeURIComponent(templateId)}${qs}`, {
+  await apiRequest(`/api/government-support/signature-templates/${encodeURIComponent(templateId)}`, {
     method: 'PATCH',
     token,
-    body: JSON.stringify({ ...payload, ...tenantBody(tenantGaId, isSuper) }),
+    body: JSON.stringify(payload),
   })
 }
 
 export async function createGovernmentSignatureTemplateFromPdfTemplate(
   token: string,
-  role: string | undefined,
-  params: { pdfTemplateId: number; pdfTitle: string; tenantGaId: number | null },
+  _role: string | undefined,
+  params: {
+    pdfTemplateId: number
+    pdfTitle: string
+    tenantGaId?: number | null
+    scope?: GovernmentSignatureScopePayload
+  },
 ): Promise<string> {
-  const isSuper = role === 'SUPER_ADMIN'
   const baseTitle = String(params.pdfTitle ?? '').trim() || '전자서명 문서'
   const title = `${baseTitle} 전자서명 템플릿`
   const body = await apiRequest<{ data?: { id?: string } }>(`/api/government-support/signature-templates`, {
@@ -309,7 +300,7 @@ export async function createGovernmentSignatureTemplateFromPdfTemplate(
       templateMode: 'coordinate_pdf',
       status: 'draft',
       description: '전자서명 관리에서 선택한 PDF 템플릿으로 생성됨',
-      ...tenantBody(params.tenantGaId, isSuper),
+      ...scopeBody(params.scope),
     }),
   })
   const id = (body as { data?: { id?: string } })?.data?.id
@@ -322,10 +313,14 @@ export async function createGovernmentSignatureTemplateFromPdfTemplate(
 /** 무좌표 전자확인서용 템플릿 초안 생성(PDF 없음). */
 export async function createConfirmationOnlyGovernmentSignatureTemplate(
   token: string,
-  role: string | undefined,
-  params: { title: string; description?: string | null; tenantGaId: number | null },
+  _role: string | undefined,
+  params: {
+    title: string
+    description?: string | null
+    tenantGaId?: number | null
+    scope?: GovernmentSignatureScopePayload
+  },
 ): Promise<string> {
-  const isSuper = role === 'SUPER_ADMIN'
   const title = String(params.title ?? '').trim()
   if (!title) {
     throw new ApiError('제목을 입력하세요.', 400)
@@ -338,7 +333,7 @@ export async function createConfirmationOnlyGovernmentSignatureTemplate(
       templateMode: 'confirmation_only',
       status: 'draft',
       description: params.description ?? '무좌표 전자확인서 템플릿',
-      ...tenantBody(params.tenantGaId, isSuper),
+      ...scopeBody(params.scope),
     }),
   })
   const id = (body as { data?: { id?: string } })?.data?.id
@@ -350,17 +345,15 @@ export async function createConfirmationOnlyGovernmentSignatureTemplate(
 
 export async function setGovernmentSignatureTemplateStatus(
   token: string,
-  role: string | undefined,
+  _role: string | undefined,
   templateId: string,
   status: 'draft' | 'active' | 'archived',
-  tenantGaId: number | null,
+  _tenantGaId: number | null,
 ): Promise<void> {
-  const isSuper = role === 'SUPER_ADMIN'
-  const qs = tenantQs(tenantGaId, isSuper)
-  await apiRequest(`/api/government-support/signature-templates/${encodeURIComponent(templateId)}/status${qs}`, {
+  await apiRequest(`/api/government-support/signature-templates/${encodeURIComponent(templateId)}/status`, {
     method: 'PATCH',
     token,
-    body: JSON.stringify({ status, ...tenantBody(tenantGaId, isSuper) }),
+    body: JSON.stringify({ status }),
   })
 }
 
@@ -376,13 +369,11 @@ export async function activateGovernmentSignatureTemplate(
 
 export async function deleteGovernmentSignatureTemplate(
   token: string,
-  role: string | undefined,
+  _role: string | undefined,
   templateId: string,
-  tenantGaId: number | null,
+  _tenantGaId: number | null,
 ): Promise<void> {
-  const isSuper = role === 'SUPER_ADMIN'
-  const qs = tenantQs(tenantGaId, isSuper)
-  await apiRequest(`/api/government-support/signature-templates/${encodeURIComponent(templateId)}${qs}`, {
+  await apiRequest(`/api/government-support/signature-templates/${encodeURIComponent(templateId)}`, {
     method: 'DELETE',
     token,
   })
@@ -390,18 +381,16 @@ export async function deleteGovernmentSignatureTemplate(
 
 export async function duplicateGovernmentSignatureTemplate(
   token: string,
-  role: string | undefined,
+  _role: string | undefined,
   templateId: string,
-  tenantGaId: number | null,
+  _tenantGaId: number | null,
 ): Promise<string> {
-  const isSuper = role === 'SUPER_ADMIN'
-  const qs = tenantQs(tenantGaId, isSuper)
   const body = await apiRequest<{ data?: { id?: string } }>(
-    `/api/government-support/signature-templates/${encodeURIComponent(templateId)}/duplicate${qs}`,
+    `/api/government-support/signature-templates/${encodeURIComponent(templateId)}/duplicate`,
     {
       method: 'POST',
       token,
-      body: JSON.stringify(tenantBody(tenantGaId, isSuper)),
+      body: JSON.stringify({}),
     },
   )
   const id = (body as { data?: { id?: string } }).data?.id
@@ -425,15 +414,14 @@ export async function searchCustomersForContractTest(
 
 export async function createGovernmentSignatureSendSession(
   token: string,
-  role: string | undefined,
+  _role: string | undefined,
   params: {
     profileId: number
     templateIds: string[]
-    tenantGaId: number | null
+    tenantGaId?: number | null
     senderInputValues?: Record<string, unknown>
   },
 ): Promise<CreateSendSessionResult> {
-  const isSuper = role === 'SUPER_ADMIN'
   const body = await apiRequest<{ sendSession?: CreateSendSessionResult }>(
     `/api/government-support/signatures`,
     {
@@ -445,7 +433,6 @@ export async function createGovernmentSignatureSendSession(
         ...(params.senderInputValues && Object.keys(params.senderInputValues).length > 0
           ? { senderInputValues: params.senderInputValues }
           : {}),
-        ...tenantBody(params.tenantGaId, isSuper),
       }),
     },
   )
@@ -458,14 +445,12 @@ export async function createGovernmentSignatureSendSession(
 
 export async function getGovernmentSignatureSendSessionDetail(
   token: string,
-  role: string | undefined,
+  _role: string | undefined,
   sendSessionId: string,
-  tenantGaId: number | null,
+  _tenantGaId: number | null,
 ): Promise<SendSessionDetail> {
-  const isSuper = role === 'SUPER_ADMIN'
-  const qs = tenantQs(tenantGaId, isSuper)
   const body = await apiRequest<{ sendSession?: SendSessionDetail }>(
-    `/api/government-support/signatures/${encodeURIComponent(sendSessionId)}${qs}`,
+    `/api/government-support/signatures/${encodeURIComponent(sendSessionId)}`,
     { method: 'GET', token },
   )
   const s = (body as { sendSession?: SendSessionDetail }).sendSession

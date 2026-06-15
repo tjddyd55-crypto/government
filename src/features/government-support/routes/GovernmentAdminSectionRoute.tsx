@@ -79,13 +79,13 @@ export function GovernmentAdminNoticesRoute() {
   return <Outlet />
 }
 
-/** 전자서명 템플릿·PDF 좌표 — 대행사 관리자·직원 (업종 관리자 제외) */
+/** 전자서명 템플릿·PDF 좌표 — 업종·super·대행사 관리자·직원 */
 export function GovernmentAdminSignatureRoute() {
   const { summary, accessState } = useAdminSectionAccess()
   if (accessState === 'loading') return <GovernmentAdminGateLoading />
   if (!canManageGovernmentSignatures(summary)) {
     return (
-      <GovernmentAdminGateDenied message="전자서명 템플릿·PDF 좌표 설정은 대행사 관리자·직원만 이용할 수 있습니다." />
+      <GovernmentAdminGateDenied message="전자서명 관리는 운영 관리자·대행사 관리자·직원만 이용할 수 있습니다." />
     )
   }
   return <Outlet />

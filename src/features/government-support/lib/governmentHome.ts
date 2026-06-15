@@ -11,11 +11,10 @@ export function isGovernmentOperationalAccount(summary: GovernmentAccessSummary 
   return false
 }
 
-/** 대행사 관리자·직원 — 전자서명 템플릿·발송 (업종 관리자 제외) */
+/** 업종·super·대행사 관리자·직원 — 전자서명 템플릿·PDF 좌표 */
 export function canManageGovernmentSignatures(summary: GovernmentAccessSummary | null): boolean {
   if (!summary || isGovernmentProgramUser(summary)) return false
-  if (summary.isSuperAdmin) return true
-  if (summary.isGovernmentIndustryAdmin) return false
+  if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return true
   if ((summary.governmentAgencyAdminTenantIds?.length ?? 0) > 0) return true
   if ((summary.governmentStaffTenantIds?.length ?? 0) > 0) return true
   return false

@@ -6,7 +6,10 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import '../../pdf-engine/pdf-engine.css'
 import './government-signature-console.css'
 import { useAuth } from '../../auth/AuthProvider'
+import GovernmentAdminOperationalScopeFields from '../components/GovernmentAdminOperationalScopeFields'
 import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
+import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
+import { useGovernmentSignatureScopeFields } from '../hooks/useGovernmentSignatureScopeFields'
 import { mapGovernmentSignatureApiError } from '../signatures/governmentSignatureUserDisplay'
 import { FormButton } from '../../../components/form'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
@@ -35,6 +38,8 @@ export default function GovernmentSignatureTemplatesPage() {
   const navigate = useNavigate()
   const isAdminRoute = location.pathname.startsWith(GOVERNMENT_ROUTE_PATHS.adminSignatureTemplates)
   const { token, user } = useAuth()
+  const { summary } = useGovernmentAccess(token)
+  const scopeFields = useGovernmentSignatureScopeFields(token, summary)
   const t = token?.trim() ?? ''
   const role = user?.role
   const isAdminMobile = useMediaQuery('(max-width: 768px)')
@@ -146,9 +151,9 @@ export default function GovernmentSignatureTemplatesPage() {
     await createGovernmentSignatureTemplateFromPdfTemplate(t, role, {
       pdfTemplateId: selectedPdfId,
       pdfTitle,
-      tenantGaId,
+      scope: scopeFields.resolveScopePayload(),
     })
-  }, [t, role, selectedPdfId, selectedPdf, tenantGaId])
+  }, [t, role, selectedPdfId, selectedPdf, scopeFields])
 
   const onSelectPdf = (id: number) => {
     setSelectedPdfId(id)
@@ -226,6 +231,21 @@ export default function GovernmentSignatureTemplatesPage() {
 
         <section className="contract-signature-console__section">
           <h2 className="contract-signature-console__section-title">2. 전자서명 템플릿 관리</h2>
+          {isAdminRoute ? (
+            <div className="contract-signature-console__scope-fields" style={{ marginBottom: 16 }}>
+              <GovernmentAdminOperationalScopeFields
+                canPickScope={scopeFields.canPickScope}
+                scopeType={scopeFields.scopeType}
+                tenantId={scopeFields.tenantId}
+                agencyOptions={scopeFields.agencyOptions}
+                onScopeTypeChange={(value) =>
+                  scopeFields.setScopeType(value === 'global' ? 'global' : 'agency')
+                }
+                onTenantIdChange={scopeFields.setTenantId}
+                disabled={contractBusy}
+              />
+            </div>
+          ) : null}
           <GovernmentSignatureTemplatePanel
             token={t}
             role={role}
@@ -241,6 +261,7 @@ export default function GovernmentSignatureTemplatesPage() {
             onReload={reloadContracts}
             onCreateTemplate={createTemplateFromSelectedPdf}
             onClearPdfFilter={() => setSelectedPdfId(null)}
+            resolveCreateScope={scopeFields.resolveScopePayload}
           />
         </section>
       </div>

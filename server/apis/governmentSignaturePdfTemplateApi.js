@@ -131,8 +131,13 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
         return
       }
       const tenantId = resolveGovSignatureTemplateTenantId(req)
+      const scopeType = String(req.body?.scopeType ?? req.body?.scope_type ?? 'agency').trim()
       if (scope.mode === 'operational' && !tenantId) {
         res.status(400).json({ message: '대행사 tenant 정보가 없습니다.' })
+        return
+      }
+      if (scope.mode === 'industry' && scopeType === 'agency' && !tenantId) {
+        res.status(400).json({ message: '대행사를 선택해 주세요.' })
         return
       }
       const body = req.body ?? {}

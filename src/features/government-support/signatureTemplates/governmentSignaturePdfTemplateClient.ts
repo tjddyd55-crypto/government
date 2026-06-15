@@ -1,7 +1,19 @@
 import { ApiError, apiRequest, resolveApiUrl } from '../../../lib/apiClient'
 import type { PdfFieldSpec, PdfTemplateDetail, PdfTemplateSummary } from '../../pdf-engine/types'
+import type { GovernmentSignatureScopePayload } from '../hooks/useGovernmentSignatureScopeFields'
 
 const BASE = '/api/government-support/signature-templates/pdf'
+
+function scopeFields(scope?: GovernmentSignatureScopePayload): Record<string, string> {
+  if (!scope) {
+    return {}
+  }
+  const out: Record<string, string> = { scopeType: scope.scopeType }
+  if (scope.scopeType === 'agency' && scope.tenantId) {
+    out.tenantId = scope.tenantId
+  }
+  return out
+}
 
 function authHeader(token: string): HeadersInit {
   return { Authorization: `Bearer ${token}` }
@@ -34,9 +46,13 @@ export async function getGovSignaturePdfTemplate(token: string, id: number): Pro
 export async function uploadGovSignaturePdfTemplateFile(
   token: string,
   file: File,
+  scope?: GovernmentSignatureScopePayload,
 ): Promise<{ storageKey: string; pageCount: number; code: string }> {
   const fd = new FormData()
   fd.append('pdf', file)
+  for (const [key, value] of Object.entries(scopeFields(scope))) {
+    fd.append(key, value)
+  }
   const body = await apiRequest<{ storageKey?: string; pageCount?: number; code?: string }>(
     `${BASE}/upload`,
     { method: 'POST', token, body: fd },
@@ -54,7 +70,13 @@ export async function uploadGovSignaturePdfTemplateFile(
 
 export async function createGovSignaturePdfTemplate(
   token: string,
-  payload: { title: string; description?: string; storageKey: string; pageCount: number },
+  payload: {
+    title: string
+    description?: string
+    storageKey: string
+    pageCount: number
+    scope?: GovernmentSignatureScopePayload
+  },
 ): Promise<{ template: PdfTemplateSummary }> {
   const body = await apiRequest<{ template?: PdfTemplateSummary }>(BASE, {
     method: 'POST',
@@ -64,6 +86,7 @@ export async function createGovSignaturePdfTemplate(
       description: payload.description ?? '',
       storageKey: payload.storageKey,
       pageCount: payload.pageCount,
+      ...scopeFields(payload.scope),
     }),
   })
   const raw = body as { template?: PdfTemplateSummary }

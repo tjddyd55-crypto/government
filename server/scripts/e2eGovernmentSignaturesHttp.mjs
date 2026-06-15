@@ -270,6 +270,7 @@ async function main() {
     'government/admin/signature-templates',
     'signature-templates',
     '전자서명',
+    '전자서명 관리',
   ]) {
     if (sigHtml.js.includes(m)) pass(`bundle contains ${m}`)
     else failWrap(`bundle contains ${m}`)
@@ -732,8 +733,8 @@ async function main() {
     pass('industry admin login', ADMIN)
 
     const indTpl = await api('/government-support/signature-templates', { token: industryToken })
-    if (indTpl.status === 403) pass('industry admin blocked signature-templates', '403')
-    else failWrap('industry admin blocked signature-templates', String(indTpl.status))
+    if (indTpl.status === 200 && indTpl.json?.ok !== false) pass('industry admin can list signature-templates', '200')
+    else failWrap('industry admin can list signature-templates', String(indTpl.status))
 
     const indSig = await api('/government-support/signatures', { token: industryToken })
     if (indSig.status === 403) pass('industry admin blocked signatures list', '403')

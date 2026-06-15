@@ -6,6 +6,9 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../../../lib/apiClient'
 import { FormButton, FormInput, FormTextarea } from '../../../components/form'
 import { useAuth } from '../../auth/AuthProvider'
+import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
+import { useGovernmentSignatureScopeFields } from '../hooks/useGovernmentSignatureScopeFields'
+import GovernmentAdminOperationalScopeFields from '../components/GovernmentAdminOperationalScopeFields'
 import { PdfCoordinateEditor } from '../../pdf-engine/components/PdfCoordinateEditor'
 import { validatePdfTemplateFieldsForSave, dedupeRadioPlacementsInFields } from '../../pdf-engine/validatePdfTemplateFieldsForSave'
 import { normalizePdfFieldKeys } from '../../pdf-engine/pdfFieldKey'
@@ -68,6 +71,8 @@ export default function GovernmentPdfTemplateEditorPage() {
 }
 
 function CreateGovPdfFlow({ token, onCreated }: { token: string; onCreated: (id: number) => void }) {
+  const { summary } = useGovernmentAccess(token)
+  const scopeFields = useGovernmentSignatureScopeFields(token, summary)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [file, setFile] = useState<File | null>(null)
@@ -88,12 +93,14 @@ function CreateGovPdfFlow({ token, onCreated }: { token: string; onCreated: (id:
     setSubmitting(true)
     setError(null)
     try {
-      const uploaded = await uploadGovSignaturePdfTemplateFile(token, file)
+      const scope = scopeFields.resolveScopePayload()
+      const uploaded = await uploadGovSignaturePdfTemplateFile(token, file, scope)
       const created = await createGovSignaturePdfTemplate(token, {
         title: title.trim(),
         description: description.trim(),
         storageKey: uploaded.storageKey,
         pageCount: uploaded.pageCount,
+        scope,
       })
       onCreated(created.template.id)
     } catch (e) {
@@ -126,6 +133,17 @@ function CreateGovPdfFlow({ token, onCreated }: { token: string; onCreated: (id:
             PDF 파일
             <FormInput type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </label>
+          <GovernmentAdminOperationalScopeFields
+            canPickScope={scopeFields.canPickScope}
+            scopeType={scopeFields.scopeType}
+            tenantId={scopeFields.tenantId}
+            agencyOptions={scopeFields.agencyOptions}
+            onScopeTypeChange={(value) =>
+              scopeFields.setScopeType(value === 'global' ? 'global' : 'agency')
+            }
+            onTenantIdChange={scopeFields.setTenantId}
+            disabled={submitting}
+          />
           <FormButton htmlType="submit" variant="primary" disabled={submitting}>
             {submitting ? '등록 중…' : '등록하고 좌표 편집으로'}
           </FormButton>

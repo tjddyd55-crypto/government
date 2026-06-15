@@ -8,6 +8,52 @@ import {
   canManageGovPdfTemplateRow,
 } from './access.js'
 
+test('buildGovSignatureTemplateListWhere — industry는 전체 조회', () => {
+  const w = buildGovSignatureTemplateListWhere({ mode: 'industry', userId: 'ind1' })
+  assert.equal(w.sql, 'TRUE')
+  assert.deepEqual(w.params, [])
+})
+
+test('buildGovSignatureTemplateListWhere — program user는 global(tenant null) 포함', () => {
+  const w = buildGovSignatureTemplateListWhere({ mode: 'program', userId: 'u1', tenantIds: ['42'] })
+  assert.match(w.sql, /tenant_id IS NULL/)
+})
+
+test('canAccessGovSignatureTemplateRow — program user는 global 템플릿 조회', () => {
+  const req = {
+    user: { id: 'prog1' },
+    platformContext: {
+      userId: 'prog1',
+      governmentStaffTenantIds: [],
+      governmentAgencyAdminTenantIds: [],
+      governmentProgramUserTenantIds: ['42'],
+    },
+  }
+  const row = { owner_user_id: 'admin1', tenant_id: null }
+  assert.equal(canAccessGovSignatureTemplateRow(req, row), true)
+})
+
+test('canAccessGovSignatureTemplateRow — industry admin은 모든 템플릿 조회', () => {
+  const req = {
+    user: { id: 'ind1' },
+    platformContext: {
+      userId: 'ind1',
+      governmentIndustryAdminIndustryIds: ['gov-industry-1'],
+      governmentStaffTenantIds: [],
+      governmentAgencyAdminTenantIds: [],
+      governmentProgramUserTenantIds: [],
+    },
+  }
+  const row = { owner_user_id: 'other', tenant_id: 99 }
+  assert.equal(canAccessGovSignatureTemplateRow(req, row), true)
+})
+
+test('buildGovPdfTemplateListWhere — industry는 전체 조회', () => {
+  const w = buildGovPdfTemplateListWhere({ mode: 'industry', userId: 'ind1' })
+  assert.match(w.sql, /gov_owner_user_id IS NOT NULL/)
+  assert.deepEqual(w.params, [])
+})
+
 test('buildGovSignatureTemplateListWhere — program user는 owner 또는 소속 tenant', () => {
   const w = buildGovSignatureTemplateListWhere({ mode: 'program', userId: 'u1', tenantIds: ['42'] })
   assert.match(w.sql, /owner_user_id/)

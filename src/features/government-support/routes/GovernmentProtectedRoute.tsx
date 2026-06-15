@@ -13,7 +13,7 @@ type GovernmentProtectedRouteProps = {
   requireUserManager?: boolean
   /** 대행사 운영(공지·전달) — 업종/대행사 관리자·직원 */
   requireOperational?: boolean
-  /** 대행사 전자서명 템플릿·발송 — 업종 관리자 제외 */
+  /** 업종·super·대행사 운영 — 전자서명 템플릿·PDF 좌표 */
   requireSignatureOperational?: boolean
   /** 프로그램 이용자 워크스페이스(사업장/고객 소유 데이터) */
   requireProgramUserWorkspace?: boolean
