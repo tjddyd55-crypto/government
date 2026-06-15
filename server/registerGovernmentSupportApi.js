@@ -87,6 +87,12 @@ import {
 } from './lib/consentStorage.js'
 import { normalizeTenantRegistrationCodeRaw } from './lib/tenantRegistrationCodes.js'
 import { ensureGovernmentTenantRegistrationCode } from './lib/governmentSupport/ensureGovernmentTenantRegistrationCode.js'
+import {
+  archiveGovernmentAgency,
+  mapGovernmentAgencyRow,
+  parseGovernmentAgencyPatchBody,
+  patchGovernmentAgency,
+} from './lib/governmentSupport/governmentAgencies.js'
 import { buildGovernmentDocumentObjectKey, sanitizeGovernmentDocumentFileName } from './lib/governmentSupport/governmentDocumentStorage.js'
 
 /**
@@ -164,27 +170,25 @@ export function registerGovernmentSupportApi(router, deps) {
         res.status(scope.status).json({ message: scope.message })
         return
       }
+      const includeArchived =
+        String(req.query.includeArchived ?? req.query.include_archived ?? '').trim().toLowerCase() ===
+          'true' ||
+        String(req.query.includeArchived ?? req.query.include_archived ?? '').trim() === '1'
       const r = await pool.query(
         `
-        SELECT t.id::text AS id, t.code, t.name, t.status, t.created_at, t.updated_at
+        SELECT t.id::text AS id, t.code, t.name, t.status, t.config, t.created_at, t.updated_at
         FROM tenants t
         INNER JOIN industries i ON i.id = t.industry_id
         WHERE LOWER(TRIM(i.code)) = $1
           AND ($2::boolean OR t.id::text = ANY($3::text[]))
+          AND ($4::boolean OR LOWER(TRIM(t.status)) <> 'inactive')
         ORDER BY t.name ASC, t.id ASC
         `,
-        [GOVERNMENT_INDUSTRY_CODE, scope.fullAccess, scope.tenantIds],
+        [GOVERNMENT_INDUSTRY_CODE, scope.fullAccess, scope.tenantIds, includeArchived],
       )
       res.json({
         success: true,
-        data: r.rows.map((row) => ({
-          id: String(row.id),
-          agencyCode: String(row.code ?? ''),
-          name: String(row.name ?? ''),
-          status: String(row.status ?? ''),
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-        })),
+        data: r.rows.map((row) => mapGovernmentAgencyRow(row)),
       })
     } catch (e) {
       handleDbError(e, req, res)
@@ -278,6 +282,61 @@ export function registerGovernmentSupportApi(router, deps) {
           success: true,
           data: { tenantId, agencyCode },
         })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.patch(
+    '/government-support/admin/agencies/:agencyId',
+    ...requireGovernmentIndustryAdmin,
+    async (req, res) => {
+      try {
+        const agencyId = String(req.params.agencyId ?? '').trim()
+        if (!agencyId) {
+          res.status(400).json({ message: 'agencyId가 필요합니다.' })
+          return
+        }
+        const parsed = parseGovernmentAgencyPatchBody(req.body ?? {})
+        if (!parsed.ok) {
+          res.status(parsed.status).json({ message: parsed.message })
+          return
+        }
+        const result = await patchGovernmentAgency(pool, agencyId, parsed.patch)
+        if (!result.ok) {
+          res.status(result.status).json({ message: result.message })
+          return
+        }
+        res.json({ success: true, data: result.data })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.delete(
+    '/government-support/admin/agencies/:agencyId',
+    ...requireGovernmentIndustryAdmin,
+    async (req, res) => {
+      try {
+        const agencyId = String(req.params.agencyId ?? '').trim()
+        if (!agencyId) {
+          res.status(400).json({ message: 'agencyId가 필요합니다.' })
+          return
+        }
+        const ctx = req.platformContext
+        const actorTenantIds = [
+          ...(ctx?.governmentAgencyAdminTenantIds ?? []),
+          ...(ctx?.governmentStaffTenantIds ?? []),
+          ...(ctx?.governmentProgramUserTenantIds ?? []),
+        ]
+        const result = await archiveGovernmentAgency(pool, agencyId, { actorTenantIds })
+        if (!result.ok) {
+          res.status(result.status).json({ message: result.message })
+          return
+        }
+        res.json({ success: true, data: result.data })
       } catch (e) {
         handleDbError(e, req, res)
       }

@@ -8,6 +8,8 @@
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: var(--gov-ui-bg);
   box-sizing: border-box;
 }
@@ -31,7 +33,12 @@
 
 .government-admin-white-theme .government-workspace-chrome--admin-shell .government-workspace-chrome__content {
   padding: 0;
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* —— 정부지원 admin: shell / dashboard / 목록 / 모달 화이트 테마 —— */
@@ -55,7 +62,10 @@
 
 .government-admin-white-theme .government-workspace-chrome__content {
   padding: 0;
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   background: var(--gov-ui-bg);
@@ -83,6 +93,17 @@
   width: 100%;
   max-width: none;
   margin: 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.government-admin-white-theme .government-admin-pc-page {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: visible;
 }
 
 /* index.css `.app-root .auth-card { max-width: 420px }` — admin toolbar/table 에서 해제 */
@@ -186,8 +207,11 @@
   max-width: none;
   margin: 0;
   padding: 24px;
+  padding-bottom: 48px;
   box-sizing: border-box;
   color: var(--gov-ui-text);
+  min-height: 0;
+  overflow: visible;
 }
 
 .government-admin-white-theme .admin-ga-management__table-wrap,
@@ -197,6 +221,7 @@
   width: 100%;
   max-width: none;
   box-sizing: border-box;
+  overflow-x: auto;
 }
 
 .government-admin-white-theme .admin-data-table {
@@ -429,6 +454,9 @@
 .government-admin-white-theme.government-admin-layout--mobile .mobile-workspace-content {
   background: var(--gov-ui-bg);
   color: var(--gov-ui-text);
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
 }
 
 .government-admin-white-theme.government-admin-layout--mobile .gov-btn {
@@ -656,7 +684,27 @@
 .government-admin-white-theme .admin-ga-management,
 .government-admin-white-theme .admin-user-management,
 .government-admin-white-theme .government-admin-page {
-  min-height: calc(100vh - 56px);
+  min-height: 0;
+}
+
+.government-admin-white-theme .government-admin-scroll-page {
+  min-height: 0;
+  overflow: visible;
+}
+
+.government-admin-white-theme .government-admin-checkbox-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--gov-ui-text);
+  cursor: pointer;
+}
+
+.government-admin-white-theme .government-admin-checkbox-field input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: #f2b800;
 }
 
 .government-admin-program-user-detail__actions {

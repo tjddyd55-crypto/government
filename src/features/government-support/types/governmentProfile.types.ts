@@ -49,6 +49,14 @@ export type GovAgencyRow = {
   agencyCode: string
   name: string
   status: string
+  representativeName?: string
+  contactPhone?: string
+  businessNumber?: string
+  address?: string
+  memo?: string
+  registrationCodeEnabled?: boolean
+  createdAt?: string | null
+  updatedAt?: string | null
 }
 
 export type GovPriorLoan = {

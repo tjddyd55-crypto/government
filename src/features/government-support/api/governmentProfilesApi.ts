@@ -21,9 +21,52 @@ function unwrapList<T>(raw: unknown): T[] {
   return Array.isArray(d) ? d : Array.isArray(raw) ? (raw as T[]) : []
 }
 
-export async function fetchGovAgencies(token: string): Promise<GovAgencyRow[]> {
-  const raw = await apiRequest<unknown>('/api/government-support/admin/agencies', { method: 'GET', token })
+export async function fetchGovAgencies(
+  token: string,
+  options?: { includeArchived?: boolean },
+): Promise<GovAgencyRow[]> {
+  const query = options?.includeArchived ? '?includeArchived=true' : ''
+  const raw = await apiRequest<unknown>(`/api/government-support/admin/agencies${query}`, {
+    method: 'GET',
+    token,
+  })
   return unwrapList<GovAgencyRow>(raw)
+}
+
+export type GovAgencyPatchBody = {
+  name?: string
+  status?: string
+  representativeName?: string
+  contactPhone?: string
+  businessNumber?: string
+  address?: string
+  memo?: string
+  registrationCodeEnabled?: boolean
+}
+
+export async function patchGovAgency(
+  token: string,
+  agencyId: string,
+  body: GovAgencyPatchBody,
+): Promise<GovAgencyRow> {
+  const raw = await apiRequest<unknown>(`/api/government-support/admin/agencies/${agencyId}`, {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify(body),
+  })
+  const row = unwrapData<GovAgencyRow>(raw)
+  if (!row) throw new Error('대행사 수정에 실패했습니다.')
+  return row
+}
+
+export async function archiveGovAgency(token: string, agencyId: string): Promise<GovAgencyRow> {
+  const raw = await apiRequest<unknown>(`/api/government-support/admin/agencies/${agencyId}`, {
+    method: 'DELETE',
+    token,
+  })
+  const row = unwrapData<GovAgencyRow>(raw)
+  if (!row) throw new Error('대행사 보관에 실패했습니다.')
+  return row
 }
 
 export async function createGovAgency(

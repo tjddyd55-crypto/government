@@ -40,7 +40,7 @@ export default function GovernmentAdminPageShell({
   }
 
   return (
-    <div className={`government-admin-page ${managementClass}`} data-testid={testId}>
+    <div className={`government-admin-page government-admin-scroll-page ${managementClass}`} data-testid={testId}>
       <header className="page-header">
         <h1>{title}</h1>
         <p>{description}</p>
