@@ -49,7 +49,9 @@
     "e2e:government:customer-app": "node server/scripts/e2eGovernmentCustomerAppHttp.mjs",
     "e2e:government:operations:db": "node server/scripts/e2eGovernmentOperationsDevelop.mjs",
     "e2e:government:seed-program-users": "node server/scripts/e2eSeedProgramUsers.mjs",
-    "e2e:government:reset-admin-password": "node server/scripts/e2eResetAdminPassword.mjs"
+    "e2e:government:reset-admin-password": "node server/scripts/e2eResetAdminPassword.mjs",
+    "cleanup:government-dummy-data": "node scripts/government-cleanup-dummy-data.js --dry-run",
+    "cleanup:government-dummy-data:railway": "railway run -e develop -s app node scripts/government-cleanup-dummy-data.js --dry-run"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1023.0",

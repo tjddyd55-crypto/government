@@ -32,6 +32,10 @@ uploads/system/insurers/*
 # 로컬 개발 지시문(레포에 커밋하지 않음)
 dev/
 
+# 정부지원 develop 더미 정리 dry-run 산출물 (커밋 금지)
+tmp/government-dummy-cleanup-*.json
+tmp/government-dummy-cleanup-*.txt
+
 # Expo (고객 모바일 앱 등)
 apps/customer-mobile/.expo/
 
