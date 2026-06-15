@@ -1,5 +1,5 @@
 /**
- * 정부지원 전자서명 콘솔 — 보험 contract-signature-console.css SSOT 재사용.
- * (로컬 규칙 복제본 제거, 2차 UI 동일화)
+ * 정부지원 전자서명 관리 스타일 — admin white/yellow theme.
+ * 보험 contract-signature-console.css 는 import 하지 않는다.
  */
-@import '../../contracts/testConsole/contract-signature-console.css';
+@import './government-signature-admin.css';

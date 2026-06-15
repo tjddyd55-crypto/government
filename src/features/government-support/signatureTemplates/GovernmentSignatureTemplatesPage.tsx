@@ -166,17 +166,21 @@ export default function GovernmentSignatureTemplatesPage() {
   return (
     <main
       className={
-        'insurance-dark-forms contract-signature-console' +
+        'government-admin-signature-page contract-signature-console government-admin-page' +
         (isAdminMobile ? ' contract-signature-console--admin-mobile' : '')
       }
+      data-testid="government-admin-page"
     >
-      <div className="contract-signature-console__container">
-        <h1 className="contract-signature-console__title">전자서명 템플릿 관리</h1>
-        <p className="contract-signature-console__lead">
+      <header className="page-header government-admin-signature-page__header">
+        <h1>전자서명 템플릿 관리</h1>
+        <p>
           관리자는 PDF 좌표 템플릿을 전자서명 발송용 문서 템플릿으로 등록하고 관리합니다. 실제 발송은 이용자 화면의 「전자서명
           발송」 메뉴에서 진행합니다.
         </p>
-        <div className="contract-signature-console__notice" role="status">
+      </header>
+
+      <div className="contract-signature-console__container">
+        <div className="contract-signature-console__notice government-admin-card" role="status">
           <ul>
             <li>
               현재 기능은 지정 휴대폰 인증 기반 전자서명입니다. NICE/KCB 실명 본인확인은 아직 연결되어 있지 않습니다.
@@ -187,12 +191,12 @@ export default function GovernmentSignatureTemplatesPage() {
         </div>
 
         {bootError ? (
-          <div className="contract-signature-console__alert--danger" role="alert">
+          <div className="gov-status-error-card contract-signature-console__alert--danger" role="alert">
             {bootError}
           </div>
         ) : null}
 
-        <section className="contract-signature-console__section">
+        <section className="contract-signature-console__section government-admin-card">
           <h2 className="contract-signature-console__section-title">1. PDF 템플릿 선택</h2>
           {isAdminRoute ? (
             <div className="contract-signature-console__toolbar">
@@ -200,6 +204,7 @@ export default function GovernmentSignatureTemplatesPage() {
                 htmlType="button"
                 variant="primary"
                 size="sm"
+                className="gov-btn gov-btn--primary"
                 onClick={() => navigate(GOVERNMENT_ROUTE_PATHS.adminSignaturePdfNew)}
               >
                 PDF 업로드 · 좌표 편집
@@ -219,7 +224,7 @@ export default function GovernmentSignatureTemplatesPage() {
                 htmlType="button"
                 variant="secondary"
                 size="sm"
-                className="contract-signature-console__filter-btn"
+                className="gov-btn gov-btn--secondary contract-signature-console__filter-btn"
                 disabled={!t || contractBusy}
                 onClick={() => setSelectedPdfId(null)}
               >
@@ -229,7 +234,7 @@ export default function GovernmentSignatureTemplatesPage() {
           ) : null}
         </section>
 
-        <section className="contract-signature-console__section">
+        <section className="contract-signature-console__section government-admin-card">
           <h2 className="contract-signature-console__section-title">2. 전자서명 템플릿 관리</h2>
           {isAdminRoute ? (
             <div className="contract-signature-console__scope-fields" style={{ marginBottom: 16 }}>

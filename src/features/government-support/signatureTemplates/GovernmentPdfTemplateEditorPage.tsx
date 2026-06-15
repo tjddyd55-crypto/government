@@ -111,27 +111,29 @@ function CreateGovPdfFlow({ token, onCreated }: { token: string; onCreated: (id:
   }
 
   return (
-    <main className="insurance-dark-forms pdf-engine-page pdf-engine-page--editor contract-signature-console">
+    <main className="government-admin-signature-page government-admin-page pdf-engine-page pdf-engine-page--editor contract-signature-console" data-testid="government-admin-page">
       <div className="contract-signature-console__container">
-        <h1 className="contract-signature-console__title">PDF 업로드 · 좌표 편집</h1>
+        <header className="page-header government-admin-signature-page__header">
+          <h1>PDF 업로드 · 좌표 편집</h1>
+        </header>
         <div className="pdf-engine-page__toolbar">
-          <Link to={LIST_HREF} className="pdf-engine-editor__btn">
+          <Link to={LIST_HREF} className="gov-btn gov-btn--secondary pdf-engine-editor__btn">
             ← 전자서명 템플릿
           </Link>
         </div>
-        {error ? <div className="contract-signature-console__inline-error">{error}</div> : null}
-        <form className="pdf-engine-form" onSubmit={handleSubmit}>
+        {error ? <div className="gov-status-error-card contract-signature-console__inline-error">{error}</div> : null}
+        <form className="pdf-engine-form government-admin-card" onSubmit={handleSubmit}>
           <label className="pdf-engine-editor__label">
             문서 제목
-            <FormInput type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: 개인정보 수집·이용 동의서" />
+            <FormInput className="gov-form-control" type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: 개인정보 수집·이용 동의서" />
           </label>
           <label className="pdf-engine-editor__label">
             설명 (선택)
-            <FormTextarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+            <FormTextarea className="gov-form-control" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
           </label>
           <label className="pdf-engine-editor__label">
             PDF 파일
-            <FormInput type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <FormInput className="gov-form-control" type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </label>
           <GovernmentAdminOperationalScopeFields
             canPickScope={scopeFields.canPickScope}
@@ -144,7 +146,7 @@ function CreateGovPdfFlow({ token, onCreated }: { token: string; onCreated: (id:
             onTenantIdChange={scopeFields.setTenantId}
             disabled={submitting}
           />
-          <FormButton htmlType="submit" variant="primary" disabled={submitting}>
+          <FormButton htmlType="submit" variant="primary" className="gov-btn gov-btn--primary" disabled={submitting}>
             {submitting ? '등록 중…' : '등록하고 좌표 편집으로'}
           </FormButton>
         </form>
@@ -227,17 +229,17 @@ function EditGovPdfFlow({ token, templateId }: { token: string; templateId: numb
 
   if (state.status === 'loading') {
     return (
-      <main className="insurance-dark-forms pdf-engine-page contract-signature-console">
-        <p className="pdf-engine-page__hint">PDF 템플릿을 불러오는 중…</p>
+      <main className="government-admin-signature-page government-admin-page pdf-engine-page contract-signature-console" data-testid="government-admin-page">
+        <p className="gov-status-loading pdf-engine-page__hint">PDF 템플릿을 불러오는 중…</p>
       </main>
     )
   }
 
   if (state.status === 'error') {
     return (
-      <main className="insurance-dark-forms pdf-engine-page contract-signature-console">
-        <div className="contract-signature-console__inline-error">{state.message}</div>
-        <Link to={LIST_HREF} className="pdf-engine-editor__btn">
+      <main className="government-admin-signature-page government-admin-page pdf-engine-page contract-signature-console" data-testid="government-admin-page">
+        <div className="gov-status-error-card contract-signature-console__inline-error">{state.message}</div>
+        <Link to={LIST_HREF} className="gov-btn gov-btn--secondary pdf-engine-editor__btn">
           ← 전자서명 템플릿
         </Link>
       </main>
@@ -245,15 +247,17 @@ function EditGovPdfFlow({ token, templateId }: { token: string; templateId: numb
   }
 
   return (
-    <main className="insurance-dark-forms pdf-engine-page pdf-engine-page--editor contract-signature-console">
+    <main className="government-admin-signature-page government-admin-page pdf-engine-page pdf-engine-page--editor contract-signature-console" data-testid="government-admin-page">
       <div className="contract-signature-console__container">
-        <h1 className="contract-signature-console__title">{state.template.title}</h1>
-        <p className="contract-signature-console__hint">{state.template.pageCount}페이지 · PDF 좌표 편집</p>
+        <header className="page-header government-admin-signature-page__header">
+          <h1>{state.template.title}</h1>
+          <p>{state.template.pageCount}페이지 · PDF 좌표 편집</p>
+        </header>
         <div className="pdf-engine-page__toolbar">
-          <Link to={LIST_HREF} className="pdf-engine-editor__btn">
+          <Link to={LIST_HREF} className="gov-btn gov-btn--secondary pdf-engine-editor__btn">
             ← 전자서명 템플릿
           </Link>
-          <FormButton htmlType="button" variant="primary" disabled={savingFields} onClick={() => void persistFields()}>
+          <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" disabled={savingFields} onClick={() => void persistFields()}>
             {savingFields ? '저장 중…' : '좌표 저장'}
           </FormButton>
           {toast ? <span className="pdf-engine-page__hint">{toast}</span> : null}
