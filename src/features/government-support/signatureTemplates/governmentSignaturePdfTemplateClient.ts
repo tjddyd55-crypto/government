@@ -2,6 +2,13 @@ import { ApiError, apiRequest, resolveApiUrl } from '../../../lib/apiClient'
 import type { PdfFieldSpec, PdfTemplateDetail, PdfTemplateSummary } from '../../pdf-engine/types'
 import type { GovernmentSignatureScopePayload } from '../hooks/useGovernmentSignatureScopeFields'
 
+export type GovSignaturePdfTemplateListItem = PdfTemplateSummary & {
+  govTenantId?: number | null
+  tenantName?: string | null
+  fieldCount?: number
+  linkedTemplateCount?: number
+}
+
 const BASE = '/api/government-support/signature-templates/pdf'
 
 function scopeFields(scope?: GovernmentSignatureScopePayload): Record<string, string> {
@@ -19,9 +26,11 @@ function authHeader(token: string): HeadersInit {
   return { Authorization: `Bearer ${token}` }
 }
 
-export async function listGovSignaturePdfTemplates(token: string): Promise<{ templates: PdfTemplateSummary[] }> {
-  const body = await apiRequest<{ templates?: PdfTemplateSummary[] }>(BASE, { method: 'GET', token })
-  const raw = body as { templates?: PdfTemplateSummary[] }
+export async function listGovSignaturePdfTemplates(
+  token: string,
+): Promise<{ templates: GovSignaturePdfTemplateListItem[] }> {
+  const body = await apiRequest<{ templates?: GovSignaturePdfTemplateListItem[] }>(BASE, { method: 'GET', token })
+  const raw = body as { templates?: GovSignaturePdfTemplateListItem[] }
   if (!raw?.templates || !Array.isArray(raw.templates)) {
     throw new ApiError('PDF 템플릿 목록 응답 형식이 올바르지 않습니다.', 500)
   }

@@ -171,6 +171,7 @@ import GovernmentSignatureHistoryPage from './features/government-support/signat
 import { GovernmentSignatureTemplateRoute } from './features/government-support/signatureTemplates/GovernmentSignatureTemplateRoute'
 import GovernmentSignatureTemplatesPage from './features/government-support/signatureTemplates/GovernmentSignatureTemplatesPage'
 import GovernmentPdfTemplateEditorPage from './features/government-support/signatureTemplates/GovernmentPdfTemplateEditorPage'
+import GovernmentPdfTemplateListPage from './features/government-support/signatureTemplates/GovernmentPdfTemplateListPage'
 
 export const appRouter = createBrowserRouter([
   {
@@ -287,7 +288,7 @@ export const appRouter = createBrowserRouter([
                   },
                   {
                     path: 'government/admin/pdf-templates',
-                    element: <Navigate to="/government/admin/signature-templates/pdf/new" replace />,
+                    element: <Navigate to="/government/admin/signature-templates/pdf" replace />,
                   },
                   {
                     element: <GovernmentAdminUserManagerRoute />,
@@ -321,6 +322,10 @@ export const appRouter = createBrowserRouter([
                       { path: 'government/admin/signatures', element: <GovernmentSignatureHistoryPage /> },
                       { path: 'government/admin/signatures/send', element: <GovernmentSignatureSendPage /> },
                       { path: 'government/admin/signatures/:id', element: <GovernmentSignatureHistoryPage /> },
+                      {
+                        path: 'government/admin/signature-templates/pdf',
+                        element: <GovernmentPdfTemplateListPage />,
+                      },
                       {
                         path: 'government/admin/signature-templates/pdf/new',
                         element: <GovernmentPdfTemplateEditorPage />,

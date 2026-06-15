@@ -33,6 +33,7 @@ export const GOVERNMENT_ROUTE_PATHS = Object.freeze({
   adminAgencies: '/government/admin/agencies',
   adminUsers: '/government/admin/users',
   adminSignatureTemplates: '/government/admin/signature-templates',
+  adminSignaturePdfList: '/government/admin/signature-templates/pdf',
   adminSignaturePdfNew: '/government/admin/signature-templates/pdf/new',
 })
 

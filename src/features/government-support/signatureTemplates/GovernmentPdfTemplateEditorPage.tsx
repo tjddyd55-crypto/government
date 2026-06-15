@@ -27,7 +27,7 @@ import '../../pdf-engine/pdf-engine.css'
 import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 import './government-signature-console.css'
 
-const LIST_HREF = GOVERNMENT_ROUTE_PATHS.adminSignatureTemplates
+const PDF_LIST_HREF = GOVERNMENT_ROUTE_PATHS.adminSignaturePdfList
 
 function coercePdfFieldSpecForEditor(f: PdfFieldSpec & { id?: number }): PdfFieldSpec {
   const rest = { ...f } as PdfFieldSpec & { id?: number }
@@ -65,7 +65,7 @@ export default function GovernmentPdfTemplateEditorPage() {
   const t = token?.trim() ?? ''
 
   if (isNew) {
-    return <CreateGovPdfFlow token={t} onCreated={(id) => navigate(`${LIST_HREF}/pdf/${id}`)} />
+    return <CreateGovPdfFlow token={t} onCreated={(id) => navigate(`${PDF_LIST_HREF}/${id}`)} />
   }
   return <EditGovPdfFlow token={t} templateId={Number(numericId)} />
 }
@@ -117,8 +117,8 @@ function CreateGovPdfFlow({ token, onCreated }: { token: string; onCreated: (id:
           <h1>PDF 업로드 · 좌표 편집</h1>
         </header>
         <div className="pdf-engine-page__toolbar">
-          <Link to={LIST_HREF} className="gov-btn gov-btn--secondary pdf-engine-editor__btn">
-            ← 전자서명 템플릿
+          <Link to={PDF_LIST_HREF} className="gov-btn gov-btn--secondary pdf-engine-editor__btn">
+            ← PDF 목록
           </Link>
         </div>
         {error ? <div className="gov-status-error-card contract-signature-console__inline-error">{error}</div> : null}
@@ -239,8 +239,8 @@ function EditGovPdfFlow({ token, templateId }: { token: string; templateId: numb
     return (
       <main className="government-admin-signature-page government-admin-page pdf-engine-page contract-signature-console" data-testid="government-admin-page">
         <div className="gov-status-error-card contract-signature-console__inline-error">{state.message}</div>
-        <Link to={LIST_HREF} className="gov-btn gov-btn--secondary pdf-engine-editor__btn">
-          ← 전자서명 템플릿
+        <Link to={PDF_LIST_HREF} className="gov-btn gov-btn--secondary pdf-engine-editor__btn">
+          ← PDF 목록
         </Link>
       </main>
     )
@@ -254,8 +254,8 @@ function EditGovPdfFlow({ token, templateId }: { token: string; templateId: numb
           <p>{state.template.pageCount}페이지 · PDF 좌표 편집</p>
         </header>
         <div className="pdf-engine-page__toolbar">
-          <Link to={LIST_HREF} className="gov-btn gov-btn--secondary pdf-engine-editor__btn">
-            ← 전자서명 템플릿
+          <Link to={PDF_LIST_HREF} className="gov-btn gov-btn--secondary pdf-engine-editor__btn">
+            ← PDF 목록
           </Link>
           <FormButton htmlType="button" variant="primary" className="gov-btn gov-btn--primary" disabled={savingFields} onClick={() => void persistFields()}>
             {savingFields ? '저장 중…' : '좌표 저장'}

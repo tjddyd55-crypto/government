@@ -2,7 +2,7 @@
  * 전자서명 템플릿 관리 — SUPER_ADMIN / GA_ADMIN. 실제 고객 발송은 전자서명 발송 메뉴에서 진행.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import '../../pdf-engine/pdf-engine.css'
 import './government-signature-console.css'
 import { useAuth } from '../../auth/AuthProvider'
@@ -36,6 +36,7 @@ function resolveTenantGaId(role: string | undefined, ownerUserId: number): numbe
 export default function GovernmentSignatureTemplatesPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const isAdminRoute = location.pathname.startsWith(GOVERNMENT_ROUTE_PATHS.adminSignatureTemplates)
   const { token, user } = useAuth()
   const { summary } = useGovernmentAccess(token)
@@ -117,6 +118,10 @@ export default function GovernmentSignatureTemplatesPage() {
         )
         if (!cancelled) {
           setPdfRows(enriched)
+          const fromQuery = Number(searchParams.get('pdfTemplateId'))
+          if (Number.isInteger(fromQuery) && fromQuery > 0 && enriched.some((row) => row.id === fromQuery)) {
+            setSelectedPdfId(fromQuery)
+          }
         }
       } catch (e) {
         if (!cancelled) {
@@ -128,7 +133,7 @@ export default function GovernmentSignatureTemplatesPage() {
     return () => {
       cancelled = true
     }
-  }, [t, role])
+  }, [t, role, searchParams])
 
   useEffect(() => {
     let cancelled = false

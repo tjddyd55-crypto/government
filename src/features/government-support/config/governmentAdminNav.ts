@@ -17,6 +17,8 @@ export type GovernmentAdminNavItem = {
 }
 
 export const GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH = GOVERNMENT_ROUTE_PATHS.adminSignatureTemplates
+export const GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH = GOVERNMENT_ROUTE_PATHS.adminSignaturePdfList
+/** @deprecated — nav·대시보드는 리스트 경로 사용. 신규 업로드만 직접 참조 */
 export const GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH = GOVERNMENT_ROUTE_PATHS.adminSignaturePdfNew
 
 const RESOURCES_NAV: GovernmentAdminNavItem = {
@@ -31,7 +33,7 @@ export const GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_NAV: GovernmentAdminNavItem = 
 }
 
 export const GOVERNMENT_ADMIN_SIGNATURE_PDF_NAV: GovernmentAdminNavItem = {
-  to: GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+  to: GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH,
   label: 'PDF 좌표 설정',
   isActive: isGovernmentSignaturePdfNavActive,
 }

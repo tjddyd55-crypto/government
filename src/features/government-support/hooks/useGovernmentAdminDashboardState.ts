@@ -9,7 +9,7 @@ import { fetchGovernmentAdminUsers } from '../api/governmentAdminUsersApi'
 import { canManageGovernmentUsers } from '../lib/governmentAccess'
 import { canManageGovernmentSignatures, isGovernmentOperationalAccount } from '../lib/governmentHome'
 import {
-  GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+  GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH,
   GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
 } from '../config/governmentAdminNav'
 import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
@@ -133,7 +133,7 @@ export function useGovernmentAdminDashboardState(
           description: '전자서명 발송용 문서 템플릿 관리',
         },
         {
-          to: GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+          to: GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH,
           title: 'PDF 좌표 설정',
           description: 'PDF 업로드 및 서명 좌표 편집',
         },
@@ -151,7 +151,7 @@ export function useGovernmentAdminDashboardState(
         description: '전자서명 문서 템플릿을 생성·수정합니다.',
       },
       {
-        to: GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+        to: GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH,
         title: 'PDF 좌표 설정',
         description: 'PDF를 업로드하고 서명·입력 좌표를 설정합니다.',
       },

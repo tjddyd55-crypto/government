@@ -4,7 +4,7 @@ import { canManageGovernmentUsers, isGovernmentProgramUser } from '../lib/govern
 import { canManageGovernmentSignatures } from '../lib/governmentHome'
 import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 import {
-  GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+  GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH,
   GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
   GOVERNMENT_AGENCY_ADMIN_NAV,
   GOVERNMENT_INDUSTRY_ADMIN_NAV,
@@ -18,7 +18,7 @@ function filterSignatureNavItems(items: GovernmentAdminNavItem[], allowSignature
   return items.filter(
     (item) =>
       item.to !== GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH &&
-      item.to !== GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+      item.to !== GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH,
   )
 }
 
@@ -99,7 +99,7 @@ export function isGovernmentMobileMenuPathActive(pathname: string, itemPath: str
       /^\/government\/admin\/signature-templates\/[^/]+\/edit$/.test(pathname)
     )
   }
-  if (itemPath === GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH) {
+  if (itemPath === GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH) {
     return pathname.startsWith(`${GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH}/pdf`)
   }
   if (itemPath === GOVERNMENT_ROUTE_PATHS.workspace) {

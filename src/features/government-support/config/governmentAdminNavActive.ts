@@ -1,5 +1,5 @@
 import {
-  GOVERNMENT_ADMIN_SIGNATURE_PDF_NEW_PATH,
+  GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH,
   GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH,
   type GovernmentAdminNavItem,
 } from './governmentAdminNav'
@@ -12,7 +12,10 @@ export function isGovernmentSignatureTemplatesNavActive(pathname: string): boole
 }
 
 export function isGovernmentSignaturePdfNavActive(pathname: string): boolean {
-  return pathname.startsWith(`${GOVERNMENT_ADMIN_SIGNATURE_TEMPLATES_PATH}/pdf`)
+  return (
+    pathname === GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH ||
+    pathname.startsWith(`${GOVERNMENT_ADMIN_SIGNATURE_PDF_LIST_PATH}/`)
+  )
 }
 
 export function isGovernmentAdminNavItemActive(pathname: string, item: GovernmentAdminNavItem): boolean {

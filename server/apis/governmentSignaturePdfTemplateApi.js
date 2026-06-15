@@ -46,6 +46,10 @@ function templateToDto(row) {
     isActive: row.is_active,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    govTenantId: row.gov_tenant_id != null ? Number(row.gov_tenant_id) : null,
+    tenantName: row.tenant_name != null ? String(row.tenant_name) : null,
+    fieldCount: Number(row.field_count) || 0,
+    linkedTemplateCount: Number(row.linked_template_count) || 0,
   }
 }
 
@@ -182,10 +186,31 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
       }
       const r = await pool.query(
         `
-        SELECT id, code, title, description, page_count, is_active, created_at, updated_at
-        FROM pdf_templates
+        SELECT
+          pt.id,
+          pt.code,
+          pt.title,
+          pt.description,
+          pt.page_count,
+          pt.is_active,
+          pt.created_at,
+          pt.updated_at,
+          pt.gov_tenant_id,
+          tn.name AS tenant_name,
+          (
+            SELECT COUNT(*)::int
+            FROM pdf_template_fields f
+            WHERE f.template_id = pt.id
+          ) AS field_count,
+          (
+            SELECT COUNT(*)::int
+            FROM gov_signature_templates gst
+            WHERE gst.pdf_template_id = pt.id
+          ) AS linked_template_count
+        FROM pdf_templates pt
+        LEFT JOIN tenants tn ON tn.id = pt.gov_tenant_id
         WHERE ${listWhere.sql}
-        ORDER BY updated_at DESC
+        ORDER BY pt.updated_at DESC
         LIMIT 500
         `,
         listWhere.params,

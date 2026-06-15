@@ -1,6 +1,35 @@
 /* —— 이용자 PC 공통 화이트/옐로 테마 (보험 화면 참고, 정부지원 레포 전용) —— */
 @import './government-ui-theme.css';
 
+/* —— PC 이용자: 스크롤바 가시성 (전역 다크 테마 scrollbar-color 덮어쓰기) —— */
+.government-user-layout--pc-user,
+.government-user-layout--pc-user * {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.government-user-layout--pc-user ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.government-user-layout--pc-user ::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.government-user-layout--pc-user ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.government-user-layout--pc-user ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.government-user-layout--pc-user ::-webkit-scrollbar-thumb:active {
+  background: #64748b;
+}
+
 .government-user-layout--pc-user,
 .government-user-white-theme {
   --gov-workspace-bg: #f5f7fb;
