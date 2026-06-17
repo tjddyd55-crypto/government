@@ -52,6 +52,7 @@ const SETTINGS_NAV: GovernmentAdminNavItem = {
 export const GOVERNMENT_INDUSTRY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: GOVERNMENT_ROUTE_PATHS.adminRoot, label: '대시보드', end: true },
   { to: GOVERNMENT_ROUTE_PATHS.adminAgencies, label: '대행사 관리' },
+  { to: GOVERNMENT_ROUTE_PATHS.adminCustomers, label: '고객 관리' },
   ...SIGNATURE_NAV_ITEMS,
   { to: GOVERNMENT_ROUTE_PATHS.adminNotices, label: '공지/전달사항' },
   RESOURCES_NAV,
@@ -63,6 +64,7 @@ export const GOVERNMENT_AGENCY_ADMIN_NAV: GovernmentAdminNavItem[] = [
   { to: GOVERNMENT_ROUTE_PATHS.adminRoot, label: '운영 대시보드', end: true },
   { to: GOVERNMENT_ROUTE_PATHS.adminUsers, label: '대행사 직원' },
   { to: GOVERNMENT_ROUTE_PATHS.adminProgramUsers, label: '이용자 관리' },
+  { to: GOVERNMENT_ROUTE_PATHS.adminCustomers, label: '고객 관리' },
   { to: GOVERNMENT_ROUTE_PATHS.adminInquiries, label: '문의 관리' },
   { to: GOVERNMENT_ROUTE_PATHS.adminNotifications, label: '알림' },
   ...SIGNATURE_NAV_ITEMS,

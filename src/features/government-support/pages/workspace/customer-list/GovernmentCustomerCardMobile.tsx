@@ -1,0 +1,81 @@
+import GovernmentProfileListExpandDetail from '../GovernmentProfileListExpandDetail'
+import {
+  resolveGovernmentCustomerBusinessType,
+  resolveGovernmentCustomerCardName,
+  resolveGovernmentCustomerStatusLabel,
+} from '../../../lib/governmentCustomerListDisplay'
+import type { GovCustomerStatusOption, GovSupportProfile } from '../../../types/governmentProfile.types'
+import '../../../government-customer-list-mobile.css'
+
+export type GovernmentCustomerCardMobileProps = {
+  profile: GovSupportProfile
+  selected: boolean
+  expanded: boolean
+  deleting: boolean
+  statusOptions: GovCustomerStatusOption[]
+  onToggle: () => void
+  onEdit: () => void
+  onDelete: () => void
+  onStatusChange: (optionId: string | null) => void
+}
+
+export default function GovernmentCustomerCardMobile({
+  profile,
+  selected,
+  expanded,
+  deleting,
+  statusOptions,
+  onToggle,
+  onEdit,
+  onDelete,
+  onStatusChange,
+}: GovernmentCustomerCardMobileProps) {
+  const profileId = profile.id
+  const title = resolveGovernmentCustomerCardName(profile)
+  const phone = profile.phone?.trim() || '연락처 없음'
+  const businessType = resolveGovernmentCustomerBusinessType(profile)
+  const statusLabel = resolveGovernmentCustomerStatusLabel(profile)
+  const statusColor = profile.customerStatusColor || '#94A3B8'
+
+  return (
+    <li
+      className={`government-customer-card government-customer-card--mobile government-profile-list-card${
+        selected ? ' government-profile-list-card--active' : ''
+      }${expanded ? ' government-profile-list-card--expanded' : ''}`}
+      data-profile-id={profileId}
+    >
+      <button type="button" className="government-customer-card__tap" onClick={onToggle}>
+        <div className="government-customer-card__name">{title}</div>
+        <div className="government-customer-card__phone">{phone}</div>
+        <div className="government-customer-card__business-type">{businessType}</div>
+        <div className="government-customer-card__status">
+          <span className="government-customer-card__status-dot" style={{ backgroundColor: statusColor }} />
+          {statusLabel}
+        </div>
+      </button>
+      <select
+        className="gov-form-control government-customer-card__status-select"
+        value={profile.customerStatusOptionId ?? ''}
+        onChange={(e) => onStatusChange(e.target.value || null)}
+        aria-label={`${title} 고객상태`}
+      >
+        <option value="">상태 없음</option>
+        {statusOptions.map((opt) => (
+          <option key={opt.id} value={opt.id}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      {expanded ? (
+        <div className="government-profile-list-card__detail-wrap">
+          <GovernmentProfileListExpandDetail
+            profile={profile}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            deleting={deleting}
+          />
+        </div>
+      ) : null}
+    </li>
+  )
+}

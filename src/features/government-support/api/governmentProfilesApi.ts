@@ -5,6 +5,7 @@ import type {
   GovDocumentItem,
   GovEdocLinkRow,
   GovPriorLoan,
+  GovProfileListQuery,
   GovSupportProfile,
 } from '../types/governmentProfile.types'
 
@@ -83,9 +84,37 @@ export async function createGovAgency(
   return row
 }
 
-export async function fetchGovProfiles(token: string): Promise<GovSupportProfile[]> {
-  const raw = await apiRequest<unknown>('/api/government-support/profiles', { method: 'GET', token })
+export async function fetchGovProfiles(
+  token: string,
+  query?: GovProfileListQuery,
+): Promise<GovSupportProfile[]> {
+  const params = new URLSearchParams()
+  if (query?.q?.trim()) params.set('q', query.q.trim())
+  if (query?.customerStatusOptionId?.trim()) {
+    params.set('customerStatusOptionId', query.customerStatusOptionId.trim())
+  }
+  if (query?.businessType?.trim()) params.set('businessType', query.businessType.trim())
+  const qs = params.toString()
+  const raw = await apiRequest<unknown>(
+    `/api/government-support/profiles${qs ? `?${qs}` : ''}`,
+    { method: 'GET', token },
+  )
   return unwrapList<GovSupportProfile>(raw)
+}
+
+export async function patchGovProfileCustomerStatus(
+  token: string,
+  profileId: string,
+  customerStatusOptionId: string | null,
+): Promise<GovSupportProfile> {
+  const raw = await apiRequest<unknown>(`/api/government-support/profiles/${profileId}/customer-status`, {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify({ customerStatusOptionId }),
+  })
+  const row = unwrapData<GovSupportProfile>(raw)
+  if (!row) throw new Error('고객상태 저장에 실패했습니다.')
+  return row
 }
 
 export async function createGovProfile(

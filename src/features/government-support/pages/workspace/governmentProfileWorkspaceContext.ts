@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { useGovernmentWorkspaceState } from '../../hooks/useGovernmentWorkspaceState'
-import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
+import type { GovCustomerStatusOption, GovProfileFileCategory } from '../../types/governmentProfile.types'
 
 export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovernmentWorkspaceState> & {
   selectedProfileIdFromPath: string | null
@@ -21,6 +21,13 @@ export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovern
   /** null = 미분류 업로드 */
   getUploadCategoryName: (profileId: string) => string | null
   setUploadCategoryName: (profileId: string, categoryName: string | null) => void
+  listSearch: string
+  listCustomerStatusFilter: string
+  listBusinessTypeFilter: string
+  statusOptions: GovCustomerStatusOption[]
+  setListSearch: (value: string) => void
+  setListCustomerStatusFilter: (value: string) => void
+  setListBusinessTypeFilter: (value: string) => void
 }
 
 export const GovernmentProfileWorkspaceContext = createContext<GovernmentProfileWorkspaceContextValue | null>(

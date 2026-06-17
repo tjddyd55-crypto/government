@@ -76,7 +76,7 @@ describe('government role access', () => {
     )
   })
 
-  it('industry admin cannot access profiles without assignment', () => {
+  it('industry admin can access profiles for customer management', () => {
     const ctx = {
       userId: 'admin1',
       governmentProgramUserTenantIds: [],
@@ -86,6 +86,24 @@ describe('government role access', () => {
     }
     assert.equal(
       canAccessGovernmentProfile(ctx, { tenant_id: '10', owner_user_id: 'u1' }),
+      true,
+    )
+  })
+
+  it('agency admin can access profiles in own tenant only', () => {
+    const ctx = {
+      userId: 'agency1',
+      governmentProgramUserTenantIds: [],
+      governmentAgencyAdminTenantIds: ['10'],
+      governmentStaffTenantIds: [],
+      governmentIndustryAdminIndustryIds: [],
+    }
+    assert.equal(
+      canAccessGovernmentProfile(ctx, { tenant_id: '10', owner_user_id: 'u1' }),
+      true,
+    )
+    assert.equal(
+      canAccessGovernmentProfile(ctx, { tenant_id: '11', owner_user_id: 'u1' }),
       false,
     )
   })

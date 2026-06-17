@@ -68,11 +68,29 @@ export function canAccessGovernmentTenant(ctx, tenantId) {
 }
 
 /**
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ */
+export function isGovernmentAgencyCustomerManager(ctx) {
+  if (isGovernmentSuperAdmin(ctx) || isGovernmentIndustryAdmin(ctx)) {
+    return true
+  }
+  return (ctx.governmentAgencyAdminTenantIds?.length ?? 0) > 0
+}
+
+/**
  * 사업장/고객 목록 API — 프로그램 이용자 본인만.
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
  */
 export function canListGovernmentProfiles(ctx) {
   return isGovernmentProgramUser(ctx)
+}
+
+/**
+ * 대행사 관리자·업종 관리자 — tenant 전체 고객 목록.
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ */
+export function canListGovernmentAdminCustomers(ctx) {
+  return isGovernmentAgencyCustomerManager(ctx)
 }
 
 /**
@@ -113,8 +131,38 @@ export function canAccessGovernmentProfile(ctx, profileRow) {
   if (isGovernmentProgramUser(ctx)) {
     return String(ownerId) === String(ctx.userId)
   }
-  // assignment 테이블 도입 전: staff·관리자는 사업장/고객 원본 데이터 접근 불가
+  if (isGovernmentAgencyCustomerManager(ctx)) {
+    if (isGovernmentIndustryAdmin(ctx) || isGovernmentSuperAdmin(ctx)) {
+      return true
+    }
+    return (ctx.governmentAgencyAdminTenantIds ?? []).map(String).includes(tenantId)
+  }
   return false
+}
+
+/**
+ * 고객상태 변경 — 본인 이용자 또는 대행사/업종 관리자(tenant 범위).
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ * @param {{ owner_user_id?: string|null, ownerUserId?: string|null, tenant_id?: string|number|null, tenantId?: string|number|null }} profileRow
+ */
+export function canUpdateGovernmentProfileCustomerStatus(ctx, profileRow) {
+  if (!canAccessGovernmentProfile(ctx, profileRow)) {
+    return false
+  }
+  if (isGovernmentProgramUser(ctx)) {
+    const ownerId = profileRow?.owner_user_id ?? profileRow?.ownerUserId ?? null
+    return ownerId != null && String(ownerId) === String(ctx.userId)
+  }
+  return isGovernmentAgencyCustomerManager(ctx)
+}
+
+/**
+ * 프로필 본문 수정 — 프로그램 이용자 본인만 (고객상태 제외).
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ * @param {{ owner_user_id?: string|null, ownerUserId?: string|null }} profileRow
+ */
+export function canPatchGovernmentProfileBody(ctx, profileRow) {
+  return canAccessGovernmentProfile(ctx, profileRow) && isGovernmentProgramUser(ctx)
 }
 
 /**
@@ -303,7 +351,7 @@ export async function resolveGovernmentTenantScopeForQuery(pool, ctx) {
  */
 export async function resolveGovernmentProfileQueryScope(pool, ctx) {
   if (!canListGovernmentProfiles(ctx)) {
-    return { ok: true, tenantIds: [], ownerUserId: null }
+    return { ok: true, tenantIds: [], ownerUserId: null, mode: 'none' }
   }
   const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
   if (!scope.ok) {
@@ -315,6 +363,45 @@ export async function resolveGovernmentProfileQueryScope(pool, ctx) {
     ok: true,
     tenantIds,
     ownerUserId: String(ctx.userId),
+    mode: 'program_user',
+  }
+}
+
+/**
+ * 대행사 관리자 고객 목록 스코프.
+ * @param {import('pg').Pool} pool
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ * @param {{ tenantId?: string }} [filters]
+ */
+export async function resolveGovernmentAdminCustomerQueryScope(pool, ctx, filters = {}) {
+  if (!canListGovernmentAdminCustomers(ctx)) {
+    return { ok: false, status: 403, message: '고객 관리 권한이 없습니다.' }
+  }
+  const scope = await resolveGovernmentTenantScopeForQuery(pool, ctx)
+  if (!scope.ok) {
+    return scope
+  }
+
+  let tenantIds = scope.tenantIds
+  const requestedTenantId = String(filters.tenantId ?? '').trim()
+  if (requestedTenantId) {
+    if (!tenantIds.map(String).includes(requestedTenantId)) {
+      return { ok: false, status: 403, message: '해당 대행사 고객에 접근할 수 없습니다.' }
+    }
+    tenantIds = [requestedTenantId]
+  } else if (!isGovernmentIndustryAdmin(ctx) && !isGovernmentSuperAdmin(ctx)) {
+    tenantIds = (ctx.governmentAgencyAdminTenantIds ?? []).map(String)
+  }
+
+  if (tenantIds.length === 0) {
+    return { ok: false, status: 403, message: '조회 가능한 대행사가 없습니다.' }
+  }
+
+  return {
+    ok: true,
+    tenantIds,
+    ownerUserId: null,
+    mode: 'agency_admin',
   }
 }
 

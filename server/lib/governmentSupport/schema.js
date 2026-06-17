@@ -71,6 +71,36 @@ export async function ensureGovernmentSupportSchema(executor) {
   `)
 
   await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_customer_status_options (
+      id BIGSERIAL PRIMARY KEY,
+      tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      label TEXT NOT NULL DEFAULT '',
+      color TEXT NOT NULL DEFAULT '#94A3B8',
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      is_active BOOLEAN NOT NULL DEFAULT true,
+      created_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      archived_at TIMESTAMPTZ
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_customer_status_options_tenant
+    ON gov_customer_status_options (tenant_id, sort_order ASC, id ASC)
+    WHERE archived_at IS NULL
+  `)
+  await executor.query(`
+    ALTER TABLE gov_support_profiles
+    ADD COLUMN IF NOT EXISTS customer_status_option_id BIGINT
+      REFERENCES gov_customer_status_options(id) ON DELETE SET NULL
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_support_profiles_customer_status
+    ON gov_support_profiles (customer_status_option_id)
+    WHERE archived_at IS NULL
+  `)
+
+  await executor.query(`
     CREATE TABLE IF NOT EXISTS gov_support_prior_loans (
       id BIGSERIAL PRIMARY KEY,
       tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,

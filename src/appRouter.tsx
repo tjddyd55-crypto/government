@@ -148,6 +148,7 @@ import GovernmentAdminProgramUserDetailPage from './features/government-support/
 import GovernmentAdminNoticesPage from './features/government-support/pages/admin/GovernmentAdminNoticesPage'
 import GovernmentAdminResourcesPage from './features/government-support/pages/admin/GovernmentAdminResourcesPage'
 import GovernmentAdminSettingsPage from './features/government-support/pages/admin/GovernmentAdminSettingsPage'
+import GovernmentAdminCustomersPage from './features/government-support/pages/admin/GovernmentAdminCustomersPage'
 import GovernmentUserNoticesPage from './features/government-support/pages/GovernmentUserNoticesPage'
 import GovernmentUserInquiriesPage from './features/government-support/pages/GovernmentUserInquiriesPage'
 import GovernmentUserInquiryDetailPage from './features/government-support/pages/GovernmentUserInquiryDetailPage'
@@ -295,6 +296,7 @@ export const appRouter = createBrowserRouter([
                     children: [
                       { path: 'government/admin/users', element: <GovernmentAdminUsersPage /> },
                       { path: 'government/admin/program-users', element: <GovernmentAdminProgramUsersPage /> },
+                      { path: 'government/admin/customers', element: <GovernmentAdminCustomersPage /> },
                       {
                         path: 'government/admin/program-users/:userId',
                         element: <GovernmentAdminProgramUserDetailPage />,

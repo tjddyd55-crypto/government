@@ -56,7 +56,7 @@ describe('canAccessGovernmentProfile — memo API 권한 기준', () => {
     assert.equal(canAccessGovernmentProfile(ctx, { tenant_id: '1', owner_user_id: 'uB' }), false)
   })
 
-  it('staff/admin: 프로필·메모 접근 불가', () => {
+  it('staff는 프로필·메모 접근 불가, 대행사 관리자는 tenant 범위 허용', () => {
     const staff = {
       userId: 's1',
       governmentStaffTenantIds: ['1'],
@@ -69,6 +69,10 @@ describe('canAccessGovernmentProfile — memo API 권한 기준', () => {
     }
     const row = { tenant_id: '1', owner_user_id: 'uA' }
     assert.equal(canAccessGovernmentProfile(staff, row), false)
-    assert.equal(canAccessGovernmentProfile(admin, row), false)
+    assert.equal(canAccessGovernmentProfile(admin, row), true)
+    assert.equal(
+      canAccessGovernmentProfile(admin, { tenant_id: '99', owner_user_id: 'uA' }),
+      false,
+    )
   })
 })

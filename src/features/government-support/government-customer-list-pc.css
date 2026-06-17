@@ -1,0 +1,60 @@
+/* PC — 고객 목록 toolbar·카드 */
+.government-profile-list-panel--pc .government-customer-list-toolbar--pc {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(120px, 0.8fr) minmax(120px, 0.8fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.government-profile-list-panel--pc .government-customer-card__summary {
+  flex: 1;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.government-profile-list-panel--pc .government-customer-card__primary {
+  display: grid;
+  grid-template-columns: minmax(100px, 1.1fr) minmax(110px, 0.9fr) minmax(90px, 0.8fr) minmax(90px, 0.8fr);
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.government-profile-list-panel--pc .government-customer-card__name {
+  font-size: 15px;
+  color: #f8fafc;
+}
+
+.government-profile-list-panel--pc .government-customer-card__phone,
+.government-profile-list-panel--pc .government-customer-card__business-type {
+  color: #e5e7eb;
+  font-size: 14px;
+}
+
+.government-profile-list-panel--pc .government-customer-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.government-profile-list-panel--pc .government-customer-card__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.government-profile-list-panel--pc .government-customer-card__status-select {
+  min-width: 120px;
+  max-width: 140px;
+}
+
+.government-profile-list-panel--pc .government-profile-list-card__summary-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

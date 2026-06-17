@@ -40,8 +40,44 @@ export type GovSupportProfile = {
   delegationMemo: string
   edocStatus: string
   docStatus: string
+  ownerUserId?: string | null
+  customerStatusOptionId?: string | null
+  customerStatusLabel?: string | null
+  customerStatusColor?: string | null
+  ownerUsername?: string | null
+  ownerDisplayName?: string | null
+  progressEventCount?: number
+  latestProgressAt?: string | null
   createdAt?: string
   updatedAt?: string
+}
+
+export type GovCustomerStatusOption = {
+  id: string
+  tenantId: string
+  label: string
+  color: string
+  sortOrder: number
+  isActive: boolean
+  createdByUserId?: string | null
+  createdAt?: string | null
+  updatedAt?: string | null
+  archivedAt?: string | null
+  usageCount?: number
+}
+
+export type GovAdminCustomerSummary = {
+  totalCount: number
+  byStatus: Array<{ statusKey: string; statusLabel: string; count: number }>
+  byOwner: Array<{ ownerUserId: string; ownerLabel: string; customerCount: number }>
+}
+
+export type GovProfileListQuery = {
+  q?: string
+  customerStatusOptionId?: string
+  businessType?: string
+  ownerUserId?: string
+  tenantId?: string
 }
 
 export type GovAgencyRow = {

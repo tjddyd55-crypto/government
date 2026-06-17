@@ -30,6 +30,7 @@ export const GOVERNMENT_ROUTE_PATHS = Object.freeze({
   adminResources: '/government/admin/resources',
   adminNotifications: '/government/admin/notifications',
   adminProgramUsers: '/government/admin/program-users',
+  adminCustomers: '/government/admin/customers',
   adminAgencies: '/government/admin/agencies',
   adminUsers: '/government/admin/users',
   adminSignatureTemplates: '/government/admin/signature-templates',

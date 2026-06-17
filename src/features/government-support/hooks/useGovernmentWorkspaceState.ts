@@ -12,6 +12,7 @@ import {
   fetchGovProfiles,
   patchGovApplicationCase,
   patchGovProfile,
+  patchGovProfileCustomerStatus,
   deleteGovProfile,
 } from '../api/governmentProfilesApi'
 import type {
@@ -19,6 +20,7 @@ import type {
   GovDocumentItem,
   GovEdocLinkRow,
   GovPriorLoan,
+  GovProfileListQuery,
   GovSupportProfile,
 } from '../types/governmentProfile.types'
 
@@ -37,10 +39,15 @@ export type GovernmentWorkspaceTab =
 export function useGovernmentWorkspaceState(
   token: string | null,
   defaultTenantId: string | null,
-  options?: { canCreateProfile?: boolean; onProfilesChanged?: () => void },
+  options?: {
+    canCreateProfile?: boolean
+    onProfilesChanged?: () => void
+    listQuery?: GovProfileListQuery
+  },
 ) {
   const canCreateProfile = options?.canCreateProfile ?? true
   const onProfilesChanged = options?.onProfilesChanged
+  const listQuery = options?.listQuery
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [profiles, setProfiles] = useState<GovSupportProfile[]>([])
@@ -59,12 +66,12 @@ export function useGovernmentWorkspaceState(
 
   const reloadProfiles = useCallback(async () => {
     if (!token) return
-    const rows = await fetchGovProfiles(token)
+    const rows = await fetchGovProfiles(token, listQuery)
     setProfiles(rows)
     if (rows.length > 0 && !selectedId) {
       setSelectedId(rows[0].id)
     }
-  }, [token, selectedId])
+  }, [token, selectedId, listQuery])
 
   const reloadDetail = useCallback(async () => {
     if (!token || !selectedId) {
@@ -227,5 +234,15 @@ export function useGovernmentWorkspaceState(
     updateCaseStatus,
     updateCaseField,
     reloadProfiles,
+    updateProfileCustomerStatus: useCallback(
+      async (profileId: string, customerStatusOptionId: string | null) => {
+        if (!token) return null
+        const next = await patchGovProfileCustomerStatus(token, profileId, customerStatusOptionId)
+        setProfiles((prev) => prev.map((p) => (p.id === next.id ? next : p)))
+        setFeedback('고객상태를 저장했습니다.')
+        return next
+      },
+      [token],
+    ),
   }
 }

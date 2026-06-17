@@ -13,6 +13,9 @@ import {
   resolveGovernmentIndustryId,
   canCreateGovernmentProfile,
   canDeleteGovernmentProfile,
+  canPatchGovernmentProfileBody,
+  canUpdateGovernmentProfileCustomerStatus,
+  resolveGovernmentAdminCustomerQueryScope,
   resolveGovernmentProfileQueryScope,
   resolveGovernmentTenantScopeForQuery,
   resolveTenantIdForProfileCreate,
@@ -39,6 +42,19 @@ import {
   softDeleteGovernmentProgramUser,
 } from './lib/governmentSupport/governmentAdminUsers.js'
 import { mapGovSupportProfileRow, profilePatchFromBody } from './lib/governmentSupport/profileMapper.js'
+import {
+  assertCustomerStatusOptionForTenant,
+  archiveCustomerStatusOption,
+  createCustomerStatusOption,
+  listCustomerStatusOptions,
+  patchCustomerStatusOption,
+} from './lib/governmentSupport/governmentCustomerStatusOptions.js'
+import {
+  getGovernmentProfileById,
+  listGovernmentProfiles,
+  parseProfileListFilters,
+  summarizeGovernmentAdminCustomers,
+} from './lib/governmentSupport/governmentProfileList.js'
 import {
   mapGovSupportProfileMemoRow,
   normalizeGovProfileMemoContent,
@@ -477,22 +493,166 @@ export function registerGovernmentSupportApi(router, deps) {
         res.json({ success: true, data: [] })
         return
       }
-      const r = await pool.query(
-        `
-        SELECT * FROM gov_support_profiles
-        WHERE tenant_id = ANY($1::bigint[])
-          AND owner_user_id IS NOT NULL
-          AND archived_at IS NULL
-          AND ($2::text IS NULL OR owner_user_id = $2::text)
-        ORDER BY updated_at DESC, id DESC
-        `,
-        [scope.tenantIds, scope.ownerUserId],
-      )
-      res.json({ success: true, data: r.rows.map(mapGovSupportProfileRow) })
+      const filters = parseProfileListFilters(req.query ?? {})
+      const rows = await listGovernmentProfiles(pool, {
+        tenantIds: scope.tenantIds,
+        ownerUserId: scope.ownerUserId,
+        filters,
+      })
+      res.json({ success: true, data: rows })
     } catch (e) {
       handleDbError(e, req, res)
     }
   })
+
+  router.get('/government-support/admin/customers', ...requireGovernmentUserManager, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      const scope = await resolveGovernmentAdminCustomerQueryScope(pool, ctx, {
+        tenantId: req.query.tenantId ?? req.query.tenant_id,
+      })
+      if (!scope.ok) {
+        res.status(scope.status).json({ message: scope.message })
+        return
+      }
+      const filters = parseProfileListFilters(req.query ?? {})
+      const [rows, summary] = await Promise.all([
+        listGovernmentProfiles(pool, {
+          tenantIds: scope.tenantIds,
+          ownerUserId: filters.ownerUserId || null,
+          filters,
+        }),
+        summarizeGovernmentAdminCustomers(pool, { tenantIds: scope.tenantIds, filters }),
+      ])
+      res.json({ success: true, data: rows, summary })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.get('/government-support/customer-status-options', ...requireGovernmentMember, async (req, res) => {
+    try {
+      const ctx = req.platformContext
+      const tenantId = String(req.query.tenantId ?? req.query.tenant_id ?? '').trim()
+      const result = await listCustomerStatusOptions(pool, ctx, {
+        tenantId,
+        includeInactive: String(req.query.includeInactive ?? '').trim() === 'true',
+      })
+      if (!result.ok) {
+        res.status(result.status).json({ message: result.message })
+        return
+      }
+      res.json({ success: true, data: result.data })
+    } catch (e) {
+      handleDbError(e, req, res)
+    }
+  })
+
+  router.post(
+    '/government-support/admin/customer-status-options',
+    ...requireGovernmentUserManager,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        const result = await createCustomerStatusOption(pool, ctx, req.body ?? {})
+        if (!result.ok) {
+          res.status(result.status).json({ message: result.message })
+          return
+        }
+        res.status(201).json({ success: true, data: result.data })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.patch(
+    '/government-support/admin/customer-status-options/:optionId',
+    ...requireGovernmentUserManager,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        const optionId = String(req.params.optionId ?? '').trim()
+        const result = await patchCustomerStatusOption(pool, ctx, optionId, req.body ?? {})
+        if (!result.ok) {
+          res.status(result.status).json({ message: result.message })
+          return
+        }
+        res.json({ success: true, data: result.data })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.delete(
+    '/government-support/admin/customer-status-options/:optionId',
+    ...requireGovernmentUserManager,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        const optionId = String(req.params.optionId ?? '').trim()
+        const result = await archiveCustomerStatusOption(pool, ctx, optionId)
+        if (!result.ok) {
+          res.status(result.status).json({ message: result.message })
+          return
+        }
+        res.json({ success: true, data: result.data, soft: result.soft === true })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
+
+  router.patch(
+    '/government-support/profiles/:profileId/customer-status',
+    ...requireGovernmentMember,
+    async (req, res) => {
+      try {
+        const ctx = req.platformContext
+        const id = String(req.params.profileId ?? '').trim()
+        const existing = await pool.query(
+          `SELECT * FROM gov_support_profiles WHERE id = $1::bigint`,
+          [id],
+        )
+        if ((existing.rowCount ?? 0) === 0 || existing.rows[0].archived_at != null) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        const row = existing.rows[0]
+        if (!canUpdateGovernmentProfileCustomerStatus(ctx, row)) {
+          res.status(403).json({ message: '고객상태 변경 권한이 없습니다.' })
+          return
+        }
+        const optionId = req.body?.customerStatusOptionId ?? req.body?.customer_status_option_id ?? null
+        const validated = await assertCustomerStatusOptionForTenant(
+          pool,
+          String(row.tenant_id),
+          optionId,
+        )
+        if (!validated.ok) {
+          res.status(validated.status).json({ message: validated.message })
+          return
+        }
+        await pool.query(
+          `
+          UPDATE gov_support_profiles
+          SET customer_status_option_id = $2::bigint, updated_at = NOW()
+          WHERE id = $1::bigint AND archived_at IS NULL
+          `,
+          [id, validated.optionId],
+        )
+        const updated = await getGovernmentProfileById(pool, id)
+        if (!updated) {
+          res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
+          return
+        }
+        res.json({ success: true, data: mapGovSupportProfileRow(updated) })
+      } catch (e) {
+        handleDbError(e, req, res)
+      }
+    },
+  )
 
   router.get('/government-support/admin/program-users/:userId', ...requireGovernmentUserManager, async (req, res) => {
     try {
@@ -577,7 +737,8 @@ export function registerGovernmentSupportApi(router, deps) {
         res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
       }
-      res.json({ success: true, data: mapGovSupportProfileRow(row) })
+      const full = await getGovernmentProfileById(pool, id)
+      res.json({ success: true, data: mapGovSupportProfileRow(full ?? row) })
     } catch (e) {
       handleDbError(e, req, res)
     }
@@ -599,11 +760,18 @@ export function registerGovernmentSupportApi(router, deps) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
-      if (!canAccessGovernmentProfile(ctx, existing.rows[0])) {
-        res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
+      if (!canPatchGovernmentProfileBody(ctx, existing.rows[0])) {
+        res.status(403).json({ message: '프로필 수정 권한이 없습니다.' })
         return
       }
-      const pairs = profilePatchFromBody(req.body ?? {})
+      const body = req.body ?? {}
+      if (body.customerStatusOptionId !== undefined || body.customer_status_option_id !== undefined) {
+        res.status(400).json({
+          message: '고객상태는 PATCH /profiles/:id/customer-status 로 변경하세요.',
+        })
+        return
+      }
+      const pairs = profilePatchFromBody(body)
       if (pairs.length === 0) {
         res.status(400).json({ message: '수정할 필드가 없습니다.' })
         return
@@ -618,7 +786,8 @@ export function registerGovernmentSupportApi(router, deps) {
         res.status(404).json({ message: '프로필을 찾을 수 없습니다.' })
         return
       }
-      res.json({ success: true, data: mapGovSupportProfileRow(r.rows[0]) })
+      const updated = await getGovernmentProfileById(pool, id)
+      res.json({ success: true, data: mapGovSupportProfileRow(updated ?? r.rows[0]) })
     } catch (e) {
       handleDbError(e, req, res)
     }

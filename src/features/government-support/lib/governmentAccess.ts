@@ -41,6 +41,13 @@ export function canManageGovernmentUsers(summary: GovernmentAccessSummary | null
   return (summary.governmentAgencyAdminTenantIds?.length ?? 0) > 0
 }
 
+/** 대행사·업종 관리자 — tenant 전체 고객 목록 */
+export function canListGovernmentAdminCustomers(summary: GovernmentAccessSummary | null): boolean {
+  if (!summary) return false
+  if (summary.isSuperAdmin || summary.isGovernmentIndustryAdmin) return true
+  return (summary.governmentAgencyAdminTenantIds?.length ?? 0) > 0
+}
+
 /** 기관 코드 가입 프로그램 이용자 */
 export function isGovernmentProgramUser(summary: GovernmentAccessSummary | null): boolean {
   return summary?.isGovernmentProgramUser === true

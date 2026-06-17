@@ -4,6 +4,7 @@ import ResponsiveLayout from '../../../../components/ResponsiveLayout'
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
 import { useAuth } from '../../../auth/AuthProvider'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
+import { useGovernmentProfileListState } from '../../hooks/useGovernmentProfileListState'
 import { useGovernmentWorkspaceState } from '../../hooks/useGovernmentWorkspaceState'
 import {
   governmentProfileWorkspacePath,
@@ -66,9 +67,12 @@ export default function GovernmentProfileWorkspaceLayout() {
     return summary.governmentProgramUserTenantIds[0] ?? null
   }, [summary])
 
+  const listState = useGovernmentProfileListState(token, defaultTenantId)
+
   const ws = useGovernmentWorkspaceState(token, defaultTenantId, {
     canCreateProfile: true,
     onProfilesChanged: () => void reloadAccess(),
+    listQuery: listState.listQuery,
   })
 
   const selectedProfileIdFromPath = useMemo(
@@ -290,6 +294,13 @@ export default function GovernmentProfileWorkspaceLayout() {
       addProfileDocumentCategory,
       getUploadCategoryName,
       setUploadCategoryName,
+      listSearch: listState.filters.search,
+      listCustomerStatusFilter: listState.filters.customerStatusOptionId,
+      listBusinessTypeFilter: listState.filters.businessType,
+      statusOptions: listState.statusOptions,
+      setListSearch: listState.setSearch,
+      setListCustomerStatusFilter: listState.setCustomerStatusFilter,
+      setListBusinessTypeFilter: listState.setBusinessTypeFilter,
     }),
     [
       wsRest,
@@ -307,6 +318,13 @@ export default function GovernmentProfileWorkspaceLayout() {
       addProfileDocumentCategory,
       getUploadCategoryName,
       setUploadCategoryName,
+      listState.filters.search,
+      listState.filters.customerStatusOptionId,
+      listState.filters.businessType,
+      listState.statusOptions,
+      listState.setSearch,
+      listState.setCustomerStatusFilter,
+      listState.setBusinessTypeFilter,
     ],
   )
 

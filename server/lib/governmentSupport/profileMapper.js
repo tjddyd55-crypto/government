@@ -42,6 +42,18 @@ export function mapGovSupportProfileRow(row) {
     delegationMemo: String(row.delegation_memo ?? ''),
     edocStatus: String(row.edoc_status ?? ''),
     docStatus: String(row.doc_status ?? ''),
+    ownerUserId: row.owner_user_id != null ? String(row.owner_user_id) : null,
+    customerStatusOptionId:
+      row.customer_status_option_id != null ? String(row.customer_status_option_id) : null,
+    customerStatusLabel:
+      row.customer_status_label != null ? String(row.customer_status_label) : null,
+    customerStatusColor:
+      row.customer_status_color != null ? String(row.customer_status_color) : null,
+    ownerUsername: row.owner_username != null ? String(row.owner_username) : null,
+    ownerDisplayName: row.owner_display_name != null ? String(row.owner_display_name) : null,
+    progressEventCount:
+      row.progress_event_count != null ? Number(row.progress_event_count) : undefined,
+    latestProgressAt: row.latest_progress_at != null ? String(row.latest_progress_at) : null,
     createdAt: row.created_at != null ? String(row.created_at) : undefined,
     updatedAt: row.updated_at != null ? String(row.updated_at) : undefined,
   }
@@ -95,6 +107,13 @@ export function profilePatchFromBody(body) {
     pick('edocStatus', 'edoc_status'),
     pick('docStatus', 'doc_status'),
   ].filter(Boolean)
+  if (b.customerStatusOptionId !== undefined || b.customer_status_option_id !== undefined) {
+    const v = b.customerStatusOptionId ?? b.customer_status_option_id
+    pairs.push([
+      'customer_status_option_id',
+      v == null || String(v).trim() === '' ? null : String(v).trim(),
+    ])
+  }
   if (b.assigneeUserId !== undefined || b.assignee_user_id !== undefined) {
     const v = b.assigneeUserId ?? b.assignee_user_id
     pairs.push(['assignee_user_id', v == null || String(v).trim() === '' ? null : String(v).trim()])
