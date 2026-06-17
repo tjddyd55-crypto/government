@@ -2,7 +2,9 @@ import { describe, it, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   assertDevelopGovernmentDbTarget,
+  buildTableDeleteCounts,
   CONFIRM_ENV_VALUE,
+  countPreservedSesungProfiles,
   isDummyLikeName,
   maskDatabaseUrl,
   parseCleanupArgv,
@@ -52,5 +54,36 @@ describe('governmentDummyDataCleanup', () => {
 
   it('CONFIRM_ENV_VALUE is stable contract', () => {
     assert.equal(CONFIRM_ENV_VALUE, 'DELETE_NON_SESUNG_DUMMY_DATA')
+  })
+
+  it('buildTableDeleteCounts returns preserve profile count when no delete candidates', async () => {
+    const client = {
+      query: async (sql) => {
+        if (sql.includes('gov_support_profiles WHERE tenant_id = $1')) {
+          return { rows: [{ c: 27 }] }
+        }
+        return { rows: [{ c: 0 }] }
+      },
+    }
+    const counts = await buildTableDeleteCounts(client, {
+      preserveTenantId: '69',
+      deleteTenantIds: [],
+      deleteUserIds: [],
+    })
+    assert.equal(counts.gov_support_profiles_preserve, 27)
+    assert.equal(Object.keys(counts).length, 1)
+  })
+
+  it('countPreservedSesungProfiles queries tenant-scoped profile count', async () => {
+    let capturedParams
+    const client = {
+      query: async (_sql, params) => {
+        capturedParams = params
+        return { rows: [{ c: 27 }] }
+      },
+    }
+    const count = await countPreservedSesungProfiles(client, '69')
+    assert.equal(count, 27)
+    assert.deepEqual(capturedParams, [69])
   })
 })

@@ -281,12 +281,26 @@ async function countBySql(client, sql, params = []) {
 
 /**
  * @param {import('pg').PoolClient | { query: Function }} client
+ * @param {string} preserveTenantId
+ */
+export async function countPreservedSesungProfiles(client, preserveTenantId) {
+  return countBySql(
+    client,
+    `SELECT COUNT(*)::int AS c FROM gov_support_profiles WHERE tenant_id = $1::bigint`,
+    [Number(preserveTenantId)],
+  )
+}
+
+/**
+ * @param {import('pg').PoolClient | { query: Function }} client
  * @param {{ preserveTenantId: string, deleteTenantIds: string[], deleteUserIds: string[] }} scope
  */
-async function buildTableDeleteCounts(client, scope) {
+export async function buildTableDeleteCounts(client, scope) {
   const { preserveTenantId, deleteTenantIds, deleteUserIds } = scope
+  const preserveProfileCount = await countPreservedSesungProfiles(client, preserveTenantId)
+
   if (deleteTenantIds.length === 0 && deleteUserIds.length === 0) {
-    return {}
+    return { gov_support_profiles_preserve: preserveProfileCount }
   }
 
   const tenantArr = deleteTenantIds.map((id) => Number(id))
@@ -560,6 +574,7 @@ export async function buildGovernmentDummyCleanupPlan(client, opts = {}) {
       '세승 tenant 및 연결 데이터는 보존.',
       '세승이 아닌 government tenant 삭제 시 gov_support_* 는 tenants ON DELETE CASCADE 로 정리.',
       'gov_signature_templates / pdf_templates 는 tenant SET NULL 이므로 execute 시 선삭제.',
+      'gov_signature_send_sessions 는 document_instances RESTRICT 때문에 templates 보다 먼저 삭제.',
       'global 공지/자료/템플릿 중 dummy 명칭은 이번 execute 대상에서 제외(별도 승인).',
       'R2 object 는 삭제하지 않음.',
     ],
@@ -657,6 +672,39 @@ export function writeDryRunReports(plan, projectRoot) {
 
 /**
  * @param {import('pg').PoolClient} client
+ * @param {{ tenantIdNums: number[], deleteUserIds: string[] }} scope
+ */
+export async function deleteGovSignatureSessionsForCleanup(client, scope) {
+  const { tenantIdNums, deleteUserIds } = scope
+  let total = 0
+
+  if (tenantIdNums.length > 0) {
+    const r1 = await client.query(
+      `
+      DELETE FROM gov_signature_send_sessions
+      WHERE tenant_id = ANY($1::bigint[])
+         OR profile_id IN (
+           SELECT id FROM gov_support_profiles WHERE tenant_id = ANY($1::bigint[])
+         )
+      `,
+      [tenantIdNums],
+    )
+    total += r1.rowCount ?? 0
+  }
+
+  if (deleteUserIds.length > 0) {
+    const r2 = await client.query(
+      `DELETE FROM gov_signature_send_sessions WHERE owner_user_id = ANY($1::text[])`,
+      [deleteUserIds],
+    )
+    total += r2.rowCount ?? 0
+  }
+
+  return total
+}
+
+/**
+ * @param {import('pg').PoolClient} client
  * @param {object} plan
  */
 export async function executeGovernmentDummyCleanup(client, plan) {
@@ -673,6 +721,11 @@ export async function executeGovernmentDummyCleanup(client, plan) {
 
   await client.query('BEGIN')
   try {
+    deleted.gov_signature_send_sessions = await deleteGovSignatureSessionsForCleanup(client, {
+      tenantIdNums,
+      deleteUserIds,
+    })
+
     if (tenantIdNums.length > 0) {
       const r1 = await client.query(
         `DELETE FROM gov_signature_templates WHERE tenant_id = ANY($1::bigint[])`,
