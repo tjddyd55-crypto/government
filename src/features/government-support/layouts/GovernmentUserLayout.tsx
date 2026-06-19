@@ -15,6 +15,7 @@ import {
 } from '../context/governmentUserChromeContext'
 import '../government-support.css'
 import '../government-user-pc-theme.css'
+import '../government-user-mobile-theme.css'
 import '../government-user-ops-pages.css'
 import '../government-user-inquiries-pages.css'
 import '../government-profile-progress-pages.css'

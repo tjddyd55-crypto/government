@@ -9,6 +9,16 @@ main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mo
   overflow-x: hidden;
   max-width: 100vw;
   box-sizing: border-box;
+  --bg-main: #f5f7fb;
+  --bg-card: #ffffff;
+  --bg-soft: #f8fafc;
+  --border: #d7dee8;
+  --text-main: #0f172a;
+  --text-sub: #64748b;
+  --primary: #f2b800;
+  --text-on-primary: #111827;
+  background: #f5f7fb;
+  color: #0f172a;
 }
 
 main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mobile .contract-signature-console__container {
@@ -50,8 +60,8 @@ main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mo
 }
 
 main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mobile .contract-mobile-step--active {
-  border-color: rgba(59, 130, 246, 0.55);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+  border-color: rgba(242, 184, 0, 0.65);
+  box-shadow: 0 0 0 1px rgba(242, 184, 0, 0.28);
 }
 
 main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mobile .contract-mobile-step--completed {
@@ -89,8 +99,8 @@ main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mo
 }
 
 main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mobile .contract-mobile-step__badge--active {
-  background: rgba(59, 130, 246, 0.2);
-  color: #93c5fd;
+  background: #fff8d6;
+  color: #92400e;
 }
 
 main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mobile .contract-mobile-step__badge--done {
@@ -204,8 +214,8 @@ main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mo
   border-radius: 12px;
   margin-top: 8px;
   margin-bottom: 4px;
-  border: 1px solid rgba(96, 165, 250, 0.55);
-  background: color-mix(in srgb, rgba(59, 130, 246, 0.08) 35%, var(--bg-card));
+  border: 1px solid rgba(242, 184, 0, 0.55);
+  background: #fffdf0;
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
@@ -329,9 +339,9 @@ main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mo
 }
 
 main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mobile .contract-send-mobile-template-card--selected {
-  border-color: rgba(96, 165, 250, 0.85);
-  background: color-mix(in srgb, rgba(59, 130, 246, 0.12) 45%, var(--bg-card));
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
+  border-color: rgba(242, 184, 0, 0.85);
+  background: #fffdf0;
+  box-shadow: 0 0 0 2px rgba(242, 184, 0, 0.28);
 }
 
 main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mobile .contract-send-mobile-template-card__title {

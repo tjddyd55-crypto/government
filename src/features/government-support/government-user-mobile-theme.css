@@ -1,0 +1,340 @@
+/**
+ * 정부지원 CRM — 모바일 이용자 white/yellow 테마.
+ * index.css · dark-application-pdf-scope · government-support.css 다크 잔여를
+ * `.government-page--mobile.government-user-layout` 스코프에서만 덮어쓴다.
+ */
+
+/* —— 페이지·콘텐츠 배경 —— */
+.government-page--mobile.government-user-layout.government-user-white-theme,
+.government-page--mobile.government-user-layout.government-user-white-theme.government-page {
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .government-user-layout__content {
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .government-page__title {
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .government-page__muted {
+  color: #64748b;
+}
+
+/* —— 모바일 셸 (index.css .mobile-topbar / drawer 다크 override) —— */
+.government-page--mobile.government-user-layout .government-mobile-workspace-shell.mobile-root,
+.government-page--mobile.government-user-layout .government-mobile-workspace-shell {
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .mobile-topbar {
+  background: #ffffff;
+  border-bottom: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .mobile-topbar .title,
+.government-page--mobile.government-user-layout .mobile-topbar .menu-btn {
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .mobile-workspace-content,
+.government-page--mobile.government-user-layout .government-mobile-workspace-shell__content.content-wrapper {
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .government-mobile-workspace-shell__workspace-link {
+  color: #92400e;
+}
+
+/* —— 드로어 —— */
+.government-page--mobile.government-user-layout .mobile-workspace-drawer,
+.government-page--mobile.government-user-layout .mobile-workspace-drawer--overlay {
+  background: #ffffff;
+  border-bottom: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .mobile-workspace-drawer__section {
+  color: #64748b;
+  border-top-color: #e2e8f0;
+}
+
+.government-page--mobile.government-user-layout .mobile-workspace-drawer__footer {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.government-page--mobile.government-user-layout .workspace-sidebar__menu-item {
+  color: #0f172a;
+  background: transparent;
+}
+
+.government-page--mobile.government-user-layout .workspace-sidebar__menu-item:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.government-page--mobile.government-user-layout .workspace-sidebar__menu-item--active {
+  background: #fffdf0;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.government-page--mobile.government-user-layout .workspace-sidebar__menu-item--active::before {
+  background: #f2b800;
+}
+
+.government-page--mobile.government-user-layout .mobile-workspace-drawer__logout {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #d7dee8;
+  border-radius: 10px;
+}
+
+.government-page--mobile.government-user-layout .mobile-workspace-drawer__logout:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+/* —— 문의·공지·자료 (claim-inbox 잔여) —— */
+.government-page--mobile.government-user-layout .government-user-ops-layout {
+  background: transparent;
+}
+
+.government-page--mobile.government-user-layout .government-user-ops-list {
+  border-color: #e2e8f0;
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.government-page--mobile.government-user-layout .government-user-ops-detail__body {
+  color: #334155;
+}
+
+.government-page--mobile.government-user-layout .government-user-ops-cards .gov-user-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+/* —— 탭·리스트 (legacy government-tabs) —— */
+.government-page--mobile.government-user-layout .government-tabs__btn {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.government-page--mobile.government-user-layout .government-tabs__btn--active {
+  background: #fffdf0;
+  border-color: #f2b800;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .government-list-item {
+  color: #334155;
+  border-bottom-color: #e2e8f0;
+}
+
+.government-page--mobile.government-user-layout .government-list-item--active {
+  background: #fffdf0;
+}
+
+.government-page--mobile.government-user-layout .government-list-item__title {
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .government-list-item__meta {
+  color: #64748b;
+}
+
+/* —— 스토리지·파일 리스트 —— */
+.government-page--mobile.government-user-layout .storage-workspace,
+.government-page--mobile.government-user-layout .storage-file-list,
+.government-page--mobile.government-user-layout .storage-file-list__row,
+.government-page--mobile.government-user-layout .storage-workspace__panel {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+.government-page--mobile.government-user-layout .storage-file-list__name,
+.government-page--mobile.government-user-layout .storage-file-list__meta {
+  color: #334155;
+}
+
+/* —— 모달 —— */
+.government-page--mobile.government-user-layout .government-profile-edit-modal,
+.government-page--mobile.government-user-layout .modal-panel,
+.government-page--mobile.government-user-layout .admin-modal-panel,
+.government-page--mobile.government-user-layout .customer-ui-modal-panel,
+.government-page--mobile.government-user-layout .workspace-mobile-outlet-modal__panel {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #d7dee8;
+}
+
+.government-page--mobile.government-user-layout .workspace-mobile-outlet-modal__header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+/* —— insurance-dark-forms (전자서명 발송·내역 모바일) —— */
+.government-page--mobile.government-user-layout--mobile main.insurance-dark-forms.contract-signature-console,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mobile {
+  --bg-main: #f5f7fb;
+  --bg-card: #ffffff;
+  --bg-soft: #f8fafc;
+  --bg-elevated: #ffffff;
+  --input-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-sub: #64748b;
+  --text-secondary: #64748b;
+  --text: #0f172a;
+  --subtext: #64748b;
+  --text-primary: #0f172a;
+  --placeholder: #94a3b8;
+  --border: #d7dee8;
+  --border-default: #d7dee8;
+  --table-border: #e2e8f0;
+  --table-header-bg: #f8fafc;
+  --primary: #f2b800;
+  --primary-hover: #d9a600;
+  --text-on-primary: #111827;
+  --link: #92400e;
+  --focus-ring: #f2b800;
+  --secondary-bg: #ffffff;
+  --secondary-border: #cbd5e1;
+  --secondary-text: #0f172a;
+  --secondary-hover-bg: #f8fafc;
+  --btn-surface: #ffffff;
+  --btn-border: #cbd5e1;
+  --btn-text: #0f172a;
+  --btn-hover-bg: #f8fafc;
+  --warning-text: #b45309;
+  --warning-bg: #fff7d6;
+  --warning-border: #f2b800;
+  --surface-list-row: #ffffff;
+  --sticky-bar-bg: #ffffff;
+  background-color: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-signature-console__title,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-signature-console__section-title,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-signature-console__body-text {
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-signature-console__lead,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-signature-console__hint,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-signature-console__muted {
+  color: #64748b;
+}
+
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-signature-console__section,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-mobile-step,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-history-mobile-card,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-send-mobile-customer-result-card,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-send-mobile-template-card {
+  background: #ffffff;
+  border-color: #d7dee8;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-mobile-step--active,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-send-mobile-template-card--selected {
+  border-color: #f2b800;
+  box-shadow: 0 0 0 1px rgba(242, 184, 0, 0.35);
+}
+
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-mobile-step__badge--active {
+  background: #fff8d6;
+  color: #92400e;
+}
+
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-signature-console__filter-btn--active,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-signature-console__filter-btn:hover {
+  background: #fffdf0;
+  border-color: #f2b800;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .button--primary,
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .form-button--primary {
+  background: #f2b800;
+  border-color: #f2b800;
+  color: #111827;
+}
+
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .button--primary:hover:not(:disabled),
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .form-button--primary:hover:not(:disabled) {
+  background: #d9a600;
+  border-color: #d9a600;
+}
+
+.government-page--mobile.government-user-layout main.insurance-dark-forms.contract-signature-console .contract-signature-console__detail-dialog {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #d7dee8;
+}
+
+/* —— 워크스페이스 모바일 모달 본문 —— */
+.government-page--mobile.government-user-layout .government-profile-workspace-mobile-modal .workspace-mobile-outlet-modal__body {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+/* —— 상태 배지 —— */
+.government-page--mobile.government-user-layout .government-ops-badge {
+  background: #fff1f2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.government-page--mobile.government-user-layout .claim-inbox__status {
+  background: #fff8d6;
+  color: #92400e;
+  border-color: #f2b800;
+}
+
+/* —— 레거시 .government-page 다크 베이스 무효화 —— */
+.government-page--mobile.government-user-layout.government-page {
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .government-user-section {
+  color: #334155;
+}
+
+.government-page--mobile.government-user-layout .government-user-home-page {
+  background: transparent;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .government-workspace__list,
+.government-page--mobile.government-user-layout .government-workspace__header {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .gov-user-me-page .gov-user-card,
+.government-page--mobile.government-user-layout .government-profile-progress-compose-card,
+.government-page--mobile.government-user-layout .government-profile-progress-history-card,
+.government-page--mobile.government-user-layout .government-profile-progress-summary-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+.government-page--mobile.government-user-layout .government-profile-workspace-mobile-modal .workspace-mobile-outlet-modal__panel,
+.government-page--mobile.government-user-layout .government-profile-workspace-mobile-modal .workspace-mobile-outlet-modal__body {
+  background: #ffffff;
+  color: #0f172a;
+}

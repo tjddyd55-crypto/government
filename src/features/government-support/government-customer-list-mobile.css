@@ -1,4 +1,4 @@
-/* Mobile — 고객 목록 toolbar·카드 */
+/* Mobile — 고객 목록 toolbar·카드 (white/yellow) */
 .government-profile-list-panel--mobile .government-customer-list-toolbar--mobile {
   display: flex;
   flex-direction: column;
@@ -12,12 +12,22 @@
   gap: 8px;
 }
 
-.government-profile-list-panel--mobile .government-customer-card--mobile {
-  border: 1px solid #334155;
+.government-profile-list-panel--mobile .government-customer-card--mobile,
+.government-profile-list-panel--mobile .government-customer-card.government-customer-card--mobile {
+  border: 1px solid #d7dee8;
   border-radius: 12px;
-  background: #111827;
+  background: #ffffff;
   padding: 12px;
   margin-bottom: 10px;
+  color: #0f172a;
+  box-shadow: none;
+}
+
+.government-profile-list-panel--mobile .government-customer-card--mobile.government-profile-list-card--active,
+.government-profile-list-panel--mobile .government-customer-card.government-profile-list-card--active {
+  border-color: #f2b800;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
 }
 
 .government-profile-list-panel--mobile .government-customer-card__tap {
@@ -32,13 +42,13 @@
 .government-profile-list-panel--mobile .government-customer-card__name {
   font-size: 16px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0f172a;
   margin-bottom: 4px;
 }
 
 .government-profile-list-panel--mobile .government-customer-card__phone,
 .government-profile-list-panel--mobile .government-customer-card__business-type {
-  color: #e5e7eb;
+  color: #334155;
   font-size: 14px;
   margin-bottom: 2px;
 }
@@ -47,7 +57,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #cbd5e1;
+  color: #64748b;
   font-size: 13px;
   margin-top: 6px;
 }
@@ -61,4 +71,13 @@
 .government-profile-list-panel--mobile .government-customer-card__status-select {
   width: 100%;
   margin-top: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.government-profile-list-panel--mobile .government-customer-card__status-select:focus {
+  border-color: #f2b800;
+  outline: none;
+  box-shadow: none;
 }

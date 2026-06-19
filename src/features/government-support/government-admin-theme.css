@@ -447,8 +447,14 @@
 
 /* 모바일 admin shell */
 .government-admin-white-theme.government-admin-layout--mobile .mobile-topbar {
-  background: #0f172a;
-  color: #f8fafc;
+  background: #ffffff;
+  border-bottom: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+.government-admin-white-theme.government-admin-layout--mobile .mobile-topbar .title,
+.government-admin-white-theme.government-admin-layout--mobile .mobile-topbar .menu-btn {
+  color: #0f172a;
 }
 
 .government-admin-white-theme.government-admin-layout--mobile .mobile-workspace-content {
@@ -1074,4 +1080,178 @@
 
 .government-admin-white-theme .government-admin-document-requests-page .claim-inbox__file-actions .gov-btn {
   flex-shrink: 0;
+}
+
+/* ── Admin mobile: dark card/table → white/yellow ── */
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-page__card,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-program-user-detail__card,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-table,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-table,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-settings-page__card,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-agencies-page__card,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-notices-page__card,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-resources-page__card,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-signature-templates-page__card,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-customers-page__card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #334155;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-page__card h2,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-program-user-detail__card h2,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-settings-page__card h2 {
+  color: #0f172a;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-table thead th,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-table thead th {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-table tbody tr,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-table tbody tr {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-table tbody td,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-table tbody td {
+  color: #334155;
+  border-color: #e2e8f0;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-placeholder {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #64748b;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-mobile-menu__item--active {
+  background: #fffdf0;
+  color: #111827;
+  border-color: rgba(242, 184, 0, 0.45);
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-mobile-menu__item {
+  color: #334155;
+  border-color: #e2e8f0;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-mobile-menu {
+  background: #ffffff;
+  border-color: #d7dee8;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-layout__content {
+  background: #f5f7fb;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .gov-form-control,
+.government-admin-layout--mobile.government-admin-white-theme input,
+.government-admin-layout--mobile.government-admin-white-theme select,
+.government-admin-layout--mobile.government-admin-white-theme textarea {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .gov-form-control:focus,
+.government-admin-layout--mobile.government-admin-white-theme input:focus,
+.government-admin-layout--mobile.government-admin-white-theme select:focus,
+.government-admin-layout--mobile.government-admin-white-theme textarea:focus {
+  border-color: #f2b800;
+  box-shadow: 0 0 0 3px rgba(242, 184, 0, 0.28);
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .gov-btn--primary {
+  background: #f2b800;
+  border-color: #f2b800;
+  color: #111827;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .gov-btn--primary:hover {
+  background: #d9a600;
+  border-color: #d9a600;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .modal-panel,
+.government-admin-layout--mobile.government-admin-white-theme .base-dialog__panel {
+  background: #ffffff;
+  color: #334155;
+  border-color: #d7dee8;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme.government-page {
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-page__card-label,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-program-user-detail__label {
+  color: #64748b;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-page__card-row,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-program-user-detail__row {
+  color: #334155;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-program-user-detail__section-title,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-page__card h3 {
+  color: #0f172a;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-notices-page__placeholder {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #64748b;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-table td,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-table th,
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-table td {
+  color: #334155;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .government-admin-users-table th {
+  color: #0f172a;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .admin-ga-management .admin-ga-card,
+.government-admin-layout--mobile.government-admin-white-theme .admin-ga-management .admin-user-card,
+.government-admin-layout--mobile.government-admin-white-theme .admin-ga-management .card.auth-card,
+.government-admin-layout--mobile.government-admin-white-theme .admin-user-management .card.auth-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #334155;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme .platform-admin-page__card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme main.insurance-dark-forms.contract-signature-console,
+.government-admin-layout--mobile.government-admin-white-theme main.insurance-dark-forms.pdf-engine-page {
+  --bg-main: #f5f7fb;
+  --bg-card: #ffffff;
+  --bg-soft: #f8fafc;
+  --text-main: #0f172a;
+  --text-sub: #64748b;
+  --border: #d7dee8;
+  --primary: #f2b800;
+  --text-on-primary: #111827;
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+.government-admin-layout--mobile.government-admin-white-theme main.insurance-dark-forms .contract-signature-console__section,
+.government-admin-layout--mobile.government-admin-white-theme main.insurance-dark-forms .pdf-engine-panel {
+  background: #ffffff;
+  border-color: #d7dee8;
+  color: #0f172a;
 }
