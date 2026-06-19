@@ -6,7 +6,7 @@ type GovernmentProfileApplicationListSectionProps = {
   selectedId?: string | null
   loading?: boolean
   profileLabel: string
-  variant?: 'default' | 'workspace'
+  variant?: 'default' | 'workspace' | 'profileMobile'
   actionBusy?: boolean
   onSelectApplication: (id: string) => void
   onDeleteApplication?: (id: string) => void
@@ -95,6 +95,74 @@ export default function GovernmentProfileApplicationListSection({
                         삭제
                       </FormButton>
                     ) : null}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        ) : null}
+      </section>
+    )
+  }
+
+  if (variant === 'profileMobile') {
+    return (
+      <section className="government-profile-mobile-card government-profile-mobile-applications-list">
+        <div className="government-profile-mobile-applications-list__head">
+          <div>
+            <h2 className="government-profile-mobile-card__title">신청 목록</h2>
+            <p className="government-profile-mobile-card__desc">
+              {profileLabel} 사업장의 신청 건을 관리합니다.
+            </p>
+          </div>
+          <span className="government-profile-mobile-applications-list__count">총 {rows.length}건</span>
+        </div>
+
+        {loading ? (
+          <div className="government-profile-mobile-empty">신청 목록을 불러오는 중…</div>
+        ) : null}
+        {!loading && rows.length === 0 ? (
+          <div className="government-profile-mobile-empty">등록된 신청이 없습니다.</div>
+        ) : null}
+
+        {rows.length > 0 ? (
+          <ul className="government-profile-mobile-list">
+            {rows.map((item) => {
+              const openDetail = () => onSelectApplication(item.id)
+              const selected = item.id === selectedId
+              return (
+                <li
+                  key={item.id}
+                  className={`government-profile-mobile-list-item government-profile-mobile-applications-list-item${
+                    selected ? ' government-profile-mobile-applications-list-item--active' : ''
+                  }`}
+                >
+                  <button
+                    type="button"
+                    className="government-profile-mobile-applications-list-item__tap"
+                    aria-label={`#${item.id} ${item.title || '신청'} 상세 보기`}
+                    onClick={openDetail}
+                  >
+                    <div className="government-profile-mobile-applications-list-item__title">
+                      #{item.id} {item.title || '제목 없음'}
+                    </div>
+                    <div className="government-profile-mobile-applications-list-item__meta">
+                      {item.applicationType || '유형 미지정'} · {formatDateTime(item.submittedAt ?? item.createdAt)}
+                    </div>
+                    <div className="government-profile-mobile-applications-list-item__preview">
+                      {listPreviewText(item)}
+                    </div>
+                  </button>
+                  <div className="government-profile-mobile-applications-list-item__side">
+                    <span className={statusBadgeClass(item.status)}>{statusLabel(item.status)}</span>
+                    <FormButton
+                      htmlType="button"
+                      variant="secondary"
+                      className="gov-btn gov-btn--secondary gov-btn--sm"
+                      onClick={openDetail}
+                    >
+                      상세
+                    </FormButton>
                   </div>
                 </li>
               )

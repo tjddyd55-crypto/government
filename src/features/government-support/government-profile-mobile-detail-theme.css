@@ -439,3 +439,199 @@
 .government-profile-mobile-detail .status-message {
   color: inherit;
 }
+
+/* —— 신청 관리 탭 —— */
+.government-profile-mobile-detail .government-profile-mobile-applications {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: transparent;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications-form,
+.government-profile-mobile-detail .government-profile-mobile-applications-list {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications__notice {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #f2b800;
+  background: #fff7d6;
+  color: #92400e;
+  font-size: 0.875rem;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications-list__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications-list__count {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications-list-item--active {
+  border-color: #f2b800;
+  background: #fffdf0;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications-list-item__tap {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 12px 14px 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications-list-item__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications-list-item__meta,
+.government-profile-mobile-detail .government-profile-mobile-applications-list-item__preview {
+  margin-top: 4px;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications-list-item__side {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 14px 12px;
+}
+
+.government-profile-mobile-detail .government-profile-applications__list-tools {
+  margin: 0;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-applications .gov-application-detail-edit,
+.government-profile-mobile-detail .government-profile-mobile-applications .gov-application-detail-read,
+.government-profile-mobile-detail .government-profile-mobile-applications-detail {
+  background: #ffffff;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .gov-application-detail-read__title,
+.government-profile-mobile-detail .claim-requests-page__detail-title,
+.government-profile-mobile-detail .claim-requests-page__detail-subtitle {
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .gov-application-detail-read__label,
+.government-profile-mobile-detail .claim-requests-page__detail-meta {
+  color: #64748b;
+}
+
+.government-profile-mobile-detail .gov-application-detail-read__value,
+.government-profile-mobile-detail .claim-requests-page__detail-field {
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .gov-application-detail-read__status-badge {
+  background: #fff8d6;
+  border: 1px solid #f2b800;
+  color: #92400e;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.government-profile-mobile-detail .gov-application-detail-edit__actions,
+.government-profile-mobile-detail .gov-application-detail-read__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.government-profile-mobile-detail .claim-requests-page__detail-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 14px;
+}
+
+.government-profile-mobile-detail .claim-requests-page__detail-empty {
+  background: #ffffff;
+  border: 1px dashed #d7dee8;
+  border-radius: 12px;
+  padding: 16px;
+  color: #64748b;
+}
+
+/* 상태 badge — light tone (claim-requests legacy class 유지) */
+.government-profile-mobile-detail .claim-requests-page__badge {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .claim-requests-page__badge--requested {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.government-profile-mobile-detail .claim-requests-page__badge--processing {
+  background: #fff8d6;
+  border-color: #f2b800;
+  color: #92400e;
+}
+
+.government-profile-mobile-detail .claim-requests-page__badge--done {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.government-profile-mobile-detail .claim-requests-page__badge--rejected {
+  background: #fff1f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+/* 신청 상세 nested modal */
+@media (max-width: 767px) {
+  .government-profile-mobile-applications-detail-modal.workspace-mobile-outlet-modal {
+    background: #f5f7fb !important;
+    color: #0f172a !important;
+  }
+
+  .government-profile-mobile-applications-detail-modal .workspace-mobile-outlet-modal__header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #d7dee8 !important;
+  }
+
+  .government-profile-mobile-applications-detail-modal .workspace-mobile-outlet-modal__body {
+    background: #f5f7fb !important;
+    padding: 12px !important;
+  }
+}
