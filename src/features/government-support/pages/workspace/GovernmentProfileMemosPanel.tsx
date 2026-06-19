@@ -1,20 +1,20 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { FormButton } from '../../../../components/form'
-import useIsMobile from '../../../../hooks/useIsMobile'
+import ResponsiveLayout from '../../../../components/ResponsiveLayout'
 import { useAuth } from '../../../auth/AuthProvider'
 import { TodoEditorDialog, type TodoCreatePrefill } from '../../../todos/components/TodoEditorDialog'
 import { firstLineTodoTitle } from '../../../todos/utils/todoCopy'
 import { suggestDueDateFromText } from '../../../todos/utils/suggestDueDateFromText'
 import { fetchGovProfileMemos } from '../../api/governmentProfileMemosApi'
-import { GovernmentProfileInlineNotesSection } from '../../components/GovernmentProfileInlineNotesSection'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
+import GovernmentProfileMemosPageMobile from './memos/GovernmentProfileMemosPageMobile'
+import GovernmentProfileMemosPagePC from './memos/GovernmentProfileMemosPagePC'
+import type { GovernmentProfileMemosViewProps } from './memos/governmentProfileMemosViewProps'
 import type { GovProfileMemo } from '../../types/governmentProfile.types'
 
 export default function GovernmentProfileMemosPanel() {
   const { profileId: profileIdParam } = useParams()
   const profileId = String(profileIdParam ?? '').trim()
-  const isMobile = useIsMobile()
   const { token, user } = useAuth()
   const ws = useGovernmentProfileWorkspaceContext()
   const profile = ws.selected
@@ -70,77 +70,37 @@ export default function GovernmentProfileMemosPanel() {
     [profile?.customerName, profileId],
   )
 
-  const memoSectionClassName = `customer-workspace-home${isMobile ? ' customer-memos-page--mobile' : ''}`
+  const profileLabel = useMemo(() => {
+    return `사업장 #${profileId} · ${profile?.customerName || profile?.businessName || '-'}`
+  }, [profile?.businessName, profile?.customerName, profileId])
 
   if (!profileId) {
-    const inner = (
-      <section className={memoSectionClassName}>
-        <h3 className="customer-workspace-home__title">사업장 메모</h3>
-        <p className="customer-workspace-home__desc">사업장을 먼저 선택해 주세요.</p>
-      </section>
-    )
-    return isMobile ? (
-      <div className="content-wrapper page-shell government-profile-mobile-section customer-memos-mobile-shell">{inner}</div>
-    ) : (
-      inner
-    )
-  }
-
-  if (loading) {
-    const inner = (
-      <section className={memoSectionClassName}>
-        <h3 className="customer-workspace-home__title">사업장 메모</h3>
-        <p className="customer-workspace-home__desc">불러오는 중...</p>
-      </section>
-    )
-    return isMobile ? (
-      <div className="content-wrapper page-shell government-profile-mobile-section customer-memos-mobile-shell">{inner}</div>
-    ) : (
-      inner
-    )
+    return <p className="government-page__muted">사업장을 먼저 선택해 주세요.</p>
   }
 
   if (!token?.trim()) {
-    const inner = (
-      <section className={memoSectionClassName}>
-        <h3 className="customer-workspace-home__title">사업장 메모</h3>
-        <p className="customer-workspace-home__desc">{statusText || '로그인이 필요합니다.'}</p>
-      </section>
-    )
-    return isMobile ? (
-      <div className="content-wrapper page-shell government-profile-mobile-section customer-memos-mobile-shell">{inner}</div>
-    ) : (
-      inner
-    )
+    return <p className="government-page__muted">{statusText || '로그인이 필요합니다.'}</p>
   }
 
-  const mainSection = (
-    <section className={memoSectionClassName}>
-      <h3 className="customer-workspace-home__title">사업장 메모</h3>
-      <p className="customer-workspace-home__desc">
-        사업장 #{profileId} · {profile?.customerName || profile?.businessName || '-'}
-      </p>
-      <GovernmentProfileInlineNotesSection
-        key={profileId}
-        profileId={profileId}
-        token={token}
-        memos={memos}
-        onMemosChange={setMemos}
-        workspaceMobileMemo={isMobile}
-        onStatusMessage={setStatusText}
-        onAddTodoFromMemo={gaIdNumeric != null ? addTodoFromMemo : undefined}
-      />
-      {statusText ? <p className="customer-workspace-home__selected">{statusText}</p> : null}
-    </section>
-  )
+  const viewProps: GovernmentProfileMemosViewProps = {
+    profileId,
+    token,
+    memos,
+    loading,
+    statusText,
+    profileLabel,
+    onMemosChange: setMemos,
+    onStatusMessage: setStatusText,
+    onAddTodoFromMemo: gaIdNumeric != null ? addTodoFromMemo : undefined,
+  }
 
   return (
     <>
-      {isMobile ? (
-        <div className="content-wrapper page-shell government-profile-mobile-section customer-memos-mobile-shell">{mainSection}</div>
-      ) : (
-        mainSection
-      )}
+      <ResponsiveLayout<GovernmentProfileMemosViewProps>
+        PC={GovernmentProfileMemosPagePC}
+        Mobile={GovernmentProfileMemosPageMobile}
+        viewProps={viewProps}
+      />
       {gaIdNumeric != null ? (
         <TodoEditorDialog
           open={memoTodoDialogOpen}

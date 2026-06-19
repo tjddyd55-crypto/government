@@ -349,18 +349,60 @@
 }
 
 /* —— 메모 탭 —— */
-.government-profile-mobile-detail .customer-memos-mobile-shell {
+.government-profile-mobile-detail .government-profile-mobile-memos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   background: transparent;
-  color: #0f172a;
+  color: #334155;
   padding: 0;
 }
 
-.government-profile-mobile-detail .customer-memos-page--mobile {
+.government-profile-mobile-detail .government-profile-mobile-memos-form,
+.government-profile-mobile-detail .government-profile-mobile-memos-list {
   background: #ffffff;
   border: 1px solid #d7dee8;
   border-radius: 14px;
   padding: 14px 16px;
-  color: #334155;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-memos-list__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-memos-list__count {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-memo-item {
+  border-bottom: none;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-memos .customer-workspace-tab-submit {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-memos .customer-workspace-record-item__date {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-memos .customer-workspace-record-item__body {
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-memos .customer-workspace-record-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 /* —— 진행상황 탭 —— */
