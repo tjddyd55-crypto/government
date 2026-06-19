@@ -1,0 +1,441 @@
+/**
+ * 정부지원 CRM — 모바일 고객(사업장) 상세 시트 공통 white/yellow 테마.
+ * 스코프: `.government-profile-mobile-detail` (모바일 outlet modal 내부만)
+ * mobile-ui-foundation.css 다크 `!important` 를 이 스코프에서 재정의한다.
+ */
+
+/* —— Modal shell: mobile-ui-foundation 다크 무효화 —— */
+@media (max-width: 767px) {
+  .government-profile-workspace-mobile-modal.workspace-mobile-outlet-modal.government-profile-mobile-detail {
+    background: #f5f7fb !important;
+    color: #0f172a !important;
+  }
+
+  .government-profile-mobile-detail .government-profile-mobile-detail__header,
+  .government-profile-workspace-mobile-modal .workspace-mobile-outlet-modal__header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #d7dee8 !important;
+    color: #0f172a !important;
+  }
+
+  .government-profile-mobile-detail .government-profile-mobile-detail__title,
+  .government-profile-workspace-mobile-modal .workspace-mobile-outlet-modal__title {
+    color: #0f172a !important;
+  }
+
+  .government-profile-mobile-detail .government-profile-mobile-detail__close,
+  .government-profile-workspace-mobile-modal .workspace-mobile-outlet-modal__close {
+    color: #334155 !important;
+    background: transparent;
+  }
+
+  .government-profile-mobile-detail .government-profile-mobile-detail__body,
+  .government-profile-workspace-mobile-modal .workspace-mobile-outlet-modal__body {
+    background: #f5f7fb !important;
+    color: #0f172a !important;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .government-profile-mobile-detail .workspace-mobile-outlet-modal__body > .page,
+  .government-profile-mobile-detail .workspace-mobile-outlet-modal__body > .content-wrapper,
+  .government-profile-mobile-detail .government-profile-mobile-detail__content > .page,
+  .government-profile-mobile-detail .government-profile-mobile-detail__content .content-wrapper.page-shell {
+    background: transparent !important;
+    color: #0f172a !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+/* —— 탭 바 —— */
+.government-profile-mobile-detail .government-profile-mobile-detail__tabs,
+.government-profile-mobile-detail .government-profile-workspace-tabs {
+  flex-shrink: 0;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-detail__tab,
+.government-profile-mobile-detail .government-profile-workspace-tabs__item {
+  color: #64748b;
+  background: transparent;
+  border-bottom: 3px solid transparent;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-detail__tab:hover:not(:disabled),
+.government-profile-mobile-detail .government-profile-workspace-tabs__item:hover:not(:disabled) {
+  color: #334155;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-detail__tab--active,
+.government-profile-mobile-detail .government-profile-workspace-tabs__item--active {
+  color: #0f172a;
+  border-bottom-color: #f2b800;
+  background: #fffdf0;
+}
+
+/* —— 본문 루트 —— */
+.government-profile-mobile-detail .government-profile-mobile-detail__content {
+  padding: 12px 0 20px;
+  box-sizing: border-box;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-detail__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #334155;
+}
+
+/* —— 공통 section / card —— */
+.government-profile-mobile-detail .government-profile-mobile-section,
+.government-profile-mobile-detail .government-profile-mobile-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: #334155;
+  box-sizing: border-box;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-section__title,
+.government-profile-mobile-detail .government-profile-mobile-card__title {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-section__desc,
+.government-profile-mobile-detail .government-profile-mobile-card__desc {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+/* —— 폼 / 입력 —— */
+.government-profile-mobile-detail .government-profile-mobile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-field,
+.government-profile-mobile-detail .customer-workspace-tab-field,
+.government-profile-mobile-detail .government-profile-signatures-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-label,
+.government-profile-mobile-detail .customer-workspace-tab-field,
+.government-profile-mobile-detail .government-profile-signatures-panel__field-label,
+.government-profile-mobile-detail .customer-detail-read__info-label {
+  color: #334155;
+  font-weight: 600;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-input,
+.government-profile-mobile-detail .government-profile-mobile-textarea,
+.government-profile-mobile-detail .government-profile-mobile-select,
+.government-profile-mobile-detail input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+.government-profile-mobile-detail select,
+.government-profile-mobile-detail textarea,
+.government-profile-mobile-detail .gov-form-control,
+.government-profile-mobile-detail .form-input,
+.government-profile-mobile-detail .form-select,
+.government-profile-mobile-detail .form-textarea,
+.government-profile-mobile-detail .customer-workspace-tab-textarea {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+}
+
+.government-profile-mobile-detail input::placeholder,
+.government-profile-mobile-detail textarea::placeholder {
+  color: #94a3b8;
+}
+
+.government-profile-mobile-detail input:focus:not(:disabled),
+.government-profile-mobile-detail select:focus:not(:disabled),
+.government-profile-mobile-detail textarea:focus:not(:disabled),
+.government-profile-mobile-detail .gov-form-control:focus:not(:disabled) {
+  outline: none;
+  border-color: #f2b800;
+  box-shadow: none;
+}
+
+/* —— 리스트 / empty —— */
+.government-profile-mobile-detail .government-profile-mobile-list,
+.government-profile-mobile-detail .customer-workspace-record-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-list-item,
+.government-profile-mobile-detail .customer-workspace-record-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-empty,
+.government-profile-mobile-detail .customer-workspace-empty-state,
+.government-profile-mobile-detail .empty-state {
+  background: #ffffff;
+  border: 1px dashed #d7dee8;
+  border-radius: 12px;
+  padding: 16px;
+  color: #64748b;
+  text-align: left;
+}
+
+/* —— 버튼 —— */
+.government-profile-mobile-detail .gov-btn--primary,
+.government-profile-mobile-detail .form-button--primary,
+.government-profile-mobile-detail .button--primary,
+.government-profile-mobile-detail .customer-workspace-tab-submit {
+  background: #f2b800;
+  border-color: #f2b800;
+  color: #111827;
+}
+
+.government-profile-mobile-detail .gov-btn--primary:hover:not(:disabled),
+.government-profile-mobile-detail .form-button--primary:hover:not(:disabled),
+.government-profile-mobile-detail .button--primary:hover:not(:disabled) {
+  background: #d9a600;
+  border-color: #d9a600;
+}
+
+.government-profile-mobile-detail .gov-btn--secondary,
+.government-profile-mobile-detail .form-button--secondary,
+.government-profile-mobile-detail .button--secondary {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .government-profile-mobile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* —— 기본정보 탭 —— */
+.government-profile-mobile-detail .government-profile-basic-info-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.government-profile-mobile-detail .government-profile-basic-info-panel .customer-detail-read {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .customer-detail-read__section-title {
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .customer-detail-read__info-value {
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .government-profile-basic-info-panel__edit-actions {
+  margin-bottom: 4px;
+}
+
+/* —— 서류/파일 탭 —— */
+.government-profile-mobile-detail .government-profile-storage-workspace.storage-workspace,
+.government-profile-mobile-detail .storage-workspace.page-shell {
+  background: transparent;
+  padding: 0;
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .government-profile-storage-workspace__scroll {
+  background: transparent;
+}
+
+.government-profile-mobile-detail .storage-toolbar,
+.government-profile-mobile-detail .file-uploader,
+.government-profile-mobile-detail .storage-file-list,
+.government-profile-mobile-detail .storage-file-list__row {
+  background: #ffffff;
+  border-color: #d7dee8;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .file-uploader {
+  border: 2px dashed #f2b800;
+  background: #fffdf0;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .storage-bar {
+  background: #e2e8f0;
+}
+
+.government-profile-mobile-detail .storage-bar-fill {
+  background: #f2b800;
+}
+
+.government-profile-mobile-detail .government-profile-storage-workspace__footer {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.government-profile-mobile-detail .storage-file-list__name,
+.government-profile-mobile-detail .storage-file-list__meta {
+  color: #334155;
+}
+
+/* —— 서류관리 / 전자문서 —— */
+.government-profile-mobile-detail .customer-workspace-home {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .customer-workspace-home__title {
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .customer-workspace-home__desc,
+.government-profile-mobile-detail .customer-workspace-home__selected {
+  color: #64748b;
+}
+
+/* —— 상담 이력 탭 —— */
+.government-profile-mobile-detail .customer-workspace-tab-section {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 0;
+}
+
+.government-profile-mobile-detail .customer-workspace-tab-section__title {
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .customer-workspace-record-item {
+  border-bottom: none;
+}
+
+.government-profile-mobile-detail .customer-workspace-record-item__date {
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .customer-workspace-record-item__body {
+  color: #334155;
+}
+
+/* —— 메모 탭 —— */
+.government-profile-mobile-detail .customer-memos-mobile-shell {
+  background: transparent;
+  color: #0f172a;
+  padding: 0;
+}
+
+.government-profile-mobile-detail .customer-memos-page--mobile {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: #334155;
+}
+
+/* —— 진행상황 탭 —— */
+.government-profile-mobile-detail .government-profile-progress-page {
+  gap: 12px;
+}
+
+.government-profile-mobile-detail .government-profile-progress-summary-card,
+.government-profile-mobile-detail .government-profile-progress-compose-card,
+.government-profile-mobile-detail .government-profile-progress-history-card,
+.government-profile-mobile-detail .gov-user-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #334155;
+}
+
+.government-profile-mobile-detail .government-profile-progress-compose-title,
+.government-profile-mobile-detail .government-profile-progress-history-title {
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .government-profile-progress-compose-description,
+.government-profile-mobile-detail .government-profile-progress-history-meta {
+  color: #64748b;
+}
+
+.government-profile-mobile-detail .government-profile-progress-history-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+/* —— 전자서명 탭 —— */
+.government-profile-mobile-detail .government-profile-signatures-panel {
+  gap: 12px;
+  padding: 0;
+}
+
+.government-profile-mobile-detail .government-profile-signatures-panel__compose-card,
+.government-profile-mobile-detail .government-profile-signatures-panel__history-card,
+.government-profile-mobile-detail .contract-send-mobile-template-card {
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  color: #0f172a;
+}
+
+.government-profile-mobile-detail .contract-send-mobile-template-card--selected {
+  border-color: #f2b800;
+  background: #fffdf0;
+  box-shadow: 0 0 0 1px rgba(242, 184, 0, 0.35);
+}
+
+.government-profile-mobile-detail .government-profile-signatures-panel__recipient-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.government-profile-mobile-detail .contract-signature-console__inline-warning {
+  color: #b45309;
+  background: #fff7d6;
+  border: 1px solid #f2b800;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.government-profile-mobile-detail .contract-signature-console__inline-error {
+  color: #dc2626;
+}
+
+/* —— muted / feedback —— */
+.government-profile-mobile-detail .government-page__muted,
+.government-profile-mobile-detail .gov-muted-text {
+  color: #64748b;
+}
+
+.government-profile-mobile-detail .status-message {
+  color: inherit;
+}

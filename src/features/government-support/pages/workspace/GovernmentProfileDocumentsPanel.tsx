@@ -15,7 +15,7 @@ export default function GovernmentProfileDocumentsPanel() {
   }
 
   return (
-    <section className="customer-workspace-home">
+    <section className="customer-workspace-home government-profile-mobile-card">
       <h3 className="customer-workspace-home__title">서류관리</h3>
       <p className="customer-workspace-home__desc">
         필수 서류 체크리스트 상태를 관리하고 정부지원 전용 R2 경로에 업로드합니다.

@@ -4,5 +4,9 @@ import GovernmentProfileSignaturesView from './GovernmentProfileSignaturesView'
 export default function GovernmentProfileSignaturesMobileView(
   props: GovernmentProfileSignaturesViewProps & { token: string },
 ) {
-  return <GovernmentProfileSignaturesView {...props} variant="mobile" />
+  return (
+    <div className="government-profile-mobile-section">
+      <GovernmentProfileSignaturesView {...props} variant="mobile" />
+    </div>
+  )
 }

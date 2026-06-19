@@ -71,7 +71,7 @@ export default function GovernmentProfileBasicInfoPanel() {
   }
 
   return (
-    <div className="government-profile-basic-info-panel">
+    <div className="government-profile-basic-info-panel government-profile-mobile-section">
       <StatusMessage message={error} tone="error" />
       <StatusMessage message={ws.feedback ?? statusText} tone="success" />
 

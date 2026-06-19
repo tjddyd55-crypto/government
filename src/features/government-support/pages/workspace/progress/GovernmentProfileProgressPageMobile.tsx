@@ -2,5 +2,9 @@ import type { GovernmentProfileProgressViewProps } from './governmentProfileProg
 import GovernmentProfileProgressPageBody from './GovernmentProfileProgressPageBody'
 
 export default function GovernmentProfileProgressPageMobile(props: GovernmentProfileProgressViewProps) {
-  return <GovernmentProfileProgressPageBody {...props} />
+  return (
+    <div className="government-profile-mobile-section">
+      <GovernmentProfileProgressPageBody {...props} />
+    </div>
+  )
 }

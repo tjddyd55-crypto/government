@@ -32,6 +32,7 @@ import {
 } from '../../lib/governmentProfileDocumentCategories'
 import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
 import '../../government-support.css'
+import '../../government-profile-mobile-detail-theme.css'
 
 function parseProfileIdFromPath(pathname: string): string | null {
   const m = pathname.match(/^\/government\/my-applications\/([^/]+)/)

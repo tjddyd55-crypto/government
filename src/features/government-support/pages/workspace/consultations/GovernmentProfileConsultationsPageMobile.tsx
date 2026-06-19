@@ -17,32 +17,42 @@ export default function GovernmentProfileConsultationsPageMobile({
   onAddTodoFromConsultation,
 }: GovernmentProfileConsultationsViewProps) {
   return (
-    <div className="content-wrapper page-shell">
+    <div className="content-wrapper page-shell government-profile-mobile-section">
       <StatusMessage message={error} tone="error" className="status-message--flush-top" />
 
-      <section className="customer-workspace-tab-section">
-        <h2 className="customer-workspace-tab-section__title">상담 기록</h2>
-        <form onSubmit={onSubmit} className="customer-workspace-tab-form">
-          <label className="customer-workspace-tab-field">
+      <section className="customer-workspace-tab-section government-profile-mobile-card">
+        <h2 className="customer-workspace-tab-section__title government-profile-mobile-card__title">상담 기록</h2>
+        <form onSubmit={onSubmit} className="customer-workspace-tab-form government-profile-mobile-form">
+          <label className="customer-workspace-tab-field government-profile-mobile-field">
             상담 일자{' '}
-            <FormInput type="date" value={consultDate} onChange={(ev) => onSetConsultDate(ev.target.value)} />
+            <FormInput
+              type="date"
+              className="government-profile-mobile-input"
+              value={consultDate}
+              onChange={(ev) => onSetConsultDate(ev.target.value)}
+            />
           </label>
           <FormTextarea
             value={body}
             onChange={(ev) => onSetBody(ev.target.value)}
             rows={4}
-            className="customer-workspace-tab-textarea"
+            className="customer-workspace-tab-textarea government-profile-mobile-textarea"
             placeholder="상담 내용"
             maxLength={GOVERNMENT_PROFILE_CONSULTATION_INPUT_MAX}
           />
-          <FormButton htmlType="submit" variant="action" disabled={busy} className="customer-workspace-tab-submit">
+          <FormButton
+            htmlType="submit"
+            variant="action"
+            disabled={busy}
+            className="customer-workspace-tab-submit gov-btn gov-btn--primary"
+          >
             {busy ? '저장 중…' : '상담 추가'}
           </FormButton>
         </form>
         {rows.length === 0 ? (
-          <EmptyState message="등록된 상담이 없습니다." className="customer-workspace-empty-state" />
+          <EmptyState message="등록된 상담이 없습니다." className="customer-workspace-empty-state government-profile-mobile-empty" />
         ) : (
-          <ul className="customer-workspace-record-list">
+          <ul className="customer-workspace-record-list government-profile-mobile-list">
             {rows.map((r) => {
               const { dateLabel, text } = parseConsultationStoredBody(
                 r.body,
@@ -50,7 +60,7 @@ export default function GovernmentProfileConsultationsPageMobile({
                 r.consultationDate ?? null,
               )
               return (
-                <li key={r.id} className="customer-workspace-record-item">
+                <li key={r.id} className="customer-workspace-record-item government-profile-mobile-list-item">
                   <div className="customer-workspace-record-item__head">
                     <div className="customer-workspace-record-item__date">{dateLabel}</div>
                     <div className="customer-workspace-record-item__actions">

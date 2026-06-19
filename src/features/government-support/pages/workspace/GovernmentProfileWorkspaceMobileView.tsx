@@ -64,16 +64,33 @@ export default function GovernmentProfileWorkspaceMobileView({
       <GovernmentProfileListPanelMobileView />
 
       {isMobileDetailRoute && outlet ? (
-        <Modal open onClose={handleClose} ariaLabel={resolveMobileSheetTitle(location.pathname)} panelClassName="workspace-mobile-outlet-modal government-profile-workspace-mobile-modal">
-          <div className="workspace-mobile-outlet-modal__header">
+        <Modal
+          open
+          onClose={handleClose}
+          ariaLabel={resolveMobileSheetTitle(location.pathname)}
+          panelClassName="workspace-mobile-outlet-modal government-profile-workspace-mobile-modal government-profile-mobile-detail"
+        >
+          <div className="workspace-mobile-outlet-modal__header government-profile-mobile-detail__header">
             <span className="workspace-mobile-outlet-modal__spacer" aria-hidden />
-            <h2 className="workspace-mobile-outlet-modal__title">{resolveMobileSheetTitle(location.pathname)}</h2>
-            <button type="button" className="workspace-mobile-outlet-modal__close" onClick={handleClose}>
+            <h2 className="workspace-mobile-outlet-modal__title government-profile-mobile-detail__title">
+              {resolveMobileSheetTitle(location.pathname)}
+            </h2>
+            <button
+              type="button"
+              className="workspace-mobile-outlet-modal__close government-profile-mobile-detail__close"
+              onClick={handleClose}
+            >
               닫기
             </button>
           </div>
           <GovernmentProfileWorkspaceTabs variant="mobile" {...tabProps} />
-          <div className="workspace-mobile-outlet-modal__body">{outlet}</div>
+          <div className="workspace-mobile-outlet-modal__body government-profile-mobile-detail__body">
+            <div
+              className={`government-profile-mobile-detail__content government-profile-mobile-detail__content--${activeTab}`}
+            >
+              {outlet}
+            </div>
+          </div>
         </Modal>
       ) : null}
     </div>

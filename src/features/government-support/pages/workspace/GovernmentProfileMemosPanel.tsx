@@ -80,7 +80,7 @@ export default function GovernmentProfileMemosPanel() {
       </section>
     )
     return isMobile ? (
-      <div className="content-wrapper page-shell customer-memos-mobile-shell">{inner}</div>
+      <div className="content-wrapper page-shell government-profile-mobile-section customer-memos-mobile-shell">{inner}</div>
     ) : (
       inner
     )
@@ -94,7 +94,7 @@ export default function GovernmentProfileMemosPanel() {
       </section>
     )
     return isMobile ? (
-      <div className="content-wrapper page-shell customer-memos-mobile-shell">{inner}</div>
+      <div className="content-wrapper page-shell government-profile-mobile-section customer-memos-mobile-shell">{inner}</div>
     ) : (
       inner
     )
@@ -108,7 +108,7 @@ export default function GovernmentProfileMemosPanel() {
       </section>
     )
     return isMobile ? (
-      <div className="content-wrapper page-shell customer-memos-mobile-shell">{inner}</div>
+      <div className="content-wrapper page-shell government-profile-mobile-section customer-memos-mobile-shell">{inner}</div>
     ) : (
       inner
     )
@@ -137,7 +137,7 @@ export default function GovernmentProfileMemosPanel() {
   return (
     <>
       {isMobile ? (
-        <div className="content-wrapper page-shell customer-memos-mobile-shell">{mainSection}</div>
+        <div className="content-wrapper page-shell government-profile-mobile-section customer-memos-mobile-shell">{mainSection}</div>
       ) : (
         mainSection
       )}

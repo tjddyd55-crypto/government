@@ -7,7 +7,7 @@ export default function GovernmentProfileWorkspaceTabsMobileView(props: Governme
 
   return (
     <nav
-      className="government-profile-workspace-tabs government-profile-workspace-tabs--mobile"
+      className="government-profile-workspace-tabs government-profile-workspace-tabs--mobile government-profile-mobile-detail__tabs"
       aria-label="사업장 작업 탭"
     >
       <div className="government-profile-workspace-tabs__scroll" role="tablist">
@@ -19,7 +19,7 @@ export default function GovernmentProfileWorkspaceTabsMobileView(props: Governme
               type="button"
               role="tab"
               aria-selected={isActive}
-              className={`government-profile-workspace-tabs__item${isActive ? ' government-profile-workspace-tabs__item--active' : ''}`}
+              className={`government-profile-workspace-tabs__item government-profile-mobile-detail__tab${isActive ? ' government-profile-workspace-tabs__item--active government-profile-mobile-detail__tab--active' : ''}`}
               disabled={disabled}
               onClick={tabHandlerForId(tab.id, props)}
             >
