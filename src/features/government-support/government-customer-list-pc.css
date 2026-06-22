@@ -58,3 +58,73 @@
   align-items: center;
   gap: 10px;
 }
+
+.government-profile-list-panel__list--grouped {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.government-customer-owner-group {
+  list-style: none;
+}
+
+.government-customer-owner-group__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.government-customer-owner-group__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.government-customer-owner-group__toggle {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.government-customer-owner-group__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.government-profile-owner-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: min(420px, 100%);
+}
+
+.government-profile-owner-pick__label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.government-profile-owner-pick__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

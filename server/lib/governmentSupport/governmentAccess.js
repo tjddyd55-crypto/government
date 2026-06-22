@@ -102,6 +102,39 @@ export function canCreateGovernmentProfile(ctx) {
 }
 
 /**
+ * 대행사·업종 관리자가 담당 이용자 명의로 사업장 생성.
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ */
+export function canCreateGovernmentProfileOnBehalf(ctx) {
+  return isGovernmentAgencyCustomerManager(ctx) && !isGovernmentProgramUser(ctx)
+}
+
+/**
+ * @param {import('pg').Pool} pool
+ * @param {string} tenantId
+ * @param {string} ownerUserId
+ */
+export async function isGovernmentProgramUserInTenant(pool, tenantId, ownerUserId) {
+  const tid = String(tenantId ?? '').trim()
+  const uid = String(ownerUserId ?? '').trim()
+  if (!tid || !uid) return false
+  const r = await pool.query(
+    `
+    SELECT 1
+    FROM user_memberships m
+    WHERE m.user_id = $1
+      AND m.role = 'government_user'
+      AND m.tenant_id = $2::bigint
+      AND m.status = 'active'
+      AND COALESCE(m.is_deleted, false) IS NOT TRUE
+    LIMIT 1
+    `,
+    [uid, tid],
+  )
+  return (r.rowCount ?? 0) > 0
+}
+
+/**
  * 사업장/고객 삭제(archive) — 프로그램 이용자 본인만.
  * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
  * @param {{ owner_user_id?: string|null, ownerUserId?: string|null, tenant_id?: string|number|null, tenantId?: string|number|null }} profileRow
@@ -318,6 +351,31 @@ export async function resolveTenantIdForProfileCreate(pool, ctx, requestedTenant
     status: 400,
     message: '소속 수행기관이 없습니다. 관리자에게 문의하세요.',
   }
+}
+
+/**
+ * 대행사·업종 관리자 — 담당 이용자 명의 프로필 생성 시 tenant.
+ * @param {import('pg').Pool} pool
+ * @param {import('../platformRbac.js').EffectivePlatformContext} ctx
+ * @param {string|null|undefined} requestedTenantId
+ */
+export async function resolveTenantIdForAgencyAdminProfileCreate(pool, ctx, requestedTenantId) {
+  if (!canCreateGovernmentProfileOnBehalf(ctx)) {
+    return {
+      ok: false,
+      status: 403,
+      message: '사업장 등록 권한이 없습니다.',
+    }
+  }
+  const tid = requestedTenantId != null ? String(requestedTenantId).trim() : ''
+  if (!tid || !canAccessGovernmentTenant(ctx, tid)) {
+    return { ok: false, status: 400, message: '대행사를 선택해 주세요.' }
+  }
+  const ok = await isGovernmentSupportTenant(pool, tid)
+  if (!ok) {
+    return { ok: false, status: 400, message: '유효하지 않은 대행사입니다.' }
+  }
+  return { ok: true, tenantId: tid }
 }
 
 export async function resolveGovernmentTenantScopeForQuery(pool, ctx) {

@@ -1,8 +1,12 @@
 import { createContext, useContext } from 'react'
+import type { GovernmentProfileWorkspaceShell } from '../../config/governmentProfileWorkspaceShell'
+import type { GovernmentProfileWorkspacePathHelpers } from '../../config/governmentProfileWorkspaceTabs'
 import type { useGovernmentWorkspaceState } from '../../hooks/useGovernmentWorkspaceState'
 import type { GovCustomerStatusOption, GovProfileFileCategory } from '../../types/governmentProfile.types'
 
 export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovernmentWorkspaceState> & {
+  shell: GovernmentProfileWorkspaceShell
+  paths: GovernmentProfileWorkspacePathHelpers
   selectedProfileIdFromPath: string | null
   expandedProfileId: string | null
   onSelectProfile: (profileId: string) => void
@@ -24,10 +28,17 @@ export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovern
   listSearch: string
   listCustomerStatusFilter: string
   listBusinessTypeFilter: string
+  listOwnerUserFilter: string
   statusOptions: GovCustomerStatusOption[]
+  ownerOptions: Array<{ id: string; label: string }>
+  tenantOptions: Array<{ id: string; name: string }>
+  listTenantId: string
   setListSearch: (value: string) => void
   setListCustomerStatusFilter: (value: string) => void
   setListBusinessTypeFilter: (value: string) => void
+  setListOwnerUserFilter: (value: string) => void
+  setListTenantId: (value: string) => void
+  requestAddProfile: () => void
 }
 
 export const GovernmentProfileWorkspaceContext = createContext<GovernmentProfileWorkspaceContextValue | null>(

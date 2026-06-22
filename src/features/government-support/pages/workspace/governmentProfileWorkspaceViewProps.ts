@@ -3,6 +3,7 @@ import type { GovernmentProfileWorkspaceTab } from '../../config/governmentProfi
 
 export type GovernmentProfileWorkspaceLayoutViewProps = {
   pathname: string
+  workspaceBasePath: string
   selectedProfileId: string | null
   selectedProfile: GovSupportProfile | null
   selectedProfileLabel: string

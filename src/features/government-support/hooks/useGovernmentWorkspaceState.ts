@@ -41,13 +41,23 @@ export function useGovernmentWorkspaceState(
   defaultTenantId: string | null,
   options?: {
     canCreateProfile?: boolean
+    canDeleteProfile?: boolean
     onProfilesChanged?: () => void
     listQuery?: GovProfileListQuery
+    loadProfiles?: (token: string, query?: GovProfileListQuery) => Promise<GovSupportProfile[]>
+    createProfile?: (
+      token: string,
+      tenantId: string | null,
+      ownerUserId?: string | null,
+    ) => Promise<GovSupportProfile>
   },
 ) {
   const canCreateProfile = options?.canCreateProfile ?? true
+  const canDeleteProfile = options?.canDeleteProfile ?? true
   const onProfilesChanged = options?.onProfilesChanged
   const listQuery = options?.listQuery
+  const loadProfilesFn = options?.loadProfiles ?? fetchGovProfiles
+  const createProfileFn = options?.createProfile
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [profiles, setProfiles] = useState<GovSupportProfile[]>([])
@@ -66,12 +76,12 @@ export function useGovernmentWorkspaceState(
 
   const reloadProfiles = useCallback(async () => {
     if (!token) return
-    const rows = await fetchGovProfiles(token, listQuery)
+    const rows = await loadProfilesFn(token, listQuery)
     setProfiles(rows)
     if (rows.length > 0 && !selectedId) {
       setSelectedId(rows[0].id)
     }
-  }, [token, selectedId, listQuery])
+  }, [token, selectedId, listQuery, loadProfilesFn])
 
   const reloadDetail = useCallback(async () => {
     if (!token || !selectedId) {
@@ -123,6 +133,10 @@ export function useGovernmentWorkspaceState(
   const removeProfile = useCallback(
     async (profileId: string) => {
       if (!token || !profileId) return
+      if (!canDeleteProfile) {
+        setError('사업장을 삭제할 권한이 없습니다.')
+        return
+      }
       await deleteGovProfile(token, profileId)
       setProfiles((prev) => prev.filter((p) => p.id !== profileId))
       if (selectedId === profileId) {
@@ -131,28 +145,33 @@ export function useGovernmentWorkspaceState(
       setFeedback('사업장을 삭제했습니다.')
       onProfilesChanged?.()
     },
-    [token, selectedId, onProfilesChanged],
+    [token, selectedId, onProfilesChanged, canDeleteProfile],
   )
 
-  const addProfile = useCallback(async () => {
-    if (!token) {
-      return
-    }
-    if (!canCreateProfile) {
-      setError('사업장을 등록할 권한이 없습니다.')
-      return
-    }
-    setError(null)
-    try {
-      const row = await createGovProfile(token, defaultTenantId)
-      setProfiles((prev) => [row, ...prev])
-      setSelectedId(row.id)
-      setFeedback('사업장을 등록했습니다.')
-      onProfilesChanged?.()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '사업장 등록에 실패했습니다.')
-    }
-  }, [token, defaultTenantId, canCreateProfile, onProfilesChanged])
+  const addProfile = useCallback(
+    async (ownerUserId?: string | null) => {
+      if (!token) {
+        return
+      }
+      if (!canCreateProfile) {
+        setError('사업장을 등록할 권한이 없습니다.')
+        return
+      }
+      setError(null)
+      try {
+        const row = createProfileFn
+          ? await createProfileFn(token, defaultTenantId, ownerUserId ?? null)
+          : await createGovProfile(token, defaultTenantId)
+        setProfiles((prev) => [row, ...prev])
+        setSelectedId(row.id)
+        setFeedback('사업장을 등록했습니다.')
+        onProfilesChanged?.()
+      } catch (e) {
+        setError(e instanceof Error ? e.message : '사업장 등록에 실패했습니다.')
+      }
+    },
+    [token, defaultTenantId, canCreateProfile, onProfilesChanged, createProfileFn],
+  )
 
   const addPriorLoan = useCallback(async () => {
     if (!token || !selectedId) return

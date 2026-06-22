@@ -296,7 +296,14 @@ export const appRouter = createBrowserRouter([
                     children: [
                       { path: 'government/admin/users', element: <GovernmentAdminUsersPage /> },
                       { path: 'government/admin/program-users', element: <GovernmentAdminProgramUsersPage /> },
-                      { path: 'government/admin/customers', element: <GovernmentAdminCustomersPage /> },
+                      {
+                        path: 'government/admin/customers',
+                        element: <GovernmentAdminCustomersPage />,
+                        children: [
+                          { index: true, element: <GovernmentProfileWorkspaceHomePage /> },
+                          { path: ':profileId/:tab', element: <GovernmentProfileWorkspaceTabPage /> },
+                        ],
+                      },
                       {
                         path: 'government/admin/program-users/:userId',
                         element: <GovernmentAdminProgramUserDetailPage />,

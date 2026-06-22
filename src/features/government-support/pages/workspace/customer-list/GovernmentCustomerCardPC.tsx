@@ -17,6 +17,7 @@ export type GovernmentCustomerCardPCProps = {
   onEdit: () => void
   onDelete: () => void
   onStatusChange: (optionId: string | null) => void
+  showDelete?: boolean
 }
 
 export default function GovernmentCustomerCardPC({
@@ -29,6 +30,7 @@ export default function GovernmentCustomerCardPC({
   onEdit,
   onDelete,
   onStatusChange,
+  showDelete = true,
 }: GovernmentCustomerCardPCProps) {
   const profileId = profile.id
   const title = resolveGovernmentCustomerCardName(profile)
@@ -109,6 +111,7 @@ export default function GovernmentCustomerCardPC({
               onEdit={onEdit}
               onDelete={onDelete}
               deleting={deleting}
+              showDelete={showDelete}
             />
           </div>
         ) : null}

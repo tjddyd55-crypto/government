@@ -1,9 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { EmptyState } from '../../../../components/feedback'
 import { useAuth } from '../../../auth/AuthProvider'
-import {
-  GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH,
-} from '../../config/governmentProfileWorkspaceTabs'
+import { createGovernmentProfileWorkspacePathHelpers } from '../../config/governmentProfileWorkspaceTabs'
 import GovernmentProfileListPanelPCView from './GovernmentProfileListPanelPCView'
 import GovernmentProfileWorkspaceHeader from './GovernmentProfileWorkspaceHeader'
 import GovernmentProfileWorkspaceTabs from './GovernmentProfileWorkspaceTabs'
@@ -12,6 +10,7 @@ import type { GovernmentProfileWorkspaceLayoutViewProps } from './governmentProf
 
 export default function GovernmentProfileWorkspacePCView({
   pathname,
+  workspaceBasePath,
   selectedProfileId,
   selectedProfile,
   selectedProfileLabel,
@@ -28,9 +27,8 @@ export default function GovernmentProfileWorkspacePCView({
   onClickCustomerApp,
 }: GovernmentProfileWorkspaceLayoutViewProps) {
   const { token } = useAuth()
-  const isIndexPath =
-    pathname === GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH ||
-    pathname === `${GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH}/`
+  const paths = createGovernmentProfileWorkspacePathHelpers(workspaceBasePath)
+  const isIndexPath = paths.isIndexPath(pathname)
 
   const tabProps = {
     activeTab,

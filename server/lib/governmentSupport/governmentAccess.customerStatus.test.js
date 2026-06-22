@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   canAccessGovernmentProfile,
+  canCreateGovernmentProfileOnBehalf,
   canListGovernmentAdminCustomers,
   canUpdateGovernmentProfileCustomerStatus,
   isGovernmentAgencyCustomerManager,
@@ -53,6 +54,22 @@ describe('canAccessGovernmentProfile', () => {
     )
     assert.equal(
       canAccessGovernmentProfile({ governmentAgencyAdminTenantIds: ['99'] }, profileRow),
+      false,
+    )
+  })
+})
+
+describe('canCreateGovernmentProfileOnBehalf', () => {
+  it('대행사 관리자 true, 프로그램 이용자 false', () => {
+    assert.equal(
+      canCreateGovernmentProfileOnBehalf({ governmentAgencyAdminTenantIds: ['15'] }),
+      true,
+    )
+    assert.equal(
+      canCreateGovernmentProfileOnBehalf({
+        userId: 'u1',
+        governmentProgramUserTenantIds: ['15'],
+      }),
       false,
     )
   })

@@ -1,5 +1,5 @@
 import FormButton from '../../../../../components/form/FormButton'
-import type { GovernmentProfileListToolbarProps } from './governmentProfileListToolbarProps'
+import type { GovernmentProfileListToolbarExtendedProps } from './governmentProfileListToolbarExtendedProps'
 import '../../../government-customer-list-pc.css'
 
 export default function GovernmentProfileListToolbarPC({
@@ -12,17 +12,43 @@ export default function GovernmentProfileListToolbarPC({
   onCustomerStatusChange,
   onBusinessTypeChange,
   onAddProfile,
-}: GovernmentProfileListToolbarProps) {
+  showOwnerFilter = false,
+  ownerUserId = '',
+  ownerOptions = [],
+  onOwnerUserChange,
+  showTenantFilter = false,
+  tenantId = '',
+  tenantOptions = [],
+  onTenantChange,
+}: GovernmentProfileListToolbarExtendedProps) {
   return (
     <div className="government-customer-list-toolbar government-customer-list-toolbar--pc">
       <input
         type="search"
         className="gov-form-control government-customer-list-toolbar__search"
-        placeholder="이름·휴대폰·업종·사업장명 검색"
+        placeholder={
+          showOwnerFilter
+            ? '이름·휴대폰·업종·담당자 검색'
+            : '이름·휴대폰·업종·사업장명 검색'
+        }
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         data-testid="government-customer-search"
       />
+      {showTenantFilter && tenantOptions.length > 0 ? (
+        <select
+          className="gov-form-control government-customer-list-toolbar__filter"
+          value={tenantId}
+          onChange={(e) => onTenantChange?.(e.target.value)}
+          aria-label="대행사 필터"
+        >
+          {tenantOptions.map((opt) => (
+            <option key={opt.id} value={opt.id}>
+              {opt.name}
+            </option>
+          ))}
+        </select>
+      ) : null}
       <select
         className="gov-form-control government-customer-list-toolbar__filter"
         value={customerStatusOptionId}
@@ -50,6 +76,22 @@ export default function GovernmentProfileListToolbarPC({
           </option>
         ))}
       </select>
+      {showOwnerFilter ? (
+        <select
+          className="gov-form-control government-customer-list-toolbar__filter"
+          value={ownerUserId}
+          onChange={(e) => onOwnerUserChange?.(e.target.value)}
+          aria-label="담당 이용자 필터"
+          data-testid="government-customer-owner-filter"
+        >
+          <option value="">담당 이용자 전체</option>
+          {ownerOptions.map((opt) => (
+            <option key={opt.id} value={opt.id}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      ) : null}
       <FormButton
         htmlType="button"
         variant="primary"

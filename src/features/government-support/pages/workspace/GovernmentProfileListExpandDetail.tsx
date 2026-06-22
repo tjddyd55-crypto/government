@@ -10,6 +10,7 @@ type Props = {
   onEdit: () => void
   onDelete: () => void
   deleting?: boolean
+  showDelete?: boolean
 }
 
 export default function GovernmentProfileListExpandDetail({
@@ -17,6 +18,7 @@ export default function GovernmentProfileListExpandDetail({
   onEdit,
   onDelete,
   deleting = false,
+  showDelete = true,
 }: Props) {
   const rows = buildGovernmentProfileListExpandRows(profile)
   const title = displayGovField(profile.businessName || profile.customerName)
@@ -52,23 +54,25 @@ export default function GovernmentProfileListExpandDetail({
           >
             수정
           </FormButton>
-          <FormButton
-            htmlType="button"
-            variant="danger"
-            size="sm"
-            className="customer-detail-action-button customer-detail-action-button--danger gov-btn gov-btn--danger gov-btn--sm"
-            title="사업장 삭제"
-            aria-label="삭제"
-            disabled={deleting}
-            loading={deleting}
-            loadingText="삭제 중…"
-            onClick={(e) => {
-              e.stopPropagation()
-              onDelete()
-            }}
-          >
-            삭제
-          </FormButton>
+          {showDelete ? (
+            <FormButton
+              htmlType="button"
+              variant="danger"
+              size="sm"
+              className="customer-detail-action-button customer-detail-action-button--danger gov-btn gov-btn--danger gov-btn--sm"
+              title="사업장 삭제"
+              aria-label="삭제"
+              disabled={deleting}
+              loading={deleting}
+              loadingText="삭제 중…"
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete()
+              }}
+            >
+              삭제
+            </FormButton>
+          ) : null}
         </div>
       </div>
 

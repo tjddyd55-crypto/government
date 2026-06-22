@@ -17,6 +17,7 @@ export type GovernmentCustomerCardMobileProps = {
   onEdit: () => void
   onDelete: () => void
   onStatusChange: (optionId: string | null) => void
+  showDelete?: boolean
 }
 
 export default function GovernmentCustomerCardMobile({
@@ -29,6 +30,7 @@ export default function GovernmentCustomerCardMobile({
   onEdit,
   onDelete,
   onStatusChange,
+  showDelete = true,
 }: GovernmentCustomerCardMobileProps) {
   const profileId = profile.id
   const title = resolveGovernmentCustomerCardName(profile)
@@ -73,6 +75,7 @@ export default function GovernmentCustomerCardMobile({
             onEdit={onEdit}
             onDelete={onDelete}
             deleting={deleting}
+            showDelete={showDelete}
           />
         </div>
       ) : null}

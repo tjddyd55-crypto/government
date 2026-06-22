@@ -12,12 +12,15 @@ import {
   resolveGovernmentCrmGaId,
   resolveGovernmentIndustryId,
   canCreateGovernmentProfile,
+  canCreateGovernmentProfileOnBehalf,
   canDeleteGovernmentProfile,
   canPatchGovernmentProfileBody,
   canUpdateGovernmentProfileCustomerStatus,
+  isGovernmentProgramUserInTenant,
   resolveGovernmentAdminCustomerQueryScope,
   resolveGovernmentProfileQueryScope,
   resolveGovernmentTenantScopeForQuery,
+  resolveTenantIdForAgencyAdminProfileCreate,
   resolveTenantIdForProfileCreate,
 } from './lib/governmentSupport/governmentAccess.js'
 import { getProgramUserDetailForManager } from './lib/governmentSupport/governmentProgramUsers.js'
@@ -687,27 +690,55 @@ export function registerGovernmentSupportApi(router, deps) {
   router.post('/government-support/profiles', ...requireGovernmentMember, async (req, res) => {
     try {
       const ctx = req.platformContext
-      if (!canCreateGovernmentProfile(ctx)) {
+      const body = req.body ?? {}
+      const requestedTenantId = body.tenantId ?? body.tenant_id ?? null
+      let tenantId
+      let ownerUserIdForInsert = null
+
+      if (isGovernmentProgramUser(ctx)) {
+        if (!canCreateGovernmentProfile(ctx)) {
+          res.status(403).json({
+            message: '사업장/고객은 기관 코드로 가입한 이용자만 등록할 수 있습니다.',
+          })
+          return
+        }
+        const resolved = await resolveTenantIdForProfileCreate(pool, ctx, requestedTenantId)
+        if (!resolved.ok) {
+          res.status(resolved.status).json({ message: resolved.message })
+          return
+        }
+        tenantId = resolved.tenantId
+        ownerUserIdForInsert = ctx.userId
+      } else if (canCreateGovernmentProfileOnBehalf(ctx)) {
+        const resolved = await resolveTenantIdForAgencyAdminProfileCreate(pool, ctx, requestedTenantId)
+        if (!resolved.ok) {
+          res.status(resolved.status).json({ message: resolved.message })
+          return
+        }
+        tenantId = resolved.tenantId
+        const ownerUserId = String(body.ownerUserId ?? body.owner_user_id ?? '').trim()
+        if (!ownerUserId) {
+          res.status(400).json({ message: '담당 이용자(ownerUserId)가 필요합니다.' })
+          return
+        }
+        const memberOk = await isGovernmentProgramUserInTenant(pool, tenantId, ownerUserId)
+        if (!memberOk) {
+          res.status(400).json({ message: '선택한 담당 이용자가 이 대행사 소속이 아닙니다.' })
+          return
+        }
+        ownerUserIdForInsert = ownerUserId
+      } else {
         res.status(403).json({
           message: '사업장/고객은 기관 코드로 가입한 이용자만 등록할 수 있습니다.',
         })
         return
       }
-      const body = req.body ?? {}
-      const requestedTenantId = body.tenantId ?? body.tenant_id ?? null
-      const resolved = await resolveTenantIdForProfileCreate(pool, ctx, requestedTenantId)
-      if (!resolved.ok) {
-        res.status(resolved.status).json({ message: resolved.message })
-        return
-      }
-      const tenantId = resolved.tenantId
+
       const pairs = profilePatchFromBody(body)
       const cols = ['tenant_id', ...pairs.map((p) => p[0])]
       const vals = [tenantId, ...pairs.map((p) => p[1])]
-      if (isGovernmentProgramUser(ctx)) {
-        cols.push('owner_user_id')
-        vals.push(ctx.userId)
-      }
+      cols.push('owner_user_id')
+      vals.push(ownerUserIdForInsert)
       const placeholders = vals.map((_, i) => `$${i + 1}`)
       const r = await pool.query(
         `INSERT INTO gov_support_profiles (${cols.join(', ')}) VALUES (${placeholders.join(', ')}) RETURNING *`,

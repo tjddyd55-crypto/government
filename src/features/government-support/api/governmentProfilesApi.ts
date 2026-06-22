@@ -120,13 +120,14 @@ export async function patchGovProfileCustomerStatus(
 export async function createGovProfile(
   token: string,
   tenantId: string | null | undefined,
-  partial?: Partial<GovSupportProfile>,
+  partial?: Partial<GovSupportProfile> & { ownerUserId?: string | null },
 ) {
   const raw = await apiRequest<unknown>('/api/government-support/profiles', {
     method: 'POST',
     token,
     body: JSON.stringify({
       ...(tenantId ? { tenantId } : {}),
+      ...(partial?.ownerUserId ? { ownerUserId: partial.ownerUserId } : {}),
       customerName: '신규 고객',
       ...partial,
     }),

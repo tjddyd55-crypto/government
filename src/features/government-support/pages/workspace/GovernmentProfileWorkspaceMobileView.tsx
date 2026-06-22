@@ -2,8 +2,7 @@ import { useMemo } from 'react'
 import { useLocation, useNavigate, useOutlet } from 'react-router-dom'
 import Modal from '../../../../components/ui/Modal'
 import {
-  GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH,
-  isGovernmentProfileWorkspaceSideDetailPath,
+  createGovernmentProfileWorkspacePathHelpers,
   labelForGovernmentProfileWorkspaceTab,
   parseGovernmentProfileWorkspaceTab,
 } from '../../config/governmentProfileWorkspaceTabs'
@@ -11,15 +10,17 @@ import GovernmentProfileListPanelMobileView from './GovernmentProfileListPanelMo
 import GovernmentProfileWorkspaceTabs from './GovernmentProfileWorkspaceTabs'
 import type { GovernmentProfileWorkspaceLayoutViewProps } from './governmentProfileWorkspaceViewProps'
 
-function resolveMobileSheetTitle(pathname: string): string {
-  const m = pathname.match(/^\/government\/my-applications\/[^/]+\/([^/]+)/)
-  if (!m?.[1]) {
+function resolveMobileSheetTitle(pathname: string, basePath: string): string {
+  const paths = createGovernmentProfileWorkspacePathHelpers(basePath)
+  const tab = paths.resolveActiveTab(pathname)
+  if (!tab) {
     return '상세'
   }
-  return labelForGovernmentProfileWorkspaceTab(parseGovernmentProfileWorkspaceTab(m[1]))
+  return labelForGovernmentProfileWorkspaceTab(tab)
 }
 
 export default function GovernmentProfileWorkspaceMobileView({
+  workspaceBasePath,
   selectedProfileId,
   activeTab,
   onClickBasic,
@@ -35,14 +36,18 @@ export default function GovernmentProfileWorkspaceMobileView({
   const outlet = useOutlet()
   const navigate = useNavigate()
   const location = useLocation()
+  const paths = useMemo(
+    () => createGovernmentProfileWorkspacePathHelpers(workspaceBasePath),
+    [workspaceBasePath],
+  )
 
   const isMobileDetailRoute = useMemo(
-    () => isGovernmentProfileWorkspaceSideDetailPath(location.pathname),
-    [location.pathname],
+    () => paths.isSideDetailPath(location.pathname),
+    [location.pathname, paths],
   )
 
   const handleClose = () => {
-    navigate(GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH, { replace: true })
+    navigate(workspaceBasePath, { replace: true })
   }
 
   const tabProps = {
@@ -67,13 +72,13 @@ export default function GovernmentProfileWorkspaceMobileView({
         <Modal
           open
           onClose={handleClose}
-          ariaLabel={resolveMobileSheetTitle(location.pathname)}
+          ariaLabel={resolveMobileSheetTitle(location.pathname, workspaceBasePath)}
           panelClassName="workspace-mobile-outlet-modal government-profile-workspace-mobile-modal government-profile-mobile-detail"
         >
           <div className="workspace-mobile-outlet-modal__header government-profile-mobile-detail__header">
             <span className="workspace-mobile-outlet-modal__spacer" aria-hidden />
             <h2 className="workspace-mobile-outlet-modal__title government-profile-mobile-detail__title">
-              {resolveMobileSheetTitle(location.pathname)}
+              {resolveMobileSheetTitle(location.pathname, workspaceBasePath)}
             </h2>
             <button
               type="button"

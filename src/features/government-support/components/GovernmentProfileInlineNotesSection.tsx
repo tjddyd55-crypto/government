@@ -346,7 +346,6 @@ export const GovernmentProfileInlineNotesSection = memo(function GovernmentProfi
             {sortedItems.map((note) => {
               return (
                 <li key={note.id} className="gov-workspace-record-card customer-inline-memo-row">
-                >
                   <div className="gov-workspace-record-card__body customer-inline-memo-row__body">
                     <div className="gov-workspace-record-card__text">{note.content}</div>
                     <small className="customer-inline-memo-row__meta gov-workspace-record-card__meta">

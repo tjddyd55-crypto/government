@@ -71,6 +71,14 @@ export function buildProfileListFilterClauses(filters, startIndex = 3) {
       OR p.business_type ILIKE $${n}
       OR p.business_category ILIKE $${n}
       OR p.note ILIKE $${n}
+      OR EXISTS (
+        SELECT 1 FROM users u_owner
+        WHERE u_owner.id = p.owner_user_id
+          AND (
+            u_owner.username ILIKE $${n}
+            OR COALESCE(u_owner.display_name, '') ILIKE $${n}
+          )
+      )
     )`)
     params.push(like)
     n += 1

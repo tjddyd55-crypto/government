@@ -1,15 +1,12 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
-import {
-  GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH,
-} from '../../config/governmentProfileWorkspaceTabs'
 import GovernmentProfileEditModal from './GovernmentProfileEditModal'
 import { isSameGovProfileId, normalizeGovProfileId } from '../../lib/governmentProfileDocumentCategories'
 import { collectGovernmentBusinessTypeOptions } from '../../lib/governmentCustomerListDisplay'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
 import GovernmentProfileListToolbarMobile from './customer-list/GovernmentProfileListToolbarMobile'
-import GovernmentCustomerCardMobile from './customer-list/GovernmentCustomerCardMobile'
+import GovernmentProfileListCardsMobile from './customer-list/GovernmentProfileListCardsMobile'
 
 const EMPTY_LIST_HINT = '등록된 사업장이 없습니다. 사업장을 먼저 등록해 주세요.'
 
@@ -41,7 +38,7 @@ export default function GovernmentProfileListPanelMobileBody() {
       try {
         await ws.removeProfile(deletedId)
         if (isSameGovProfileId(deletedId, ws.selectedProfileIdFromPath)) {
-          navigate(GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH, { replace: true })
+          navigate(ws.paths.basePath, { replace: true })
         }
       } finally {
         setDeletingId(null)
@@ -57,11 +54,15 @@ export default function GovernmentProfileListPanelMobileBody() {
     [ws],
   )
 
+  const listClassName = ws.shell.showOwnerGroups
+    ? 'government-profile-list-panel__list government-profile-list-panel__list--mobile government-profile-list-panel__list--grouped'
+    : 'government-profile-list-panel__list government-profile-list-panel__list--mobile'
+
   return (
     <>
       <header className="customers-page__header">
-        <h1 className="customers-page__title">내 사업장/신청</h1>
-        <p className="customers-page__subtitle">본인 명의 사업장만 표시됩니다.</p>
+        <h1 className="customers-page__title">{ws.shell.listTitle}</h1>
+        <p className="customers-page__subtitle">{ws.shell.listSubtitle}</p>
       </header>
 
       <GovernmentProfileListToolbarMobile
@@ -73,7 +74,15 @@ export default function GovernmentProfileListPanelMobileBody() {
         onSearchChange={ws.setListSearch}
         onCustomerStatusChange={ws.setListCustomerStatusFilter}
         onBusinessTypeChange={ws.setListBusinessTypeFilter}
-        onAddProfile={() => void ws.addProfile()}
+        onAddProfile={ws.requestAddProfile}
+        showOwnerFilter={ws.shell.showOwnerFilter}
+        ownerUserId={ws.listOwnerUserFilter}
+        ownerOptions={ws.ownerOptions}
+        onOwnerUserChange={ws.setListOwnerUserFilter}
+        showTenantFilter={ws.shell.showTenantFilter}
+        tenantId={ws.listTenantId}
+        tenantOptions={ws.tenantOptions}
+        onTenantChange={ws.setListTenantId}
       />
 
       {ws.error ? <p className="government-user-section__error customers-page__list-status">{ws.error}</p> : null}
@@ -90,27 +99,20 @@ export default function GovernmentProfileListPanelMobileBody() {
           {EMPTY_LIST_HINT}
         </p>
       ) : (
-        <ul className="government-profile-list-panel__list government-profile-list-panel__list--mobile">
-          {ws.profiles.map((row) => {
-            const profileId = normalizeGovProfileId(row.id)
-            const pathId = normalizeGovProfileId(ws.selectedProfileIdFromPath)
-            const selected = isSameGovProfileId(profileId, pathId)
-            const expanded = isSameGovProfileId(profileId, ws.expandedProfileId)
-            return (
-              <GovernmentCustomerCardMobile
-                key={profileId}
-                profile={row}
-                selected={selected}
-                expanded={expanded}
-                deleting={isSameGovProfileId(deletingId, profileId)}
-                statusOptions={ws.statusOptions}
-                onToggle={() => ws.onToggleProfileCard(profileId)}
-                onEdit={() => setEditTarget(row)}
-                onDelete={() => void handleDeleteProfile(row)}
-                onStatusChange={(optionId) => void handleStatusChange(profileId, optionId)}
-              />
-            )
-          })}
+        <ul className={listClassName}>
+          <GovernmentProfileListCardsMobile
+            profiles={ws.profiles}
+            showOwnerGroups={ws.shell.showOwnerGroups}
+            selectedProfileIdFromPath={ws.selectedProfileIdFromPath}
+            expandedProfileId={ws.expandedProfileId}
+            deletingId={deletingId}
+            statusOptions={ws.statusOptions}
+            canDeleteProfile={ws.shell.canDeleteProfile}
+            onToggle={ws.onToggleProfileCard}
+            onEdit={setEditTarget}
+            onDelete={(profile) => void handleDeleteProfile(profile)}
+            onStatusChange={handleStatusChange}
+          />
         </ul>
       )}
 
