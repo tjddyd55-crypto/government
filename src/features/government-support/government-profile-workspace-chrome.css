@@ -1,0 +1,105 @@
+/**
+ * Admin 고객관리 route: user workspace chrome SSOT.
+ * `.government-user-layout--pc-user` / `--mobile` 조상을 admin shell 안에서 재현한다.
+ */
+
+.government-profile-workspace-chrome.government-user-layout--pc-user,
+.government-profile-workspace-chrome.government-user-layout--mobile {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.government-admin-layout--pc-admin .government-profile-workspace-chrome.government-user-layout--pc-user,
+.government-admin-layout--mobile .government-profile-workspace-chrome.government-user-layout--mobile {
+  height: 100%;
+  overflow: hidden;
+}
+
+.government-admin-layout .government-profile-workspace-chrome .government-profile-workspace {
+  flex: 1;
+  min-height: 0;
+}
+
+/* admin shell 전역 규칙이 workspace 내부 record-card를 덮지 않도록 */
+.government-admin-white-theme .government-profile-workspace-chrome .government-profile-list-panel .record-card,
+.government-admin-white-theme .government-profile-workspace-chrome .government-profile-list-panel .government-profile-list-card {
+  background: var(--gov-workspace-panel);
+  border-color: var(--gov-workspace-border);
+  color: var(--gov-workspace-text);
+}
+
+.government-admin-white-theme .government-profile-workspace-chrome .government-profile-list-panel .government-profile-list-card--active {
+  border-color: var(--gov-workspace-primary);
+  background: var(--gov-workspace-panel);
+}
+
+.government-admin-white-theme .government-profile-workspace-chrome .government-profile-list-panel .government-profile-list-card__summary-row--active {
+  background: var(--gov-workspace-primary-soft);
+}
+
+/* 유저별 그룹 헤더 — customer card보다 약한 surface */
+.government-profile-list-panel .government-customer-owner-group__header {
+  margin: 0 0 var(--gov-workspace-gap-sm, 8px);
+  padding: var(--gov-workspace-padding-inline-sm, 8px) var(--gov-workspace-padding-inline-md, 12px);
+  border-radius: var(--gov-workspace-radius-control, 10px);
+  background: transparent;
+  border: 1px solid var(--gov-workspace-border);
+}
+
+.government-profile-list-panel .government-customer-owner-group__title {
+  margin: 0;
+  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
+  font-weight: 700;
+  color: var(--gov-workspace-muted);
+}
+
+.government-profile-list-panel .government-customer-owner-group__toggle {
+  border: 1px solid var(--gov-workspace-border-strong, var(--gov-workspace-border));
+  background: var(--gov-workspace-panel);
+  color: var(--gov-workspace-text);
+  border-radius: var(--gov-workspace-radius-control, 10px);
+  padding: 4px 10px;
+  font-size: var(--gov-workspace-font-size-xs, 0.75rem);
+  cursor: pointer;
+}
+
+.government-profile-list-panel .government-customer-owner-group__toggle:hover {
+  background: var(--gov-workspace-surface-muted, var(--bg-elevated));
+}
+
+.government-profile-list-panel .government-customer-owner-group__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gov-workspace-gap-sm, 8px);
+}
+
+.government-profile-list-panel__list--grouped {
+  gap: var(--gov-workspace-gap-lg, 16px);
+}
+
+.government-profile-owner-pick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gov-workspace-gap-lg, 16px);
+  min-width: min(420px, 100%);
+}
+
+.government-profile-owner-pick__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gov-workspace-gap-sm, 8px);
+}
+
+.government-profile-owner-pick__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--gov-workspace-gap-sm, 8px);
+}

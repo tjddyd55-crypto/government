@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction 
 import { useLocation, useNavigate } from 'react-router-dom'
 import ResponsiveLayout from '../../../../components/ResponsiveLayout'
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
+import useIsMobile from '../../../../hooks/useIsMobile'
 import { useAuth } from '../../../auth/AuthProvider'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import { useGovernmentAgencyAdminListState } from '../../hooks/useGovernmentAgencyAdminListState'
@@ -43,6 +44,9 @@ import {
 import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
 import '../../government-support.css'
 import '../../government-profile-mobile-detail-theme.css'
+import '../../government-user-pc-theme.css'
+import '../../government-user-mobile-theme.css'
+import '../../government-profile-workspace-chrome.css'
 
 export type GovernmentProfileWorkspaceLayoutCoreProps = {
   shell?: GovernmentProfileWorkspaceShell
@@ -63,6 +67,8 @@ export default function GovernmentProfileWorkspaceLayoutCore({
 }: GovernmentProfileWorkspaceLayoutCoreProps = {}) {
   const shell = shellProp ?? GOVERNMENT_USER_PROFILE_WORKSPACE_SHELL
   const paths = pathsProp ?? governmentUserProfileWorkspacePaths
+  const isAgencyAdmin = shell.variant === 'agencyAdmin'
+  const isMobile = useIsMobile()
 
   useDocumentTitle(shell.documentTitle)
   const navigate = useNavigate()
@@ -70,7 +76,6 @@ export default function GovernmentProfileWorkspaceLayoutCore({
   const { token } = useAuth()
   const { summary, reload: reloadAccess } = useGovernmentAccess(token)
 
-  const isAgencyAdmin = shell.variant === 'agencyAdmin'
   const userListState = useGovernmentProfileListState(
     isAgencyAdmin ? null : token,
     isAgencyAdmin ? null : summary?.governmentProgramUserTenantIds?.[0] ?? summary?.defaultWorkspaceTenantId ?? null,
@@ -458,7 +463,15 @@ export default function GovernmentProfileWorkspaceLayoutCore({
     )
   }
 
-  return (
+  const adminChromeClassName = isAgencyAdmin
+    ? [
+        'government-profile-workspace-chrome',
+        'government-user-white-theme',
+        isMobile ? 'government-user-layout--mobile government-page--mobile' : 'government-user-layout--pc-user government-user-pc-page',
+      ].join(' ')
+    : ''
+
+  const workspaceBody = (
     <GovernmentProfileWorkspaceContext.Provider value={contextValue}>
       <ResponsiveLayout<GovernmentProfileWorkspaceLayoutViewProps>
         PC={GovernmentProfileWorkspacePCView}
@@ -474,6 +487,12 @@ export default function GovernmentProfileWorkspaceLayoutCore({
         />
       ) : null}
     </GovernmentProfileWorkspaceContext.Provider>
+  )
+
+  return adminChromeClassName ? (
+    <div className={adminChromeClassName}>{workspaceBody}</div>
+  ) : (
+    workspaceBody
   )
 }
 

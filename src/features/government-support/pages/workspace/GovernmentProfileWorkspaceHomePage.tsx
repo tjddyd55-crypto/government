@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
+import { EmptyState } from '../../../../components/feedback'
 import { FormButton } from '../../../../components/form'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
 import { getGovernmentProgressStatusLabel } from '../../constants/governmentProgressStatus'
@@ -36,6 +37,10 @@ export default function GovernmentProfileWorkspaceHomePage() {
     },
     [ws],
   )
+
+  if (ws.shell.variant === 'agencyAdmin') {
+    return <EmptyState message="사업장을 선택해 주세요." />
+  }
 
   return (
     <section className="customer-workspace-home customer-workspace-home--landing">

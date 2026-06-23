@@ -1734,6 +1734,17 @@
   --gov-workspace-primary-soft: #fff8d6;
   --gov-workspace-danger: #dc2626;
   --gov-workspace-danger-soft: #fff1f2;
+  --gov-workspace-border-strong: #cbd5e1;
+  --gov-workspace-surface-muted: #f8fafc;
+  --gov-workspace-radius-card: 12px;
+  --gov-workspace-radius-control: 10px;
+  --gov-workspace-gap-sm: 8px;
+  --gov-workspace-gap-md: 10px;
+  --gov-workspace-gap-lg: 16px;
+  --gov-workspace-padding-inline-sm: 8px;
+  --gov-workspace-padding-inline-md: 12px;
+  --gov-workspace-font-size-xs: 0.75rem;
+  --gov-workspace-font-size-sm: 0.8125rem;
   flex: 1;
   min-height: 0;
   height: 100%;
