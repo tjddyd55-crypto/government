@@ -17,7 +17,6 @@ export default function GovernmentProfileWorkspaceRightDocumentsPanel({ token, p
           <h3 className="government-profile-workspace-right-documents-panel__title">문서 관리</h3>
           <span className="government-profile-workspace-right-documents-panel__count">총 {fileCount}개</span>
         </div>
-        <p className="government-profile-workspace-right-documents-panel__hint">서류/파일 업로드 · 목록</p>
       </header>
       <div className="government-profile-workspace-right-documents-panel__body">
         <GovernmentProfileStorageWorkspace

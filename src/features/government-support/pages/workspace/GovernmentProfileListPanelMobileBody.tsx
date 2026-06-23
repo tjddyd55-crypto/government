@@ -64,7 +64,6 @@ export default function GovernmentProfileListPanelMobileBody() {
     <>
       <header className="customers-page__header">
         <h1 className="customers-page__title">{ws.shell.listTitle}</h1>
-        <p className="customers-page__subtitle">{ws.shell.listSubtitle}</p>
       </header>
 
       <GovernmentProfileListToolbarMobile

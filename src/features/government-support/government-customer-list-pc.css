@@ -26,7 +26,7 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--gov-workspace-toolbar-gap);
   align-items: stretch;
-  margin-bottom: var(--gov-workspace-section-gap);
+  margin-bottom: var(--gov-workspace-gap-md);
 }
 
 .government-profile-list-panel--pc .government-customer-list-toolbar__search {

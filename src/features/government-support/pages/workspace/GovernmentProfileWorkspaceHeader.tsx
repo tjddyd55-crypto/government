@@ -1,5 +1,4 @@
 import FormButton from '../../../../components/form/FormButton'
-import { getGovernmentProgressStatusLabel } from '../../constants/governmentProgressStatus'
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 
 type Props = {
@@ -13,7 +12,6 @@ type Props = {
 export default function GovernmentProfileWorkspaceHeader({
   variant,
   selectedProfileId,
-  selectedProfile,
   selectedProfileLabel,
   onClickCustomerApp,
 }: Props) {
@@ -27,14 +25,6 @@ export default function GovernmentProfileWorkspaceHeader({
         <h2 className="government-profile-workspace-header__title">
           {selectedProfileId ? selectedProfileLabel || '선택 사업장' : '사업장을 선택해 주세요.'}
         </h2>
-        {selectedProfileId ? (
-          <p className="government-profile-workspace-header__subtitle">
-            담당자 {selectedProfile?.customerName || '-'} · 연락처 {selectedProfile?.phone || '-'} ·{' '}
-            {getGovernmentProgressStatusLabel(selectedProfile?.progressStatus)}
-          </p>
-        ) : (
-          <p className="government-profile-workspace-header__subtitle">왼쪽 목록에서 사업장을 선택해 주세요.</p>
-        )}
       </div>
       {isPc && selectedProfileId ? (
         <div className="government-profile-workspace-header__actions">

@@ -43,21 +43,45 @@
   background: var(--gov-workspace-primary-soft);
 }
 
-/* —— PC 좌측 리스트 패널: 헤더·툴바·목록 패딩 통일 —— */
+/* —— PC column header: 좌/중/우 상단 라인·높이 통일 —— */
+.government-profile-workspace--pc .government-profile-list-panel--pc .customers-page__header,
+.government-profile-workspace--pc .government-profile-workspace-header,
+.government-profile-workspace--pc .government-profile-workspace-right-documents-panel__header {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  min-height: var(--gov-workspace-header-height);
+  padding: var(--gov-workspace-column-padding-y) var(--gov-workspace-column-padding-x);
+  border-bottom: 1px solid var(--gov-workspace-border);
+  background: var(--gov-workspace-panel);
+}
+
 .government-profile-workspace--pc .government-profile-list-panel--pc .customers-page__header {
-  padding: var(--gov-workspace-panel-padding-block) var(--gov-workspace-panel-padding-inline)
-    var(--gov-workspace-gap-sm);
+  display: flex;
+  align-items: center;
+}
+
+.government-profile-workspace--pc .government-profile-list-panel--pc .customers-page__title {
+  margin: 0;
+  font-size: var(--gov-workspace-font-size-md);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--gov-workspace-text);
 }
 
 .government-profile-workspace--pc .government-profile-list-panel--pc .government-customer-list-toolbar--pc,
 .government-profile-workspace--pc .government-profile-list-panel--pc .government-user-section__error.customers-page__list-status,
 .government-profile-workspace--pc .government-profile-list-panel--pc .government-user-section__feedback.customers-page__list-status {
-  padding-left: var(--gov-workspace-panel-padding-inline);
-  padding-right: var(--gov-workspace-panel-padding-inline);
+  padding-left: var(--gov-workspace-column-padding-x);
+  padding-right: var(--gov-workspace-column-padding-x);
+}
+
+.government-profile-workspace--pc .government-profile-list-panel--pc .government-customer-list-toolbar--pc {
+  padding-top: var(--gov-workspace-gap-sm);
+  margin-bottom: var(--gov-workspace-gap-md);
 }
 
 .government-profile-workspace--pc .government-profile-list-panel--pc .customers-page__customer-list {
-  padding: var(--gov-workspace-gap-sm) var(--gov-workspace-panel-padding-inline)
+  padding: var(--gov-workspace-gap-sm) var(--gov-workspace-column-padding-x)
     var(--gov-workspace-panel-padding-block);
 }
 
@@ -127,9 +151,65 @@
   margin-top: var(--gov-workspace-gap-xs);
 }
 
+/* —— PC 중앙 헤더·탭 (compact, subtitle 없음) —— */
+.government-profile-workspace--pc .government-profile-workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gov-workspace-gap-md);
+}
+
+.government-profile-workspace--pc .government-profile-workspace-header__meta {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.government-profile-workspace--pc .government-profile-workspace-header__title {
+  margin: 0;
+  font-size: var(--gov-workspace-font-size-md);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--gov-workspace-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.government-profile-workspace--pc .government-profile-workspace-header__actions {
+  flex-shrink: 0;
+}
+
+.government-profile-workspace--pc .government-profile-workspace-tabs__scroll {
+  min-height: var(--gov-workspace-tabs-height);
+  padding: 0 var(--gov-workspace-column-padding-x);
+}
+
+.government-profile-workspace--pc .government-profile-workspace-tabs__item {
+  min-height: var(--gov-workspace-tabs-height);
+}
+
+/* —— PC 우측 문서 패널 header —— */
+.government-profile-workspace--pc .government-profile-workspace-right-documents-panel__header {
+  display: flex;
+  align-items: center;
+}
+
+.government-profile-workspace--pc .government-profile-workspace-right-documents-panel__header-row {
+  width: 100%;
+  align-items: center;
+  gap: var(--gov-workspace-toolbar-gap);
+}
+
+.government-profile-workspace--pc .government-profile-workspace-right-documents-panel__title {
+  margin: 0;
+  font-size: var(--gov-workspace-font-size-md);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
 .government-profile-workspace--pc .storage-workspace--gov-sidebar .storage-workspace__filters {
   gap: var(--gov-workspace-toolbar-gap);
-  margin-top: var(--gov-workspace-section-gap);
+  margin-top: var(--gov-workspace-gap-md);
 }
 
 .government-profile-workspace--pc .storage-workspace--gov-sidebar .storage-workspace__summary {
@@ -142,26 +222,7 @@
 }
 
 .government-profile-workspace--pc .government-profile-workspace-right-documents-panel--empty {
-  padding: var(--gov-workspace-panel-padding-block) var(--gov-workspace-panel-padding-inline);
-}
-
-/* —— PC 중앙 헤더·탭 패딩 (좌/우 column과 baseline 맞춤) —— */
-.government-profile-workspace--pc .government-profile-workspace-header {
-  padding: var(--gov-workspace-panel-padding-block) var(--gov-workspace-panel-padding-inline);
-  gap: var(--gov-workspace-gap-md);
-}
-
-.government-profile-workspace--pc .government-profile-workspace-header__subtitle {
-  margin-top: var(--gov-workspace-gap-xs);
-}
-
-.government-profile-workspace--pc .government-profile-workspace-tabs__scroll {
-  padding: 0 var(--gov-workspace-panel-padding-inline);
-  min-height: calc(var(--gov-workspace-control-height) + var(--gov-workspace-gap-md));
-}
-
-.government-profile-workspace--pc .government-profile-workspace-tabs__item {
-  min-height: var(--gov-workspace-control-height);
+  padding: var(--gov-workspace-column-padding-y) var(--gov-workspace-column-padding-x);
 }
 
 /* 유저별 그룹 헤더 — customer card보다 약한 surface */
