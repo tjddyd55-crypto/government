@@ -6,18 +6,25 @@ import {
   recordSmsSendFailure,
   recordSmsSendSuccess,
 } from './smsCircuitBreaker.js'
-
-const ALIGO_API_KEY = process.env.ALIGO_API_KEY
-const ALIGO_USER_ID = process.env.ALIGO_USER_ID
-const ALIGO_SENDER = process.env.ALIGO_SENDER
-
-/** 설정 시 JSON `{ phone, message }` POST로 전송 (예: EC2 중계 서버). Aligo·테스트모드보다 우선 */
-const SMS_HTTP_GATEWAY_URL = String(process.env.SMS_HTTP_GATEWAY_URL ?? '').trim()
+import { isAligoTestModeOn, resolveSmsDeliveryMode } from '../lib/smsDeliveryMode.js'
 
 const ALIGO_URL = 'https://apis.aligo.in/send/'
 
-const IS_PRODUCTION =
-  process.env.NODE_ENV === 'production' || Boolean(process.env.RAILWAY_ENVIRONMENT)
+function getSmsHttpGatewayUrl() {
+  return String(process.env.SMS_HTTP_GATEWAY_URL ?? '').trim()
+}
+
+function getAligoCredentials() {
+  return {
+    apiKey: String(process.env.ALIGO_API_KEY ?? '').trim(),
+    userId: String(process.env.ALIGO_USER_ID ?? '').trim(),
+    sender: String(process.env.ALIGO_SENDER ?? '').trim(),
+  }
+}
+
+function isProductionDeploy() {
+  return process.env.NODE_ENV === 'production' || Boolean(process.env.RAILWAY_ENVIRONMENT)
+}
 
 const SMS_GATEWAY_HEALTH_CHECK =
   String(process.env.SMS_GATEWAY_HEALTH_CHECK ?? '').trim().toLowerCase() === 'true'
@@ -107,14 +114,6 @@ function resolveSmsSendPolicy(receiverDigits) {
 }
 
 /** Y/true/1/yes/on/t — 알리고 테스트·비발송 분기 및 testmode 파라미터 근거 */
-function isAligoTestModeOn() {
-  const raw = String(process.env.ALIGO_TEST_MODE ?? 'Y').trim()
-  const effective = raw === '' ? 'Y' : raw
-  const u = effective.toUpperCase()
-  return u === 'Y' || u === 'TRUE' || u === 'T' || u === '1' || u === 'YES' || u === 'ON'
-}
-
-/** 실제 알리고 POST 시 testmode_yn — 비테스트 분기에서는 N 고정으로 전송 신호 명확화 */
 function aligoFormTestmodeYn() {
   return isAligoTestModeOn() ? 'Y' : 'N'
 }
@@ -128,11 +127,12 @@ function resolveGatewayHealthUrl() {
   if (explicit) {
     return explicit
   }
-  if (!SMS_HTTP_GATEWAY_URL) {
+  const gatewayUrl = getSmsHttpGatewayUrl()
+  if (!gatewayUrl) {
     return null
   }
   try {
-    const u = new URL(SMS_HTTP_GATEWAY_URL)
+    const u = new URL(gatewayUrl)
     return `${u.origin}/health`
   } catch {
     return null
@@ -165,14 +165,11 @@ async function checkSmsGatewayHealth() {
 }
 
 export function isSmsProviderConfigured() {
-  if (SMS_HTTP_GATEWAY_URL) {
+  if (getSmsHttpGatewayUrl()) {
     return true
   }
-  return Boolean(
-    String(ALIGO_API_KEY ?? '').trim() &&
-      String(ALIGO_USER_ID ?? '').trim() &&
-      String(ALIGO_SENDER ?? '').trim(),
-  )
+  const { apiKey, userId, sender } = getAligoCredentials()
+  return Boolean(apiKey && userId && sender)
 }
 
 /**
@@ -228,7 +225,13 @@ export async function sendVerificationCode({ phoneNumber, code, purpose, clientI
   /** development 화이트리스트로 실외부 발송이 허용된 경우 성공 응답에 testRecipient 플래그를 붙인다 */
   let devApprovedTestRecipient = false
   const realDispatchOk = (base) => {
-    const out = { ok: true, success: true, mocked: false, ...base }
+    const out = {
+      ok: true,
+      success: true,
+      mocked: false,
+      deliveryMode: 'live',
+      ...base,
+    }
     if (devApprovedTestRecipient === true && out.sent === true) {
       out.testRecipient = true
     }
@@ -253,9 +256,11 @@ export async function sendVerificationCode({ phoneNumber, code, purpose, clientI
       success: true,
       sent: false,
       test: true,
+      deliveryMode: 'test',
       mocked: true,
       skipped: true,
       reason: smsPolicy.reason,
+      message: 'SMS 테스트 모드입니다.',
     }
   }
 
@@ -263,7 +268,8 @@ export async function sendVerificationCode({ phoneNumber, code, purpose, clientI
     devApprovedTestRecipient = true
   }
 
-  if (SMS_HTTP_GATEWAY_URL) {
+  const gatewayUrl = getSmsHttpGatewayUrl()
+  if (gatewayUrl) {
     if (SMS_GATEWAY_HEALTH_CHECK) {
       const h = await checkSmsGatewayHealth()
       if (!h.ok) {
@@ -274,7 +280,7 @@ export async function sendVerificationCode({ phoneNumber, code, purpose, clientI
 
     const runOnce = () =>
       axios.post(
-        SMS_HTTP_GATEWAY_URL,
+        gatewayUrl,
         { phone: receiver, message: messageGateway },
         {
           headers: { 'Content-Type': 'application/json' },
@@ -327,15 +333,27 @@ export async function sendVerificationCode({ phoneNumber, code, purpose, clientI
    */
   if (isAligoTestModeOn()) {
     await finalizeOk('test_mode')
-    if (IS_PRODUCTION) {
+    if (isProductionDeploy()) {
       console.log('[SMS TEST MODE] production — not sent', {
         to: maskPhone(receiver),
         purpose: purposeNorm,
+        deliveryMode: resolveSmsDeliveryMode(),
       })
     } else {
-      console.log('[SMS TEST MODE] not sent', { to: maskPhone(receiver), purpose: purposeNorm })
+      console.log('[SMS TEST MODE] not sent', {
+        to: maskPhone(receiver),
+        purpose: purposeNorm,
+        deliveryMode: resolveSmsDeliveryMode(),
+      })
     }
-    return { success: true, test: true, sent: true }
+    return {
+      success: true,
+      test: true,
+      sent: false,
+      deliveryMode: 'test',
+      mocked: true,
+      message: 'SMS 테스트 모드입니다.',
+    }
   }
 
   if (!isSmsProviderConfigured()) {
@@ -345,10 +363,11 @@ export async function sendVerificationCode({ phoneNumber, code, purpose, clientI
   }
 
   const runAligo = () => {
+    const { apiKey, userId, sender } = getAligoCredentials()
     const body = new URLSearchParams({
-      key: String(ALIGO_API_KEY),
-      user_id: String(ALIGO_USER_ID),
-      sender: String(ALIGO_SENDER),
+      key: apiKey,
+      user_id: userId,
+      sender,
       receiver,
       msg: messageAligo,
       testmode_yn: aligoFormTestmodeYn(),

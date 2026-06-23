@@ -65,9 +65,19 @@ export async function fetchContractPublicDocuments(signToken: string): Promise<{
 }
 
 export async function postContractOtpSend(signToken: string): Promise<{
+  success?: boolean
+  deliveryMode?: 'test' | 'live'
+  sent?: boolean
+  message?: string
   identitySessionId?: string
   maskedPhone?: string | null
   expiresInSeconds?: number
+  data?: {
+    identitySessionId?: string
+    maskedPhone?: string | null
+    expiresInSeconds?: number
+    debugCode?: string
+  }
 }> {
   return publicRequest(`/api/government-support/public/signatures/${lc(signToken)}/otp/send`, {
     method: 'POST',

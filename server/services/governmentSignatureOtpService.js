@@ -12,6 +12,10 @@ import { maskKrMobileForDisplay } from '../utils/maskKrMobile.js'
 import { exposeSmsDebugCode } from '../lib/smsDebugExposure.js'
 import { sendGovernmentSignatureSelfSmsOtp } from './governmentSignatureSelfSmsSend.js'
 
+const SMS_TEST_MODE_MESSAGE = '현재 SMS 테스트 모드라 실제 문자가 발송되지 않았습니다.'
+const SMS_LIVE_SENT_MESSAGE = '인증번호를 발송했습니다.'
+const SMS_SEND_FAILED_MESSAGE = '문자 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+
 const RUNNING_IN_PRODUCTION =
   process.env.NODE_ENV === 'production' || Boolean(process.env.RAILWAY_ENVIRONMENT)
 
@@ -96,6 +100,9 @@ function resolveTargetDigits(row) {
     return { digits: d }
   }
   const d = normalizeKrMobile(row.profile_phone_raw)
+  if (!d && !enc) {
+    return { error: '고객 휴대폰 번호가 없습니다.' }
+  }
   const err = validateKrMobileDigits(d)
   if (err) {
     return { error: '고객 휴대폰 번호가 없거나 형식이 올바르지 않습니다.' }
@@ -279,11 +286,17 @@ export async function governmentSignatureOtpSend(pool, opts) {
     })
     if (!sms.ok) {
       await client.query('ROLLBACK')
+      const message =
+        sms.error === 'sms_provider_unconfigured'
+          ? '문자 발송 설정이 완료되지 않았습니다. 담당자에게 문의해 주세요.'
+          : sms.publicMessage || SMS_SEND_FAILED_MESSAGE
       return {
         httpStatus: 503,
         payload: {
           success: false,
-          message: '인증 문자를 발송할 수 없습니다. 잠시 후 다시 시도하거나 담당자에게 문의해 주세요.',
+          sent: false,
+          deliveryMode: sms.deliveryMode ?? 'live',
+          message,
         },
       }
     }
@@ -311,10 +324,22 @@ export async function governmentSignatureOtpSend(pool, opts) {
       data.debugCode = code
     }
 
+    const deliveryMode = sms.deliveryMode === 'live' ? 'live' : 'test'
+    const sent = Boolean(sms.sent)
+    const message =
+      deliveryMode === 'test' && !sent
+        ? SMS_TEST_MODE_MESSAGE
+        : sent
+          ? SMS_LIVE_SENT_MESSAGE
+          : SMS_TEST_MODE_MESSAGE
+
     return {
       httpStatus: 200,
       payload: {
         success: true,
+        deliveryMode,
+        sent,
+        message,
         data,
       },
     }

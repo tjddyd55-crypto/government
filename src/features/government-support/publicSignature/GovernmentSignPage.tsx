@@ -33,6 +33,7 @@ export default function GovernmentSignPage() {
   const [otpSending, setOtpSending] = useState(false)
   const [otpVerifying, setOtpVerifying] = useState(false)
   const [otpError, setOtpError] = useState('')
+  const [otpInfo, setOtpInfo] = useState('')
   const [cooldownSec, setCooldownSec] = useState(0)
 
   const loadSession = useCallback(async () => {
@@ -118,9 +119,31 @@ export default function GovernmentSignPage() {
 
   const handleSendOtp = async () => {
     setOtpError('')
+    setOtpInfo('')
     setOtpSending(true)
     try {
-      await postContractOtpSend(signToken)
+      const res = await postContractOtpSend(signToken)
+      const deliveryMode = res.deliveryMode ?? (res.sent === false ? 'test' : 'live')
+      const sent = res.sent === true
+      const message =
+        typeof res.message === 'string' && res.message.trim()
+          ? res.message.trim()
+          : deliveryMode === 'test' && !sent
+            ? '현재 SMS 테스트 모드라 실제 문자가 발송되지 않았습니다.'
+            : sent
+              ? '인증번호를 발송했습니다.'
+              : ''
+      if (message) {
+        setOtpInfo(message)
+      }
+      const debugCode = res.data?.debugCode
+      if (debugCode) {
+        setOtpInfo((prev) =>
+          prev
+            ? `${prev} (개발용 인증번호: ${debugCode})`
+            : `(개발용 인증번호: ${debugCode})`,
+        )
+      }
       setCooldownSec(0)
     } catch (e) {
       if (e instanceof ApiError && e.status === 429 && e.retryAfterSec) {
@@ -199,6 +222,7 @@ export default function GovernmentSignPage() {
         </div>
 
         {otpError ? <StatusMessage tone="error" message={otpError} /> : null}
+        {otpInfo ? <StatusMessage message={otpInfo} /> : null}
 
         <div className="contract-public-link-page__actions-col">
           <FormButton
