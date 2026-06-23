@@ -1,0 +1,59 @@
+/* 상태 표시 pill badge — workspace SSOT */
+.government-profile-workspace {
+  --gov-status-pill-height: calc(var(--gov-workspace-control-height) - 10px);
+  --gov-status-pill-padding-x: var(--gov-workspace-gap-md);
+  --gov-status-pill-radius: 9999px;
+}
+
+.government-profile-workspace .gov-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--gov-status-pill-height);
+  padding: 0 var(--gov-status-pill-padding-x);
+  border-radius: var(--gov-status-pill-radius);
+  font-size: var(--gov-workspace-font-size-sm);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--gov-workspace-border);
+  background: var(--gov-workspace-surface-muted);
+  color: var(--gov-workspace-text);
+}
+
+.government-profile-workspace .gov-status-pill--empty {
+  color: var(--gov-workspace-muted);
+  font-weight: 600;
+}
+
+.government-profile-workspace .gov-status-pill--neutral {
+  background: var(--gov-workspace-surface-muted);
+  border-color: var(--gov-workspace-border);
+  color: var(--gov-workspace-muted);
+}
+
+.government-profile-workspace .gov-status-pill--amber {
+  background: var(--gov-workspace-primary-soft);
+  border-color: var(--gov-workspace-primary);
+  color: var(--gov-workspace-text);
+}
+
+.government-profile-workspace .gov-status-pill--blue {
+  background: color-mix(in srgb, var(--gov-workspace-primary) 8%, var(--gov-workspace-panel));
+  border-color: color-mix(in srgb, var(--gov-workspace-primary) 35%, var(--gov-workspace-border));
+  color: var(--gov-workspace-text);
+}
+
+.government-profile-workspace .gov-status-pill--green {
+  background: color-mix(in srgb, var(--gov-workspace-text) 5%, var(--gov-workspace-panel));
+  border-color: var(--gov-workspace-border-strong);
+  color: var(--gov-workspace-text);
+}
+
+.government-profile-workspace .gov-status-pill--red {
+  background: var(--gov-workspace-danger-soft);
+  border-color: color-mix(in srgb, var(--gov-workspace-danger) 35%, var(--gov-workspace-border));
+  color: var(--gov-workspace-danger);
+}

@@ -40,6 +40,8 @@ export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovern
   setListOwnerUserFilter: (value: string) => void
   setListTenantId: (value: string) => void
   requestAddProfile: () => void
+  autoEditBasicInfoProfileId: string | null
+  clearAutoEditBasicInfoProfileId: () => void
 }
 
 export const GovernmentProfileWorkspaceContext = createContext<GovernmentProfileWorkspaceContextValue | null>(

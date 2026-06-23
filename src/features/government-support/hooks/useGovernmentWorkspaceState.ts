@@ -149,13 +149,13 @@ export function useGovernmentWorkspaceState(
   )
 
   const addProfile = useCallback(
-    async (ownerUserId?: string | null) => {
+    async (ownerUserId?: string | null): Promise<GovSupportProfile | null> => {
       if (!token) {
-        return
+        return null
       }
       if (!canCreateProfile) {
         setError('사업장을 등록할 권한이 없습니다.')
-        return
+        return null
       }
       setError(null)
       try {
@@ -166,8 +166,10 @@ export function useGovernmentWorkspaceState(
         setSelectedId(row.id)
         setFeedback('사업장을 등록했습니다.')
         onProfilesChanged?.()
+        return row
       } catch (e) {
         setError(e instanceof Error ? e.message : '사업장 등록에 실패했습니다.')
+        return null
       }
     },
     [token, defaultTenantId, canCreateProfile, onProfilesChanged, createProfileFn],

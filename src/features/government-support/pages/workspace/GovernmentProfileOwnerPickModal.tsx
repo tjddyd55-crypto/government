@@ -66,12 +66,13 @@ export default function GovernmentProfileOwnerPickModal({
           </select>
         </label>
         <div className="government-profile-owner-pick__actions">
-          <FormButton htmlType="button" variant="secondary" onClick={onClose}>
+          <FormButton htmlType="button" variant="secondary" className="gov-btn gov-btn--secondary" onClick={onClose}>
             취소
           </FormButton>
           <FormButton
             htmlType="button"
             variant="primary"
+            className="gov-btn gov-btn--primary"
             disabled={!ownerUserId.trim()}
             onClick={handleConfirm}
           >

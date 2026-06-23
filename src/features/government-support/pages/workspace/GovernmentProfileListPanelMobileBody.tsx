@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
+import { useGovernmentProfileListScrollToCard } from '../../hooks/useGovernmentProfileListScrollToCard'
 import { isSameGovProfileId, normalizeGovProfileId } from '../../lib/governmentProfileDocumentCategories'
 import { collectGovernmentBusinessTypeOptions } from '../../lib/governmentCustomerListDisplay'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
@@ -18,6 +19,14 @@ export default function GovernmentProfileListPanelMobileBody() {
   const [editTarget, setEditTarget] = useState<(typeof ws.profiles)[number] | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const isUserMode = ws.shell.variant === 'user'
+  const listRef = useRef<HTMLUListElement>(null)
+
+  useGovernmentProfileListScrollToCard({
+    listRef,
+    profileId: ws.selectedProfileIdFromPath,
+    expandProfileId: isUserMode ? ws.expandedProfileId : null,
+    listRevision: ws.profiles.length,
+  })
 
   const businessTypeOptions = useMemo(
     () => collectGovernmentBusinessTypeOptions(ws.profiles),
@@ -100,7 +109,7 @@ export default function GovernmentProfileListPanelMobileBody() {
           {EMPTY_LIST_HINT}
         </p>
       ) : (
-        <ul className={listClassName}>
+        <ul ref={listRef} className={listClassName}>
           {isUserMode
             ? ws.profiles.map((row) => {
                 const profileId = normalizeGovProfileId(row.id)

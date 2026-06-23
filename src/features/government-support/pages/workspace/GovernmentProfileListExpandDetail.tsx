@@ -1,4 +1,5 @@
 import FormButton from '../../../../components/form/FormButton'
+import GovernmentStatusPill from '../../components/GovernmentStatusPill'
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 import {
   buildGovernmentProfileListExpandRows,
@@ -96,7 +97,11 @@ export default function GovernmentProfileListExpandDetail({
                 }`}
                 data-empty={row.isEmpty ? 'true' : 'false'}
               >
-                {row.value}
+                {row.variant === 'pill' ? (
+                  <GovernmentStatusPill label={row.label}>{row.value}</GovernmentStatusPill>
+                ) : (
+                  row.value
+                )}
               </span>
             </div>
           ))}

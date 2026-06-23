@@ -1771,6 +1771,9 @@
   --gov-workspace-compact-header-height: var(--gov-workspace-header-height);
   --gov-workspace-tabs-height: var(--gov-workspace-control-height);
   --gov-workspace-toolbar-height: var(--gov-workspace-control-height);
+  --gov-button-radius: var(--gov-workspace-radius-control);
+  --gov-button-height: var(--gov-workspace-control-height);
+  --gov-button-padding-x: var(--gov-workspace-gap-md);
   flex: 1;
   min-height: 0;
   height: 100%;
@@ -2341,11 +2344,11 @@
 
 .government-profile-workspace .gov-btn--document-add {
   width: 100%;
-  min-height: 52px;
-  padding: 0 16px;
-  border-radius: 12px;
+  min-height: calc(var(--gov-button-height) + var(--gov-workspace-gap-sm));
+  padding: 0 var(--gov-button-padding-x);
+  border-radius: var(--gov-button-radius);
   border: 1px solid var(--gov-workspace-primary);
-  background: #ffffff;
+  background: var(--gov-workspace-panel);
   color: var(--gov-workspace-text);
   font-size: 0.9375rem;
   font-weight: 600;

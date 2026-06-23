@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { FormButton, FormInput, FormTextarea } from '../../../components/form'
 import AddressSearchField from '../../../components/form/AddressSearchField'
 import { formatAddressForSave, parseAddressFromSave } from '../../../components/form/addressSearchUtils'
@@ -18,6 +18,8 @@ type Props = {
   onCancel: () => void
   saving?: boolean
   statusText?: string
+  focusFirstField?: boolean
+  onFocusFirstFieldHandled?: () => void
 }
 
 function AddressFieldControl({
@@ -61,10 +63,21 @@ export default function GovernmentProfileBasicInfoEditForm({
   onCancel,
   saving = false,
   statusText,
+  focusFirstField = false,
+  onFocusFirstFieldHandled,
 }: Props) {
+  const firstFieldRef = useRef<HTMLInputElement>(null)
   const patchField = (key: keyof GovProfileBasicInfoFormState, value: string) => {
     onChange({ ...form, [key]: value })
   }
+
+  const firstInputKey = GOVERNMENT_PROFILE_BASIC_INFO_SECTIONS[0]?.fields[0]?.key
+
+  useEffect(() => {
+    if (!focusFirstField) return
+    firstFieldRef.current?.focus()
+    onFocusFirstFieldHandled?.()
+  }, [focusFirstField, onFocusFirstFieldHandled])
 
   return (
     <>
@@ -112,6 +125,7 @@ export default function GovernmentProfileBasicInfoEditForm({
                       />
                     ) : (
                       <FormInput
+                        ref={field.key === firstInputKey ? firstFieldRef : undefined}
                         className="field__control gov-form-control"
                         name={`${profileId}-${field.key}`}
                         value={form[field.key] ?? ''}

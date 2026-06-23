@@ -132,9 +132,7 @@ export default function GovernmentProfileProgressPageBody({
                           {row.eventDate || row.createdAt.slice(0, 10)}
                         </span>
                         {row.status ? (
-                          <span
-                            className={`government-profile-progress-history-status government-profile-progress-history-status--${tone}`}
-                          >
+                          <span className={`gov-status-pill gov-status-pill--${tone}`}>
                             {getGovernmentProgressStatusLabel(row.status)}
                           </span>
                         ) : null}

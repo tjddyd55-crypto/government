@@ -10,6 +10,7 @@ import {
   profileToBasicInfoForm,
   type GovProfileBasicInfoFormState,
 } from './governmentProfileBasicInfoFormState'
+import { isSameGovProfileId } from '../lib/governmentProfileDocumentCategories'
 
 export default function GovernmentProfileBasicInfoPanel() {
   const { profileId: profileIdParam } = useParams()
@@ -21,17 +22,32 @@ export default function GovernmentProfileBasicInfoPanel() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [statusText, setStatusText] = useState('')
+  const [focusFirstField, setFocusFirstField] = useState(false)
 
   useEffect(() => {
     if (!profile || profile.id !== profileId) {
       setEditing(false)
       setForm(null)
+      setFocusFirstField(false)
       return
     }
     if (!editing) {
       setForm(profileToBasicInfoForm(profile))
     }
   }, [profile, profileId, editing])
+
+  useEffect(() => {
+    if (!profile || profile.id !== profileId) return
+    if (!ws.autoEditBasicInfoProfileId) return
+    if (!isSameGovProfileId(ws.autoEditBasicInfoProfileId, profileId)) return
+
+    setForm(profileToBasicInfoForm(profile))
+    setEditing(true)
+    setFocusFirstField(true)
+    setError('')
+    setStatusText('')
+    ws.clearAutoEditBasicInfoProfileId()
+  }, [profile, profileId, ws.autoEditBasicInfoProfileId, ws.clearAutoEditBasicInfoProfileId])
 
   const handleStartEdit = useCallback(() => {
     if (!profile) return
@@ -46,6 +62,7 @@ export default function GovernmentProfileBasicInfoPanel() {
       setForm(profileToBasicInfoForm(profile))
     }
     setEditing(false)
+    setFocusFirstField(false)
     setError('')
     setStatusText('')
   }, [profile])
@@ -58,6 +75,7 @@ export default function GovernmentProfileBasicInfoPanel() {
     try {
       await ws.saveProfile(profile.id, basicInfoFormToPatch(form))
       setEditing(false)
+      setFocusFirstField(false)
       setStatusText('저장했습니다.')
     } catch (e) {
       setError(e instanceof Error ? e.message : '저장에 실패했습니다.')
@@ -98,6 +116,8 @@ export default function GovernmentProfileBasicInfoPanel() {
           onCancel={handleCancelEdit}
           saving={saving}
           statusText={statusText}
+          focusFirstField={focusFirstField}
+          onFocusFirstFieldHandled={() => setFocusFirstField(false)}
         />
       ) : null}
     </div>

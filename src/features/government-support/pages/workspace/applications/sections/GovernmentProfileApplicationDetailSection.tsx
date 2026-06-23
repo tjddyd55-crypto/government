@@ -1,4 +1,5 @@
 import { FormButton, FormInput, FormSelect, FormTextarea } from '../../../../../../components/form'
+import GovernmentStatusPill from '../../../../components/GovernmentStatusPill'
 import type { GovProfileApplication } from '../../../../types/governmentProfile.types'
 import type { GovernmentProfileApplicationStatus } from '../../../../constants/governmentProfileApplication.config'
 import {
@@ -92,7 +93,7 @@ export function GovernmentProfileApplicationDetailBody({
           <h3 className="gov-application-detail-read__title">
             #{detail.id} {detail.title || '제목 없음'}
           </h3>
-          <span className="gov-application-detail-read__status-badge">{statusLabel(detail.status)}</span>
+          <GovernmentStatusPill label="신청 상태">{statusLabel(detail.status)}</GovernmentStatusPill>
         </div>
 
         <div className="gov-application-detail-read__grid">

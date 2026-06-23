@@ -23,7 +23,7 @@ export default function GovernmentCustomerGroupSection({
         {onToggleCollapse ? (
           <button
             type="button"
-            className="government-customer-owner-group__toggle"
+            className="government-customer-owner-group__toggle gov-btn gov-btn--secondary gov-btn--sm"
             aria-expanded={!collapsed}
             onClick={onToggleCollapse}
           >

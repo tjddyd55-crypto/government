@@ -242,17 +242,7 @@
 }
 
 .government-profile-list-panel .government-customer-owner-group__toggle {
-  border: 1px solid var(--gov-workspace-border-strong, var(--gov-workspace-border));
-  background: var(--gov-workspace-panel);
-  color: var(--gov-workspace-text);
-  border-radius: var(--gov-workspace-radius-control, 10px);
-  padding: var(--gov-workspace-gap-xs) var(--gov-workspace-gap-md);
-  font-size: var(--gov-workspace-font-size-xs, 0.75rem);
-  cursor: pointer;
-}
-
-.government-profile-list-panel .government-customer-owner-group__toggle:hover {
-  background: var(--gov-workspace-surface-muted, var(--bg-elevated));
+  flex-shrink: 0;
 }
 
 .government-profile-list-panel .government-customer-owner-group__list {
@@ -279,6 +269,29 @@
   display: flex;
   flex-direction: column;
   gap: var(--gov-workspace-gap-sm, 8px);
+}
+
+/* —— workspace 버튼 shape SSOT (네모형) —— */
+.government-profile-workspace .gov-btn,
+.government-profile-workspace .form-button,
+.government-profile-workspace .button {
+  border-radius: var(--gov-button-radius);
+  min-height: var(--gov-button-height);
+  padding-left: var(--gov-button-padding-x);
+  padding-right: var(--gov-button-padding-x);
+}
+
+.government-profile-workspace .gov-btn--sm,
+.government-profile-workspace .gov-btn--small {
+  min-height: calc(var(--gov-button-height) - 4px);
+  padding-left: var(--gov-workspace-gap-sm);
+  padding-right: var(--gov-workspace-gap-sm);
+  border-radius: var(--gov-button-radius);
+}
+
+.government-profile-workspace .gov-btn--document-add {
+  border-radius: var(--gov-button-radius);
+  min-height: var(--gov-button-height);
 }
 
 .government-profile-owner-pick__actions {

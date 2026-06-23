@@ -1,7 +1,10 @@
 import type { GovSupportProfile } from '../types/governmentProfile.types'
+import GovernmentStatusPill from '../components/GovernmentStatusPill'
+import { getGovernmentProgressStatusLabel } from '../constants/governmentProgressStatus'
 import {
   GOVERNMENT_PROFILE_BASIC_INFO_SECTIONS,
   readGovProfileBasicInfoValue,
+  type GovProfileBasicInfoFieldKey,
 } from './governmentProfileBasicInfo.config'
 
 type Props = {
@@ -11,6 +14,14 @@ type Props = {
 function displayValue(value: string): string {
   const trimmed = value.trim()
   return trimmed || '—'
+}
+
+function renderFieldValue(profile: GovSupportProfile, key: GovProfileBasicInfoFieldKey, raw: string) {
+  if (key === 'progressStatus') {
+    const label = raw.trim() ? getGovernmentProgressStatusLabel(raw) : '—'
+    return <GovernmentStatusPill label="진행 상태">{label}</GovernmentStatusPill>
+  }
+  return displayValue(raw)
 }
 
 export default function GovernmentProfileBasicInfoReadView({ profile }: Props) {
@@ -33,7 +44,7 @@ export default function GovernmentProfileBasicInfoReadView({ profile }: Props) {
                   <div className="customer-detail-read__info-main">
                     <span className="customer-detail-read__info-label">{field.label}:</span>{' '}
                     <span className="customer-detail-read__info-value">
-                      {displayValue(readGovProfileBasicInfoValue(profile, field.key))}
+                      {renderFieldValue(profile, field.key, readGovProfileBasicInfoValue(profile, field.key))}
                     </span>
                   </div>
                 </div>

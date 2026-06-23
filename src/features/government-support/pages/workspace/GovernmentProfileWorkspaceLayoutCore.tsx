@@ -40,6 +40,7 @@ import { isGovProfileCardCollapsed, isSameGovProfileId, normalizeGovProfileId, s
 import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
 import '../../government-support.css'
 import '../../government-profile-workspace-chrome.css'
+import '../../government-status-pill.css'
 import '../../government-profile-mobile-detail-theme.css'
 
 export type GovernmentProfileWorkspaceLayoutCoreProps = {
@@ -110,31 +111,11 @@ export default function GovernmentProfileWorkspaceLayoutCore({
   })
 
   const [ownerPickOpen, setOwnerPickOpen] = useState(false)
+  const [autoEditBasicInfoProfileId, setAutoEditBasicInfoProfileId] = useState<string | null>(null)
 
-  const requestAddProfile = useCallback(() => {
-    if (!shell.canAddProfile) return
-    if (isAgencyAdmin) {
-      if (!adminListState.effectiveTenantId) {
-        ws.setFeedback('대행사를 먼저 선택해 주세요.')
-        return
-      }
-      if (adminListState.ownerOptions.length === 0) {
-        ws.setFeedback('등록된 담당 이용자가 없습니다.')
-        return
-      }
-      setOwnerPickOpen(true)
-      return
-    }
-    void ws.addProfile()
-  }, [shell.canAddProfile, isAgencyAdmin, adminListState.effectiveTenantId, adminListState.ownerOptions.length, ws])
-
-  const handleOwnerPickConfirm = useCallback(
-    (ownerUserId: string) => {
-      setOwnerPickOpen(false)
-      void ws.addProfile(ownerUserId)
-    },
-    [ws],
-  )
+  const clearAutoEditBasicInfoProfileId = useCallback(() => {
+    setAutoEditBasicInfoProfileId(null)
+  }, [])
 
   const selectedProfileIdFromPath = useMemo(
     () => paths.parseProfileIdFromPath(location.pathname),
@@ -165,6 +146,50 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       return next
     })
   }, [])
+
+  const completeAddProfile = useCallback(
+    async (ownerUserId?: string | null) => {
+      const row = await ws.addProfile(ownerUserId)
+      if (!row) return
+
+      const profileId = normalizeGovProfileId(row.id)
+      if (!profileId) return
+
+      if (!isAgencyAdmin) {
+        setGovProfileCardCollapsed(profileId, false)
+        setExpandedProfileId(profileId)
+      }
+
+      navigate(paths.workspacePath(profileId, 'basic'), { replace: true })
+      setAutoEditBasicInfoProfileId(profileId)
+    },
+    [isAgencyAdmin, navigate, paths, setExpandedProfileId, ws],
+  )
+
+  const requestAddProfile = useCallback(() => {
+    if (!shell.canAddProfile) return
+    if (isAgencyAdmin) {
+      if (!adminListState.effectiveTenantId) {
+        ws.setFeedback('대행사를 먼저 선택해 주세요.')
+        return
+      }
+      if (adminListState.ownerOptions.length === 0) {
+        ws.setFeedback('등록된 담당 이용자가 없습니다.')
+        return
+      }
+      setOwnerPickOpen(true)
+      return
+    }
+    void completeAddProfile()
+  }, [shell.canAddProfile, isAgencyAdmin, adminListState.effectiveTenantId, adminListState.ownerOptions.length, ws, completeAddProfile])
+
+  const handleOwnerPickConfirm = useCallback(
+    (ownerUserId: string) => {
+      setOwnerPickOpen(false)
+      void completeAddProfile(ownerUserId)
+    },
+    [completeAddProfile],
+  )
 
   useEffect(() => {
     expandedProfileIdRef.current = expandedProfileId
@@ -401,6 +426,8 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       setListOwnerUserFilter: isAgencyAdmin ? adminListState.setOwnerUserFilter : () => {},
       setListTenantId: isAgencyAdmin ? adminListState.setTenantId : () => {},
       requestAddProfile,
+      autoEditBasicInfoProfileId,
+      clearAutoEditBasicInfoProfileId,
     }),
     [
       wsRest,
@@ -438,6 +465,8 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       userListState.setCustomerStatusFilter,
       userListState.setBusinessTypeFilter,
       requestAddProfile,
+      autoEditBasicInfoProfileId,
+      clearAutoEditBasicInfoProfileId,
     ],
   )
 

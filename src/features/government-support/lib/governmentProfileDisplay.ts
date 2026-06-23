@@ -9,6 +9,7 @@ export type GovProfileExpandRow = {
   label: string
   value: string
   isEmpty: boolean
+  variant?: 'text' | 'pill'
 }
 
 export function maskBusinessNumber(raw: string): string {
@@ -41,13 +42,18 @@ export function displayGovField(value: string | undefined | null): string {
   return trimmed || GOV_PROFILE_EXPAND_EMPTY_VALUE
 }
 
-function expandRow(label: string, raw: string | null | undefined): GovProfileExpandRow {
+function expandRow(
+  label: string,
+  raw: string | null | undefined,
+  options?: { variant?: 'text' | 'pill' },
+): GovProfileExpandRow {
   const trimmed = String(raw ?? '').trim()
   const display = trimmed || GOV_PROFILE_EXPAND_EMPTY_VALUE
   return {
     label,
     value: display,
     isEmpty: !trimmed,
+    variant: options?.variant,
   }
 }
 
@@ -75,14 +81,15 @@ export function buildGovernmentProfileListExpandRows(profile: GovSupportProfile)
     expandRow('사업장/신청명', profile.businessName || profile.customerName),
     expandRow('담당자', profile.customerName),
     expandRow('연락처', profile.phone),
-    expandRow('상담 상태', profile.docStatus),
+    expandRow('상담 상태', profile.docStatus, { variant: 'pill' }),
     expandRow(
       '신청 상태',
       profile.progressStatus?.trim()
         ? getGovernmentProgressStatusLabel(profile.progressStatus)
         : '',
+      { variant: 'pill' },
     ),
-    expandRow('서류 상태', profile.edocStatus),
+    expandRow('서류 상태', profile.edocStatus, { variant: 'pill' }),
     expandRow('주소', profile.businessAddress || profile.homeAddress),
     expandRow('개업일', profile.businessOpenedAt),
     {
