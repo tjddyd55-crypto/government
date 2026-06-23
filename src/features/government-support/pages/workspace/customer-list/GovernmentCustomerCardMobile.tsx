@@ -6,6 +6,7 @@ import {
   useGovernmentCustomerCardDisplay,
 } from './GovernmentCustomerCardFields'
 import '../../../government-customer-list-mobile.css'
+import '../../../government-customer-card.css'
 
 type GovernmentCustomerCardMobileBaseProps = {
   profile: GovSupportProfile
@@ -38,15 +39,12 @@ export default function GovernmentCustomerCardMobile(props: GovernmentCustomerCa
   const profileId = profile.id
   const { title, phone, businessType } = useGovernmentCustomerCardDisplay(profile)
 
-  const cardShell = (tapButton: React.ReactNode) => (
-    <>
-      {tapButton}
-      <GovernmentCustomerCardStatusSelect
-        profile={profile}
-        statusOptions={statusOptions}
-        onStatusChange={onStatusChange}
-      />
-    </>
+  const statusSelect = (
+    <GovernmentCustomerCardStatusSelect
+      profile={profile}
+      statusOptions={statusOptions}
+      onStatusChange={onStatusChange}
+    />
   )
 
   if (props.compact) {
@@ -58,11 +56,10 @@ export default function GovernmentCustomerCardMobile(props: GovernmentCustomerCa
         data-profile-id={profileId}
         data-profile-selected={selected ? 'true' : 'false'}
       >
-        {cardShell(
-          <button type="button" className="government-customer-card__tap" onClick={props.onSelect}>
-            <GovernmentCustomerCardTextFields title={title} phone={phone} businessType={businessType} />
-          </button>,
-        )}
+        <button type="button" className="government-customer-card__tap" onClick={props.onSelect}>
+          <GovernmentCustomerCardTextFields title={title} phone={phone} businessType={businessType} />
+        </button>
+        {statusSelect}
       </li>
     )
   }
@@ -76,11 +73,10 @@ export default function GovernmentCustomerCardMobile(props: GovernmentCustomerCa
       }${expanded ? ' government-profile-list-card--expanded' : ''}`}
       data-profile-id={profileId}
     >
-      {cardShell(
-        <button type="button" className="government-customer-card__tap" onClick={onToggle}>
-          <GovernmentCustomerCardTextFields title={title} phone={phone} businessType={businessType} />
-        </button>,
-      )}
+      <button type="button" className="government-customer-card__tap" onClick={onToggle}>
+        <GovernmentCustomerCardTextFields title={title} phone={phone} businessType={businessType} />
+      </button>
+      {statusSelect}
       {expanded ? (
         <div className="government-profile-list-card__detail-wrap">
           <GovernmentProfileListExpandDetail

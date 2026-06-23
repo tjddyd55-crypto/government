@@ -2,9 +2,11 @@ import FormButton from '../../../../components/form/FormButton'
 import GovernmentStatusPill from '../../components/GovernmentStatusPill'
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 import {
-  buildGovernmentProfileListExpandRows,
+  buildGovernmentProfileListExpandSections,
   displayGovField,
+  type GovProfileExpandRow,
 } from '../../lib/governmentProfileDisplay'
+import '../../government-customer-card.css'
 
 type Props = {
   profile: GovSupportProfile
@@ -14,6 +16,13 @@ type Props = {
   showDelete?: boolean
 }
 
+function ExpandRowValue({ row }: { row: GovProfileExpandRow }) {
+  if (row.variant === 'pill') {
+    return <GovernmentStatusPill label={row.label}>{row.value}</GovernmentStatusPill>
+  }
+  return <>{row.value}</>
+}
+
 export default function GovernmentProfileListExpandDetail({
   profile,
   onEdit,
@@ -21,7 +30,7 @@ export default function GovernmentProfileListExpandDetail({
   deleting = false,
   showDelete = true,
 }: Props) {
-  const rows = buildGovernmentProfileListExpandRows(profile)
+  const sections = buildGovernmentProfileListExpandSections(profile)
   const title = displayGovField(profile.businessName || profile.customerName)
 
   return (
@@ -31,21 +40,14 @@ export default function GovernmentProfileListExpandDetail({
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
     >
-      <div className="customer-detail-toolbar government-profile-list-expand-detail__toolbar">
-        <div className="customer-detail-toolbar__title government-profile-list-expand-detail__title">
-          <span className="customer-info-label">
-            <span className="customer-info-label__icon" aria-hidden>
-              🏢
-            </span>
-            {title}
-          </span>
-        </div>
-        <div className="customer-detail-action-bar government-profile-list-expand-detail__actions">
+      <header className="government-profile-list-expand-detail__toolbar">
+        <h3 className="government-profile-list-expand-detail__title">{title}</h3>
+        <div className="government-profile-list-expand-detail__actions">
           <FormButton
             htmlType="button"
             variant="secondary"
             size="sm"
-            className="customer-detail-action-button gov-btn gov-btn--secondary gov-btn--sm"
+            className="gov-btn gov-btn--secondary gov-btn--sm"
             title="사업장 정보 수정"
             aria-label="수정"
             onClick={(e) => {
@@ -60,7 +62,7 @@ export default function GovernmentProfileListExpandDetail({
               htmlType="button"
               variant="danger"
               size="sm"
-              className="customer-detail-action-button customer-detail-action-button--danger gov-btn gov-btn--danger gov-btn--sm"
+              className="gov-btn gov-btn--danger gov-btn--sm"
               title="사업장 삭제"
               aria-label="삭제"
               disabled={deleting}
@@ -75,35 +77,45 @@ export default function GovernmentProfileListExpandDetail({
             </FormButton>
           ) : null}
         </div>
-      </div>
+      </header>
 
-      <div className="customer-detail-read government-profile-list-expand-detail__body">
+      <div className="government-profile-list-expand-detail__body">
         <div
-          className="government-profile-list-expand-detail__rows"
+          className="government-profile-list-expand-detail__sections"
           data-testid="government-profile-list-expand-rows"
         >
-          {rows.map((row) => (
-            <div
-              key={row.label}
-              className="government-profile-list-expand-row customer-detail-read__info-row"
-              data-testid="government-profile-list-expand-row"
+          {sections.map((section) => (
+            <section
+              key={section.id}
+              className="government-profile-list-expand-detail__section"
+              aria-labelledby={`gov-expand-section-${profile.id}-${section.id}`}
             >
-              <span className="government-profile-list-expand-row__label customer-detail-read__info-label">
-                {row.label}
-              </span>
-              <span
-                className={`government-profile-list-expand-row__value customer-detail-read__info-value${
-                  row.isEmpty ? ' government-profile-list-expand-empty-value' : ''
-                }`}
-                data-empty={row.isEmpty ? 'true' : 'false'}
+              <h4
+                id={`gov-expand-section-${profile.id}-${section.id}`}
+                className="government-profile-list-expand-detail__section-title"
               >
-                {row.variant === 'pill' ? (
-                  <GovernmentStatusPill label={row.label}>{row.value}</GovernmentStatusPill>
-                ) : (
-                  row.value
-                )}
-              </span>
-            </div>
+                {section.title}
+              </h4>
+              <div className="government-profile-list-expand-detail__rows">
+                {section.rows.map((row) => (
+                  <div
+                    key={`${section.id}-${row.label}`}
+                    className="government-profile-list-expand-row"
+                    data-testid="government-profile-list-expand-row"
+                  >
+                    <span className="government-profile-list-expand-row__label">{row.label}</span>
+                    <span
+                      className={`government-profile-list-expand-row__value${
+                        row.isEmpty ? ' government-profile-list-expand-empty-value' : ''
+                      }`}
+                      data-empty={row.isEmpty ? 'true' : 'false'}
+                    >
+                      <ExpandRowValue row={row} />
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       </div>

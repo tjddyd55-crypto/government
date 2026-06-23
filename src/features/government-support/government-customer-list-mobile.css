@@ -2,47 +2,69 @@
 .government-profile-list-panel--mobile .government-customer-list-toolbar--mobile {
   display: flex;
   flex-direction: column;
-  gap: var(--gov-workspace-gap-md, 10px);
-  margin-bottom: 12px;
+  gap: var(--gov-workspace-gap-md);
+  margin-bottom: var(--gov-workspace-gap-md);
 }
 
 .government-profile-list-panel--mobile .government-customer-list-toolbar__filters {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--gov-workspace-gap-sm, 8px);
+  gap: var(--gov-workspace-gap-sm);
 }
 
 .government-profile-list-panel--mobile .government-customer-card--mobile,
 .government-profile-list-panel--mobile .government-customer-card.government-customer-card--mobile {
   border: 1px solid var(--gov-workspace-border);
-  border-radius: var(--gov-workspace-radius-card, 12px);
+  border-radius: var(--gov-workspace-radius-card);
   background: var(--gov-workspace-panel);
-  padding: 12px;
-  margin-bottom: var(--gov-workspace-gap-md, 10px);
+  margin-bottom: var(--gov-workspace-gap-md);
   color: var(--gov-workspace-text);
   box-shadow: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--gov-workspace-gap-sm, 8px);
+  box-sizing: border-box;
 }
 
-.government-profile-list-panel--mobile .government-customer-card--mobile.government-profile-list-card--active,
-.government-profile-list-panel--mobile .government-customer-card.government-profile-list-card--active {
-  border-color: var(--gov-workspace-primary);
-  background: var(--gov-workspace-panel);
-  box-shadow: 0 1px 4px var(--shadow-card, rgba(15, 23, 42, 0.06));
+/* compact — 1행: 고객명 | 상태, 2행: 연락처·업종 */
+.government-profile-list-panel--mobile .government-customer-card--compact.government-customer-card--mobile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(6.5rem, 8.5rem);
+  grid-template-areas:
+    'tap status'
+    'tap status';
+  gap: var(--gov-customer-card-row-gap) var(--gov-workspace-gap-sm);
+  align-items: start;
+}
+
+.government-profile-list-panel--mobile .government-customer-card--compact .government-customer-card__tap {
+  grid-area: tap;
+}
+
+.government-profile-list-panel--mobile .government-customer-card--compact .government-customer-card__status-select {
+  grid-area: status;
+  align-self: start;
+  width: 100%;
+  max-width: 8.5rem;
+  justify-self: end;
+}
+
+/* expanded — 세로 스택 */
+.government-profile-list-panel--mobile .government-customer-card--mobile:not(.government-customer-card--compact) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gov-customer-card-row-gap);
 }
 
 .government-profile-list-panel--mobile .government-customer-card__tap {
   display: grid;
   grid-template-rows: auto auto;
-  gap: var(--gov-workspace-gap-xs, 4px);
+  gap: var(--gov-customer-card-row-gap);
   width: 100%;
+  min-width: 0;
   text-align: left;
   border: none;
   background: transparent;
   padding: 0;
   color: inherit;
+  cursor: pointer;
 }
 
 .government-profile-list-panel--mobile .government-customer-card__name {
@@ -51,19 +73,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--gov-workspace-text);
 }
 
 .government-profile-list-panel--mobile .government-customer-card__meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--gov-workspace-gap-xs, 4px);
+  gap: var(--gov-workspace-gap-xs);
   min-width: 0;
-  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
-  color: var(--gov-workspace-muted);
 }
 
 .government-profile-list-panel--mobile .government-customer-card__phone,
@@ -76,14 +93,22 @@
 
 .government-profile-list-panel--mobile .government-customer-card__meta-sep {
   flex-shrink: 0;
+  color: var(--gov-workspace-muted);
 }
 
-.government-profile-list-panel--mobile .government-customer-card__status-select {
+.government-profile-list-panel--mobile .government-customer-card:not(.government-customer-card--compact) .government-customer-card__status-select {
   width: 100%;
-  margin-top: 0;
 }
 
 .government-profile-list-panel--mobile .government-customer-card__status-select:focus {
   border-color: var(--gov-workspace-primary);
   outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gov-workspace-primary) 28%, transparent);
+}
+
+.government-profile-list-panel--mobile .government-profile-list-card__detail-wrap {
+  width: 100%;
+  min-width: 0;
+  padding-top: var(--gov-customer-card-row-gap);
+  border-top: 1px solid var(--gov-workspace-border);
 }

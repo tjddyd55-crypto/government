@@ -7,6 +7,7 @@ import {
   useGovernmentCustomerCardDisplay,
 } from './GovernmentCustomerCardFields'
 import '../../../government-customer-list-pc.css'
+import '../../../government-customer-card.css'
 
 type GovernmentCustomerCardPCBaseProps = {
   profile: GovSupportProfile

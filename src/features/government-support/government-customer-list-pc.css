@@ -4,21 +4,8 @@
   border: 1px solid var(--gov-workspace-border);
   border-radius: var(--gov-workspace-radius-card);
   background: var(--gov-workspace-panel);
-  padding: var(--gov-workspace-card-padding);
   color: var(--gov-workspace-text);
   box-sizing: border-box;
-}
-
-.government-profile-list-panel--pc .government-customer-card--compact.government-profile-list-card--active,
-.government-profile-list-panel--pc .government-customer-card--pc.government-profile-list-card--active {
-  border-color: var(--gov-workspace-primary);
-  background: var(--gov-workspace-panel);
-}
-
-.government-profile-list-panel--pc .government-customer-card__summary-row.government-profile-list-card__summary-row--active {
-  background: var(--gov-workspace-primary-soft);
-  border-radius: var(--gov-workspace-radius-control);
-  padding: var(--gov-workspace-padding-inline-sm);
 }
 
 .government-profile-list-panel--pc .government-customer-list-toolbar--pc {
@@ -48,23 +35,20 @@
   justify-self: stretch;
 }
 
+/* compact — 1행: 고객명+메타 | 상태, 2행: 메타는 text 영역 내부 */
 .government-profile-list-panel--pc .government-customer-card__summary-row.government-profile-list-card__summary-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(6.75rem, 8.5rem);
-  grid-template-areas:
-    'text status'
-    'text status';
-  gap: var(--gov-workspace-gap-xs) var(--gov-workspace-gap-sm);
+  grid-template-areas: 'text status';
+  gap: var(--gov-customer-card-row-gap) var(--gov-workspace-gap-sm);
   align-items: start;
   width: 100%;
   min-width: 0;
 }
 
 .government-profile-list-panel--pc .government-customer-card__summary-row--expand.government-profile-list-card__summary-row {
-  grid-template-columns: minmax(0, 1fr) minmax(6.75rem, 8.5rem) 1.75rem;
-  grid-template-areas:
-    'text status chevron'
-    'text status chevron';
+  grid-template-columns: minmax(0, 1fr) minmax(6.75rem, 8.5rem) var(--gov-workspace-control-height);
+  grid-template-areas: 'text status chevron';
 }
 
 .government-profile-list-panel--pc .government-customer-card__summary {
@@ -77,7 +61,8 @@
   padding: 0;
   display: grid;
   grid-template-rows: auto auto;
-  gap: var(--gov-workspace-gap-xs);
+  gap: var(--gov-customer-card-row-gap);
+  cursor: pointer;
 }
 
 .government-profile-list-panel--pc .government-customer-card__name {
@@ -86,9 +71,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--gov-workspace-font-size-md);
-  font-weight: 700;
-  color: var(--gov-workspace-text);
 }
 
 .government-profile-list-panel--pc .government-customer-card__meta {
@@ -96,8 +78,6 @@
   align-items: center;
   gap: var(--gov-workspace-gap-xs);
   min-width: 0;
-  color: var(--gov-workspace-muted);
-  font-size: var(--gov-workspace-font-size-sm);
 }
 
 .government-profile-list-panel--pc .government-customer-card__phone,
@@ -119,7 +99,6 @@
   width: 100%;
   min-width: 0;
   max-width: 8.5rem;
-  min-height: var(--gov-workspace-control-height);
   flex-shrink: 0;
 }
 
@@ -129,12 +108,10 @@
   justify-self: center;
   flex-shrink: 0;
   min-height: var(--gov-workspace-control-height);
+  min-width: var(--gov-workspace-control-height);
 }
 
-.government-profile-list-panel--pc .government-profile-list-expand-detail__toolbar {
-  align-items: flex-start;
-}
-
-.government-profile-list-panel--pc .government-profile-list-expand-detail__actions .gov-btn {
-  min-height: var(--gov-workspace-control-height);
+.government-profile-list-panel--pc .government-customer-card__main {
+  width: 100%;
+  min-width: 0;
 }

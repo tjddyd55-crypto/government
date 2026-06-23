@@ -1774,6 +1774,15 @@
   --gov-button-radius: var(--gov-workspace-radius-control);
   --gov-button-height: var(--gov-workspace-control-height);
   --gov-button-padding-x: var(--gov-workspace-gap-md);
+  --gov-customer-card-padding: var(--gov-workspace-card-padding);
+  --gov-customer-card-row-gap: var(--gov-workspace-gap-xs);
+  --gov-customer-card-section-gap: var(--gov-workspace-gap-md);
+  --gov-customer-card-label-width: var(--gov-workspace-field-label-width);
+  --gov-customer-card-action-gap: var(--gov-workspace-gap-sm);
+  --gov-customer-card-compact-min-height: calc(
+    var(--gov-workspace-control-height) + var(--gov-workspace-font-size-md) * 1.35 + var(--gov-customer-card-row-gap)
+  );
+  --gov-customer-card-expanded-padding: var(--gov-workspace-padding-inline-md);
   flex: 1;
   min-height: 0;
   height: 100%;
