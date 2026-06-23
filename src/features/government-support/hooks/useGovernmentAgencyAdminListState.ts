@@ -3,7 +3,7 @@ import { fetchGovAdminCustomers } from '../api/governmentAdminCustomersApi'
 import { fetchGovCustomerStatusOptions } from '../api/governmentCustomerStatusApi'
 import { fetchGovernmentAdminUsers } from '../api/governmentAdminUsersApi'
 import { fetchGovAgencies } from '../api/governmentProfilesApi'
-import { useGovernmentAccessContext } from '../context/GovernmentAccessContext'
+import { useGovernmentAccessShared } from '../context/GovernmentAccessContext'
 import { canListGovernmentAdminCustomers } from '../lib/governmentAccess'
 import type { GovCustomerStatusOption, GovProfileListQuery } from '../types/governmentProfile.types'
 
@@ -27,7 +27,7 @@ const EMPTY_FILTERS: Omit<GovernmentAgencyAdminListFilters, 'tenantId'> & { tena
  * 대행사·업종 관리자 고객 목록 필터 (workspace admin 모드).
  */
 export function useGovernmentAgencyAdminListState(token: string | null | undefined) {
-  const { summary, loading: accessLoading } = useGovernmentAccessContext()
+  const { summary, loading: accessLoading } = useGovernmentAccessShared(token)
   const allowed = canListGovernmentAdminCustomers(summary)
   const isIndustryScope =
     summary?.isSuperAdmin === true || summary?.isGovernmentIndustryAdmin === true

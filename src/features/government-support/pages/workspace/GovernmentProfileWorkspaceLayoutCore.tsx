@@ -4,6 +4,7 @@ import ResponsiveLayout from '../../../../components/ResponsiveLayout'
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
 import useIsMobile from '../../../../hooks/useIsMobile'
 import { useAuth } from '../../../auth/AuthProvider'
+import { GovernmentAccessProvider } from '../../context/GovernmentAccessContext'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
 import { useGovernmentAgencyAdminListState } from '../../hooks/useGovernmentAgencyAdminListState'
 import { useGovernmentProfileListState } from '../../hooks/useGovernmentProfileListState'
@@ -435,10 +436,13 @@ export function GovernmentUserProfileWorkspaceLayout() {
 
 /** 대행사·업종 관리자 고객 관리 workspace */
 export function GovernmentAgencyAdminCustomersWorkspaceLayout() {
+  const { token } = useAuth()
   return (
-    <GovernmentProfileWorkspaceLayoutCore
-      shell={GOVERNMENT_AGENCY_ADMIN_CUSTOMERS_SHELL}
-      paths={governmentAdminCustomersWorkspacePaths}
-    />
+    <GovernmentAccessProvider token={token}>
+      <GovernmentProfileWorkspaceLayoutCore
+        shell={GOVERNMENT_AGENCY_ADMIN_CUSTOMERS_SHELL}
+        paths={governmentAdminCustomersWorkspacePaths}
+      />
+    </GovernmentAccessProvider>
   )
 }
