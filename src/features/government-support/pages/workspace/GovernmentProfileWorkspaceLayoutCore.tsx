@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import ResponsiveLayout from '../../../../components/ResponsiveLayout'
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
@@ -36,13 +36,10 @@ import {
   createGovProfileFileCategory,
   fetchGovProfileFileCategories,
 } from '../../api/governmentProfileFileCategoriesApi'
-import { isSameGovProfileId, normalizeGovProfileId } from '../../lib/governmentProfileDocumentCategories'
+import { isGovProfileCardCollapsed, isSameGovProfileId, normalizeGovProfileId, setGovProfileCardCollapsed } from '../../lib/governmentProfileDocumentCategories'
 import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
 import '../../government-support.css'
 import '../../government-profile-mobile-detail-theme.css'
-import '../../government-user-pc-theme.css'
-import '../../government-user-mobile-theme.css'
-import '../../government-profile-workspace-chrome.css'
 
 export type GovernmentProfileWorkspaceLayoutCoreProps = {
   shell?: GovernmentProfileWorkspaceShell
@@ -153,18 +150,90 @@ export default function GovernmentProfileWorkspaceLayoutCore({
     }
   }, [selectedProfileIdFromPath, selectedId, setSelectedId])
 
-  const onSelectProfile = useCallback(
+  const prevPathProfileIdRef = useRef<string | null | undefined>(undefined)
+  const expandedProfileIdRef = useRef<string | null>(null)
+  const [expandedProfileId, setExpandedProfileIdRaw] = useState<string | null>(() => {
+    if (isAgencyAdmin || !selectedProfileIdFromPath) return null
+    return isGovProfileCardCollapsed(selectedProfileIdFromPath) ? null : selectedProfileIdFromPath
+  })
+
+  const setExpandedProfileId = useCallback((updater: SetStateAction<string | null>) => {
+    setExpandedProfileIdRaw((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      expandedProfileIdRef.current = next
+      return next
+    })
+  }, [])
+
+  useEffect(() => {
+    expandedProfileIdRef.current = expandedProfileId
+  }, [expandedProfileId])
+
+  useEffect(() => {
+    if (isAgencyAdmin) return
+    const pathId = normalizeGovProfileId(selectedProfileIdFromPath)
+    if (prevPathProfileIdRef.current === undefined) {
+      prevPathProfileIdRef.current = pathId || null
+      if (pathId && !isGovProfileCardCollapsed(pathId)) {
+        setExpandedProfileId(pathId)
+      }
+      return
+    }
+    const prevPathId = normalizeGovProfileId(prevPathProfileIdRef.current)
+    if (isSameGovProfileId(pathId, prevPathId)) {
+      return
+    }
+    prevPathProfileIdRef.current = pathId || null
+    if (!pathId) {
+      setExpandedProfileId(null)
+      return
+    }
+    if (isGovProfileCardCollapsed(pathId)) {
+      setExpandedProfileId(null)
+      return
+    }
+    setExpandedProfileId(pathId)
+  }, [isAgencyAdmin, selectedProfileIdFromPath, setExpandedProfileId])
+
+  const onToggleProfileCard = useCallback(
     (profileId: string) => {
+      if (isAgencyAdmin) return
       const normalizedId = normalizeGovProfileId(profileId)
       if (!normalizedId) return
 
       const pathId = normalizeGovProfileId(selectedProfileIdFromPath)
-      if (isSameGovProfileId(normalizedId, pathId)) return
+      if (isSameGovProfileId(normalizedId, pathId)) {
+        const prev = expandedProfileIdRef.current
+        const next = isSameGovProfileId(prev, normalizedId) ? null : normalizedId
+        setGovProfileCardCollapsed(normalizedId, next === null)
+        setExpandedProfileId(next)
+        return
+      }
 
+      setGovProfileCardCollapsed(normalizedId, false)
       const tab = activeTab ?? 'basic'
+      setExpandedProfileId(normalizedId)
       navigate(paths.workspacePath(normalizedId, tab), { replace: true })
     },
-    [activeTab, navigate, paths, selectedProfileIdFromPath],
+    [activeTab, isAgencyAdmin, navigate, paths, selectedProfileIdFromPath, setExpandedProfileId],
+  )
+
+  const onSelectProfile = useCallback(
+    (profileId: string) => {
+      if (isAgencyAdmin) {
+        const normalizedId = normalizeGovProfileId(profileId)
+        if (!normalizedId) return
+
+        const pathId = normalizeGovProfileId(selectedProfileIdFromPath)
+        if (isSameGovProfileId(normalizedId, pathId)) return
+
+        const tab = activeTab ?? 'basic'
+        navigate(paths.workspacePath(normalizedId, tab), { replace: true })
+        return
+      }
+      onToggleProfileCard(profileId)
+    },
+    [activeTab, isAgencyAdmin, navigate, onToggleProfileCard, paths, selectedProfileIdFromPath],
   )
 
   const selectedProfile = useMemo(() => {
@@ -302,7 +371,9 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       selectedId,
       setSelectedId,
       selectedProfileIdFromPath,
+      expandedProfileId: isAgencyAdmin ? null : expandedProfileId,
       onSelectProfile,
+      onToggleProfileCard: isAgencyAdmin ? () => {} : onToggleProfileCard,
       filesRefreshNonce,
       bumpFilesRefresh,
       documentCategoriesVersion,
@@ -337,7 +408,10 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       selectedId,
       setSelectedId,
       selectedProfileIdFromPath,
+      expandedProfileId,
+      isAgencyAdmin,
       onSelectProfile,
+      onToggleProfileCard,
       filesRefreshNonce,
       bumpFilesRefresh,
       documentCategoriesVersion,
@@ -354,7 +428,6 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       ownerOptions,
       tenantOptions,
       listTenantId,
-      isAgencyAdmin,
       adminListState.setSearch,
       adminListState.setCustomerStatusFilter,
       adminListState.setBusinessTypeFilter,
@@ -398,6 +471,7 @@ export default function GovernmentProfileWorkspaceLayoutCore({
 
   const adminChromeClassName = isAgencyAdmin
     ? [
+        'government-admin-customers-workspace',
         'government-profile-workspace-chrome',
         'government-user-white-theme',
         isMobile ? 'government-user-layout--mobile government-page--mobile' : 'government-user-layout--pc-user government-user-pc-page',

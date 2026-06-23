@@ -25,6 +25,7 @@ function renderCard(
   return (
     <GovernmentCustomerCardPC
       key={profileId}
+      compact
       profile={row}
       selected={selected}
       statusOptions={props.statusOptions}

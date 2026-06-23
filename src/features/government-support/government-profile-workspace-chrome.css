@@ -1,10 +1,10 @@
 /**
  * Admin 고객관리 route: user workspace chrome SSOT.
- * `.government-user-layout--pc-user` / `--mobile` 조상을 admin shell 안에서 재현한다.
+ * `.government-admin-customers-workspace` 안에서만 user layout chrome을 재현한다.
  */
 
-.government-profile-workspace-chrome.government-user-layout--pc-user,
-.government-profile-workspace-chrome.government-user-layout--mobile {
+.government-admin-customers-workspace.government-user-layout--pc-user,
+.government-admin-customers-workspace.government-user-layout--mobile {
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -14,31 +14,31 @@
   box-sizing: border-box;
 }
 
-.government-admin-layout--pc-admin .government-profile-workspace-chrome.government-user-layout--pc-user,
-.government-admin-layout--mobile .government-profile-workspace-chrome.government-user-layout--mobile {
+.government-admin-layout--pc-admin .government-admin-customers-workspace.government-user-layout--pc-user,
+.government-admin-layout--mobile .government-admin-customers-workspace.government-user-layout--mobile {
   height: 100%;
   overflow: hidden;
 }
 
-.government-admin-layout .government-profile-workspace-chrome .government-profile-workspace {
+.government-admin-layout .government-admin-customers-workspace .government-profile-workspace {
   flex: 1;
   min-height: 0;
 }
 
 /* admin shell 전역 규칙이 workspace 내부 record-card를 덮지 않도록 */
-.government-admin-white-theme .government-profile-workspace-chrome .government-profile-list-panel .record-card,
-.government-admin-white-theme .government-profile-workspace-chrome .government-profile-list-panel .government-profile-list-card {
+.government-admin-white-theme .government-admin-customers-workspace .government-profile-list-panel .record-card,
+.government-admin-white-theme .government-admin-customers-workspace .government-profile-list-panel .government-profile-list-card {
   background: var(--gov-workspace-panel);
   border-color: var(--gov-workspace-border);
   color: var(--gov-workspace-text);
 }
 
-.government-admin-white-theme .government-profile-workspace-chrome .government-profile-list-panel .government-profile-list-card--active {
+.government-admin-white-theme .government-admin-customers-workspace .government-profile-list-panel .government-profile-list-card--active {
   border-color: var(--gov-workspace-primary);
   background: var(--gov-workspace-panel);
 }
 
-.government-admin-white-theme .government-profile-workspace-chrome .government-profile-list-panel .government-profile-list-card__summary-row--active {
+.government-admin-white-theme .government-admin-customers-workspace .government-profile-list-panel .government-profile-list-card__summary-row--active {
   background: var(--gov-workspace-primary-soft);
 }
 

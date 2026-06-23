@@ -1,17 +1,52 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDialog'
+import { isSameGovProfileId, normalizeGovProfileId } from '../../lib/governmentProfileDocumentCategories'
 import { collectGovernmentBusinessTypeOptions } from '../../lib/governmentCustomerListDisplay'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
+import GovernmentProfileEditModal from './GovernmentProfileEditModal'
 import GovernmentProfileListToolbarPC from './customer-list/GovernmentProfileListToolbarPC'
+import GovernmentCustomerCardPC from './customer-list/GovernmentCustomerCardPC'
 import GovernmentProfileListCardsPC from './customer-list/GovernmentProfileListCardsPC'
 
 const EMPTY_LIST_HINT = '등록된 사업장이 없습니다. 사업장을 먼저 등록해 주세요.'
 
 export default function GovernmentProfileListPanelPCBody() {
   const ws = useGovernmentProfileWorkspaceContext()
+  const navigate = useNavigate()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
+  const [editTarget, setEditTarget] = useState<(typeof ws.profiles)[number] | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const isUserMode = ws.shell.variant === 'user'
 
   const businessTypeOptions = useMemo(
     () => collectGovernmentBusinessTypeOptions(ws.profiles),
     [ws.profiles],
+  )
+
+  const handleDeleteProfile = useCallback(
+    async (profile: (typeof ws.profiles)[number]) => {
+      const title = profile.businessName || profile.customerName || '이 사업장'
+      const ok = await confirm({
+        title: '사업장 삭제',
+        message: `${title}을(를) 삭제하시겠습니까?`,
+        confirmLabel: '삭제',
+        cancelLabel: '취소',
+        tone: 'danger',
+      })
+      if (!ok) return
+      const deletedId = normalizeGovProfileId(profile.id)
+      setDeletingId(deletedId)
+      try {
+        await ws.removeProfile(deletedId)
+        if (isSameGovProfileId(deletedId, ws.selectedProfileIdFromPath)) {
+          navigate(ws.paths.basePath, { replace: true })
+        }
+      } finally {
+        setDeletingId(null)
+      }
+    },
+    [confirm, navigate, ws],
   )
 
   const handleStatusChange = useCallback(
@@ -23,7 +58,9 @@ export default function GovernmentProfileListPanelPCBody() {
 
   const listClassName = ws.shell.showOwnerGroups
     ? 'record-list customer-list customers-page__customer-list government-profile-list-panel__list government-profile-list-panel__list--grouped'
-    : 'record-list customer-list customers-page__customer-list government-profile-list-panel__list'
+    : isUserMode
+      ? 'record-list customer-expand-list customer-list customers-page__customer-list government-profile-list-panel__list'
+      : 'record-list customer-list customers-page__customer-list government-profile-list-panel__list'
 
   return (
     <>
@@ -67,16 +104,49 @@ export default function GovernmentProfileListPanelPCBody() {
         </p>
       ) : (
         <ul className={listClassName}>
-          <GovernmentProfileListCardsPC
-            profiles={ws.profiles}
-            showOwnerGroups={ws.shell.showOwnerGroups}
-            selectedProfileIdFromPath={ws.selectedProfileIdFromPath}
-            statusOptions={ws.statusOptions}
-            onSelect={ws.onSelectProfile}
-            onStatusChange={handleStatusChange}
-          />
+          {isUserMode
+            ? ws.profiles.map((row) => {
+                const profileId = normalizeGovProfileId(row.id)
+                const pathId = normalizeGovProfileId(ws.selectedProfileIdFromPath)
+                const selected = isSameGovProfileId(profileId, pathId)
+                const expanded = isSameGovProfileId(profileId, ws.expandedProfileId)
+                return (
+                  <GovernmentCustomerCardPC
+                    key={profileId}
+                    profile={row}
+                    selected={selected}
+                    expanded={expanded}
+                    deleting={isSameGovProfileId(deletingId, profileId)}
+                    statusOptions={ws.statusOptions}
+                    onToggle={() => ws.onToggleProfileCard(profileId)}
+                    onEdit={() => setEditTarget(row)}
+                    onDelete={() => void handleDeleteProfile(row)}
+                    onStatusChange={(optionId) => void handleStatusChange(profileId, optionId)}
+                  />
+                )
+              })
+            : (
+                <GovernmentProfileListCardsPC
+                  profiles={ws.profiles}
+                  showOwnerGroups={ws.shell.showOwnerGroups}
+                  selectedProfileIdFromPath={ws.selectedProfileIdFromPath}
+                  statusOptions={ws.statusOptions}
+                  onSelect={ws.onSelectProfile}
+                  onStatusChange={handleStatusChange}
+                />
+              )}
         </ul>
       )}
+
+      {isUserMode ? (
+        <GovernmentProfileEditModal
+          open={editTarget != null}
+          profile={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSave={ws.saveProfile}
+        />
+      ) : null}
+      {isUserMode ? confirmDialog : null}
     </>
   )
 }

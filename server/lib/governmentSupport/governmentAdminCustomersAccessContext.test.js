@@ -46,6 +46,35 @@ describe('government admin customers access context wiring', () => {
     assert.match(routerSrc, /path: 'government\/my-applications'[\s\S]*GovernmentProfileWorkspaceLayout/)
   })
 
+  it('user workspace layout does not apply admin customers wrapper class', () => {
+    const coreSrc = readRepoFile(
+      'src/features/government-support/pages/workspace/GovernmentProfileWorkspaceLayoutCore.tsx',
+    )
+    assert.match(coreSrc, /government-admin-customers-workspace/)
+    assert.match(coreSrc, /isAgencyAdmin \? \([\s\S]*government-admin-customers-workspace/)
+    const userExport = coreSrc.slice(
+      coreSrc.indexOf('export function GovernmentUserProfileWorkspaceLayout'),
+      coreSrc.indexOf('export function GovernmentAgencyAdminCustomersWorkspaceLayout'),
+    )
+    assert.doesNotMatch(userExport, /government-admin-customers-workspace/)
+  })
+
+  it('admin customers page loads admin-scoped workspace chrome styles', () => {
+    const pageSrc = readRepoFile('src/features/government-support/pages/admin/GovernmentAdminCustomersPage.tsx')
+    assert.match(pageSrc, /government-profile-workspace-chrome\.css/)
+    assert.match(pageSrc, /GovernmentAgencyAdminCustomersWorkspaceLayout/)
+  })
+
+  it('user mode keeps expand card behavior in list panel', () => {
+    const panelSrc = readRepoFile(
+      'src/features/government-support/pages/workspace/GovernmentProfileListPanelPCBody.tsx',
+    )
+    assert.match(panelSrc, /ws\.shell\.variant === 'user'/)
+    assert.match(panelSrc, /expandedProfileId/)
+    assert.match(panelSrc, /onToggleProfileCard/)
+    assert.match(panelSrc, /customer-expand-list/)
+  })
+
   it('admin customers nested tab routes are registered', () => {
     const routerSrc = readRepoFile('src/appRouter.tsx')
     const customersBlock = routerSrc.slice(
