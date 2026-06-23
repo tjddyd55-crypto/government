@@ -38,6 +38,11 @@ export async function validateGovSignaturePdfTemplateScope(req, pool) {
     return { ok: false, status: 403, message: 'PDF 템플릿 생성 권한이 없습니다.' }
   }
 
+  const rawScopeType = req.body?.scopeType ?? req.body?.scope_type
+  if (rawScopeType != null && String(rawScopeType).trim() === '') {
+    return { ok: false, status: 400, message: '공개 범위를 선택해 주세요.' }
+  }
+
   const { scopeType, tenantId } = parseGovSignatureScopeInput(req)
   const ctx = getGovernmentSignaturePlatformContext(req)
 

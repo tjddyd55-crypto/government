@@ -1,5 +1,8 @@
 import { safeApiResponse } from './safeApiResponse'
 import { getPublicOrigin } from './publicOrigin'
+import { buildApiRequestHeaders } from '../../shared/buildApiRequestHeaders.js'
+
+export { buildApiRequestHeaders }
 
 export class ApiError extends Error {
   status: number
@@ -150,20 +153,15 @@ export function resolveAbsoluteApiUrl(path: string): string {
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { token, headers, ...rest } = options
-  const bearer =
-    typeof token === 'string' && token.trim() ? `Bearer ${token.trim()}` : ''
+  const { token, headers, body, ...rest } = options
   const resolvedUrl = resolveApiUrl(path)
 
   let response: Response
   try {
     response = await fetch(resolvedUrl, {
       ...rest,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(bearer ? { Authorization: bearer } : {}),
-        ...headers,
-      },
+      body,
+      headers: buildApiRequestHeaders({ token, headers, body }),
     })
   } catch (error) {
     /**

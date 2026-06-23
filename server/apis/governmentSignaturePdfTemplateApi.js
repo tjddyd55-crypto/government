@@ -23,6 +23,10 @@ import { buildGovPdfTemplateListWhere,
   resolveGovernmentSignatureAccessScope,
 } from '../lib/governmentSignatures/access.js'
 import { validateGovSignaturePdfTemplateScope } from '../lib/governmentSignatures/governmentSignaturePdfTemplateScope.js'
+import {
+  governmentSignaturePdfUploadMulterErrorMessage,
+  validateGovernmentSignaturePdfUploadContentType,
+} from '../lib/governmentSignatures/governmentSignaturePdfUploadRequest.js'
 import { buildGovernmentSignaturePdfTemplateUploadKey } from '../lib/governmentSupport/governmentR2Keys.js'
 
 const uploadPdf = multer({
@@ -88,9 +92,17 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
     `${base}/upload`,
     ...chain,
     (req, res, next) => {
+      const contentTypeCheck = validateGovernmentSignaturePdfUploadContentType(req)
+      if (!contentTypeCheck.ok) {
+        res.status(contentTypeCheck.status).json({ message: contentTypeCheck.message })
+        return
+      }
+      next()
+    },
+    (req, res, next) => {
       uploadPdf.single('pdf')(req, res, (err) => {
         if (err) {
-          res.status(400).json({ message: err.message || 'PDF 업로드 실패' })
+          res.status(400).json({ message: governmentSignaturePdfUploadMulterErrorMessage(err) })
           return
         }
         next()
@@ -115,7 +127,7 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
         }
         const file = req.file
         if (!file?.buffer?.length) {
-          res.status(400).json({ message: 'PDF 파일이 필요합니다.' })
+          res.status(400).json({ message: 'PDF 파일을 선택해 주세요.' })
           return
         }
         const pdfDoc = await PDFDocument.load(file.buffer, { ignoreEncryption: true })

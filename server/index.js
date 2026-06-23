@@ -78,6 +78,7 @@ import { registerConsentApi } from './registerConsentApi.js'
 import { registerInsurerNewsApi } from './registerInsurerNewsApi.js'
 import { registerSignatureApi } from './registerSignatureApi.js'
 import { registerClientLogRoutes } from './routes/client-log.js'
+import { shouldSkipJsonBodyParser } from './lib/http/shouldSkipJsonBodyParser.js'
 import { registerVersionRoutes } from './routes/version.js'
 import { seedInsuranceCompanyDirectory } from './seedInsuranceData.js'
 import { registerSubscriptionAdminApi } from './registerSubscriptionAdminApi.js'
@@ -1349,7 +1350,13 @@ app.use(
     credentials: true,
   }),
 )
-app.use(express.json({ limit: '12mb' }))
+const jsonBodyParser = express.json({ limit: '12mb' })
+app.use((req, res, next) => {
+  if (shouldSkipJsonBodyParser(req)) {
+    return next()
+  }
+  return jsonBodyParser(req, res, next)
+})
 
 const apiRouter = express.Router()
 
@@ -7123,8 +7130,26 @@ if (fs.existsSync(DIST_PATH)) {
   )
 }
 
+app.use((error, req, res, next) => {
+  const isJsonParseError =
+    error instanceof SyntaxError &&
+    (error.status === 400 || error.statusCode === 400) &&
+    (error.type === 'entity.parse.failed' || /json/i.test(String(error.message ?? '')))
+  if (isJsonParseError) {
+    console.warn('[request] Invalid request body', {
+      path: req.originalUrl ?? req.url,
+      contentType: req.headers['content-type'],
+      status: error.status ?? error.statusCode ?? 400,
+      message: error.message,
+    })
+    res.status(400).json({ message: '요청 본문 형식이 올바르지 않습니다.' })
+    return
+  }
+  next(error)
+})
+
 app.use((error, _req, res, _next) => {
-  console.error(error)
+  console.error(error instanceof Error ? error.message : error)
   res.status(500).json({ message: '서버 오류가 발생했습니다.' })
 })
 

@@ -26,6 +26,12 @@ function authHeader(token: string): HeadersInit {
   return { Authorization: `Bearer ${token}` }
 }
 
+function appendScopeFields(fd: FormData, scope?: GovernmentSignatureScopePayload) {
+  for (const [key, value] of Object.entries(scopeFields(scope))) {
+    fd.append(key, value)
+  }
+}
+
 export async function listGovSignaturePdfTemplates(
   token: string,
 ): Promise<{ templates: GovSignaturePdfTemplateListItem[] }> {
@@ -59,26 +65,17 @@ export async function uploadGovSignaturePdfTemplateFile(
 ): Promise<{ storageKey: string; pageCount: number; code: string }> {
   const fd = new FormData()
   fd.append('pdf', file)
-  for (const [key, value] of Object.entries(scopeFields(scope))) {
-    fd.append(key, value)
-  }
-  const res = await fetch(resolveApiUrl(`${BASE}/upload`), {
-    method: 'POST',
-    headers: authHeader(token),
-    body: fd,
-  })
-  const raw = (await res.json().catch(() => ({}))) as {
-    storageKey?: string
-    pageCount?: number
-    code?: string
-    message?: string
-  }
-  if (!res.ok || !raw?.storageKey) {
-    const message =
-      typeof raw.message === 'string' && raw.message.trim()
-        ? raw.message.trim()
-        : 'PDF 업로드에 실패했습니다.'
-    throw new ApiError(message, res.status)
+  appendScopeFields(fd, scope)
+  const raw = await apiRequest<{ storageKey?: string; pageCount?: number; code?: string; message?: string }>(
+    `${BASE}/upload`,
+    {
+      method: 'POST',
+      token,
+      body: fd,
+    },
+  )
+  if (!raw?.storageKey) {
+    throw new ApiError('PDF 업로드 응답이 올바르지 않습니다.', 500)
   }
   return {
     storageKey: raw.storageKey,

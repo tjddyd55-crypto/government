@@ -61,6 +61,15 @@ test('validateGovSignaturePdfTemplateScope — industry admin global', async () 
   }
 })
 
+test('validateGovSignaturePdfTemplateScope — empty scopeType rejected', async () => {
+  const pool = { query: async () => ({ rowCount: 0, rows: [] }) }
+  const result = await validateGovSignaturePdfTemplateScope(industryReq({ scopeType: '' }), pool)
+  assert.equal(result.ok, false)
+  if (!result.ok) {
+    assert.equal(result.message, '공개 범위를 선택해 주세요.')
+  }
+})
+
 test('validateGovSignaturePdfTemplateScope — industry admin agency requires tenantId', async () => {
   const pool = { query: async () => ({ rowCount: 0, rows: [] }) }
   const missing = await validateGovSignaturePdfTemplateScope(industryReq({ scopeType: 'agency' }), pool)
