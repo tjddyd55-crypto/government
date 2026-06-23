@@ -1738,13 +1738,31 @@
   --gov-workspace-surface-muted: #f8fafc;
   --gov-workspace-radius-card: 12px;
   --gov-workspace-radius-control: 10px;
+  --gov-workspace-gap-xs: 4px;
   --gov-workspace-gap-sm: 8px;
   --gov-workspace-gap-md: 10px;
   --gov-workspace-gap-lg: 16px;
+  --gov-workspace-gap-xl: 20px;
   --gov-workspace-padding-inline-sm: 8px;
   --gov-workspace-padding-inline-md: 12px;
+  --gov-workspace-panel-padding-block: 16px;
+  --gov-workspace-panel-padding-inline: 20px;
   --gov-workspace-font-size-xs: 0.75rem;
   --gov-workspace-font-size-sm: 0.8125rem;
+  --gov-workspace-font-size-md: 0.9375rem;
+  --gov-workspace-control-height: 38px;
+  --gov-workspace-column-left-width: 430px;
+  --gov-workspace-column-left-min-width: 360px;
+  --gov-workspace-column-right-width: 360px;
+  --gov-workspace-column-right-min-width: 300px;
+  --gov-workspace-column-right-max-width: 380px;
+  --gov-workspace-panel-gap: 0px;
+  --gov-workspace-card-padding: var(--gov-workspace-padding-inline-md);
+  --gov-workspace-card-gap: var(--gov-workspace-gap-sm);
+  --gov-workspace-row-gap: var(--gov-workspace-gap-sm);
+  --gov-workspace-field-label-width: 7.5rem;
+  --gov-workspace-toolbar-gap: var(--gov-workspace-gap-sm);
+  --gov-workspace-section-gap: var(--gov-workspace-gap-lg);
   flex: 1;
   min-height: 0;
   height: 100%;
@@ -1778,10 +1796,10 @@
 }
 
 .government-profile-workspace-pc__left {
-  flex: 0 0 430px;
-  width: 430px;
-  min-width: 360px;
-  max-width: 430px;
+  flex: 0 0 var(--gov-workspace-column-left-width);
+  width: var(--gov-workspace-column-left-width);
+  min-width: var(--gov-workspace-column-left-min-width);
+  max-width: var(--gov-workspace-column-left-width);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1800,10 +1818,10 @@
 }
 
 .government-profile-workspace-pc__right {
-  flex: 0 0 360px;
-  width: 360px;
-  min-width: 300px;
-  max-width: 380px;
+  flex: 0 0 var(--gov-workspace-column-right-width);
+  width: var(--gov-workspace-column-right-width);
+  min-width: var(--gov-workspace-column-right-min-width);
+  max-width: var(--gov-workspace-column-right-max-width);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1815,8 +1833,9 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 16px 24px 20px;
-  background: #f8fafc;
+  padding: var(--gov-workspace-panel-padding-block) var(--gov-workspace-panel-padding-inline)
+    var(--gov-workspace-gap-xl);
+  background: var(--gov-workspace-surface-muted);
 }
 
 /* 모바일 워크스페이스 */
@@ -1904,7 +1923,7 @@
 .government-profile-list-panel__list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--gov-workspace-card-gap);
 }
 
 .government-profile-list-panel .record-card.customer-card.customer-expand-card,
@@ -2002,18 +2021,18 @@
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  padding: 0 10px 10px;
-  border-top: 1px solid #f2e8a6;
+  padding: var(--gov-workspace-gap-sm) 0 0;
+  border-top: 1px solid var(--gov-workspace-primary-soft);
 }
 
 .government-profile-list-panel .customer-expand-detail,
 .government-profile-list-panel .government-profile-list-expand-detail {
-  margin: 10px 0 0;
-  padding: 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #ffffff;
-  font-size: 0.9375rem;
+  margin: var(--gov-workspace-gap-sm) 0 0;
+  padding: var(--gov-workspace-card-padding);
+  border: 1px solid var(--gov-workspace-border);
+  border-radius: var(--gov-workspace-radius-card);
+  background: var(--gov-workspace-panel);
+  font-size: var(--gov-workspace-font-size-md);
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -2232,7 +2251,7 @@
 
 .government-profile-workspace-right-documents-panel__header {
   flex-shrink: 0;
-  padding: 16px 18px;
+  padding: var(--gov-workspace-panel-padding-block) var(--gov-workspace-panel-padding-inline);
   border-bottom: 1px solid var(--gov-workspace-border);
 }
 
@@ -2299,15 +2318,16 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 16px 18px;
+  padding: var(--gov-workspace-panel-padding-block) var(--gov-workspace-panel-padding-inline);
   box-sizing: border-box;
 }
 
 .government-profile-workspace .government-profile-storage-workspace__footer {
   flex-shrink: 0;
-  padding: 12px 18px 16px;
+  padding: var(--gov-workspace-gap-md) var(--gov-workspace-panel-padding-inline)
+    var(--gov-workspace-panel-padding-block);
   border-top: 1px solid var(--gov-workspace-border);
-  background: #ffffff;
+  background: var(--gov-workspace-panel);
   box-sizing: border-box;
 }
 
@@ -2687,15 +2707,15 @@
 .government-profile-list-expand-detail__rows {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--gov-workspace-row-gap);
   width: 100%;
   min-width: 0;
 }
 
 .government-profile-list-expand-row {
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  gap: 8px 10px;
+  grid-template-columns: var(--gov-workspace-field-label-width) minmax(0, 1fr);
+  gap: var(--gov-workspace-gap-xs) var(--gov-workspace-gap-md);
   align-items: start;
   width: 100%;
   min-width: 0;
@@ -2704,13 +2724,13 @@
 
 .government-profile-list-expand-row__label {
   font-weight: 700;
-  font-size: 0.8125rem;
+  font-size: var(--gov-workspace-font-size-sm);
   line-height: 1.45;
   color: var(--gov-workspace-muted);
 }
 
 .government-profile-list-expand-row__value {
-  font-size: 0.875rem;
+  font-size: var(--gov-workspace-font-size-md);
   line-height: 1.5;
   color: var(--gov-workspace-text);
   overflow-wrap: anywhere;
@@ -2723,8 +2743,8 @@
 }
 
 .government-profile-list-expand-detail__toolbar {
-  margin-bottom: 12px;
-  gap: 10px;
+  margin-bottom: var(--gov-workspace-gap-md);
+  gap: var(--gov-workspace-toolbar-gap);
 }
 
 .government-profile-list-expand-detail__title {
@@ -2770,7 +2790,7 @@
 }
 
 .government-profile-basic-info-panel__edit-actions {
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--gov-workspace-gap-md);
 }
 
 /* 탭 패널 — 상담/진행 (보험 CustomerConsultationsPage 동일 간격) */

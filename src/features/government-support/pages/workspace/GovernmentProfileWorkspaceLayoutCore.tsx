@@ -39,6 +39,7 @@ import {
 import { isGovProfileCardCollapsed, isSameGovProfileId, normalizeGovProfileId, setGovProfileCardCollapsed } from '../../lib/governmentProfileDocumentCategories'
 import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
 import '../../government-support.css'
+import '../../government-profile-workspace-chrome.css'
 import '../../government-profile-mobile-detail-theme.css'
 
 export type GovernmentProfileWorkspaceLayoutCoreProps = {
