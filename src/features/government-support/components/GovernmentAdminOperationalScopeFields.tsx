@@ -49,7 +49,7 @@ export default function GovernmentAdminOperationalScopeFields({
     )
   }
 
-  if (agencyOptions.length > 1) {
+  if (!canPickScope) {
     return (
       <FieldWrapper label="대행사">
         <FormSelect
@@ -57,12 +57,10 @@ export default function GovernmentAdminOperationalScopeFields({
           value={tenantId}
           onChange={(e) => onTenantIdChange(e.target.value)}
           options={agencyOptions}
-          disabled={disabled}
+          disabled={disabled || agencyOptions.length <= 1}
           aria-label="대행사"
         />
       </FieldWrapper>
     )
   }
-
-  return null
 }

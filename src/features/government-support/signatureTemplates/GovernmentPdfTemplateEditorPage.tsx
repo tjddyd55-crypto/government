@@ -92,8 +92,15 @@ function CreateGovPdfFlow({ token, onCreated }: { token: string; onCreated: (id:
     }
     setSubmitting(true)
     setError(null)
+    let scope
     try {
-      const scope = scopeFields.resolveScopePayload()
+      scope = scopeFields.resolveScopePayload()
+    } catch (e) {
+      setError(mapGovernmentSignatureApiError(e, '공개 범위를 확인해 주세요.'))
+      setSubmitting(false)
+      return
+    }
+    try {
       const uploaded = await uploadGovSignaturePdfTemplateFile(token, file, scope)
       const created = await createGovSignaturePdfTemplate(token, {
         title: title.trim(),

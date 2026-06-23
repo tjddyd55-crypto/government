@@ -15,14 +15,14 @@ import {
 } from '../pdf-engine/repository/pdfTemplateRepo.js'
 import { reconcileGovSignatureFieldSettingsAfterPdfSave } from '../services/governmentSignatureTemplateFieldSettings.js'
 import { getTemplateObject, putTemplateObject } from '../pdf-engine/storage/pdfTemplateStorage.js'
-import {
-  buildGovPdfTemplateListWhere,
+import { buildGovPdfTemplateListWhere,
   canAccessGovPdfTemplateRow,
   canManageGovPdfTemplateRow,
   getAuthUserId,
   resolveGovSignatureTemplateTenantId,
   resolveGovernmentSignatureAccessScope,
 } from '../lib/governmentSignatures/access.js'
+import { validateGovSignaturePdfTemplateScope } from '../lib/governmentSignatures/governmentSignaturePdfTemplateScope.js'
 import { buildGovernmentSignaturePdfTemplateUploadKey } from '../lib/governmentSupport/governmentR2Keys.js'
 
 const uploadPdf = multer({
@@ -103,6 +103,16 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
           res.status(401).json({ message: '로그인이 필요합니다.' })
           return
         }
+        const scopeCheck = await validateGovSignaturePdfTemplateScope(req, pool)
+        if (!scopeCheck.ok) {
+          res.status(scopeCheck.status).json({ message: scopeCheck.message })
+          return
+        }
+        req.body = {
+          ...(req.body ?? {}),
+          scopeType: scopeCheck.scopeType,
+          tenantId: scopeCheck.tenantId ?? undefined,
+        }
         const file = req.file
         if (!file?.buffer?.length) {
           res.status(400).json({ message: 'PDF 파일이 필요합니다.' })
@@ -134,16 +144,17 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
         res.status(403).json({ message: '전자서명 권한이 필요합니다.' })
         return
       }
+      const scopeCheck = await validateGovSignaturePdfTemplateScope(req, pool)
+      if (!scopeCheck.ok) {
+        res.status(scopeCheck.status).json({ message: scopeCheck.message })
+        return
+      }
+      req.body = {
+        ...(req.body ?? {}),
+        scopeType: scopeCheck.scopeType,
+        tenantId: scopeCheck.tenantId ?? undefined,
+      }
       const tenantId = resolveGovSignatureTemplateTenantId(req)
-      const scopeType = String(req.body?.scopeType ?? req.body?.scope_type ?? 'agency').trim()
-      if (scope.mode === 'operational' && !tenantId) {
-        res.status(400).json({ message: '대행사 tenant 정보가 없습니다.' })
-        return
-      }
-      if (scope.mode === 'industry' && scopeType === 'agency' && !tenantId) {
-        res.status(400).json({ message: '대행사를 선택해 주세요.' })
-        return
-      }
       const body = req.body ?? {}
       const storageKey = String(body.storageKey ?? '').trim()
       const title = String(body.title ?? '').trim() || '전자서명 PDF'

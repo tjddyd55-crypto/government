@@ -46,4 +46,11 @@ describe('governmentOperationalScope payload (admin form)', () => {
       { scopeType: 'agency', tenantId: '10' },
     )
   })
+
+  it('agency option values use numeric tenant id strings', () => {
+    const options = [{ value: '69', label: '세승 (AGENCYC)' }]
+    assert.equal(options[0].value, '69')
+    assert.notEqual(options[0].value, 'AGENCYC')
+    assert.notEqual(options[0].value, '세승')
+  })
 })

@@ -62,13 +62,23 @@ export async function uploadGovSignaturePdfTemplateFile(
   for (const [key, value] of Object.entries(scopeFields(scope))) {
     fd.append(key, value)
   }
-  const body = await apiRequest<{ storageKey?: string; pageCount?: number; code?: string }>(
-    `${BASE}/upload`,
-    { method: 'POST', token, body: fd },
-  )
-  const raw = body as { storageKey?: string; pageCount?: number; code?: string }
-  if (!raw?.storageKey) {
-    throw new ApiError('PDF 업로드 응답이 올바르지 않습니다.', 500)
+  const res = await fetch(resolveApiUrl(`${BASE}/upload`), {
+    method: 'POST',
+    headers: authHeader(token),
+    body: fd,
+  })
+  const raw = (await res.json().catch(() => ({}))) as {
+    storageKey?: string
+    pageCount?: number
+    code?: string
+    message?: string
+  }
+  if (!res.ok || !raw?.storageKey) {
+    const message =
+      typeof raw.message === 'string' && raw.message.trim()
+        ? raw.message.trim()
+        : 'PDF 업로드에 실패했습니다.'
+    throw new ApiError(message, res.status)
   }
   return {
     storageKey: raw.storageKey,
