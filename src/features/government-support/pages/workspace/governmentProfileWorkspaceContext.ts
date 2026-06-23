@@ -8,9 +8,7 @@ export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovern
   shell: GovernmentProfileWorkspaceShell
   paths: GovernmentProfileWorkspacePathHelpers
   selectedProfileIdFromPath: string | null
-  expandedProfileId: string | null
   onSelectProfile: (profileId: string) => void
-  onToggleProfileCard: (profileId: string) => void
   filesRefreshNonce: number
   bumpFilesRefresh: () => void
   documentCategoriesVersion: number

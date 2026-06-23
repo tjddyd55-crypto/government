@@ -1,4 +1,3 @@
-import GovernmentProfileListExpandDetail from '../GovernmentProfileListExpandDetail'
 import {
   resolveGovernmentCustomerBusinessType,
   resolveGovernmentCustomerCardName,
@@ -10,43 +9,33 @@ import '../../../government-customer-list-mobile.css'
 export type GovernmentCustomerCardMobileProps = {
   profile: GovSupportProfile
   selected: boolean
-  expanded: boolean
-  deleting: boolean
   statusOptions: GovCustomerStatusOption[]
-  onToggle: () => void
-  onEdit: () => void
-  onDelete: () => void
+  onSelect: () => void
   onStatusChange: (optionId: string | null) => void
-  showDelete?: boolean
 }
 
 export default function GovernmentCustomerCardMobile({
   profile,
   selected,
-  expanded,
-  deleting,
   statusOptions,
-  onToggle,
-  onEdit,
-  onDelete,
+  onSelect,
   onStatusChange,
-  showDelete = true,
 }: GovernmentCustomerCardMobileProps) {
-  const profileId = profile.id
   const title = resolveGovernmentCustomerCardName(profile)
   const phone = profile.phone?.trim() || '연락처 없음'
   const businessType = resolveGovernmentCustomerBusinessType(profile)
   const statusLabel = resolveGovernmentCustomerStatusLabel(profile)
-  const statusColor = profile.customerStatusColor || '#94A3B8'
+  const statusColor = profile.customerStatusColor || 'var(--gov-workspace-muted, #94a3b8)'
 
   return (
     <li
-      className={`government-customer-card government-customer-card--mobile government-profile-list-card${
+      className={`government-customer-card government-customer-card--mobile government-profile-list-card government-customer-card--compact${
         selected ? ' government-profile-list-card--active' : ''
-      }${expanded ? ' government-profile-list-card--expanded' : ''}`}
-      data-profile-id={profileId}
+      }`}
+      data-profile-id={profile.id}
+      data-profile-selected={selected ? 'true' : 'false'}
     >
-      <button type="button" className="government-customer-card__tap" onClick={onToggle}>
+      <button type="button" className="government-customer-card__tap" onClick={onSelect}>
         <div className="government-customer-card__name">{title}</div>
         <div className="government-customer-card__phone">{phone}</div>
         <div className="government-customer-card__business-type">{businessType}</div>
@@ -68,17 +57,6 @@ export default function GovernmentCustomerCardMobile({
           </option>
         ))}
       </select>
-      {expanded ? (
-        <div className="government-profile-list-card__detail-wrap">
-          <GovernmentProfileListExpandDetail
-            profile={profile}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            deleting={deleting}
-            showDelete={showDelete}
-          />
-        </div>
-      ) : null}
     </li>
   )
 }

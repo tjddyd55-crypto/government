@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import ResponsiveLayout from '../../../../components/ResponsiveLayout'
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
@@ -35,12 +35,7 @@ import {
   createGovProfileFileCategory,
   fetchGovProfileFileCategories,
 } from '../../api/governmentProfileFileCategoriesApi'
-import {
-  isGovProfileCardCollapsed,
-  isSameGovProfileId,
-  normalizeGovProfileId,
-  setGovProfileCardCollapsed,
-} from '../../lib/governmentProfileDocumentCategories'
+import { isSameGovProfileId, normalizeGovProfileId } from '../../lib/governmentProfileDocumentCategories'
 import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
 import '../../government-support.css'
 import '../../government-profile-mobile-detail-theme.css'
@@ -157,77 +152,18 @@ export default function GovernmentProfileWorkspaceLayoutCore({
     }
   }, [selectedProfileIdFromPath, selectedId, setSelectedId])
 
-  const prevPathProfileIdRef = useRef<string | null | undefined>(undefined)
-  const expandedProfileIdRef = useRef<string | null>(null)
-  const [expandedProfileId, setExpandedProfileIdRaw] = useState<string | null>(() => {
-    if (!selectedProfileIdFromPath) return null
-    return isGovProfileCardCollapsed(selectedProfileIdFromPath) ? null : selectedProfileIdFromPath
-  })
-
-  const setExpandedProfileId = useCallback((updater: SetStateAction<string | null>) => {
-    setExpandedProfileIdRaw((prev) => {
-      const next = typeof updater === 'function' ? updater(prev) : updater
-      expandedProfileIdRef.current = next
-      return next
-    })
-  }, [])
-
-  useEffect(() => {
-    expandedProfileIdRef.current = expandedProfileId
-  }, [expandedProfileId])
-
-  useEffect(() => {
-    const pathId = normalizeGovProfileId(selectedProfileIdFromPath)
-    if (prevPathProfileIdRef.current === undefined) {
-      prevPathProfileIdRef.current = pathId || null
-      if (pathId && !isGovProfileCardCollapsed(pathId)) {
-        setExpandedProfileId(pathId)
-      }
-      return
-    }
-    const prevPathId = normalizeGovProfileId(prevPathProfileIdRef.current)
-    if (isSameGovProfileId(pathId, prevPathId)) {
-      return
-    }
-    prevPathProfileIdRef.current = pathId || null
-    if (!pathId) {
-      setExpandedProfileId(null)
-      return
-    }
-    if (isGovProfileCardCollapsed(pathId)) {
-      setExpandedProfileId(null)
-      return
-    }
-    setExpandedProfileId(pathId)
-  }, [selectedProfileIdFromPath, setExpandedProfileId])
-
-  const onToggleProfileCard = useCallback(
+  const onSelectProfile = useCallback(
     (profileId: string) => {
       const normalizedId = normalizeGovProfileId(profileId)
       if (!normalizedId) return
 
       const pathId = normalizeGovProfileId(selectedProfileIdFromPath)
-      if (isSameGovProfileId(normalizedId, pathId)) {
-        const prev = expandedProfileIdRef.current
-        const next = isSameGovProfileId(prev, normalizedId) ? null : normalizedId
-        setGovProfileCardCollapsed(normalizedId, next === null)
-        setExpandedProfileId(next)
-        return
-      }
+      if (isSameGovProfileId(normalizedId, pathId)) return
 
-      setGovProfileCardCollapsed(normalizedId, false)
       const tab = activeTab ?? 'basic'
-      setExpandedProfileId(normalizedId)
       navigate(paths.workspacePath(normalizedId, tab), { replace: true })
     },
-    [activeTab, navigate, paths, selectedProfileIdFromPath, setExpandedProfileId],
-  )
-
-  const onSelectProfile = useCallback(
-    (profileId: string) => {
-      onToggleProfileCard(profileId)
-    },
-    [onToggleProfileCard],
+    [activeTab, navigate, paths, selectedProfileIdFromPath],
   )
 
   const selectedProfile = useMemo(() => {
@@ -365,9 +301,7 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       selectedId,
       setSelectedId,
       selectedProfileIdFromPath,
-      expandedProfileId,
       onSelectProfile,
-      onToggleProfileCard,
       filesRefreshNonce,
       bumpFilesRefresh,
       documentCategoriesVersion,
@@ -402,9 +336,7 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       selectedId,
       setSelectedId,
       selectedProfileIdFromPath,
-      expandedProfileId,
       onSelectProfile,
-      onToggleProfileCard,
       filesRefreshNonce,
       bumpFilesRefresh,
       documentCategoriesVersion,

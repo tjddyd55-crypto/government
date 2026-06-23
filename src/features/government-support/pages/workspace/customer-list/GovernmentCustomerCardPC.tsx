@@ -1,4 +1,3 @@
-import GovernmentProfileListExpandDetail from '../GovernmentProfileListExpandDetail'
 import {
   resolveGovernmentCustomerBusinessType,
   resolveGovernmentCustomerCardName,
@@ -10,57 +9,45 @@ import '../../../government-customer-list-pc.css'
 export type GovernmentCustomerCardPCProps = {
   profile: GovSupportProfile
   selected: boolean
-  expanded: boolean
-  deleting: boolean
   statusOptions: GovCustomerStatusOption[]
-  onToggle: () => void
-  onEdit: () => void
-  onDelete: () => void
+  onSelect: () => void
   onStatusChange: (optionId: string | null) => void
-  showDelete?: boolean
 }
 
 export default function GovernmentCustomerCardPC({
   profile,
   selected,
-  expanded,
-  deleting,
   statusOptions,
-  onToggle,
-  onEdit,
-  onDelete,
+  onSelect,
   onStatusChange,
-  showDelete = true,
 }: GovernmentCustomerCardPCProps) {
   const profileId = profile.id
   const title = resolveGovernmentCustomerCardName(profile)
   const phone = profile.phone?.trim() || '연락처 없음'
   const businessType = resolveGovernmentCustomerBusinessType(profile)
   const statusLabel = resolveGovernmentCustomerStatusLabel(profile)
-  const statusColor = profile.customerStatusColor || '#94A3B8'
+  const statusColor = profile.customerStatusColor || 'var(--gov-workspace-muted, #94a3b8)'
 
   return (
     <li
-      className={`record-card customer-card customer-expand-card government-customer-card government-customer-card--pc government-profile-list-card transition-all duration-150 ease-out${
+      className={`record-card customer-card government-customer-card government-customer-card--pc government-profile-list-card government-customer-card--compact${
         selected ? ' government-profile-list-card--active' : ''
-      }${expanded ? ' customer-expand-card--focal government-profile-list-card--expanded' : ''}`}
+      }`}
       data-profile-id={profileId}
       data-profile-selected={selected ? 'true' : 'false'}
-      data-profile-expanded={expanded ? 'true' : 'false'}
     >
-      <div className="customer-expand-card__main government-profile-list-card__main">
+      <div className="government-profile-list-card__main government-customer-card__main">
         <div
-          className={`government-profile-list-card__summary-row${
+          className={`government-profile-list-card__summary-row government-customer-card__summary-row${
             selected ? ' government-profile-list-card__summary-row--active' : ''
           }`}
         >
           <button
             type="button"
-            className="customer-expand-summary customer-expand-summary--toggle government-customer-card__summary"
-            aria-expanded={expanded}
-            aria-controls={`government-profile-expand-${profileId}`}
-            aria-label={`${title} 상세 ${expanded ? '접기' : '펼치기'}`}
-            onClick={onToggle}
+            className="government-customer-card__summary government-customer-card__summary--compact"
+            aria-current={selected ? 'true' : undefined}
+            aria-label={`${title} 선택`}
+            onClick={onSelect}
           >
             <span className="government-customer-card__primary">
               <strong className="government-customer-card__name">{title}</strong>
@@ -90,31 +77,7 @@ export default function GovernmentCustomerCardPC({
               </option>
             ))}
           </select>
-          <button
-            type="button"
-            className="customer-expand-summary__hint government-profile-list-card__chevron"
-            aria-expanded={expanded}
-            aria-label={`${title} 상세 ${expanded ? '접기' : '펼치기'}`}
-            onClick={(event) => {
-              event.stopPropagation()
-              onToggle()
-            }}
-          >
-            {expanded ? '▲' : '▼'}
-          </button>
         </div>
-
-        {expanded ? (
-          <div id={`government-profile-expand-${profileId}`} className="government-profile-list-card__detail-wrap">
-            <GovernmentProfileListExpandDetail
-              profile={profile}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              deleting={deleting}
-              showDelete={showDelete}
-            />
-          </div>
-        ) : null}
       </div>
     </li>
   )

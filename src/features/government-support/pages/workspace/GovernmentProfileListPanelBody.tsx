@@ -10,7 +10,6 @@ import { getGovernmentProgressStatusLabel } from '../../constants/governmentProg
 import { displayGovField } from '../../lib/governmentProfileDisplay'
 import type { GovSupportProfile } from '../../types/governmentProfile.types'
 import GovernmentProfileEditModal from './GovernmentProfileEditModal'
-import GovernmentProfileListExpandDetail from './GovernmentProfileListExpandDetail'
 import { isSameGovProfileId, normalizeGovProfileId } from '../../lib/governmentProfileDocumentCategories'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
 
@@ -66,9 +65,9 @@ export default function GovernmentProfileListPanelBody() {
     [confirm, navigate, ws],
   )
 
-  const handleToggleCard = useCallback(
+  const handleSelectCard = useCallback(
     (profileId: string) => {
-      ws.onToggleProfileCard(profileId)
+      ws.onSelectProfile(profileId)
     },
     [ws],
   )
@@ -112,7 +111,6 @@ export default function GovernmentProfileListPanelBody() {
             const profileId = normalizeGovProfileId(row.id)
             const pathId = normalizeGovProfileId(ws.selectedProfileIdFromPath)
             const selected = isSameGovProfileId(profileId, pathId)
-            const expanded = isSameGovProfileId(profileId, ws.expandedProfileId)
             const title = row.businessName?.trim() || row.customerName?.trim() || '이름 없음'
             const metaCustomer = row.customerName?.trim() ? `${row.customerName.trim()} · ` : ''
             const metaPhone = row.phone?.trim() ? row.phone.trim() : '연락처 없음'
@@ -121,12 +119,11 @@ export default function GovernmentProfileListPanelBody() {
             return (
               <li
                 key={profileId}
-                className={`record-card customer-card customer-expand-card government-profile-list-card transition-all duration-150 ease-out${
+                className={`record-card customer-card government-profile-list-card government-customer-card--compact transition-all duration-150 ease-out${
                   selected ? ' government-profile-list-card--active' : ''
-                }${expanded ? ' customer-expand-card--focal government-profile-list-card--expanded' : ''}`}
+                }`}
                 data-profile-id={profileId}
                 data-profile-selected={selected ? 'true' : 'false'}
-                data-profile-expanded={expanded ? 'true' : 'false'}
               >
                 <div className="customer-expand-card__main government-profile-list-card__main">
                   <div
@@ -136,11 +133,10 @@ export default function GovernmentProfileListPanelBody() {
                   >
                     <button
                       type="button"
-                      className="customer-expand-summary customer-expand-summary--toggle government-profile-list-card__summary"
-                      aria-expanded={expanded}
-                      aria-controls={`government-profile-expand-${profileId}`}
-                      aria-label={`${title} 상세 ${expanded ? '접기' : '펼치기'}`}
-                      onClick={() => handleToggleCard(profileId)}
+                      className="government-profile-list-card__summary"
+                      aria-current={selected ? 'true' : undefined}
+                      aria-label={`${title} 선택`}
+                      onClick={() => handleSelectCard(profileId)}
                     >
                       <span className="customer-expand-summary__content">
                         <strong className="government-profile-list-card__title">{title}</strong>
@@ -151,33 +147,7 @@ export default function GovernmentProfileListPanelBody() {
                         <span className="government-profile-list-card__meta">{metaStatus}</span>
                       </span>
                     </button>
-                    <button
-                      type="button"
-                      className="customer-expand-summary__hint government-profile-list-card__chevron"
-                      aria-expanded={expanded}
-                      aria-label={`${title} 상세 ${expanded ? '접기' : '펼치기'}`}
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        handleToggleCard(profileId)
-                      }}
-                    >
-                      {expanded ? '▲' : '▼'}
-                    </button>
                   </div>
-
-                  {expanded ? (
-                    <div
-                      id={`government-profile-expand-${profileId}`}
-                      className="government-profile-list-card__detail-wrap"
-                    >
-                      <GovernmentProfileListExpandDetail
-                        profile={row}
-                        onEdit={() => setEditTarget(row)}
-                        onDelete={() => void handleDeleteProfile(row)}
-                        deleting={isSameGovProfileId(deletingId, profileId)}
-                      />
-                    </div>
-                  ) : null}
                 </div>
               </li>
             )

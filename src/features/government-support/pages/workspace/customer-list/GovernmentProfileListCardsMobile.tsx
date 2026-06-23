@@ -9,13 +9,8 @@ export type GovernmentProfileListCardsMobileProps = {
   profiles: GovSupportProfile[]
   showOwnerGroups: boolean
   selectedProfileIdFromPath: string | null
-  expandedProfileId: string | null
-  deletingId: string | null
   statusOptions: GovCustomerStatusOption[]
-  canDeleteProfile: boolean
-  onToggle: (profileId: string) => void
-  onEdit: (profile: GovSupportProfile) => void
-  onDelete: (profile: GovSupportProfile) => void
+  onSelect: (profileId: string) => void
   onStatusChange: (profileId: string, optionId: string | null) => void
 }
 
@@ -26,21 +21,15 @@ function renderCard(
   const profileId = normalizeGovProfileId(row.id)
   const pathId = normalizeGovProfileId(props.selectedProfileIdFromPath)
   const selected = isSameGovProfileId(profileId, pathId)
-  const expanded = isSameGovProfileId(profileId, props.expandedProfileId)
 
   return (
     <GovernmentCustomerCardMobile
       key={profileId}
       profile={row}
       selected={selected}
-      expanded={expanded}
-      deleting={isSameGovProfileId(props.deletingId, profileId)}
       statusOptions={props.statusOptions}
-      onToggle={() => props.onToggle(profileId)}
-      onEdit={() => props.onEdit(row)}
-      onDelete={props.canDeleteProfile ? () => props.onDelete(row) : () => {}}
+      onSelect={() => props.onSelect(profileId)}
       onStatusChange={(optionId) => void props.onStatusChange(profileId, optionId)}
-      showDelete={props.canDeleteProfile}
     />
   )
 }
