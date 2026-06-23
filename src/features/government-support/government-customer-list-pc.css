@@ -1,5 +1,6 @@
 /* PC — 고객 목록 toolbar·카드 (workspace 토큰 SSOT) */
-.government-profile-list-panel--pc .government-customer-card--compact.government-profile-list-card {
+.government-profile-list-panel--pc .government-customer-card--compact.government-profile-list-card,
+.government-profile-list-panel--pc .government-customer-card--pc.government-profile-list-card {
   border: 1px solid var(--gov-workspace-border);
   border-radius: var(--gov-workspace-radius-card, 12px);
   background: var(--gov-workspace-panel);
@@ -8,12 +9,13 @@
   box-sizing: border-box;
 }
 
-.government-profile-list-panel--pc .government-customer-card--compact.government-profile-list-card--active {
+.government-profile-list-panel--pc .government-customer-card--compact.government-profile-list-card--active,
+.government-profile-list-panel--pc .government-customer-card--pc.government-profile-list-card--active {
   border-color: var(--gov-workspace-primary);
   background: var(--gov-workspace-panel);
 }
 
-.government-profile-list-panel--pc .government-customer-card--compact .government-profile-list-card__summary-row--active {
+.government-profile-list-panel--pc .government-customer-card__summary-row.government-profile-list-card__summary-row--active {
   background: var(--gov-workspace-primary-soft);
   border-radius: var(--gov-workspace-radius-control, 10px);
   padding: var(--gov-workspace-padding-inline-sm, 8px);
@@ -27,54 +29,83 @@
   margin-bottom: 14px;
 }
 
+.government-profile-list-panel--pc .government-customer-card__summary-row.government-profile-list-card__summary-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(6.75rem, 8.5rem);
+  grid-template-areas:
+    'text status'
+    'text status';
+  gap: var(--gov-workspace-gap-xs, 4px) var(--gov-workspace-gap-sm, 8px);
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+}
+
+.government-profile-list-panel--pc .government-customer-card__summary-row--expand.government-profile-list-card__summary-row {
+  grid-template-columns: minmax(0, 1fr) minmax(6.75rem, 8.5rem) 1.75rem;
+  grid-template-areas:
+    'text status chevron'
+    'text status chevron';
+}
+
 .government-profile-list-panel--pc .government-customer-card__summary {
-  flex: 1;
+  grid-area: text;
+  min-width: 0;
+  width: 100%;
   text-align: left;
   border: none;
   background: transparent;
   padding: 0;
-}
-
-.government-profile-list-panel--pc .government-customer-card__primary {
   display: grid;
-  grid-template-columns: minmax(100px, 1.1fr) minmax(110px, 0.9fr) minmax(90px, 0.8fr) minmax(90px, 0.8fr);
-  gap: var(--gov-workspace-gap-sm, 8px) var(--gov-workspace-gap-md, 10px);
-  align-items: center;
+  grid-template-rows: auto auto;
+  gap: var(--gov-workspace-gap-xs, 4px);
 }
 
 .government-profile-list-panel--pc .government-customer-card__name {
-  font-size: 15px;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--gov-workspace-font-size-md, 0.9375rem);
+  font-weight: 700;
   color: var(--gov-workspace-text);
 }
 
-.government-profile-list-panel--pc .government-customer-card__phone,
-.government-profile-list-panel--pc .government-customer-card__business-type {
-  color: var(--gov-workspace-muted);
-  font-size: 14px;
-}
-
-.government-profile-list-panel--pc .government-customer-card__status {
-  display: inline-flex;
+.government-profile-list-panel--pc .government-customer-card__meta {
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--gov-workspace-gap-xs, 4px);
+  min-width: 0;
   color: var(--gov-workspace-muted);
   font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
 }
 
-.government-profile-list-panel--pc .government-customer-card__status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
+.government-profile-list-panel--pc .government-customer-card__phone,
+.government-profile-list-panel--pc .government-customer-card__business-type {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.government-profile-list-panel--pc .government-customer-card__meta-sep {
   flex-shrink: 0;
+  color: var(--gov-workspace-muted);
 }
 
 .government-profile-list-panel--pc .government-customer-card__status-select {
-  min-width: 120px;
-  max-width: 140px;
+  grid-area: status;
+  align-self: start;
+  width: 100%;
+  min-width: 0;
+  max-width: 8.5rem;
+  flex-shrink: 0;
 }
 
-.government-profile-list-panel--pc .government-profile-list-card__summary-row {
-  display: flex;
-  align-items: center;
-  gap: var(--gov-workspace-gap-md, 10px);
+.government-profile-list-panel--pc .government-customer-card__chevron {
+  grid-area: chevron;
+  align-self: start;
+  justify-self: center;
+  flex-shrink: 0;
 }

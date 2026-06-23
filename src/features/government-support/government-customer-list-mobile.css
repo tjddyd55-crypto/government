@@ -21,6 +21,9 @@
   margin-bottom: var(--gov-workspace-gap-md, 10px);
   color: var(--gov-workspace-text);
   box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gov-workspace-gap-sm, 8px);
 }
 
 .government-profile-list-panel--mobile .government-customer-card--mobile.government-profile-list-card--active,
@@ -31,7 +34,9 @@
 }
 
 .government-profile-list-panel--mobile .government-customer-card__tap {
-  display: block;
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: var(--gov-workspace-gap-xs, 4px);
   width: 100%;
   text-align: left;
   border: none;
@@ -41,37 +46,41 @@
 }
 
 .government-profile-list-panel--mobile .government-customer-card__name {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 1rem;
   font-weight: 700;
   color: var(--gov-workspace-text);
-  margin-bottom: 4px;
+}
+
+.government-profile-list-panel--mobile .government-customer-card__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gov-workspace-gap-xs, 4px);
+  min-width: 0;
+  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
+  color: var(--gov-workspace-muted);
 }
 
 .government-profile-list-panel--mobile .government-customer-card__phone,
 .government-profile-list-panel--mobile .government-customer-card__business-type {
-  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
-  color: var(--gov-workspace-muted);
-  margin-bottom: 2px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.government-profile-list-panel--mobile .government-customer-card__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
-  color: var(--gov-workspace-muted);
-}
-
-.government-profile-list-panel--mobile .government-customer-card__status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
+.government-profile-list-panel--mobile .government-customer-card__meta-sep {
+  flex-shrink: 0;
 }
 
 .government-profile-list-panel--mobile .government-customer-card__status-select {
   width: 100%;
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .government-profile-list-panel--mobile .government-customer-card__status-select:focus {

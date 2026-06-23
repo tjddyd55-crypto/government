@@ -1,10 +1,10 @@
 import GovernmentProfileListExpandDetail from '../GovernmentProfileListExpandDetail'
-import {
-  resolveGovernmentCustomerBusinessType,
-  resolveGovernmentCustomerCardName,
-  resolveGovernmentCustomerStatusLabel,
-} from '../../../lib/governmentCustomerListDisplay'
 import type { GovCustomerStatusOption, GovSupportProfile } from '../../../types/governmentProfile.types'
+import {
+  GovernmentCustomerCardStatusSelect,
+  GovernmentCustomerCardTextFields,
+  useGovernmentCustomerCardDisplay,
+} from './GovernmentCustomerCardFields'
 import '../../../government-customer-list-mobile.css'
 
 type GovernmentCustomerCardMobileBaseProps = {
@@ -36,11 +36,18 @@ export type GovernmentCustomerCardMobileProps =
 export default function GovernmentCustomerCardMobile(props: GovernmentCustomerCardMobileProps) {
   const { profile, selected, statusOptions, onStatusChange } = props
   const profileId = profile.id
-  const title = resolveGovernmentCustomerCardName(profile)
-  const phone = profile.phone?.trim() || '연락처 없음'
-  const businessType = resolveGovernmentCustomerBusinessType(profile)
-  const statusLabel = resolveGovernmentCustomerStatusLabel(profile)
-  const statusColor = profile.customerStatusColor || 'var(--gov-workspace-muted, #94a3b8)'
+  const { title, phone, businessType } = useGovernmentCustomerCardDisplay(profile)
+
+  const cardShell = (tapButton: React.ReactNode) => (
+    <>
+      {tapButton}
+      <GovernmentCustomerCardStatusSelect
+        profile={profile}
+        statusOptions={statusOptions}
+        onStatusChange={onStatusChange}
+      />
+    </>
+  )
 
   if (props.compact) {
     return (
@@ -51,28 +58,11 @@ export default function GovernmentCustomerCardMobile(props: GovernmentCustomerCa
         data-profile-id={profileId}
         data-profile-selected={selected ? 'true' : 'false'}
       >
-        <button type="button" className="government-customer-card__tap" onClick={props.onSelect}>
-          <div className="government-customer-card__name">{title}</div>
-          <div className="government-customer-card__phone">{phone}</div>
-          <div className="government-customer-card__business-type">{businessType}</div>
-          <div className="government-customer-card__status">
-            <span className="government-customer-card__status-dot" style={{ backgroundColor: statusColor }} />
-            {statusLabel}
-          </div>
-        </button>
-        <select
-          className="gov-form-control government-customer-card__status-select"
-          value={profile.customerStatusOptionId ?? ''}
-          onChange={(e) => onStatusChange(e.target.value || null)}
-          aria-label={`${title} 고객상태`}
-        >
-          <option value="">상태 없음</option>
-          {statusOptions.map((opt) => (
-            <option key={opt.id} value={opt.id}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        {cardShell(
+          <button type="button" className="government-customer-card__tap" onClick={props.onSelect}>
+            <GovernmentCustomerCardTextFields title={title} phone={phone} businessType={businessType} />
+          </button>,
+        )}
       </li>
     )
   }
@@ -86,28 +76,11 @@ export default function GovernmentCustomerCardMobile(props: GovernmentCustomerCa
       }${expanded ? ' government-profile-list-card--expanded' : ''}`}
       data-profile-id={profileId}
     >
-      <button type="button" className="government-customer-card__tap" onClick={onToggle}>
-        <div className="government-customer-card__name">{title}</div>
-        <div className="government-customer-card__phone">{phone}</div>
-        <div className="government-customer-card__business-type">{businessType}</div>
-        <div className="government-customer-card__status">
-          <span className="government-customer-card__status-dot" style={{ backgroundColor: statusColor }} />
-          {statusLabel}
-        </div>
-      </button>
-      <select
-        className="gov-form-control government-customer-card__status-select"
-        value={profile.customerStatusOptionId ?? ''}
-        onChange={(e) => onStatusChange(e.target.value || null)}
-        aria-label={`${title} 고객상태`}
-      >
-        <option value="">상태 없음</option>
-        {statusOptions.map((opt) => (
-          <option key={opt.id} value={opt.id}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+      {cardShell(
+        <button type="button" className="government-customer-card__tap" onClick={onToggle}>
+          <GovernmentCustomerCardTextFields title={title} phone={phone} businessType={businessType} />
+        </button>,
+      )}
       {expanded ? (
         <div className="government-profile-list-card__detail-wrap">
           <GovernmentProfileListExpandDetail
