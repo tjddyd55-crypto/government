@@ -2,6 +2,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { StatusMessage } from '../../../components/feedback'
 import { FormButton, FormInput } from '../../../components/form'
+import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
 import './government-signature-public.css'
 import {
   ApiError,
@@ -315,7 +316,7 @@ export default function GovernmentSignPage() {
     >
       <div className="contract-public-link-page__inner">
         <header className="government-public-signature-brand">
-          <p className="government-public-signature-brand__eyebrow">정부지원 CRM</p>
+          <p className="government-public-signature-brand__eyebrow">{GOVERNMENT_APP_TITLE}</p>
           <h1 className="contract-public-link-page__title">전자서명</h1>
         </header>
         {body}

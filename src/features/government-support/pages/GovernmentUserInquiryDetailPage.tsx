@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { LoadingState, StatusMessage } from '../../../components/feedback'
 import { FormButton, FormTextarea } from '../../../components/form'
+import { governmentPageTitle } from '../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { useAuth } from '../../auth/AuthProvider'
 import {
@@ -40,7 +41,9 @@ export default function GovernmentUserInquiryDetailPage() {
   const [busy, setBusy] = useState(false)
 
   useDocumentTitle(
-    detail ? `정부지원 CRM · ${parseGovernmentUserInquiryTypeFromTitle(detail.title).displayTitle}` : '정부지원 CRM · 문의 상세',
+    detail
+      ? governmentPageTitle(parseGovernmentUserInquiryTypeFromTitle(detail.title).displayTitle)
+      : governmentPageTitle('문의 상세'),
   )
 
   useEffect(() => {

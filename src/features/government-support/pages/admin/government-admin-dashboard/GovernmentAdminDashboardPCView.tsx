@@ -1,3 +1,4 @@
+import { governmentAdminHubTitle } from '../../../../../config/governmentAppMeta'
 import { Link } from 'react-router-dom'
 import { LoadingState } from '../../../../../components/feedback'
 import { GOVERNMENT_ROUTE_PATHS } from '../../../constants/governmentRouteKeys'
@@ -326,7 +327,7 @@ export default function GovernmentAdminDashboardPCView(props: GovernmentAdminDas
     <main className="page platform-admin-page government-admin-dashboard-page government-admin-dashboard-page--pc platform-admin-page--pc page--with-back">
       <header className="platform-admin-page__head">
         <h1 className="platform-admin-page__title">
-          {isPlatform ? '정부지원 CRM 관리' : '운영 대시보드'}
+          {governmentAdminHubTitle(isPlatform)}
         </h1>
         <p className="platform-admin-page__lede">
           {!isPlatform && props.error ? props.error : isPlatform ? platformLede : operationalLede}

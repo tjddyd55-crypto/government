@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate, useMatch } from 'react-router-dom'
 import FormButton from '../../../../components/form/FormButton'
+import { GOVERNMENT_APP_TITLE } from '../../../../config/governmentAppMeta'
 import { useAuth } from '../../../auth/AuthProvider'
 import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
 import { useGovernmentAccess } from '../../hooks/useGovernmentAccess'
@@ -41,7 +42,7 @@ export default function GovernmentCustomerAppShell({ children, title = '정부�
   const hideInquiryCta = Boolean(useMatch(GOVERNMENT_ROUTE_PATHS.appInquiriesNew))
   const { token } = useAuth()
   const { summary } = useGovernmentAccess(token)
-  const [headerName, setHeaderName] = useState('정부지원 CRM')
+  const [headerName, setHeaderName] = useState(GOVERNMENT_APP_TITLE)
 
   useEffect(() => {
     if (summary?.programUserTenantName?.trim()) {

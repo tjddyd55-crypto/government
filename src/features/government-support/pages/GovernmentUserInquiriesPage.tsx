@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { EmptyState, LoadingState, StatusMessage } from '../../../components/feedback'
 import { FieldWrapper, FormButton, FormInput, FormSelect, FormTextarea } from '../../../components/form'
+import { governmentPageTitle } from '../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { useAuth } from '../../auth/AuthProvider'
 import {
@@ -25,7 +26,7 @@ function formatDateTime(iso: string | null): string {
 }
 
 export default function GovernmentUserInquiriesPage() {
-  useDocumentTitle('정부지원 CRM · 문의/요청')
+  useDocumentTitle(governmentPageTitle('문의/요청'))
   const navigate = useNavigate()
   const { token } = useAuth()
   const t = token?.trim() ?? ''

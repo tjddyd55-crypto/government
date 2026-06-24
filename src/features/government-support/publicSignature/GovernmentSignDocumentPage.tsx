@@ -2,6 +2,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { SignatureModal } from '../../consent/components/SignatureModal'
 import { FormButton, FormInput, FormSelect, FormTextarea } from '../../../components/form'
+import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
 import '../../consent/consent.css'
 import './government-signature-public.css'
 import {
@@ -2485,7 +2486,7 @@ export default function GovernmentSignDocumentPage() {
     >
       <div className="contract-public-sign-page__inner">
         <header className="government-public-signature-brand">
-          <p className="government-public-signature-brand__eyebrow">정부지원 CRM</p>
+          <p className="government-public-signature-brand__eyebrow">{GOVERNMENT_APP_TITLE}</p>
           <h1 className="contract-public-sign-page__h1">전자서명</h1>
         </header>
         {body}

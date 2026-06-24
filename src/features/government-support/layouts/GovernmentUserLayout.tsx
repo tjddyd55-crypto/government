@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
+import { GOVERNMENT_APP_TITLE, governmentPageTitle } from '../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import useIsMobile from '../../../hooks/useIsMobile'
 import { useAuth } from '../../auth/AuthProvider'
@@ -42,7 +42,7 @@ export default function GovernmentUserLayout() {
         className={`page government-page government-user-layout government-user-layout--mobile government-user-white-theme ${isMobile ? 'government-page--mobile' : 'government-page--pc'}`}
       >
         <GovernmentMobileWorkspaceShell
-          title="정부지원 CRM"
+          title={GOVERNMENT_APP_TITLE}
           menuItems={mobileMenuItems}
           onLogout={logout}
         >

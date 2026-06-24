@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { EmptyState, LoadingState, StatusMessage } from '../../../components/feedback'
 import { FieldWrapper, FormButton, FormInput, FormSelect } from '../../../components/form'
+import { governmentPageTitle } from '../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { useAuth } from '../../auth/AuthProvider'
 import {
@@ -16,7 +17,7 @@ import {
 } from '../constants/governmentOperations'
 
 export default function GovernmentUserResourcesPage() {
-  useDocumentTitle('정부지원 CRM · 자료실')
+  useDocumentTitle(governmentPageTitle('자료실'))
   const { token } = useAuth()
   const [rows, setRows] = useState<GovernmentResourceRow[]>([])
   const [loading, setLoading] = useState(true)

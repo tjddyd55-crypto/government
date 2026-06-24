@@ -38,8 +38,7 @@ export default function GovernmentEdocTab({ token, profileId, links, onReload, o
   return (
     <div className="government-profile-edoc-tab">
       <p className="government-page__muted">
-        보험 `/contracts/signatures` 모듈과 분리된 정부지원 전자문서 이력입니다. 실제 서명 발송 연동은 government 전용
-        모듈로 확장합니다.
+        정부지원 전자문서 발송 이력을 등록·조회합니다.
       </p>
       <div className="government-form-grid government-profile-edoc-tab__form">
         <label className="customer-workspace-tab-field">

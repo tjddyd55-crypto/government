@@ -1,12 +1,12 @@
 {
-  "name": "정부지원 CRM",
-  "short_name": "정부지원",
-  "description": "정부지원 CRM 관리 시스템",
+  "name": "CRM-정부지원",
+  "short_name": "CRM-정부지원",
+  "description": "CRM-정부지원 관리 시스템",
   "start_url": "/government/login",
   "scope": "/",
   "display": "standalone",
-  "theme_color": "#2563eb",
-  "background_color": "#0b111a",
+  "theme_color": "#facc15",
+  "background_color": "#ffffff",
   "icons": [
     {
       "src": "/favicon.png",

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { LoadingState, StatusMessage } from '../../../../components/feedback'
+import { GOVERNMENT_APP_TITLE, governmentPageTitle } from '../../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
 import { useAuth } from '../../../auth/AuthProvider'
 import { fetchMe } from '../../../auth/authApi'
@@ -16,7 +17,7 @@ function labelForAccountStatus(status: string): string {
 }
 
 export default function GovernmentUserMePage() {
-  useDocumentTitle('정부지원 CRM · 내 정보')
+  useDocumentTitle(governmentPageTitle('내 정보'))
   const { token, user } = useAuth()
   const { summary } = useGovernmentAccess(token)
   const [loading, setLoading] = useState(true)
@@ -61,7 +62,7 @@ export default function GovernmentUserMePage() {
   return (
     <section className="government-user-section gov-user-page gov-user-me-page">
       <h1 className="government-page__title">내 정보</h1>
-      <p className="government-page__muted">정부지원 CRM 이용자 계정 정보입니다.</p>
+      <p className="government-page__muted">{GOVERNMENT_APP_TITLE} 이용자 계정 정보입니다.</p>
       <dl className="government-user-me__list gov-user-card">
         {rows.map((row) => (
           <div key={row.label} className="government-user-me__row">

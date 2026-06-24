@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FormButton } from '../../../../components/form'
+import { governmentPageTitle } from '../../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
 import { useAuth } from '../../../auth/AuthProvider'
 import {
@@ -10,7 +11,7 @@ import {
 import type { GaTenantDashboardMenuEntry } from '../../../dashboard/gaTenantMenu'
 
 export default function GovernmentUserHomePage() {
-  useDocumentTitle('정부지원 CRM · 홈')
+  useDocumentTitle(governmentPageTitle('홈'))
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()

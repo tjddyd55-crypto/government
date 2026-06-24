@@ -234,7 +234,7 @@ async function main() {
   if (loginHtml.status === 200) pass('GET /login SPA', loginHtml.bundle ?? '')
   else fail('GET /login SPA', String(loginHtml.status))
 
-  if (loginHtml.js.includes('정부지원 CRM')) pass('login SPA contains government brand title')
+  if (loginHtml.js.includes('CRM-정부지원')) pass('login SPA contains government brand title')
   else fail('login SPA contains government brand title')
 
   if (!loginHtml.js.includes('Insurance CRM')) pass('login SPA without Insurance CRM sidebar brand')
@@ -244,7 +244,7 @@ async function main() {
   if (govLoginHtml.status === 200) pass('GET /government/login SPA', govLoginHtml.bundle ?? '')
   else fail('GET /government/login SPA', String(govLoginHtml.status))
 
-  if (govLoginHtml.js.includes('정부지원 CRM')) pass('government/login SPA contains government brand')
+  if (govLoginHtml.js.includes('CRM-정부지원')) pass('government/login SPA contains government brand')
   else fail('government/login SPA contains government brand')
 
   for (const m of ['government-auth-white-theme', 'gov-form-control', 'gov-btn--primary']) {

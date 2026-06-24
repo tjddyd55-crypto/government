@@ -18,7 +18,7 @@ export default function GovernmentProfileEdocPanel() {
     <section className="customer-workspace-home government-profile-mobile-card">
       <h3 className="customer-workspace-home__title">전자문서</h3>
       <p className="customer-workspace-home__desc">
-        정부지원 전자문서 발송 이력을 등록·조회합니다. 보험 전자서명 모듈과 분리되어 있습니다.
+        정부지원 전자문서 발송 이력을 등록·조회합니다.
       </p>
       <GovernmentEdocTab
         token={token}

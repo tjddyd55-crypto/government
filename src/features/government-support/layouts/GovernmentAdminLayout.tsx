@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Link, Outlet } from 'react-router-dom'
-import { GOVERNMENT_APP_TITLE } from '../../../config/governmentAppMeta'
+import { GOVERNMENT_APP_TITLE, governmentPageTitle } from '../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import useIsMobile from '../../../hooks/useIsMobile'
 import { useAuth } from '../../auth/AuthProvider'
@@ -81,7 +81,7 @@ export default function GovernmentAdminLayout() {
         data-testid="government-admin-white-theme"
       >
         <GovernmentMobileWorkspaceShell
-          title="정부지원 CRM · 관리"
+          title={governmentPageTitle('관리')}
           menuItems={mobileMenuItems}
           onLogout={logout}
           headerExtra={

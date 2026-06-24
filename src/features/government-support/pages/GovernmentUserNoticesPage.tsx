@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { EmptyState, LoadingState, StatusMessage } from '../../../components/feedback'
 import { FieldWrapper, FormInput, FormSelect } from '../../../components/form'
+import { governmentPageTitle } from '../../../config/governmentAppMeta'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { useAuth } from '../../auth/AuthProvider'
 import { fetchGovernmentNotices, type GovernmentNoticeRow } from '../api/governmentOperationsApi'
@@ -11,7 +12,7 @@ import {
 } from '../constants/governmentOperations'
 
 export default function GovernmentUserNoticesPage() {
-  useDocumentTitle('정부지원 CRM · 공지사항')
+  useDocumentTitle(governmentPageTitle('공지사항'))
   const { token } = useAuth()
   const [rows, setRows] = useState<GovernmentNoticeRow[]>([])
   const [selected, setSelected] = useState<GovernmentNoticeRow | null>(null)

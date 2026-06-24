@@ -58,7 +58,7 @@ export default function GovernmentDocumentsTab({ token, documents, onReload, onF
         onChange={(e) => void onFileSelected(e.target.files?.[0])}
       />
       <p className="government-page__muted">
-        정부지원 전용 R2 경로에 저장합니다. 보험 `/api/storage` API와 연결하지 않습니다.
+        정부지원 전용 저장소에 파일을 보관합니다. 외부 스토리지 API와 연결하지 않습니다.
       </p>
       <ul className="government-profile-documents-tab__list">
         {documents.map((doc) => (

@@ -1,3 +1,4 @@
+import { governmentPageTitle } from '../../../config/governmentAppMeta'
 import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 
 export type GovernmentProfileWorkspaceVariant = 'user' | 'agencyAdmin'
@@ -18,7 +19,7 @@ export type GovernmentProfileWorkspaceShell = {
 export const GOVERNMENT_USER_PROFILE_WORKSPACE_SHELL: GovernmentProfileWorkspaceShell = {
   variant: 'user',
   basePath: GOVERNMENT_ROUTE_PATHS.myApplications,
-  documentTitle: '정부지원 CRM · 내 사업장/신청',
+  documentTitle: governmentPageTitle('내 사업장/신청'),
   listTitle: '내 사업장/신청',
   listSubtitle: '',
   showOwnerGroups: false,
@@ -31,7 +32,7 @@ export const GOVERNMENT_USER_PROFILE_WORKSPACE_SHELL: GovernmentProfileWorkspace
 export const GOVERNMENT_AGENCY_ADMIN_CUSTOMERS_SHELL: GovernmentProfileWorkspaceShell = {
   variant: 'agencyAdmin',
   basePath: GOVERNMENT_ROUTE_PATHS.adminCustomers,
-  documentTitle: '정부지원 CRM · 고객 관리',
+  documentTitle: governmentPageTitle('고객 관리'),
   listTitle: '고객 관리',
   listSubtitle: '',
   showOwnerGroups: true,
