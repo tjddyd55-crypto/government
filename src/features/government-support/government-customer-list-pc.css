@@ -1,13 +1,4 @@
-/* PC — 고객 목록 toolbar·카드 (workspace 토큰 SSOT) */
-.government-profile-list-panel--pc .government-customer-card--compact.government-profile-list-card,
-.government-profile-list-panel--pc .government-customer-card--pc.government-profile-list-card {
-  border: 1px solid var(--gov-workspace-border);
-  border-radius: var(--gov-workspace-radius-card);
-  background: var(--gov-workspace-panel);
-  color: var(--gov-workspace-text);
-  box-sizing: border-box;
-}
-
+/* PC — 고객 목록 toolbar·카드 레이아웃 (surface/border는 government-customer-card.css) */
 .government-profile-list-panel--pc .government-customer-list-toolbar--pc {
   display: grid;
   grid-template-columns: 1fr 1fr;

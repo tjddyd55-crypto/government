@@ -1732,6 +1732,7 @@
   --gov-workspace-primary: #f2b800;
   --gov-workspace-primary-hover: #d99f00;
   --gov-workspace-primary-soft: #fff8d6;
+  --gov-workspace-selected-accent: #facc15;
   --gov-workspace-danger: #dc2626;
   --gov-workspace-danger-soft: #fff1f2;
   --gov-workspace-border-strong: #cbd5e1;
@@ -1783,6 +1784,11 @@
     var(--gov-workspace-control-height) + var(--gov-workspace-font-size-md) * 1.35 + var(--gov-customer-card-row-gap)
   );
   --gov-customer-card-expanded-padding: var(--gov-workspace-padding-inline-md);
+  --gov-customer-card-background: var(--gov-workspace-panel);
+  --gov-customer-card-border-width: 1px;
+  --gov-customer-card-border-color: var(--gov-workspace-border);
+  --gov-customer-card-selected-border-width: 2px;
+  --gov-customer-card-selected-border-color: var(--gov-workspace-selected-accent);
   flex: 1;
   min-height: 0;
   height: 100%;

@@ -4,6 +4,7 @@ import { useGovernmentConfirmDialog } from '../../hooks/useGovernmentConfirmDial
 import { useGovernmentProfileListScrollToCard } from '../../hooks/useGovernmentProfileListScrollToCard'
 import { isSameGovProfileId, normalizeGovProfileId } from '../../lib/governmentProfileDocumentCategories'
 import { collectGovernmentBusinessTypeOptions } from '../../lib/governmentCustomerListDisplay'
+import { orderGovernmentProfilesWithSelectedFirst } from '../../lib/orderGovernmentProfilesWithSelectedFirst'
 import { useGovernmentProfileWorkspaceContext } from './governmentProfileWorkspaceContext'
 import GovernmentProfileEditModal from './GovernmentProfileEditModal'
 import GovernmentProfileListToolbarMobile from './customer-list/GovernmentProfileListToolbarMobile'
@@ -31,6 +32,11 @@ export default function GovernmentProfileListPanelMobileBody() {
   const businessTypeOptions = useMemo(
     () => collectGovernmentBusinessTypeOptions(ws.profiles),
     [ws.profiles],
+  )
+
+  const orderedProfiles = useMemo(
+    () => orderGovernmentProfilesWithSelectedFirst(ws.profiles, ws.selectedProfileIdFromPath),
+    [ws.profiles, ws.selectedProfileIdFromPath],
   )
 
   const handleDeleteProfile = useCallback(
@@ -111,7 +117,7 @@ export default function GovernmentProfileListPanelMobileBody() {
       ) : (
         <ul ref={listRef} className={listClassName}>
           {isUserMode
-            ? ws.profiles.map((row) => {
+            ? orderedProfiles.map((row) => {
                 const profileId = normalizeGovProfileId(row.id)
                 const pathId = normalizeGovProfileId(ws.selectedProfileIdFromPath)
                 const selected = isSameGovProfileId(profileId, pathId)
@@ -133,7 +139,7 @@ export default function GovernmentProfileListPanelMobileBody() {
               })
             : (
                 <GovernmentProfileListCardsMobile
-                  profiles={ws.profiles}
+                  profiles={orderedProfiles}
                   showOwnerGroups={ws.shell.showOwnerGroups}
                   selectedProfileIdFromPath={ws.selectedProfileIdFromPath}
                   statusOptions={ws.statusOptions}

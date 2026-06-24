@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import GovernmentCustomerCardPC from './GovernmentCustomerCardPC'
 import GovernmentCustomerGroupSection from './GovernmentCustomerGroupSection'
 import { groupGovernmentProfilesByOwner } from '../../../lib/groupGovernmentProfilesByOwner'
+import { orderGovernmentOwnerGroupsWithSelectedFirst, orderGovernmentProfilesWithSelectedFirst } from '../../../lib/orderGovernmentProfilesWithSelectedFirst'
 import { isSameGovProfileId, normalizeGovProfileId } from '../../../lib/governmentProfileDocumentCategories'
 import type { GovCustomerStatusOption, GovSupportProfile } from '../../../types/governmentProfile.types'
 
@@ -41,13 +42,24 @@ export default function GovernmentProfileListCardsPC({
   ...cardProps
 }: GovernmentProfileListCardsPCProps) {
   const groups = useMemo(
-    () => (showOwnerGroups ? groupGovernmentProfilesByOwner(profiles) : []),
-    [profiles, showOwnerGroups],
+    () =>
+      showOwnerGroups
+        ? orderGovernmentOwnerGroupsWithSelectedFirst(
+            groupGovernmentProfilesByOwner(profiles),
+            cardProps.selectedProfileIdFromPath,
+          )
+        : [],
+    [profiles, showOwnerGroups, cardProps.selectedProfileIdFromPath],
   )
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
 
+  const orderedProfiles = useMemo(
+    () => orderGovernmentProfilesWithSelectedFirst(profiles, cardProps.selectedProfileIdFromPath),
+    [profiles, cardProps.selectedProfileIdFromPath],
+  )
+
   if (!showOwnerGroups) {
-    return <>{profiles.map((row) => renderCard(row, cardProps))}</>
+    return <>{orderedProfiles.map((row) => renderCard(row, cardProps))}</>
   }
 
   return (

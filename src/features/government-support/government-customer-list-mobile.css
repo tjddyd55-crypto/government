@@ -14,12 +14,7 @@
 
 .government-profile-list-panel--mobile .government-customer-card--mobile,
 .government-profile-list-panel--mobile .government-customer-card.government-customer-card--mobile {
-  border: 1px solid var(--gov-workspace-border);
-  border-radius: var(--gov-workspace-radius-card);
-  background: var(--gov-workspace-panel);
   margin-bottom: var(--gov-workspace-gap-md);
-  color: var(--gov-workspace-text);
-  box-shadow: none;
   box-sizing: border-box;
 }
 
@@ -110,5 +105,4 @@
   width: 100%;
   min-width: 0;
   padding-top: var(--gov-customer-card-row-gap);
-  border-top: 1px solid var(--gov-workspace-border);
 }

@@ -35,12 +35,12 @@
 }
 
 .government-admin-white-theme .government-admin-customers-workspace .government-profile-list-panel .government-profile-list-card--active {
-  border-color: var(--gov-workspace-primary);
-  background: var(--gov-workspace-panel);
+  border: var(--gov-customer-card-selected-border-width) solid var(--gov-customer-card-selected-border-color);
+  background: var(--gov-customer-card-background);
 }
 
 .government-admin-white-theme .government-admin-customers-workspace .government-profile-list-panel .government-profile-list-card__summary-row--active {
-  background: var(--gov-workspace-primary-soft);
+  background: transparent;
 }
 
 /* —— PC column header: 좌/중/우 상단 라인·높이 통일 —— */
