@@ -11,10 +11,11 @@ import { normalizeKrMobile, validateKrMobileDigits } from '../lib/phoneNormalize
 import { maskKrMobileForDisplay } from '../utils/maskKrMobile.js'
 import { exposeSmsDebugCode } from '../lib/smsDebugExposure.js'
 import { sendGovernmentSignatureSelfSmsOtp } from './governmentSignatureSelfSmsSend.js'
+import { SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE } from './smsPublicMessages.js'
 
 const SMS_TEST_MODE_MESSAGE = '현재 SMS 테스트 모드라 실제 문자가 발송되지 않았습니다.'
 const SMS_LIVE_SENT_MESSAGE = '인증번호를 발송했습니다.'
-const SMS_SEND_FAILED_MESSAGE = '문자 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+const SMS_SEND_FAILED_MESSAGE = SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE
 
 const RUNNING_IN_PRODUCTION =
   process.env.NODE_ENV === 'production' || Boolean(process.env.RAILWAY_ENVIRONMENT)
@@ -288,7 +289,7 @@ export async function governmentSignatureOtpSend(pool, opts) {
       await client.query('ROLLBACK')
       const message =
         sms.error === 'sms_provider_unconfigured'
-          ? '문자 발송 설정이 완료되지 않았습니다. 담당자에게 문의해 주세요.'
+          ? SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE
           : sms.publicMessage || SMS_SEND_FAILED_MESSAGE
       return {
         httpStatus: 503,

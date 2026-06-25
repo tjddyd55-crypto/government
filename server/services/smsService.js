@@ -1,6 +1,9 @@
 import axios from 'axios'
 import { logSmsDelivery, logSmsRetry } from './smsStructuredLog.js'
-import { SMS_PUBLIC_DELAY_MESSAGE } from './smsPublicMessages.js'
+import {
+  SMS_PUBLIC_DELAY_MESSAGE,
+  SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE,
+} from './smsPublicMessages.js'
 import {
   assertSmsCircuitClosed,
   recordSmsSendFailure,
@@ -12,6 +15,58 @@ const ALIGO_URL = 'https://apis.aligo.in/send/'
 
 function getSmsHttpGatewayUrl() {
   return String(process.env.SMS_HTTP_GATEWAY_URL ?? '').trim()
+}
+
+/** EC2 HTTP relay(SMS_HTTP_GATEWAY_URL) 설정 여부 — 정부지원 전자서명 등 relay-only 경로용 */
+export function isSmsHttpGatewayConfigured() {
+  return Boolean(getSmsHttpGatewayUrl())
+}
+
+function summarizeSmsError(err) {
+  if (err == null) {
+    return 'unknown'
+  }
+  if (typeof err === 'string') {
+    return err.slice(0, 200)
+  }
+  if (err instanceof Error) {
+    return err.message.slice(0, 200)
+  }
+  if (typeof err === 'object' && err !== null) {
+    const msg = err.message ?? err.error ?? err.msg
+    if (typeof msg === 'string' && msg.trim()) {
+      return msg.trim().slice(0, 200)
+    }
+  }
+  return String(err).slice(0, 200)
+}
+
+function extractGatewayResultCode(data) {
+  if (data == null || typeof data !== 'object') {
+    return undefined
+  }
+  const code = data.result_code ?? data.resultCode ?? data.code
+  return code == null ? undefined : String(code)
+}
+
+function logSmsRelayOutcome({
+  provider,
+  purpose,
+  phoneDigits,
+  relay,
+  resultCode,
+  errorSummary,
+  status,
+}) {
+  console.error('[smsService] SMS relay outcome', {
+    provider,
+    purpose,
+    phone: maskPhone(phoneDigits),
+    relay,
+    result_code: resultCode ?? null,
+    error: errorSummary ?? null,
+    status,
+  })
 }
 
 function getAligoCredentials() {
@@ -173,10 +228,16 @@ export function isSmsProviderConfigured() {
 }
 
 /**
- * @param {{ phoneNumber: string, code: string, purpose: string, clientIp?: string }} params
- * @returns {Promise<{ success: boolean, ok?: boolean, sent?: boolean, test?: boolean, testRecipient?: boolean, mocked?: boolean, skipped?: boolean, reason?: string, data?: unknown, error?: unknown, publicMessage?: string, retryAfterSec?: number }>}
+ * @param {{ phoneNumber: string, code: string, purpose: string, clientIp?: string, relayOnly?: boolean }} params
+ * @returns {Promise<{ success: boolean, ok?: boolean, sent?: boolean, test?: boolean, testRecipient?: boolean, mocked?: boolean, skipped?: boolean, reason?: string, data?: unknown, error?: unknown, publicMessage?: string, retryAfterSec?: number, deliveryMode?: 'test' | 'live' }>}
  */
-export async function sendVerificationCode({ phoneNumber, code, purpose, clientIp = '' }) {
+export async function sendVerificationCode({
+  phoneNumber,
+  code,
+  purpose,
+  clientIp = '',
+  relayOnly = false,
+}) {
   const receiver = normalizePhoneNumber(phoneNumber)
   const purposeNorm = String(purpose ?? '')
   const messageGateway = `인증번호는 ${code} 입니다.`
@@ -269,12 +330,45 @@ export async function sendVerificationCode({ phoneNumber, code, purpose, clientI
   }
 
   const gatewayUrl = getSmsHttpGatewayUrl()
+  if (relayOnly && !gatewayUrl) {
+    await finalizeFail('relay_unconfigured', 'http')
+    logSmsRelayOutcome({
+      provider: 'http_gateway',
+      purpose: purposeNorm,
+      phoneDigits: receiver,
+      relay: false,
+      status: 'relay_unconfigured',
+      errorSummary: 'SMS_HTTP_GATEWAY_URL missing',
+    })
+    return {
+      success: false,
+      sent: false,
+      deliveryMode: 'live',
+      publicMessage: SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE,
+    }
+  }
+
   if (gatewayUrl) {
     if (SMS_GATEWAY_HEALTH_CHECK) {
       const h = await checkSmsGatewayHealth()
       if (!h.ok) {
         await finalizeFail('gateway_health_fail', 'http')
-        return { success: false, sent: false, publicMessage: SMS_PUBLIC_DELAY_MESSAGE }
+        logSmsRelayOutcome({
+          provider: 'http_gateway',
+          purpose: purposeNorm,
+          phoneDigits: receiver,
+          relay: true,
+          status: 'gateway_health_fail',
+          errorSummary: 'health check failed',
+        })
+        return {
+          success: false,
+          sent: false,
+          deliveryMode: 'live',
+          publicMessage: relayOnly
+            ? SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE
+            : SMS_PUBLIC_DELAY_MESSAGE,
+        }
       }
     }
 
@@ -299,7 +393,23 @@ export async function sendVerificationCode({ phoneNumber, code, purpose, clientI
         response = await runOnce()
       } catch (err2) {
         await finalizeFail('gateway_error', 'http')
-        return { success: false, sent: false, error: err2, publicMessage: SMS_PUBLIC_DELAY_MESSAGE }
+        logSmsRelayOutcome({
+          provider: 'http_gateway',
+          purpose: purposeNorm,
+          phoneDigits: receiver,
+          relay: true,
+          status: 'gateway_error',
+          errorSummary: summarizeSmsError(err2),
+        })
+        return {
+          success: false,
+          sent: false,
+          deliveryMode: 'live',
+          error: err2,
+          publicMessage: relayOnly
+            ? SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE
+            : SMS_PUBLIC_DELAY_MESSAGE,
+        }
       }
     }
 
@@ -314,7 +424,23 @@ export async function sendVerificationCode({ phoneNumber, code, purpose, clientI
       response = await runOnce()
     } catch (err) {
       await finalizeFail('gateway_error', 'http')
-      return { success: false, sent: false, error: err, publicMessage: SMS_PUBLIC_DELAY_MESSAGE }
+      logSmsRelayOutcome({
+        provider: 'http_gateway',
+        purpose: purposeNorm,
+        phoneDigits: receiver,
+        relay: true,
+        status: 'gateway_error',
+        errorSummary: summarizeSmsError(err),
+      })
+      return {
+        success: false,
+        sent: false,
+        deliveryMode: 'live',
+        error: err,
+        publicMessage: relayOnly
+          ? SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE
+          : SMS_PUBLIC_DELAY_MESSAGE,
+      }
     }
 
     if (response.status >= 200 && response.status < 300) {
@@ -323,7 +449,43 @@ export async function sendVerificationCode({ phoneNumber, code, purpose, clientI
     }
 
     await finalizeFail('gateway_reject', 'http')
-    return { success: false, sent: false, data: response.data, publicMessage: SMS_PUBLIC_DELAY_MESSAGE }
+    const resultCode = extractGatewayResultCode(response.data)
+    logSmsRelayOutcome({
+      provider: 'http_gateway',
+      purpose: purposeNorm,
+      phoneDigits: receiver,
+      relay: true,
+      resultCode,
+      status: 'gateway_reject',
+      errorSummary: summarizeSmsError(response.data),
+    })
+    return {
+      success: false,
+      sent: false,
+      deliveryMode: 'live',
+      data: response.data,
+      publicMessage: relayOnly
+        ? SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE
+        : SMS_PUBLIC_DELAY_MESSAGE,
+    }
+  }
+
+  if (relayOnly) {
+    await finalizeFail('relay_unconfigured', 'http')
+    logSmsRelayOutcome({
+      provider: 'http_gateway',
+      purpose: purposeNorm,
+      phoneDigits: receiver,
+      relay: false,
+      status: 'relay_only_aligo_blocked',
+      errorSummary: 'direct aligo blocked for relay-only purpose',
+    })
+    return {
+      success: false,
+      sent: false,
+      deliveryMode: 'live',
+      publicMessage: SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE,
+    }
   }
 
   /**

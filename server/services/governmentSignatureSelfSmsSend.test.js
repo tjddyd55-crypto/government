@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE } from './smsPublicMessages.js'
 
 const ENV_KEYS = [
   'NODE_ENV',
@@ -39,7 +40,7 @@ async function importFreshGovSmsSend() {
   return import(`./governmentSignatureSelfSmsSend.js?test=${stamp}`)
 }
 
-test('sendGovernmentSignatureSelfSmsOtp — ALIGO test mode returns sent=false without provider call side effects', async () => {
+test('sendGovernmentSignatureSelfSmsOtp — production without EC2 relay returns unconfigured (Aligo creds ignored)', async () => {
   await withEnv(
     {
       NODE_ENV: 'production',
@@ -48,6 +49,7 @@ test('sendGovernmentSignatureSelfSmsOtp — ALIGO test mode returns sent=false w
       ALIGO_USER_ID: 'user',
       ALIGO_SENDER: '01012345678',
       ALIGO_TEST_MODE: 'Y',
+      SMS_HTTP_GATEWAY_URL: '',
     },
     async () => {
       const { sendGovernmentSignatureSelfSmsOtp } = await importFreshGovSmsSend()
@@ -56,14 +58,14 @@ test('sendGovernmentSignatureSelfSmsOtp — ALIGO test mode returns sent=false w
         code: '123456',
         purpose: 'gov_signature',
       })
-      assert.equal(result.ok, true)
-      assert.equal(result.sent, false)
-      assert.equal(result.deliveryMode, 'test')
+      assert.equal(result.ok, false)
+      assert.equal(result.error, 'sms_provider_unconfigured')
+      assert.equal(result.publicMessage, SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE)
     },
   )
 })
 
-test('sendGovernmentSignatureSelfSmsOtp — live mode uses provider path when ALIGO_TEST_MODE=N', async () => {
+test('sendGovernmentSignatureSelfSmsOtp — live mode uses EC2 relay when ALIGO_TEST_MODE=N', async () => {
   await withEnv(
     {
       NODE_ENV: 'production',
@@ -83,12 +85,12 @@ test('sendGovernmentSignatureSelfSmsOtp — live mode uses provider path when AL
       })
       assert.equal(result.ok, false)
       assert.equal(result.error, 'sms_send_failed')
-      assert.match(String(result.publicMessage), /문자 발송|다시 시도/)
+      assert.equal(result.publicMessage, SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE)
     },
   )
 })
 
-test('sendGovernmentSignatureSelfSmsOtp — missing provider in production returns unconfigured error', async () => {
+test('sendGovernmentSignatureSelfSmsOtp — missing relay in production returns unconfigured error', async () => {
   await withEnv(
     {
       NODE_ENV: 'production',
@@ -108,6 +110,7 @@ test('sendGovernmentSignatureSelfSmsOtp — missing provider in production retur
       })
       assert.equal(result.ok, false)
       assert.equal(result.error, 'sms_provider_unconfigured')
+      assert.equal(result.publicMessage, SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE)
     },
   )
 })

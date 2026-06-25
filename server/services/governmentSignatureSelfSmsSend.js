@@ -1,4 +1,8 @@
-import { isSmsProviderConfigured, sendVerificationCode } from './smsService.js'
+import {
+  isSmsHttpGatewayConfigured,
+  sendVerificationCode,
+} from './smsService.js'
+import { SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE } from './smsPublicMessages.js'
 import { maskKrMobileForDisplay } from '../utils/maskKrMobile.js'
 
 function isRunningInProduction() {
@@ -40,8 +44,8 @@ export async function sendGovernmentSignatureSelfSmsOtp(p) {
     return { ok: false, error: 'sms_mock_forbidden' }
   }
 
-  if (!isRunningInProduction() && (govSignatureOtpSmsMockEnabled() || !isSmsProviderConfigured())) {
-    console.log('[gov signature OTP SMS mock]', { toMasked: masked, purpose })
+  if (!isRunningInProduction() && (govSignatureOtpSmsMockEnabled() || !isSmsHttpGatewayConfigured())) {
+    console.log('[gov signature OTP SMS mock]', { toMasked: masked, purpose, relay: false })
     return {
       ok: true,
       mock: true,
@@ -51,9 +55,17 @@ export async function sendGovernmentSignatureSelfSmsOtp(p) {
     }
   }
 
-  if (isRunningInProduction() && !isSmsProviderConfigured()) {
-    console.error('[gov signature OTP SMS] provider not configured in production')
-    return { ok: false, error: 'sms_provider_unconfigured' }
+  if (isRunningInProduction() && !isSmsHttpGatewayConfigured()) {
+    console.error('[gov signature OTP SMS] EC2 relay not configured in production', {
+      purpose,
+      toMasked: masked,
+      relay: false,
+    })
+    return {
+      ok: false,
+      error: 'sms_provider_unconfigured',
+      publicMessage: SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE,
+    }
   }
 
   const res = await sendVerificationCode({
@@ -61,6 +73,7 @@ export async function sendGovernmentSignatureSelfSmsOtp(p) {
     code,
     purpose,
     clientIp,
+    relayOnly: true,
   })
   if (!res.success) {
     return {
@@ -70,7 +83,7 @@ export async function sendGovernmentSignatureSelfSmsOtp(p) {
       publicMessage:
         typeof res.publicMessage === 'string' && res.publicMessage.trim()
           ? res.publicMessage.trim()
-          : '문자 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+          : SMS_PUBLIC_SERVER_CONFIG_FAILED_MESSAGE,
     }
   }
   return {
