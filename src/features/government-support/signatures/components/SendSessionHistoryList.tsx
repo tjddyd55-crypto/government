@@ -127,13 +127,14 @@ export function SendSessionHistoryList({
     <div className="contract-signature-console__scroll-x">
       <table className="contract-history-table contract-signature-console__table--striped">
         <colgroup>
-          <col style={{ width: '9.5%' }} />
-          <col style={{ width: '19%' }} />
+          <col style={{ width: '10%' }} />
+          <col style={{ width: '14%' }} />
+          <col style={{ width: '16%' }} />
           <col style={{ width: '8%' }} />
           <col style={{ width: '8%' }} />
-          <col style={{ width: '11%' }} />
-          <col style={{ width: '11%' }} />
-          <col style={{ width: '31%' }} />
+          <col style={{ width: '10%' }} />
+          <col style={{ width: '10%' }} />
+          <col style={{ width: '24%' }} />
         </colgroup>
         <thead>
           <tr>

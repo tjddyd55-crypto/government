@@ -186,7 +186,8 @@
 
 /* 단독 이용자 페이지(3컬럼 워크스페이스 제외) — outlet 직계 자식이 세로 스크롤 */
 .government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > .gov-user-page,
-.government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > main.gov-user-signatures-page,
+.government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > main.gov-signature-send-page,
+.government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > main.gov-user-signatures-history-page,
 .government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > .government-user-section,
 .government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > .claim-inbox,
 .government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > .page {
@@ -464,8 +465,8 @@
   font-weight: 700;
 }
 
-/* —— 전자서명 발송: 단계 카드 간격 —— */
-.government-user-layout--pc-user main.gov-user-signatures-page.contract-signature-console .contract-signature-console__container {
+/* —— 전자서명 발송(send): 단계 카드 간격 — send-page.css 와 중복 방지, send 전용만 —— */
+.government-user-layout--pc-user main.gov-signature-send-page.contract-signature-console .contract-signature-console__container {
   display: flex;
   flex-direction: column;
   gap: 14px;

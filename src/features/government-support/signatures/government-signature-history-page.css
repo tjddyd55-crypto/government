@@ -1,0 +1,376 @@
+/**
+ * 정부지원 전자서명 발송 내역 (/government/signatures) — PC·모바일 레이아웃.
+ * admin 전용 government-signature-admin.css 와 분리. send 페이지 CSS 와도 분리.
+ */
+
+/* —— 페이지 root: outlet flex stretch 가 table row 를 늘리지 않도록 —— */
+.government-user-layout--pc-user main.gov-user-signatures-history-page.contract-signature-console {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: transparent;
+  padding: 0;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-history-page .contract-signature-console__container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 0 0 auto;
+  min-height: auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 18px 20px 32px;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user main.gov-user-signatures-history-page .contract-signature-console__section {
+  flex: 0 0 auto;
+  min-height: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+/* —— 발송 내역 테이블 · 액션 · 상세 모달 (PC + 모바일 공통 클래스) —— */
+main.contract-signature-history-page.contract-signature-console .contract-signature-console__scroll-x {
+  overflow-x: auto;
+  width: 100%;
+  min-width: 0;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-history-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-history-table th,
+main.contract-signature-history-page.contract-signature-console .contract-history-table td {
+  padding: 10px 12px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--gov-workspace-border, #d7dee8);
+  box-sizing: border-box;
+  line-height: 1.35;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-history-table tbody tr {
+  min-height: 0;
+  height: auto;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-history-table th {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gov-workspace-muted, #64748b);
+  background: #f8fafc;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-history-table td {
+  color: var(--gov-workspace-text, #0f172a);
+  background: #ffffff;
+}
+
+main.contract-signature-history-page.contract-signature-console
+  .contract-signature-console__table--striped.contract-history-table
+  tbody
+  tr:nth-child(even)
+  td {
+  background: #f8fafc;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-table-cell-center {
+  text-align: center;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-table-cell-left {
+  text-align: left;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-table-date {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-table-empty {
+  color: var(--gov-workspace-muted, #64748b);
+  font-size: 13px;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-table-document {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-table-customer {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-table-phone {
+  line-height: 1.35;
+  white-space: normal;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-table-cell-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-table-cell-stack--center {
+  align-items: center;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-table-progress {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.25;
+  font-size: 12px;
+}
+
+main.contract-signature-history-page.contract-signature-console .history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 168px;
+  margin-left: auto;
+}
+
+main.contract-signature-history-page.contract-signature-console .history-actions__cancel {
+  flex: 1 1 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+main.contract-signature-history-page.contract-signature-console .history-actions__cancel button {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 72px;
+}
+
+main.contract-signature-history-page.contract-signature-console .history-actions button {
+  min-width: 72px;
+  flex: 0 1 auto;
+  height: 32px;
+  min-height: 32px;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  width: auto;
+}
+
+/* —— 상세 모달 —— */
+main.contract-signature-history-page.contract-signature-console .contract-signature-console__detail-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100050;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+@media (min-width: 640px) {
+  main.contract-signature-history-page.contract-signature-console .contract-signature-console__detail-backdrop {
+    align-items: center;
+  }
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-signature-console__detail-dialog {
+  max-height: 90dvh;
+  width: min(760px, calc(100vw - 32px));
+  max-width: 760px;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid var(--gov-workspace-border, #d7dee8);
+  background: #ffffff;
+  padding: 16px 20px;
+  color: var(--gov-workspace-text, #0f172a);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+  box-sizing: border-box;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-signature-console__detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-signature-console__detail-dl {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-signature-console__detail-dl dt {
+  color: var(--gov-workspace-muted, #64748b);
+  margin: 0;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-signature-console__detail-dl dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-doc-table {
+  width: 100%;
+  min-width: 680px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-doc-table th,
+main.contract-signature-history-page.contract-signature-console .contract-session-doc-table td {
+  padding: 10px 8px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--gov-workspace-border, #d7dee8);
+  box-sizing: border-box;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-doc-table th {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gov-workspace-muted, #64748b);
+  background: #f8fafc;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-signature-console__session-doc-table-wrap {
+  overflow-x: auto;
+  margin-top: 8px;
+  border: 1px solid var(--gov-workspace-border, #d7dee8);
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+main.contract-signature-history-page.contract-signature-console .session-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+main.contract-signature-history-page.contract-signature-console .session-modal-actions__left,
+main.contract-signature-history-page.contract-signature-console .session-modal-actions__right {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-doc-dl-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 32px;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-doc-dl-wrap button {
+  height: 32px;
+  min-width: 72px;
+  padding: 0 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-pdf-dl-btn {
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-pdf-dl-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-pdf-dl-btn--wide {
+  width: 100%;
+  min-height: 40px;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-detail-evidence-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-detail-mobile-docs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-detail-doc-card {
+  padding: 12px;
+  border: 1px solid var(--gov-workspace-border, #d7dee8);
+  border-radius: 10px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-detail-doc-card__title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-session-doc-pending {
+  margin: 0;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+main.contract-signature-history-page.contract-signature-console .contract-status-badge.contract-signature-console__status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-sizing: border-box;
+}

@@ -9,6 +9,7 @@ import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import '../../pdf-engine/pdf-engine.css'
 import '../signatureTemplates/government-signature-console.css'
 import '../signatures/government-signature-send-mobile.css'
+import './government-signature-history-page.css'
 import { useAuth } from '../../auth/AuthProvider'
 import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 import { mapGovernmentSignatureApiError } from './governmentSignatureUserDisplay'
@@ -250,7 +251,7 @@ export default function GovernmentSignatureHistoryPage() {
       className={
         (historyMobile
           ? 'insurance-dark-forms contract-signature-flow--mobile'
-          : 'gov-user-page gov-user-signatures-page') +
+          : 'gov-user-page gov-user-signatures-page gov-user-signatures-history-page') +
         ' contract-signature-console contract-signature-history-page'
       }
     >
