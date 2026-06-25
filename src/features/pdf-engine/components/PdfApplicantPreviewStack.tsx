@@ -36,9 +36,15 @@ import { getPdfJsCmapAndStandardFontUrls } from '../../../lib/pdfjs/pdfDocumentI
 import { setupPdfWorker } from '../../../lib/pdfjs/setupWorker'
 import type { PdfFieldSpec } from '../types'
 import {
+  getPdfApplicantSelectionHighlightPaint,
+  type PdfApplicantSelectionHighlight,
+} from '../lib/pdfApplicantSelectionHighlight'
+import {
   PDF_STAMP_RADIO_OUTLINE_CSS,
   stampRadioBorderWidthFromRadius,
 } from '../lib/pdfStampRadioPreviewMath'
+
+export type { PdfApplicantSelectionHighlight } from '../lib/pdfApplicantSelectionHighlight'
 
 setupPdfWorker()
 
@@ -48,6 +54,7 @@ const MAX_PDF_PREVIEW_DEVICE_PIXEL_RATIO = 3
 
 export type PdfApplicantPreviewHandle = {
   scrollToField: (fieldKey: string) => void
+  scrollToPage: (pageIndex: number) => void
 }
 
 function parseCheckboxJson(raw: string): string[] {
@@ -105,6 +112,8 @@ type PageProps = {
   values: Record<string, string>
   fontSizeOverrides?: Record<string, number>
   highlightedFieldKey: string | null
+  /** 편집 미리보기 전용 — 실제 수신자 화면에는 선택 강조 없음 */
+  selectionHighlight?: PdfApplicantSelectionHighlight
   previewInnerWidth: number
   /** 미리보기 패널(뷰포트) 높이 — 0이면 너비 기준만 사용 */
   previewMaxHeight: number
@@ -122,6 +131,7 @@ const ApplicantPdfPageRow = forwardRef<HTMLDivElement | null, PageProps>(functio
     values,
     fontSizeOverrides,
     highlightedFieldKey,
+    selectionHighlight = 'default',
     previewInnerWidth,
     previewMaxHeight,
     uiScaleMultiplier,
@@ -255,6 +265,7 @@ const ApplicantPdfPageRow = forwardRef<HTMLDivElement | null, PageProps>(functio
 
   const overlays = useMemo(() => {
     if (!viewport) return null
+    const hiPaint = getPdfApplicantSelectionHighlightPaint(selectionHighlight)
     const out: JSX.Element[] = []
     for (const field of fields) {
       const val = values[field.fieldKey] ?? ''
@@ -278,8 +289,8 @@ const ApplicantPdfPageRow = forwardRef<HTMLDivElement | null, PageProps>(functio
                   pointerEvents: 'none',
                   boxSizing: 'border-box',
                   borderRadius: 2,
-                  border: '2px solid rgba(59,130,246,0.95)',
-                  background: 'rgba(59,130,246,0.08)',
+                  border: hiPaint.outline,
+                  background: hiPaint.softBackground,
                 }}
                 aria-hidden
               />,
@@ -328,7 +339,7 @@ const ApplicantPdfPageRow = forwardRef<HTMLDivElement | null, PageProps>(functio
             borderRadius: 2,
             boxShadow:
               isHi && (field.fieldType === 'text' || field.fieldType === 'textarea')
-                ? '0 0 0 2px rgba(59,130,246,0.9)'
+                ? hiPaint.boxShadow
                 : exceeds
                   ? 'inset 0 0 0 1px rgba(239,68,68,0.5)'
                   : undefined,
@@ -381,7 +392,7 @@ const ApplicantPdfPageRow = forwardRef<HTMLDivElement | null, PageProps>(functio
                 boxSizing: 'border-box',
                 background: 'transparent',
                 border: `${borderW}px solid ${PDF_STAMP_RADIO_OUTLINE_CSS}`,
-                boxShadow: hl ? '0 0 0 2px rgba(59,130,246,0.85)' : undefined,
+                boxShadow: hl ? hiPaint.boxShadow : undefined,
               }}
               aria-hidden
             />,
@@ -431,7 +442,7 @@ const ApplicantPdfPageRow = forwardRef<HTMLDivElement | null, PageProps>(functio
                 style={{
                   position: 'absolute',
                   ...cssBox,
-                  outline: '2px solid rgba(59,130,246,0.95)',
+                  outline: hiPaint.outline,
                   pointerEvents: 'none',
                   borderRadius: 2,
                 }}
@@ -439,11 +450,42 @@ const ApplicantPdfPageRow = forwardRef<HTMLDivElement | null, PageProps>(functio
               />,
             )
           }
+          continue
+        }
+
+        if (cssBox && field.fieldType === 'signature') {
+          const hl = isHi
+          out.push(
+            <div
+              key={`${field.fieldKey}-${lp}-sig`}
+              style={{
+                position: 'absolute',
+                left: cssBox.left,
+                top: cssBox.top,
+                width: cssBox.width,
+                height: cssBox.height,
+                pointerEvents: 'none',
+                boxSizing: 'border-box',
+                border: hl ? hiPaint.outline : '1px dashed rgba(15, 23, 42, 0.35)',
+                borderRadius: 4,
+                background: 'rgba(242, 184, 0, 0.14)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: Math.max(10, Math.min(cssBox.height * 0.28, 14)),
+                fontWeight: 600,
+                color: '#64748b',
+              }}
+              aria-hidden
+            >
+              서명
+            </div>,
+          )
         }
       }
     }
     return out
-  }, [fields, fontSizeOverrides, highlightedFieldKey, pageIndex, values, viewport])
+  }, [fields, fontSizeOverrides, highlightedFieldKey, pageIndex, selectionHighlight, values, viewport])
 
   return (
     <div ref={mergedRefCallback} className="pdf-applicant-preview__page-wrap">
@@ -488,6 +530,8 @@ type StackProps = {
   fontSizeOverrides?: Record<string, number>
   highlightedFieldKey: string | null
   className?: string
+  /** 편집 미리보기: 선택 필드 outline(실제 수신자 문서에는 없음) */
+  selectionHighlight?: PdfApplicantSelectionHighlight
   /** PC 미리보기 창 — 있으면 너비·높이로 contain 스케일에 사용 */
   previewContainerRef?: MutableRefObject<HTMLDivElement | null>
   /** PC 작성 미리보기 확대·축소 — 없으면 fit 만 (배율 1) */
@@ -496,7 +540,7 @@ type StackProps = {
 
 export const PdfApplicantPreviewStack = forwardRef<PdfApplicantPreviewHandle, StackProps>(
   function PdfApplicantPreviewStack(
-    { pdfBuffer, fields, values, fontSizeOverrides, highlightedFieldKey, className, previewContainerRef, sidePreviewScale },
+    { pdfBuffer, fields, values, fontSizeOverrides, highlightedFieldKey, className, previewContainerRef, sidePreviewScale, selectionHighlight = 'default' },
     refOut,
   ) {
     const scrollRootRef = useRef<HTMLDivElement | null>(null)
@@ -587,7 +631,17 @@ export const PdfApplicantPreviewStack = forwardRef<PdfApplicantPreviewHandle, St
       [fields, pages, values],
     )
 
-    useImperativeHandle(refOut, () => ({ scrollToField }), [scrollToField])
+    const scrollToPage = useCallback(
+      (pageIndex: number) => {
+        const pi = Math.trunc(pageIndex)
+        if (pi < 0 || pi >= pages) return
+        const el = pageAnchorsRef.current[pi]
+        el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      },
+      [pages],
+    )
+
+    useImperativeHandle(refOut, () => ({ scrollToField, scrollToPage }), [scrollToField, scrollToPage])
 
     useEffect(() => {
       if (!highlightedFieldKey) return
@@ -612,6 +666,7 @@ export const PdfApplicantPreviewStack = forwardRef<PdfApplicantPreviewHandle, St
             values={values}
             fontSizeOverrides={fontSizeOverrides}
             highlightedFieldKey={highlightedFieldKey}
+            selectionHighlight={selectionHighlight}
             previewInnerWidth={innerW}
             previewMaxHeight={previewMaxHeight}
             uiScaleMultiplier={uiScaleMultiplier}

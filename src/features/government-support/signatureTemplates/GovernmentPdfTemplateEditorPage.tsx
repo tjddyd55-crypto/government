@@ -25,6 +25,7 @@ import {
 } from './governmentSignaturePdfTemplateClient'
 import '../../pdf-engine/pdf-engine.css'
 import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
+import '../publicSignature/government-signature-public.css'
 import './government-signature-console.css'
 
 const PDF_LIST_HREF = GOVERNMENT_ROUTE_PATHS.adminSignaturePdfList
@@ -281,6 +282,9 @@ function EditGovPdfFlow({ token, templateId }: { token: string; templateId: numb
           onSaveFields={() => void persistFields()}
           savingFields={savingFields}
           fieldsDirty={fieldsDirty}
+          recipientLivePreview
+          recipientPreviewVariant="government-public-sign"
+          recipientPreviewDocumentTitle={state.template.title}
         />
       </div>
     </main>

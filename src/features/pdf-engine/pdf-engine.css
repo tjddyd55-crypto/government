@@ -1460,3 +1460,192 @@
   margin-bottom: 10px;
 }
 
+/* ─── 템플릿 편집: 수신자 PDF 미리보기(4열) ─── */
+
+.pdf-engine-editor--recipient-preview {
+  grid-template-columns: 220px minmax(260px, 300px) minmax(400px, 1fr) minmax(280px, 380px);
+}
+
+@media (max-width: 1600px) {
+  .pdf-engine-editor--recipient-preview {
+    grid-template-columns: 200px minmax(240px, 280px) minmax(360px, 1fr) minmax(260px, 340px);
+  }
+}
+
+@media (max-width: 1280px) {
+  .pdf-engine-editor--recipient-preview {
+    grid-template-columns: 200px minmax(240px, 280px) minmax(320px, 1fr);
+  }
+
+  .pdf-engine-editor--recipient-preview .pdf-engine-editor__panel--recipient-preview {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+}
+
+.pdf-engine-editor--recipient-preview .pdf-engine-editor__panel--preview {
+  min-width: min(100%, 360px);
+}
+
+.pdf-engine-editor__panel--recipient-preview {
+  position: sticky;
+  top: 12px;
+  align-self: start;
+  max-height: calc(100vh - 96px);
+  overflow: hidden;
+  min-width: 0;
+  max-width: 380px;
+  width: 100%;
+  justify-self: end;
+}
+
+.pdf-engine-editor__recipient-preview-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pdf-engine-editor__recipient-preview-lead {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.pdf-engine-editor__recipient-page-note {
+  margin: 0;
+  font-size: 12px;
+}
+
+.pdf-template-recipient-preview-shell {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 4px;
+}
+
+.pdf-template-recipient-preview-shell__device {
+  width: 100%;
+  max-width: 360px;
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 22px;
+  background: #f8fafc;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: min(72vh, calc(100vh - 220px));
+}
+
+.pdf-template-recipient-preview-shell__statusbar {
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.pdf-template-recipient-preview-shell__statusbar-notch {
+  width: 72px;
+  height: 4px;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.pdf-template-recipient-preview-shell__appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.pdf-template-recipient-preview-shell__appbar-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.pdf-template-recipient-preview-shell__badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff8d6;
+  color: #92400e;
+  border: 1px solid #f2b800;
+}
+
+.pdf-template-recipient-preview-shell__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fb;
+  padding: 10px 10px 0;
+}
+
+.pdf-template-recipient-preview-shell__step-label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pdf-template-recipient-preview-shell__document-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  padding: 6px;
+}
+
+.pdf-template-recipient-preview-shell__stack {
+  width: 100%;
+}
+
+.pdf-template-recipient-preview-shell__footer {
+  padding: 10px 12px 14px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pdf-template-recipient-preview-shell__cta {
+  width: 100%;
+  min-height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: #f2b800;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .pdf-engine-editor--recipient-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .pdf-engine-editor--recipient-preview .pdf-engine-editor__panel--recipient-preview {
+    position: static;
+    max-height: none;
+  }
+
+  .pdf-template-recipient-preview-shell__device {
+    max-width: 100%;
+    max-height: none;
+  }
+}
+

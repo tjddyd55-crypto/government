@@ -27,6 +27,7 @@ import {
 } from './PdfFieldDataMappingControls'
 import { genPdfFieldKeyFromLabel } from '../pdfFieldKey'
 import { PdfOverlayCanvas, type OverlayMark, type OverlayPick, type PdfOverlayDebugMeta } from './PdfOverlayCanvas'
+import { PdfTemplateRecipientLivePreview, type PdfTemplateRecipientPreviewVariant } from './PdfTemplateRecipientLivePreview'
 import FormInput from '../../../components/form/FormInput'
 
 /** 1차 UX: 좌표 숫자 편집 숨김. 고급 설정으로 되살릴 때 `true` 로 전환해 `PlacementMetaEditor` 를 연결. */
@@ -42,6 +43,10 @@ interface Props {
   fieldsDirty: boolean
   /** 좌표 화면 개발 로그용(스토리지 경로는 넣지 않음) */
   templateId?: number
+  /** 수신자 PDF 미리보기 패널 — PdfApplicantPreviewStack 재사용 */
+  recipientLivePreview?: boolean
+  recipientPreviewVariant?: PdfTemplateRecipientPreviewVariant
+  recipientPreviewDocumentTitle?: string
 }
 
 type DraftField = {
@@ -112,6 +117,9 @@ export function PdfCoordinateEditor({
   savingFields,
   fieldsDirty,
   templateId,
+  recipientLivePreview = false,
+  recipientPreviewVariant = 'default',
+  recipientPreviewDocumentTitle,
 }: Props) {
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   /**
@@ -601,7 +609,11 @@ export function PdfCoordinateEditor({
   const canvasClickEnabled = Boolean(selectedKey) && !radioPlacementBlocked
 
   return (
-    <div className="pdf-engine-editor">
+    <div
+      className={
+        'pdf-engine-editor' + (recipientLivePreview ? ' pdf-engine-editor--recipient-preview' : '')
+      }
+    >
       <aside className="pdf-engine-editor__panel pdf-engine-editor__panel--fields">
         <h3 className="pdf-engine-editor__panel-title">등록된 필드 ({fields.length})</h3>
         {fields.length > 0 ? (
@@ -1128,6 +1140,17 @@ export function PdfCoordinateEditor({
           />
         </div>
       </section>
+
+      {recipientLivePreview ? (
+        <PdfTemplateRecipientLivePreview
+          pdfBuffer={pdfBuffer}
+          fields={fields}
+          highlightedFieldKey={selectedKey}
+          currentPageIndex={pageIndex}
+          variant={recipientPreviewVariant}
+          documentTitle={recipientPreviewDocumentTitle}
+        />
+      ) : null}
     </div>
   )
 }

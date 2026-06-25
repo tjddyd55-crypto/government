@@ -1381,3 +1381,21 @@ main.government-admin-signature-page.contract-signature-console .contract-signat
   }
 }
 
+/* PDF 좌표 편집 — 수신자 미리보기(정부 공개 서명 톤) */
+main.government-admin-signature-page.pdf-engine-page--editor .pdf-template-recipient-preview-shell--government .pdf-template-recipient-preview-shell__body {
+  background: #f5f7fb;
+}
+
+main.government-admin-signature-page.pdf-engine-page--editor
+  .pdf-template-recipient-preview-shell--government
+  .pdf-template-recipient-preview-shell__document-scroll {
+  border-color: #d7dee8;
+}
+
+main.government-admin-signature-page.pdf-engine-page--editor
+  .pdf-template-recipient-preview-shell--government
+  .pdf-template-recipient-preview-shell__cta {
+  background: #f2b800;
+  color: #111827;
+}
+
