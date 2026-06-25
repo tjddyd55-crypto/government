@@ -92,19 +92,19 @@ export function SendSessionDetailPanel({
     const ev = d.evidence
     const canDlSigned = d.status === 'completed' && Boolean(ev?.hasSignedPdfFile)
     return (
-      <div className="contract-session-doc-dl-wrap">
+      <div className="contract-session-doc-dl-cell">
         <FormButton
           htmlType="button"
           variant="secondary"
           size="sm"
-          className="contract-session-pdf-dl-btn"
+          className="contract-session-pdf-dl-btn contract-session-pdf-dl-btn--cell"
           disabled={!canDlSigned}
           onClick={() => runSignedDownload(d.id)}
         >
           {signedPdfDownloadLabel}
         </FormButton>
         {d.status === 'completed' && !ev?.hasSignedPdfFile ? (
-          <span className="contract-signature-console__hint contract-session-doc-pending">준비 중</span>
+          <span className="contract-session-doc-dl-hint">준비 중</span>
         ) : null}
       </div>
     )
@@ -117,8 +117,11 @@ export function SendSessionDetailPanel({
       aria-modal="true"
       aria-label="발송 세션 상세"
     >
-      <div className="contract-signature-console__detail-dialog">
-        <h2 className="contract-signature-console__section-title">발송 세션 상세</h2>
+      <div className="contract-signature-console__detail-dialog gov-signature-history-detail-dialog">
+        <div className="gov-signature-history-detail-dialog__header">
+          <h2 className="contract-signature-console__section-title">발송 세션 상세</h2>
+        </div>
+        <div className="gov-signature-history-detail-dialog__body">
         {downloadMessage ? (
           <div className="contract-signature-console__alert--danger" role="alert">
             {downloadMessage}
@@ -148,10 +151,10 @@ export function SendSessionDetailPanel({
               열람: {detail.openedAt ? formatStaffSessionDate(detail.openedAt) : '—'}
             </p>
 
-            <h3 className="contract-signature-console__section-title" style={{ marginTop: 12 }}>
+            <h3 className="contract-signature-console__section-title gov-signature-history-detail-dialog__docs-title">
               완료·증빙 PDF 다운로드
             </h3>
-            <p className="contract-signature-console__hint" style={{ marginTop: 4 }}>
+            <p className="contract-signature-console__hint gov-signature-history-detail-dialog__docs-lead">
               {isConfirmationSession
                 ? '완료 확인서 PDF는 수신자가 확인·서명한 최종 문서입니다. 증빙 PDF는 본인확인·확인 항목·첨부·서명·해시 등 감사 기록을 담은 별도 문서로, 혼동되지 않게 구분되어 있습니다.'
                 : '완료 전자서명 문서 PDF는 수신자 입력값과 전자서명이 반영된 최종 문서입니다. 증빙 PDF는 본인확인, 문서·첨부 확인, 전자서명 및 제출 동의 등 감사 기록을 정리한 별도 문서입니다.'}
@@ -215,11 +218,11 @@ export function SendSessionDetailPanel({
               <div className="contract-signature-console__session-doc-table-wrap">
                 <table className="contract-session-doc-table">
                   <colgroup>
-                    <col style={{ width: '170px' }} />
-                    <col style={{ width: '86px' }} />
-                    <col style={{ width: '110px' }} />
-                    <col style={{ width: '148px' }} />
-                    <col style={{ width: '148px' }} />
+                    <col style={{ width: '30%' }} />
+                    <col style={{ width: '13%' }} />
+                    <col style={{ width: '13%' }} />
+                    <col style={{ width: '22%' }} />
+                    <col style={{ width: '22%' }} />
                   </colgroup>
                   <thead>
                     <tr>
@@ -256,25 +259,20 @@ export function SendSessionDetailPanel({
                           <td className="contract-table-cell-center">{signedPdfCell(d)}</td>
                           {idx === 0 ? (
                             <td className="contract-table-cell-center" rowSpan={Math.max(docs.length, 1)}>
-                              <div className="contract-session-detail-evidence-cell">
-                                {!sessionCompleted ? (
-                                  <p
-                                    className="contract-signature-console__hint contract-session-doc-pending"
-                                    style={{ margin: '0 0 8px' }}
-                                  >
-                                    {preCompleteHint}
-                                  </p>
-                                ) : null}
+                              <div className="contract-session-doc-dl-cell contract-session-detail-evidence-cell">
                                 <FormButton
                                   htmlType="button"
                                   variant="secondary"
                                   size="sm"
-                                  className="contract-session-pdf-dl-btn"
+                                  className="contract-session-pdf-dl-btn contract-session-pdf-dl-btn--cell"
                                   disabled={!canDownloadEvidencePdf}
                                   onClick={runEvidenceDownload}
                                 >
                                   {evidencePdfDownloadLabel} 다운로드
                                 </FormButton>
+                                {!sessionCompleted ? (
+                                  <span className="contract-session-doc-dl-hint">{preCompleteHint}</span>
+                                ) : null}
                               </div>
                             </td>
                           ) : null}
@@ -287,7 +285,9 @@ export function SendSessionDetailPanel({
             )}
           </>
         ) : null}
+        </div>
 
+        <div className="gov-signature-history-detail-dialog__footer">
         <div className="session-modal-actions">
           <div className="session-modal-actions__left">
             <FormButton htmlType="button" variant="secondary" size="sm" disabled={!signToken} onClick={() => onCopyLink(signToken)}>
@@ -314,6 +314,7 @@ export function SendSessionDetailPanel({
               닫기
             </FormButton>
           </div>
+        </div>
         </div>
       </div>
     </div>

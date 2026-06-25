@@ -337,7 +337,7 @@ export default function GovernmentSignatureHistoryPage() {
                     <label className="gov-signature-history-toolbar__sort">
                       <span className="gov-signature-history-toolbar__sort-label">정렬</span>
                       <FormSelect
-                        className="gov-form-control form-select"
+                        className="gov-form-control form-select gov-signature-history-toolbar__sort-select"
                         value={sort}
                         disabled={!t}
                         options={[
