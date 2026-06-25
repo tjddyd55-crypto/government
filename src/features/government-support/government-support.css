@@ -1818,6 +1818,7 @@
   display: flex;
   flex-direction: row;
   align-items: stretch;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -1826,6 +1827,7 @@
   width: var(--gov-workspace-column-left-width);
   min-width: var(--gov-workspace-column-left-min-width);
   max-width: var(--gov-workspace-column-left-width);
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1836,6 +1838,7 @@
 .government-profile-workspace-pc__center {
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1848,6 +1851,7 @@
   width: var(--gov-workspace-column-right-width);
   min-width: var(--gov-workspace-column-right-min-width);
   max-width: var(--gov-workspace-column-right-max-width);
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1856,9 +1860,12 @@
 }
 
 .government-profile-workspace-pc__body {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: var(--gov-workspace-panel-padding-block) var(--gov-workspace-panel-padding-inline)
     var(--gov-workspace-gap-xl);
   background: var(--gov-workspace-surface-muted);
@@ -2077,24 +2084,24 @@
   color: var(--gov-workspace-text);
 }
 
-.government-profile-list-panel .government-profile-list-card--active {
+.government-profile-list-panel .record-card.customer-card.customer-expand-card.government-profile-list-card--active {
   border: 1px solid #f2b800;
   background: #ffffff;
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
 }
 
-.government-profile-list-panel .government-profile-list-card__summary-row--active {
+.government-profile-list-panel .customer-expand-card .government-profile-list-card__summary-row--active {
   background: #fffdf0;
   border-radius: 12px 12px 0 0;
 }
 
-.government-profile-list-panel .government-profile-list-card--active:not(.government-profile-list-card--expanded)
+.government-profile-list-panel .customer-expand-card.government-profile-list-card--active:not(.government-profile-list-card--expanded)
   .government-profile-list-card__summary-row--active {
   border-radius: 12px;
 }
 
-.government-profile-list-panel .government-profile-list-card--active .customer-expand-summary,
-.government-profile-list-panel .government-profile-list-card--active .government-profile-list-card__summary {
+.government-profile-list-panel .customer-expand-card.government-profile-list-card--active .customer-expand-summary,
+.government-profile-list-panel .customer-expand-card.government-profile-list-card--active .government-profile-list-card__summary {
   background: transparent;
 }
 
@@ -2680,8 +2687,13 @@
 }
 
 .government-profile-workspace-mobile-modal .workspace-mobile-outlet-modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: #ffffff;
-  padding: 0 0 16px;
+  padding: 0 0 calc(16px + env(safe-area-inset-bottom, 0px));
   --bg-main: var(--gov-workspace-bg);
   --bg-card: var(--gov-workspace-panel);
   --bg-elevated: #f8fafc;

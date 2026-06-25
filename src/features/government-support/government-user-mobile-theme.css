@@ -338,3 +338,16 @@
   background: #ffffff;
   color: #0f172a;
 }
+
+.government-page--mobile.government-user-layout .government-profile-workspace-mobile-modal.customer-ui-modal-panel.workspace-mobile-outlet-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+}
+
+.government-page--mobile.government-user-layout .government-profile-workspace-mobile-modal .government-profile-workspace-tabs {
+  flex-shrink: 0;
+}

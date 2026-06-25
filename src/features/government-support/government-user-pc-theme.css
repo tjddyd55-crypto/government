@@ -112,6 +112,7 @@
 .government-user-layout--pc-user .government-profile-workspace-pc__center {
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
 }
 
 .government-user-layout--pc-user .government-profile-workspace-pc__left .page,
