@@ -184,6 +184,17 @@
   box-sizing: border-box;
 }
 
+/* 단독 이용자 페이지(3컬럼 워크스페이스 제외) — outlet 직계 자식이 세로 스크롤 */
+.government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > .gov-user-page,
+.government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > main.gov-user-signatures-page,
+.government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > .government-user-section,
+.government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > .claim-inbox,
+.government-user-layout--pc-user .government-user-pc-page:not(:has(> .government-profile-workspace)) > .page {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .government-user-layout--pc-user .content-wrapper,
 .government-user-layout--pc-user .gov-user-page.content-wrapper,
 .government-user-layout--pc-user .claim-inbox.content-wrapper {

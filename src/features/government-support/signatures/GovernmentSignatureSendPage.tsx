@@ -7,6 +7,7 @@ import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import '../../pdf-engine/pdf-engine.css'
 import '../signatureTemplates/government-signature-console.css'
 import './government-signature-send-mobile.css'
+import './government-signature-send-page.css'
 import { useAuth } from '../../auth/AuthProvider'
 import { formatGovernmentProfilePickMeta, formatSenderFieldLabel, mapGovernmentSignatureApiError } from './governmentSignatureUserDisplay'
 import { ApiError } from '../../../lib/apiClient'
@@ -904,7 +905,7 @@ export default function GovernmentSignatureSendPage() {
 
   const mainClass = isMobileFlow
     ? 'insurance-dark-forms contract-signature-console contract-signature-flow--mobile'
-    : 'gov-user-page gov-user-signatures-page contract-signature-console'
+    : 'gov-user-page gov-user-signatures-page gov-signature-send-page contract-signature-console'
 
   const senderFields = selectedTpl?.senderFieldsForSend ?? []
 
@@ -1324,13 +1325,13 @@ export default function GovernmentSignatureSendPage() {
 
         <section className="contract-signature-console__section">
           <h2 className="contract-signature-console__section-title">1. 내 사업장 검색</h2>
-          <p className="contract-signature-console__body-text" style={{ margin: '0 0 6px' }}>
+          <p className="contract-signature-console__section-intro">
             전자서명을 발송할 사업장을 검색해 선택하세요.
           </p>
-          <p className="contract-signature-console__hint" style={{ marginTop: 0 }}>
+          <p className="contract-signature-console__hint">
             담당자 이름, 전화번호 일부 또는 사업장번호를 입력해 검색하세요.
           </p>
-          <div className="contract-signature-console__search-row" style={{ marginBottom: 8, alignItems: 'stretch' }}>
+          <div className="contract-signature-console__search-row">
             <FormInput
               ref={customerSearchInputRef}
               type="search"
@@ -1347,7 +1348,6 @@ export default function GovernmentSignatureSendPage() {
               }}
               placeholder="이름 · 전화번호 일부 · 사업장번호"
               disabled={!t}
-              className="max-w-md flex-1 min-w-[200px]"
             />
             <FormButton
               htmlType="button"
@@ -1366,15 +1366,15 @@ export default function GovernmentSignatureSendPage() {
           ) : null}
 
           {selectedCustomer ? (
-            <div className="contract-signature-console__selected-card" style={{ marginTop: 12, marginBottom: 12 }}>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>선택 사업장</div>
-              <div className="contract-signature-console__body-text" style={{ fontSize: '0.9375rem' }}>
-                {selectedCustomer.name}
-              </div>
-              <div className="contract-signature-console__hint" style={{ marginTop: 6 }}>
+            <div className="contract-signature-console__selected-card">
+              <div className="contract-signature-console__selected-card__heading">선택 사업장</div>
+              <div className="contract-signature-console__selected-card__name">{selectedCustomer.name}</div>
+              <div className="contract-signature-console__selected-card__meta">
                 {formatGovernmentProfilePickMeta(selectedCustomer)}
               </div>
-              <div className="contract-signature-console__hint">휴대폰: {selectedCustomer.hasPhone ? selectedCustomer.maskedPhone : '—'}</div>
+              <div className="contract-signature-console__selected-card__meta">
+                휴대폰: {selectedCustomer.hasPhone ? selectedCustomer.maskedPhone : '—'}
+              </div>
               {!selectedCustomer.hasPhone ? (
                 <div className="contract-signature-console__hint--warning" style={{ marginTop: 4 }}>
                   유효한 휴대폰 번호가 없어 발송할 수 없습니다.
@@ -1460,7 +1460,7 @@ export default function GovernmentSignatureSendPage() {
               </table>
             </div>
           ) : !customerSearchValidationError ? (
-            <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
+            <p className="contract-signature-console__hint contract-signature-console__hint--after-action">
               「검색」을 누르면 본인에게 등록된 사업장만 결과로 표시됩니다. 휴대폰 번호는 마스킹만 표시됩니다.
             </p>
           ) : null}
@@ -1552,7 +1552,7 @@ export default function GovernmentSignatureSendPage() {
             <p className="contract-signature-console__hint">
               수신자에게 보내기 전에 문서에 들어갈 값을 입력해주세요. 이 값은 수신자가 수정할 수 없습니다.
             </p>
-            <div className="mt-4 space-y-4">
+            <div className="gov-signature-send-sender-fields">
               {senderFields.map((d) => {
                 const fk = d.fieldKey
                 if (d.fieldType === 'checkbox') {
@@ -1591,14 +1591,14 @@ export default function GovernmentSignatureSendPage() {
                 const tv = String(senderVals[fk] ?? '')
                 const multiline = d.fieldType === 'textarea'
                 return (
-                  <label key={fk} className="block space-y-1">
+                  <label key={fk} className="gov-signature-send-sender-fields__label">
                     <span className="contract-signature-console__hint">
                       {formatSenderFieldLabel(d.label)}
                       {d.required ? <span className="contract-signature-console__hint--warning"> *</span> : null}
                     </span>
                     {multiline ? (
                       <FormTextarea
-                        className="pdf-engine-form__textarea w-full max-w-xl text-sm"
+                        className="pdf-engine-form__textarea w-full text-sm"
                         rows={4}
                         value={tv}
                         onChange={(e) => setSenderVals((prev) => ({ ...prev, [fk]: e.target.value }))}
@@ -1606,7 +1606,6 @@ export default function GovernmentSignatureSendPage() {
                     ) : (
                       <FormInput
                         type="text"
-                        className="max-w-xl"
                         value={tv}
                         onChange={(e) => setSenderVals((prev) => ({ ...prev, [fk]: e.target.value }))}
                       />
@@ -1636,15 +1635,14 @@ export default function GovernmentSignatureSendPage() {
         {selectedCustomer && selectedTemplateId && selectedTpl?.templateMode !== 'confirmation_only' ? (
           <section className="contract-signature-console__section">
             <h2 className="contract-signature-console__section-title">2-2. 수신자 확인 체크 항목</h2>
-            <p className="contract-signature-console__body-text" style={{ margin: '0 0 8px' }}>
+            <p className="contract-signature-console__section-intro">
               수신자가 전자서명 전에 확인해야 할 내용을 체크 항목으로 추가할 수 있습니다.
             </p>
-            <div className="space-y-3 mt-2">
+            <div className="gov-signature-send-confirmation-drafts">
               {confirmationDrafts.map((row) => (
-                <div key={row.key} className="flex flex-wrap items-start gap-2">
+                <div key={row.key} className="gov-signature-send-confirmation-drafts__row">
                   <FormInput
                     type="text"
-                    className="flex-1 min-w-[200px] max-w-xl"
                     value={row.label}
                     placeholder="예: 본인임을 확인했습니다."
                     disabled={!t}
@@ -1665,7 +1663,7 @@ export default function GovernmentSignatureSendPage() {
                 </div>
               ))}
             </div>
-            <div className="contract-signature-console__btn-row" style={{ marginTop: 12 }}>
+            <div className="contract-signature-console__btn-row contract-signature-console__btn-row--compact-top">
               <FormButton
                 htmlType="button"
                 variant="secondary"
@@ -1679,11 +1677,11 @@ export default function GovernmentSignatureSendPage() {
               </FormButton>
             </div>
             {confirmationDraftValidationMessage ? (
-              <p className="contract-signature-console__inline-warning" role="status" style={{ marginTop: 8 }}>
+              <p className="contract-signature-console__inline-warning" role="status">
                 {confirmationDraftValidationMessage}
               </p>
             ) : (
-              <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
+              <p className="contract-signature-console__hint contract-signature-console__hint--after-action">
                 선택 사항입니다. 추가 시 수신자가 모두 체크해야 다음 단계로 진행할 수 있습니다.
               </p>
             )}

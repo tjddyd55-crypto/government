@@ -26,7 +26,7 @@ main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mo
   max-width: 100%;
   margin-inline: 0;
   padding-inline: 16px;
-  padding-block: 1rem;
+  padding-block: 1rem 2rem;
   box-sizing: border-box;
 }
 
@@ -45,7 +45,7 @@ main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mo
 main.insurance-dark-forms.contract-signature-console.contract-signature-flow--mobile .contract-mobile-step {
   display: flow-root;
   position: static;
-  margin-bottom: 26px;
+  margin-bottom: 14px;
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 10px;

@@ -1,0 +1,237 @@
+/**
+ * 정부지원 전자서명 발송 단독 페이지 (/government/signatures/send) — PC 간격·정렬.
+ * 스크롤: government-user-pc-theme.css 단독 outlet 규칙 + main.gov-signature-send-page
+ * 스코프: .government-user-layout--pc-user main.gov-signature-send-page
+ */
+
+.government-user-layout--pc-user main.gov-signature-send-page.contract-signature-console {
+  background: transparent;
+  padding: 0;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 18px 20px 32px;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__title {
+  margin: 0 0 8px;
+  color: var(--gov-workspace-text);
+  font-weight: 800;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__lead {
+  margin: 0;
+  color: var(--gov-workspace-muted);
+  line-height: 1.5;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__alert--danger {
+  margin: 0;
+}
+
+/* —— 섹션 카드 —— */
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__section {
+  margin: 0;
+  padding: 16px 20px;
+  background: var(--gov-workspace-panel);
+  border: 1px solid var(--gov-workspace-border);
+  border-radius: 14px;
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__section-title {
+  margin: 0 0 8px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__section-intro {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__section .contract-signature-console__hint {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--gov-workspace-muted);
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__section .contract-signature-console__hint--after-action {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__inline-warning {
+  margin: 0 0 12px;
+}
+
+/* —— 검색 입력 + 버튼 —— */
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__search-row .form-input {
+  flex: 1 1 200px;
+  min-width: min(100%, 200px);
+  max-width: 480px;
+  min-height: 36px;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__search-row .button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  align-self: stretch;
+}
+
+/* —— 선택 사업장 카드 —— */
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__selected-card {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  font-size: 0.875rem;
+  border: 1px solid var(--gov-workspace-border);
+  border-radius: 10px;
+  background: var(--bg-soft);
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__selected-card__heading {
+  margin: 0 0 8px;
+  font-weight: 700;
+  color: var(--gov-workspace-text);
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__selected-card__name {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__selected-card__meta {
+  margin: 6px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--gov-workspace-muted);
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__selected-card .contract-signature-console__btn-row {
+  margin-top: 12px;
+}
+
+/* —— 버튼 그룹 —— */
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__btn-row .button {
+  min-height: 36px;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__btn-row--compact-top {
+  margin-top: 8px;
+}
+
+/* —— 테이블 —— */
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__scroll-x {
+  margin-top: 4px;
+  overflow-x: auto;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__table--compact.pdf-engine-table {
+  font-size: 0.8125rem;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__table--compact.pdf-engine-table th,
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__table--compact.pdf-engine-table td {
+  padding: 10px 12px;
+  vertical-align: middle;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__pick-table th:first-child,
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__pick-table td:first-child {
+  width: 48px;
+  min-width: 48px;
+  text-align: center;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__pick-table tbody tr.contract-pick-row td {
+  background: var(--gov-workspace-panel);
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__pick-table tbody tr.contract-pick-row--selected td {
+  background: color-mix(in srgb, rgba(242, 184, 0, 0.2) 50%, var(--gov-workspace-panel));
+  box-shadow: inset 0 0 0 2px rgba(242, 184, 0, 0.75);
+}
+
+@media (hover: hover) {
+  .government-user-layout--pc-user main.gov-signature-send-page .contract-signature-console__pick-table tbody tr.contract-pick-row:hover:not(.contract-pick-row--selected) td {
+    background: var(--bg-soft);
+  }
+}
+
+/* —— 발송 전 입력값 —— */
+.government-user-layout--pc-user main.gov-signature-send-page .gov-signature-send-sender-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .gov-signature-send-sender-fields .form-input,
+.government-user-layout--pc-user main.gov-signature-send-page .gov-signature-send-sender-fields .form-select,
+.government-user-layout--pc-user main.gov-signature-send-page .gov-signature-send-sender-fields .pdf-engine-form__textarea {
+  min-height: 36px;
+  max-width: 36rem;
+  box-sizing: border-box;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .gov-signature-send-sender-fields .pdf-engine-form__textarea {
+  min-height: 88px;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .gov-signature-send-sender-fields__label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .gov-signature-send-confirmation-drafts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .gov-signature-send-confirmation-drafts__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.government-user-layout--pc-user main.gov-signature-send-page .gov-signature-send-confirmation-drafts__row .form-input {
+  flex: 1 1 200px;
+  min-width: min(100%, 200px);
+  max-width: 36rem;
+  min-height: 36px;
+}
