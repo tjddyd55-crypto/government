@@ -112,7 +112,7 @@ import {
   parseGovernmentAgencyPatchBody,
   patchGovernmentAgency,
 } from './lib/governmentSupport/governmentAgencies.js'
-import { buildGovernmentDocumentObjectKey, sanitizeGovernmentDocumentFileName } from './lib/governmentSupport/governmentDocumentStorage.js'
+import { buildGovernmentDocumentObjectKey, assertGovernmentProfileDocumentObjectKey, sanitizeGovernmentDocumentFileName } from './lib/governmentSupport/governmentDocumentStorage.js'
 
 /**
  * @param {import('express').Router} router
@@ -1336,6 +1336,37 @@ export function registerGovernmentSupportApi(router, deps) {
       if (!canAccessGovernmentProfile(ctx, accessRow)) {
         res.status(403).json({ message: '프로필 접근 권한이 없습니다.' })
         return
+      }
+      const nextStorageKeyRaw = b.storageKey ?? b.storage_key
+      if (nextStorageKeyRaw != null && String(nextStorageKeyRaw).trim() !== '') {
+        const meta = await pool.query(
+          `
+          SELECT di.tenant_id, di.profile_id, p.owner_user_id
+          FROM gov_support_document_items di
+          INNER JOIN gov_support_profiles p ON p.id = di.profile_id
+          WHERE di.id = $1::bigint
+          `,
+          [docId],
+        )
+        if ((meta.rowCount ?? 0) === 0) {
+          res.status(404).json({ message: '서류 항목을 찾을 수 없습니다.' })
+          return
+        }
+        const storageKey = String(nextStorageKeyRaw).trim()
+        const tenantId = meta.rows[0].tenant_id
+        const profileId = meta.rows[0].profile_id
+        const ownerUserId = String(meta.rows[0].owner_user_id ?? '')
+        if (
+          !assertGovernmentProfileDocumentObjectKey(storageKey, {
+            tenantId,
+            userId: ownerUserId,
+            profileId,
+            docId,
+          })
+        ) {
+          res.status(400).json({ message: 'storageKey는 government/ prefix 경로여야 합니다.' })
+          return
+        }
       }
       const r = await pool.query(
         `UPDATE gov_support_document_items SET status = COALESCE($2, status), storage_key = COALESCE($3, storage_key), updated_at = NOW() WHERE id = $1::bigint RETURNING *`,

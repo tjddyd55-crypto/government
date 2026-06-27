@@ -27,7 +27,11 @@ import {
   governmentSignaturePdfUploadMulterErrorMessage,
   validateGovernmentSignaturePdfUploadContentType,
 } from '../lib/governmentSignatures/governmentSignaturePdfUploadRequest.js'
-import { buildGovernmentSignaturePdfTemplateUploadKey } from '../lib/governmentSupport/governmentR2Keys.js'
+import {
+  assertGovernmentR2ObjectKeyPrefix,
+  assertGovernmentSignaturePdfTemplateObjectKey,
+  buildGovernmentSignaturePdfTemplateUploadKey,
+} from '../lib/governmentSupport/governmentR2Keys.js'
 
 const uploadPdf = multer({
   storage: multer.memoryStorage(),
@@ -173,6 +177,20 @@ export function registerGovernmentSignaturePdfTemplateApi(apiRouter, ctx) {
       const pageCount = Math.max(1, Number(body.pageCount) || 1)
       if (!storageKey) {
         res.status(400).json({ message: 'storageKey 가 필요합니다.' })
+        return
+      }
+      if (!assertGovernmentR2ObjectKeyPrefix(storageKey)) {
+        res.status(400).json({ message: 'storageKey는 government/ prefix 경로여야 합니다.' })
+        return
+      }
+      if (
+        !assertGovernmentSignaturePdfTemplateObjectKey(storageKey, {
+          tenantId,
+          ownerUserId,
+          pdfTemplateId: body.code ?? body.pdfTemplateId,
+        })
+      ) {
+        res.status(400).json({ message: 'storageKey가 허용된 PDF 템플릿 경로가 아닙니다.' })
         return
       }
       const created = await createTemplateWithAutoCode(pool, createTemplate, {

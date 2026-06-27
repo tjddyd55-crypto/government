@@ -65,7 +65,8 @@ government/
 | 문의 | `government/inquiries/{userId}/{inquiryId}/{messageId\|root}/{fileId}/…` |
 | 자료실 | `government/resources/{tenantId\|global}/{resourceId}/…` |
 | 서류 checklist | `government/tenants/{tenantId}/profiles/{profileId}/documents/…` |
-| PDF 템플릿 | `pdf-templates/gov-user-{owner}/…` |
+| PDF 템플릿 | `pdf-templates/gov-user-{owner}/…` (**신규 업로드 금지** — 읽기 호환만) |
+| PDF 템플릿 (tenant 없음, 신규) | `government/tmp/pdf-templates/{userId}/{uuid}_{code}.pdf` |
 
 ---
 

@@ -9,7 +9,13 @@
 import { randomUUID } from 'node:crypto'
 import { getR2ObjectRoot, joinR2Key, stripR2ObjectRootIfPresent, withR2ObjectRoot } from '../r2KeyPolicy.js'
 
+/** R2 bucket SSOT (ENV `CRM_R2_BUCKET` — object key에 포함하지 않음) */
+export const GOVERNMENT_R2_BUCKET = 'platform-assets'
+
 export const GOVERNMENT_R2_KEY_ROOT = 'government'
+
+/** object key must start with this prefix (trailing slash included) */
+export const GOVERNMENT_STORAGE_PREFIX = `${GOVERNMENT_R2_KEY_ROOT}/`
 
 export const GOVERNMENT_R2_SEGMENTS = Object.freeze({
   AGENCIES: 'agencies',
@@ -104,6 +110,136 @@ function finalizeGovernmentObjectKey(relativeKey) {
     throw new Error('R2 object key must not contain platform-assets bucket name')
   }
   return key
+}
+
+/**
+ * @param {...unknown} parts
+ */
+export function buildGovernmentStorageKey(...parts) {
+  return finalizeGovernmentObjectKey(govKey(...parts))
+}
+
+/**
+ * DB·다운로드용 legacy PDF 템플릿 key (신규 업로드 금지).
+ * @param {string} key
+ */
+export function isLegacyGovernmentPdfTemplateObjectKey(key) {
+  const k = stripR2ObjectRootIfPresent(String(key ?? ''))
+  return k.startsWith(`${GOVERNMENT_R2_LEGACY_SEGMENTS.PDF_TEMPLATES_FLAT}/gov-user-`)
+}
+
+/**
+ * 정부지원 object key prefix 검증. 신규 confirm/upload는 allowLegacyPdfTemplate 없이 호출.
+ * @param {string} objectKey
+ * @param {{ allowLegacyPdfTemplate?: boolean }} [opts]
+ */
+export function assertGovernmentR2ObjectKeyPrefix(objectKey, opts = {}) {
+  const key = stripR2ObjectRootIfPresent(String(objectKey ?? '').trim())
+  if (!key || key.includes('..')) {
+    return false
+  }
+  const blockedRoots = ['insurance/', 'liquor/', 'common/', 'uploads/', 'documents/', 'signatures/']
+  if (blockedRoots.some((p) => key.startsWith(p))) {
+    return false
+  }
+  if (key.startsWith(GOVERNMENT_STORAGE_PREFIX)) {
+    return true
+  }
+  if (opts.allowLegacyPdfTemplate && isLegacyGovernmentPdfTemplateObjectKey(key)) {
+    return true
+  }
+  return false
+}
+
+/**
+ * @param {string} objectKey
+ * @param {{ allowLegacyPdfTemplate?: boolean }} [opts]
+ */
+export function requireGovernmentR2ObjectKeyPrefix(objectKey, opts = {}) {
+  if (!assertGovernmentR2ObjectKeyPrefix(objectKey, opts)) {
+    throw new Error('Government R2 object key must start with government/')
+  }
+  return stripR2ObjectRootIfPresent(String(objectKey ?? '').trim())
+}
+
+/**
+ * @param {string} objectKey
+ * @param {{ tenantId?: string|number, pdfTemplateId?: string|number, ownerUserId?: string|number }} [expected]
+ */
+export function assertGovernmentSignaturePdfTemplateObjectKey(objectKey, expected = {}) {
+  const key = stripR2ObjectRootIfPresent(String(objectKey ?? ''))
+  if (isLegacyGovernmentPdfTemplateObjectKey(key)) {
+    if (expected.ownerUserId != null) {
+      const ownerSeg = normalizeGovernmentR2Segment(expected.ownerUserId) || 'unknown'
+      return key.includes(`/gov-user-${ownerSeg}/`) || key.includes(`/gov-user-${ownerSeg}-`)
+    }
+    return true
+  }
+  if (expected.tenantId != null) {
+    const prefix = joinR2Key(
+      buildGovernmentSharedRoot({ tenantId: expected.tenantId }),
+      GOVERNMENT_R2_SEGMENTS.PDF_TEMPLATES,
+    )
+    if (key.startsWith(`${prefix}/`) || key === prefix) {
+      return true
+    }
+  }
+  const tmpPrefix = joinR2Key(
+    GOVERNMENT_R2_KEY_ROOT,
+    GOVERNMENT_R2_SEGMENTS.TMP,
+    GOVERNMENT_R2_SEGMENTS.PDF_TEMPLATES,
+  )
+  return key.startsWith(`${tmpPrefix}/`)
+}
+
+/**
+ * @param {string} objectKey
+ * @param {{ sendSessionId?: string|number, documentId?: string|number }} [expected]
+ */
+export function assertGovernmentSignatureSessionDocumentObjectKey(objectKey, expected = {}) {
+  const key = stripR2ObjectRootIfPresent(String(objectKey ?? ''))
+  const base = joinR2Key(
+    GOVERNMENT_R2_KEY_ROOT,
+    GOVERNMENT_R2_SEGMENTS.SIGNATURES,
+    GOVERNMENT_R2_SEGMENTS.SESSIONS,
+  )
+  if (!key.startsWith(`${base}/`)) {
+    return false
+  }
+  if (expected.sendSessionId != null) {
+    const sessionSeg = normalizeGovernmentR2Segment(expected.sendSessionId)
+    if (!key.includes(`/${sessionSeg}/`)) {
+      return false
+    }
+  }
+  if (expected.documentId != null) {
+    const docSeg = normalizeGovernmentR2Segment(expected.documentId)
+    if (!key.includes(`/documents/${docSeg}/`)) {
+      return false
+    }
+  }
+  return true
+}
+
+/**
+ * @param {string} objectKey
+ * @param {{ userId?: string|number }} [expected]
+ */
+export function assertGovernmentSignatureSendAttachmentObjectKey(objectKey, expected = {}) {
+  const key = stripR2ObjectRootIfPresent(String(objectKey ?? ''))
+  const base = joinR2Key(
+    GOVERNMENT_R2_KEY_ROOT,
+    GOVERNMENT_R2_SEGMENTS.SIGNATURES,
+    GOVERNMENT_R2_SEGMENTS.SEND_ATTACHMENTS,
+  )
+  if (!key.startsWith(`${base}/`)) {
+    return false
+  }
+  if (expected.userId != null) {
+    const uid = normalizeGovernmentR2Segment(expected.userId) || '_'
+    return key.includes(`/${uid}/`)
+  }
+  return true
 }
 
 /**
@@ -344,11 +480,13 @@ export function buildGovernmentSignaturePdfTemplateUploadKey({ ownerUserId, code
   const safeOwner = normalizeGovernmentR2Segment(ownerUserId) || 'unknown'
   const safeCode = String(code).trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-')
   const relative = joinR2Key(
-    GOVERNMENT_R2_LEGACY_SEGMENTS.PDF_TEMPLATES_FLAT,
-    `gov-user-${safeOwner}`,
-    `${safeCode}-${Date.now()}.pdf`,
+    GOVERNMENT_R2_KEY_ROOT,
+    GOVERNMENT_R2_SEGMENTS.TMP,
+    GOVERNMENT_R2_SEGMENTS.PDF_TEMPLATES,
+    safeOwner,
+    `${randomUUID()}_${safeCode}.pdf`,
   )
-  return withR2ObjectRoot(relative)
+  return finalizeGovernmentObjectKey(relative)
 }
 
 /**

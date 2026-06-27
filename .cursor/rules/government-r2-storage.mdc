@@ -1,0 +1,35 @@
+---
+description: 정부지원 CRM R2 저장 경로 SSOT — platform-assets 버킷, object key는 반드시 government/ prefix
+globs: server/**/government*, server/lib/governmentSupport/**, src/features/government-support/**
+alwaysApply: false
+---
+
+# GOVERNMENT R2 STORAGE SSOT
+
+정부지원 CRM 파일은 **bucket `platform-assets`** (ENV) + **object key `government/`** 하위에만 저장한다.
+
+**코드 SSOT:** `server/lib/governmentSupport/governmentR2Keys.js`  
+**문서:** `docs/architecture/government-storage-keys.md`
+
+---
+
+## 필수
+
+1. 신규 object key는 `buildGovernment*` / `buildGovernmentStorageKey`만 사용한다.
+2. presign·confirm·PATCH·create에서 client가 넘긴 key는 `assertGovernmentR2ObjectKeyPrefix` 또는 도메인 `assertGovernment*`로 검증한다.
+3. bucket name(`platform-assets`)을 object key에 포함하지 않는다.
+4. PII(이름·전화·사업장명)를 key segment로 넣지 않는다. uuid/id + sanitize file name만 사용.
+
+## 금지 (신규 업로드)
+
+- `insurance/`, `liquor/`, `common/`
+- `uploads/`, `documents/`, `signatures/` 단독 root
+- `pdf-templates/` (legacy — **신규 생성 금지**, DB 기존 key 읽기만 허용)
+
+## legacy
+
+DB·R2 기존 key(`government/profile-files/…`, `pdf-templates/gov-user-…` 등)는 **다운로드 assert**에서만 허용. 신규 confirm/upload에는 `government/` prefix 필수.
+
+## 프론트
+
+R2 key를 조합하지 않는다. presign API 응답의 `objectKey` / `storageKey`만 사용한다.

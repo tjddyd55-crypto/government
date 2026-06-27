@@ -335,13 +335,13 @@ async function main() {
   if (pdfUp.status === 201 && uploadStorageKey) {
     pass('PDF upload', pdfUp.json.code ?? '')
     if (
-      uploadStorageKey.includes('gov-user') ||
-      uploadStorageKey.startsWith('pdf-templates/') ||
-      (uploadStorageKey.includes('government/agencies/') && uploadStorageKey.includes('/shared/pdf-templates/'))
+      uploadStorageKey.startsWith('government/') &&
+      (uploadStorageKey.includes('/shared/pdf-templates/') ||
+        uploadStorageKey.includes('/tmp/pdf-templates/'))
     ) {
-      pass('PDF upload R2 path prefix', uploadStorageKey.split('/').slice(0, 2).join('/'))
+      pass('PDF upload R2 path prefix', uploadStorageKey.split('/').slice(0, 3).join('/'))
     } else {
-      failWrap('PDF upload R2 path prefix', uploadStorageKey.slice(0, 60))
+      failWrap('PDF upload R2 path prefix', uploadStorageKey.slice(0, 80))
     }
   } else {
     failWrap('PDF upload', `${pdfUp.status} ${pdfUp.json?.message ?? ''}`)
