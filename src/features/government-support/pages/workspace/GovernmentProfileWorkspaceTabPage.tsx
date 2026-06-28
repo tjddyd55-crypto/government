@@ -1,6 +1,7 @@
 import { Navigate, useParams } from 'react-router-dom'
 import useIsMobile from '../../../../hooks/useIsMobile'
 import { parseGovernmentProfileWorkspaceTab } from '../../config/governmentProfileWorkspaceTabs'
+import { isGovernmentProfileCreateSegment } from '../../lib/governmentProfileCreateFlow'
 import GovernmentProfileDetailPanels from './GovernmentProfileDetailPanels'
 
 export default function GovernmentProfileWorkspaceTabPage() {
@@ -8,6 +9,12 @@ export default function GovernmentProfileWorkspaceTabPage() {
   const legacySegment = String(rawTab ?? '').trim().toLowerCase()
   if (profileId && legacySegment === 'documents') {
     return <Navigate to="../files" replace relative="path" />
+  }
+  if (profileId && isGovernmentProfileCreateSegment(profileId)) {
+    const createTab = parseGovernmentProfileWorkspaceTab(rawTab)
+    if (createTab !== 'basic') {
+      return <Navigate to="../basic" replace relative="path" />
+    }
   }
   const tab = parseGovernmentProfileWorkspaceTab(rawTab)
   const isMobile = useIsMobile()

@@ -14,6 +14,7 @@ export default function GovernmentProfileWorkspacePCView({
   selectedProfileId,
   selectedProfile,
   selectedProfileLabel,
+  isCreatingProfile,
   activeTab,
   onClickBasic,
   onClickFiles,
@@ -61,8 +62,11 @@ export default function GovernmentProfileWorkspacePCView({
         />
         <GovernmentProfileWorkspaceTabs variant="pc" {...tabProps} />
         <div className="government-profile-workspace-pc__body">
-          {selectedProfileId || isIndexPath ? (
-            <Outlet key={selectedProfileId ?? 'profile-index'} context={{ selectedProfileId }} />
+          {selectedProfileId || isIndexPath || isCreatingProfile ? (
+            <Outlet
+              key={isCreatingProfile ? 'profile-new' : selectedProfileId ?? 'profile-index'}
+              context={{ selectedProfileId: isCreatingProfile ? null : selectedProfileId }}
+            />
           ) : (
             <EmptyState message="사업장을 선택해 주세요." />
           )}
@@ -70,7 +74,7 @@ export default function GovernmentProfileWorkspacePCView({
       </section>
 
       <aside className="government-profile-workspace-pc__right" aria-label="문서 관리">
-        {selectedProfileId && token?.trim() ? (
+        {selectedProfileId && !isCreatingProfile && token?.trim() ? (
           <GovernmentProfileWorkspaceRightDocumentsPanel token={token} profileId={selectedProfileId} />
         ) : (
           <div className="government-profile-workspace-right-documents-panel government-profile-workspace-right-documents-panel--empty">

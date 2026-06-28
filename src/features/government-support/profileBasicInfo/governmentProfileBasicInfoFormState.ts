@@ -6,6 +6,16 @@ import {
 
 export type GovProfileBasicInfoFormState = Record<GovProfileBasicInfoFieldKey, string>
 
+export function emptyBasicInfoForm(): GovProfileBasicInfoFormState {
+  const form = {} as GovProfileBasicInfoFormState
+  for (const section of GOVERNMENT_PROFILE_BASIC_INFO_SECTIONS) {
+    for (const field of section.fields) {
+      form[field.key] = ''
+    }
+  }
+  return form
+}
+
 export function profileToBasicInfoForm(profile: GovSupportProfile): GovProfileBasicInfoFormState {
   const form = {} as GovProfileBasicInfoFormState
   for (const section of GOVERNMENT_PROFILE_BASIC_INFO_SECTIONS) {

@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react'
 import type { GovernmentProfileWorkspaceShell } from '../../config/governmentProfileWorkspaceShell'
 import type { GovernmentProfileWorkspacePathHelpers } from '../../config/governmentProfileWorkspaceTabs'
 import type { useGovernmentWorkspaceState } from '../../hooks/useGovernmentWorkspaceState'
-import type { GovCustomerStatusOption, GovProfileFileCategory } from '../../types/governmentProfile.types'
+import type { GovCustomerStatusOption, GovProfileFileCategory, GovSupportProfile } from '../../types/governmentProfile.types'
 
 export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovernmentWorkspaceState> & {
   shell: GovernmentProfileWorkspaceShell
@@ -40,6 +40,12 @@ export type GovernmentProfileWorkspaceContextValue = ReturnType<typeof useGovern
   setListOwnerUserFilter: (value: string) => void
   setListTenantId: (value: string) => void
   requestAddProfile: () => void
+  isCreatingProfile: boolean
+  createProfileFromForm: (
+    patch: Partial<GovSupportProfile>,
+  ) => Promise<GovSupportProfile | null>
+  completeProfileCreate: (profileId: string) => void
+  cancelProfileCreate: () => void
   autoEditBasicInfoProfileId: string | null
   clearAutoEditBasicInfoProfileId: () => void
 }

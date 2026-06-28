@@ -23,6 +23,7 @@ import {
 import { GOVERNMENT_ROUTE_PATHS } from '../../constants/governmentRouteKeys'
 import { useGovernmentUserChromeContextOptional } from '../../context/governmentUserChromeContext'
 import { createGovProfile } from '../../api/governmentProfilesApi'
+import { GOVERNMENT_PROFILE_CREATE_SEGMENT, isGovernmentProfileCreateSegment } from '../../lib/governmentProfileCreateFlow'
 import GovernmentProfileWorkspacePCView from './GovernmentProfileWorkspacePCView'
 import GovernmentProfileWorkspaceMobileView from './GovernmentProfileWorkspaceMobileView'
 import GovernmentProfileOwnerPickModal from './GovernmentProfileOwnerPickModal'
@@ -37,7 +38,7 @@ import {
   fetchGovProfileFileCategories,
 } from '../../api/governmentProfileFileCategoriesApi'
 import { isGovProfileCardCollapsed, isSameGovProfileId, normalizeGovProfileId, setGovProfileCardCollapsed } from '../../lib/governmentProfileDocumentCategories'
-import type { GovProfileFileCategory } from '../../types/governmentProfile.types'
+import type { GovProfileFileCategory, GovSupportProfile } from '../../types/governmentProfile.types'
 import '../../government-support.css'
 import '../../government-profile-workspace-chrome.css'
 import '../../government-status-pill.css'
@@ -90,13 +91,18 @@ export default function GovernmentProfileWorkspaceLayoutCore({
   const listQuery = isAgencyAdmin ? adminListState.listQuery : userListState.listQuery
 
   const createProfileForAdmin = useCallback(
-    async (authToken: string, tenantId: string | null, ownerUserId?: string | null) => {
+    async (
+      authToken: string,
+      tenantId: string | null,
+      ownerUserId?: string | null,
+      patch?: Partial<GovSupportProfile>,
+    ) => {
       const ownerId = String(ownerUserId ?? '').trim()
       if (!ownerId) {
         throw new Error('담당 이용자를 선택해 주세요.')
       }
       const tid = tenantId ?? adminListState.effectiveTenantId
-      return createGovProfile(authToken, tid, { ownerUserId: ownerId })
+      return createGovProfile(authToken, tid, { ownerUserId: ownerId, ...(patch ?? {}) })
     },
     [adminListState.effectiveTenantId],
   )
@@ -111,6 +117,8 @@ export default function GovernmentProfileWorkspaceLayoutCore({
   })
 
   const [ownerPickOpen, setOwnerPickOpen] = useState(false)
+  const [profileCreateOwnerUserId, setProfileCreateOwnerUserId] = useState<string | null>(null)
+  const profileCreateReturnPathRef = useRef<string | null>(null)
   const [autoEditBasicInfoProfileId, setAutoEditBasicInfoProfileId] = useState<string | null>(null)
 
   const clearAutoEditBasicInfoProfileId = useCallback(() => {
@@ -124,13 +132,15 @@ export default function GovernmentProfileWorkspaceLayoutCore({
 
   const activeTab = useMemo(() => paths.resolveActiveTab(location.pathname), [location.pathname, paths])
 
+  const isCreatingProfile = isGovernmentProfileCreateSegment(selectedProfileIdFromPath)
+
   const { selectedId, setSelectedId, ...wsRest } = ws
 
   useEffect(() => {
-    if (selectedProfileIdFromPath && selectedProfileIdFromPath !== selectedId) {
+    if (selectedProfileIdFromPath && !isCreatingProfile && selectedProfileIdFromPath !== selectedId) {
       setSelectedId(selectedProfileIdFromPath)
     }
-  }, [selectedProfileIdFromPath, selectedId, setSelectedId])
+  }, [selectedProfileIdFromPath, selectedId, setSelectedId, isCreatingProfile])
 
   const prevPathProfileIdRef = useRef<string | null | undefined>(undefined)
   const expandedProfileIdRef = useRef<string | null>(null)
@@ -147,23 +157,51 @@ export default function GovernmentProfileWorkspaceLayoutCore({
     })
   }, [])
 
-  const completeAddProfile = useCallback(
-    async (ownerUserId?: string | null) => {
-      const row = await ws.addProfile(ownerUserId)
-      if (!row) return
+  const beginProfileCreate = useCallback(
+    (ownerUserId?: string | null) => {
+      if (!shell.canAddProfile) return
 
-      const profileId = normalizeGovProfileId(row.id)
-      if (!profileId) return
+      const returnPath =
+        selectedProfileIdFromPath && !isGovernmentProfileCreateSegment(selectedProfileIdFromPath)
+          ? paths.workspacePath(selectedProfileIdFromPath, activeTab ?? 'basic')
+          : paths.basePath
+      profileCreateReturnPathRef.current = returnPath
+      setProfileCreateOwnerUserId(ownerUserId ?? null)
+      navigate(paths.workspacePath(GOVERNMENT_PROFILE_CREATE_SEGMENT, 'basic'), { replace: true })
+    },
+    [activeTab, navigate, paths, selectedProfileIdFromPath, shell.canAddProfile],
+  )
+
+  const cancelProfileCreate = useCallback(() => {
+    setProfileCreateOwnerUserId(null)
+    const returnPath = profileCreateReturnPathRef.current ?? paths.basePath
+    profileCreateReturnPathRef.current = null
+    navigate(returnPath, { replace: true })
+  }, [navigate, paths.basePath])
+
+  const completeProfileCreate = useCallback(
+    (profileId: string) => {
+      const normalizedId = normalizeGovProfileId(profileId)
+      if (!normalizedId) return
+
+      setProfileCreateOwnerUserId(null)
+      profileCreateReturnPathRef.current = null
 
       if (!isAgencyAdmin) {
-        setGovProfileCardCollapsed(profileId, false)
-        setExpandedProfileId(profileId)
+        setGovProfileCardCollapsed(normalizedId, false)
+        setExpandedProfileId(normalizedId)
       }
 
-      navigate(paths.workspacePath(profileId, 'basic'), { replace: true })
-      setAutoEditBasicInfoProfileId(profileId)
+      navigate(paths.workspacePath(normalizedId, 'basic'), { replace: true })
     },
-    [isAgencyAdmin, navigate, paths, setExpandedProfileId, ws],
+    [isAgencyAdmin, navigate, paths, setExpandedProfileId],
+  )
+
+  const createProfileFromFormForContext = useCallback(
+    async (patch: Partial<GovSupportProfile>) => {
+      return ws.createProfileFromForm(patch, profileCreateOwnerUserId)
+    },
+    [profileCreateOwnerUserId, ws],
   )
 
   const requestAddProfile = useCallback(() => {
@@ -180,15 +218,22 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       setOwnerPickOpen(true)
       return
     }
-    void completeAddProfile()
-  }, [shell.canAddProfile, isAgencyAdmin, adminListState.effectiveTenantId, adminListState.ownerOptions.length, ws, completeAddProfile])
+    beginProfileCreate()
+  }, [
+    shell.canAddProfile,
+    isAgencyAdmin,
+    adminListState.effectiveTenantId,
+    adminListState.ownerOptions.length,
+    ws,
+    beginProfileCreate,
+  ])
 
   const handleOwnerPickConfirm = useCallback(
     (ownerUserId: string) => {
       setOwnerPickOpen(false)
-      void completeAddProfile(ownerUserId)
+      beginProfileCreate(ownerUserId)
     },
-    [completeAddProfile],
+    [beginProfileCreate],
   )
 
   useEffect(() => {
@@ -197,6 +242,7 @@ export default function GovernmentProfileWorkspaceLayoutCore({
 
   useEffect(() => {
     if (isAgencyAdmin) return
+    if (isGovernmentProfileCreateSegment(selectedProfileIdFromPath)) return
     const pathId = normalizeGovProfileId(selectedProfileIdFromPath)
     if (prevPathProfileIdRef.current === undefined) {
       prevPathProfileIdRef.current = pathId || null
@@ -263,15 +309,21 @@ export default function GovernmentProfileWorkspaceLayoutCore({
   )
 
   const selectedProfile = useMemo(() => {
+    if (isCreatingProfile) {
+      return null
+    }
     if (selectedProfileIdFromPath) {
       return (
         ws.profiles.find((p) => isSameGovProfileId(p.id, selectedProfileIdFromPath)) ?? ws.selected
       )
     }
     return ws.selected
-  }, [selectedProfileIdFromPath, ws.profiles, ws.selected])
+  }, [isCreatingProfile, selectedProfileIdFromPath, ws.profiles, ws.selected])
 
   const selectedProfileLabel = useMemo(() => {
+    if (isCreatingProfile) {
+      return '신규 사업장 작성 중'
+    }
     if (selectedProfile?.businessName?.trim()) {
       return selectedProfile.businessName.trim()
     }
@@ -279,7 +331,7 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       return selectedProfile.customerName.trim()
     }
     return selectedProfileIdFromPath ? '선택 사업장' : ''
-  }, [selectedProfile, selectedProfileIdFromPath])
+  }, [isCreatingProfile, selectedProfile, selectedProfileIdFromPath])
 
   const userChrome = useGovernmentUserChromeContextOptional()
 
@@ -354,10 +406,10 @@ export default function GovernmentProfileWorkspaceLayoutCore({
   )
 
   useEffect(() => {
-    if (selectedProfileIdFromPath && token?.trim()) {
+    if (selectedProfileIdFromPath && token?.trim() && !isCreatingProfile) {
       void refreshProfileFileCategories(selectedProfileIdFromPath)
     }
-  }, [selectedProfileIdFromPath, token, refreshProfileFileCategories])
+  }, [selectedProfileIdFromPath, token, refreshProfileFileCategories, isCreatingProfile])
 
   const [uploadCategoryByProfileId, setUploadCategoryByProfileId] = useState<Record<string, string | null>>({})
 
@@ -426,6 +478,10 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       setListOwnerUserFilter: isAgencyAdmin ? adminListState.setOwnerUserFilter : () => {},
       setListTenantId: isAgencyAdmin ? adminListState.setTenantId : () => {},
       requestAddProfile,
+      isCreatingProfile,
+      createProfileFromForm: createProfileFromFormForContext,
+      completeProfileCreate,
+      cancelProfileCreate,
       autoEditBasicInfoProfileId,
       clearAutoEditBasicInfoProfileId,
     }),
@@ -465,6 +521,10 @@ export default function GovernmentProfileWorkspaceLayoutCore({
       userListState.setCustomerStatusFilter,
       userListState.setBusinessTypeFilter,
       requestAddProfile,
+      isCreatingProfile,
+      createProfileFromFormForContext,
+      completeProfileCreate,
+      cancelProfileCreate,
       autoEditBasicInfoProfileId,
       clearAutoEditBasicInfoProfileId,
     ],
@@ -476,6 +536,7 @@ export default function GovernmentProfileWorkspaceLayoutCore({
     selectedProfileId: selectedProfileIdFromPath,
     selectedProfile: selectedProfile ?? null,
     selectedProfileLabel,
+    isCreatingProfile,
     activeTab,
     onClickBasic: () => moveToTab('basic'),
     onClickFiles: () => moveToTab('files'),

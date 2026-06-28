@@ -83,7 +83,7 @@ export default function GovernmentProfileListPanelBody() {
             variant="primary"
             className="gov-btn gov-btn--primary government-profile-list-panel__add-btn"
             data-testid="government-profile-list-add-btn"
-            onClick={() => void ws.addProfile()}
+            onClick={() => ws.requestAddProfile()}
           >
             + 사업장 추가
           </FormButton>

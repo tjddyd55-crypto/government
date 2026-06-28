@@ -6,8 +6,10 @@ import {
   labelForGovernmentProfileWorkspaceTab,
   parseGovernmentProfileWorkspaceTab,
 } from '../../config/governmentProfileWorkspaceTabs'
+import { isGovernmentProfileCreateSegment } from '../../lib/governmentProfileCreateFlow'
 import GovernmentProfileListPanelMobileView from './GovernmentProfileListPanelMobileView'
 import GovernmentProfileWorkspaceTabs from './GovernmentProfileWorkspaceTabs'
+import { useGovernmentProfileWorkspaceContextOptional } from './governmentProfileWorkspaceContext'
 import type { GovernmentProfileWorkspaceLayoutViewProps } from './governmentProfileWorkspaceViewProps'
 
 function resolveMobileSheetTitle(pathname: string, basePath: string): string {
@@ -22,6 +24,7 @@ function resolveMobileSheetTitle(pathname: string, basePath: string): string {
 export default function GovernmentProfileWorkspaceMobileView({
   workspaceBasePath,
   selectedProfileId,
+  isCreatingProfile,
   activeTab,
   onClickBasic,
   onClickFiles,
@@ -35,6 +38,7 @@ export default function GovernmentProfileWorkspaceMobileView({
   const outlet = useOutlet()
   const navigate = useNavigate()
   const location = useLocation()
+  const workspaceCtx = useGovernmentProfileWorkspaceContextOptional()
   const paths = useMemo(
     () => createGovernmentProfileWorkspacePathHelpers(workspaceBasePath),
     [workspaceBasePath],
@@ -46,6 +50,10 @@ export default function GovernmentProfileWorkspaceMobileView({
   )
 
   const handleClose = () => {
+    if (isCreatingProfile || isGovernmentProfileCreateSegment(selectedProfileId)) {
+      workspaceCtx?.cancelProfileCreate()
+      return
+    }
     navigate(workspaceBasePath, { replace: true })
   }
 

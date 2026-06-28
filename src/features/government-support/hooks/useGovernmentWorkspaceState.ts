@@ -49,6 +49,7 @@ export function useGovernmentWorkspaceState(
       token: string,
       tenantId: string | null,
       ownerUserId?: string | null,
+      patch?: Partial<GovSupportProfile>,
     ) => Promise<GovSupportProfile>
   },
 ) {
@@ -148,8 +149,11 @@ export function useGovernmentWorkspaceState(
     [token, selectedId, onProfilesChanged, canDeleteProfile],
   )
 
-  const addProfile = useCallback(
-    async (ownerUserId?: string | null): Promise<GovSupportProfile | null> => {
+  const createProfileFromForm = useCallback(
+    async (
+      patch: Partial<GovSupportProfile>,
+      ownerUserId?: string | null,
+    ): Promise<GovSupportProfile | null> => {
       if (!token) {
         return null
       }
@@ -160,8 +164,8 @@ export function useGovernmentWorkspaceState(
       setError(null)
       try {
         const row = createProfileFn
-          ? await createProfileFn(token, defaultTenantId, ownerUserId ?? null)
-          : await createGovProfile(token, defaultTenantId)
+          ? await createProfileFn(token, defaultTenantId, ownerUserId ?? null, patch)
+          : await createGovProfile(token, defaultTenantId, { ...patch, ownerUserId: ownerUserId ?? undefined })
         setProfiles((prev) => [row, ...prev])
         setSelectedId(row.id)
         setFeedback('사업장을 등록했습니다.')
@@ -247,7 +251,7 @@ export function useGovernmentWorkspaceState(
     setFeedback,
     saveProfile,
     removeProfile,
-    addProfile,
+    createProfileFromForm,
     addPriorLoan,
     updatePriorLoan,
     removePriorLoan,

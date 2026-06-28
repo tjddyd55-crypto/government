@@ -9,6 +9,7 @@ import GovernmentProfileEdocPanel from './GovernmentProfileEdocPanel'
 import GovernmentProfileApplicationsPanel from './GovernmentProfileApplicationsPanel'
 import GovernmentProfileSignaturesPanel from './GovernmentProfileSignaturesPanel'
 import GovernmentProfileBasicInfoPanel from '../../profileBasicInfo/GovernmentProfileBasicInfoPanel'
+import GovernmentProfileCreatePanel from '../../profileBasicInfo/GovernmentProfileCreatePanel'
 
 type GovernmentProfileDetailPanelsProps = {
   tab: GovernmentProfileWorkspaceTab
@@ -16,6 +17,14 @@ type GovernmentProfileDetailPanelsProps = {
 
 export default function GovernmentProfileDetailPanels({ tab }: GovernmentProfileDetailPanelsProps) {
   const ws = useGovernmentProfileWorkspaceContext()
+
+  if (ws.isCreatingProfile) {
+    if (tab === 'basic') {
+      return <GovernmentProfileCreatePanel />
+    }
+    return <EmptyState message="신규 사업장은 기본정보 탭에서 등록할 수 있습니다." />
+  }
+
   const p = ws.selected
   if (!p) {
     return <EmptyState message="사업장을 선택해 주세요." />
