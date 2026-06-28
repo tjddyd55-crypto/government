@@ -1,10 +1,14 @@
-import { useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import useIsMobile from '../../../../hooks/useIsMobile'
 import { parseGovernmentProfileWorkspaceTab } from '../../config/governmentProfileWorkspaceTabs'
 import GovernmentProfileDetailPanels from './GovernmentProfileDetailPanels'
 
 export default function GovernmentProfileWorkspaceTabPage() {
-  const { tab: rawTab } = useParams<{ profileId: string; tab: string }>()
+  const { profileId, tab: rawTab } = useParams<{ profileId: string; tab: string }>()
+  const legacySegment = String(rawTab ?? '').trim().toLowerCase()
+  if (profileId && legacySegment === 'documents') {
+    return <Navigate to="../files" replace relative="path" />
+  }
   const tab = parseGovernmentProfileWorkspaceTab(rawTab)
   const isMobile = useIsMobile()
   const panels = <GovernmentProfileDetailPanels tab={tab} />

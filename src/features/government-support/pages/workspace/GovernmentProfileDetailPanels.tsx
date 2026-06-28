@@ -5,7 +5,6 @@ import GovernmentProfileMemosPanel from './GovernmentProfileMemosPanel'
 import GovernmentProfileConsultationsPanel from './GovernmentProfileConsultationsPanel'
 import GovernmentProfileProgressPanel from './GovernmentProfileProgressPanel'
 import GovernmentProfileFilesPanel from './GovernmentProfileFilesPanel'
-import GovernmentProfileDocumentsPanel from './GovernmentProfileDocumentsPanel'
 import GovernmentProfileEdocPanel from './GovernmentProfileEdocPanel'
 import GovernmentProfileApplicationsPanel from './GovernmentProfileApplicationsPanel'
 import GovernmentProfileSignaturesPanel from './GovernmentProfileSignaturesPanel'
@@ -28,10 +27,6 @@ export default function GovernmentProfileDetailPanels({ tab }: GovernmentProfile
 
   if (tab === 'files') {
     return <GovernmentProfileFilesPanel />
-  }
-
-  if (tab === 'documents') {
-    return <GovernmentProfileDocumentsPanel />
   }
 
   if (tab === 'edoc') {

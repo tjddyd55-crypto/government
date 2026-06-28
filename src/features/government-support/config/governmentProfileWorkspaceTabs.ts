@@ -4,13 +4,19 @@ import { GOVERNMENT_ROUTE_PATHS } from '../constants/governmentRouteKeys'
 export type GovernmentProfileWorkspaceTab =
   | 'basic'
   | 'files'
-  | 'documents'
   | 'edoc'
   | 'consultations'
   | 'memos'
   | 'progress'
   | 'signatures'
   | 'applications'
+
+/** 제거된 탭 URL segment → 대체 탭 (직접 접근 시 redirect) */
+export const GOVERNMENT_PROFILE_WORKSPACE_LEGACY_TAB_REDIRECTS: Readonly<
+  Record<string, GovernmentProfileWorkspaceTab>
+> = Object.freeze({
+  documents: 'files',
+})
 
 export const GOVERNMENT_USER_PROFILE_WORKSPACE_BASE_PATH = GOVERNMENT_ROUTE_PATHS.myApplications
 export const GOVERNMENT_ADMIN_CUSTOMERS_WORKSPACE_BASE_PATH = GOVERNMENT_ROUTE_PATHS.adminCustomers
@@ -21,13 +27,17 @@ export const GOVERNMENT_PROFILE_WORKSPACE_BASE_PATH = GOVERNMENT_USER_PROFILE_WO
 export const GOVERNMENT_PROFILE_WORKSPACE_TABS: { id: GovernmentProfileWorkspaceTab; label: string }[] = [
   { id: 'basic', label: '기본정보' },
   { id: 'files', label: '서류/파일' },
-  { id: 'documents', label: '서류관리' },
   { id: 'edoc', label: '전자문서' },
   { id: 'consultations', label: '상담 이력' },
   { id: 'memos', label: '메모' },
   { id: 'progress', label: '진행상황' },
   { id: 'signatures', label: '전자서명' },
   { id: 'applications', label: '신청 관리' },
+]
+
+const GOVERNMENT_PROFILE_WORKSPACE_SIDE_DETAIL_TAB_IDS = [
+  ...GOVERNMENT_PROFILE_WORKSPACE_TABS.map((t) => t.id),
+  ...Object.keys(GOVERNMENT_PROFILE_WORKSPACE_LEGACY_TAB_REDIRECTS),
 ]
 
 export const GOVERNMENT_PROFILE_WORKSPACE_TAB_IDS = GOVERNMENT_PROFILE_WORKSPACE_TABS.map((t) => t.id)
@@ -50,7 +60,7 @@ export function createGovernmentProfileWorkspacePathHelpers(
 ): GovernmentProfileWorkspacePathHelpers {
   const escaped = escapeBasePathForRegex(basePath)
   const sideDetailTabRe = new RegExp(
-    `^${escaped}/[^/]+/(?:${GOVERNMENT_PROFILE_WORKSPACE_TAB_IDS.join('|')})(?:/|$)`,
+    `^${escaped}/[^/]+/(?:${GOVERNMENT_PROFILE_WORKSPACE_SIDE_DETAIL_TAB_IDS.join('|')})(?:/|$)`,
   )
   const profileIdRe = new RegExp(`^${escaped}/([^/]+)`)
   const tabRe = new RegExp(`^${escaped}/[^/]+/([^/]+)`)
@@ -93,6 +103,10 @@ export const governmentAdminCustomersWorkspacePaths = createGovernmentProfileWor
 
 export function parseGovernmentProfileWorkspaceTab(raw: string | undefined): GovernmentProfileWorkspaceTab {
   const t = String(raw ?? '').trim().toLowerCase()
+  const legacy = GOVERNMENT_PROFILE_WORKSPACE_LEGACY_TAB_REDIRECTS[t]
+  if (legacy) {
+    return legacy
+  }
   if (GOVERNMENT_PROFILE_WORKSPACE_TABS.some((x) => x.id === t)) {
     return t as GovernmentProfileWorkspaceTab
   }

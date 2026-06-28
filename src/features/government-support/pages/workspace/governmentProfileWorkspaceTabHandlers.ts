@@ -7,7 +7,6 @@ export type GovernmentProfileWorkspaceTabsProps = Pick<
   | 'selectedProfileId'
   | 'onClickBasic'
   | 'onClickFiles'
-  | 'onClickDocuments'
   | 'onClickEdoc'
   | 'onClickConsultations'
   | 'onClickMemos'
@@ -23,7 +22,6 @@ export function tabHandlerForId(
   const map: Record<GovernmentProfileWorkspaceTab, () => void> = {
     basic: props.onClickBasic,
     files: props.onClickFiles,
-    documents: props.onClickDocuments,
     edoc: props.onClickEdoc,
     consultations: props.onClickConsultations,
     memos: props.onClickMemos,

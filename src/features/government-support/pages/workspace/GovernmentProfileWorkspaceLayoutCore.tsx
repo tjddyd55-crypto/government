@@ -479,7 +479,6 @@ export default function GovernmentProfileWorkspaceLayoutCore({
     activeTab,
     onClickBasic: () => moveToTab('basic'),
     onClickFiles: () => moveToTab('files'),
-    onClickDocuments: () => moveToTab('documents'),
     onClickEdoc: () => moveToTab('edoc'),
     onClickConsultations: () => moveToTab('consultations'),
     onClickMemos: () => moveToTab('memos'),
