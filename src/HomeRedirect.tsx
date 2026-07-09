@@ -3,9 +3,9 @@ import { useAuth } from './features/auth/AuthProvider'
 import { resolveAuthLandingPath } from './features/auth/landing'
 import useIsMobile from './hooks/useIsMobile'
 import { isGovernmentProductApp } from './config/appProduct'
-import { useGovernmentAccess } from './features/government-support/hooks/useGovernmentAccess'
-import { resolveGovernmentHomePath } from './features/government-support/lib/governmentHome'
 import { isGovernmentGaSession } from './features/government-support/lib/isGovernmentGaSession'
+import GovernmentGaSessionAccessGate from './features/government-support/routes/GovernmentGaSessionAccessGate'
+import { GOVERNMENT_ROUTE_PATHS } from './features/government-support/constants/governmentRouteKeys'
 
 /**
  * 루트(`/`) 인덱스 라우트 진입 처리.
@@ -18,7 +18,6 @@ export function PublicHomeEntry() {
   const { isAuthenticated, user, token } = useAuth()
   const isMobile = useIsMobile()
   const isGovernmentGa = isAuthenticated && isGovernmentGaSession(user)
-  const { summary, loading } = useGovernmentAccess(isGovernmentGa ? token : null)
 
   if (!isAuthenticated) {
     const loginPath = isGovernmentProductApp() ? '/government/login' : '/login?required=1'
@@ -26,14 +25,9 @@ export function PublicHomeEntry() {
   }
 
   if (isGovernmentGa) {
-    if (loading || !summary) {
-      return (
-        <main className="page government-page government-page--gate">
-          <p className="government-page__muted">권한을 확인하는 중…</p>
-        </main>
-      )
-    }
-    return <Navigate to={resolveGovernmentHomePath(summary)} replace />
+    return (
+      <GovernmentGaSessionAccessGate token={token} loginPath={GOVERNMENT_ROUTE_PATHS.login} />
+    )
   }
 
   return <Navigate to={resolveAuthLandingPath(isMobile, user?.role)} replace />

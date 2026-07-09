@@ -1,8 +1,7 @@
-import { Navigate, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider'
-import { useGovernmentAccess } from '../hooks/useGovernmentAccess'
-import { resolveGovernmentHomePath } from '../lib/governmentHome'
 import { isGovernmentGaSession } from '../lib/isGovernmentGaSession'
+import GovernmentGaSessionAccessGate from './GovernmentGaSessionAccessGate'
 
 type GovernmentInsuranceRouteGuardProps = {
   children: React.ReactNode
@@ -15,7 +14,6 @@ export default function GovernmentInsuranceRouteGuard({ children }: GovernmentIn
   const { isAuthenticated, user, token } = useAuth()
   const location = useLocation()
   const isGovernmentGa = isAuthenticated && isGovernmentGaSession(user)
-  const { summary, loading } = useGovernmentAccess(isGovernmentGa ? token : null)
 
   if (location.pathname.startsWith('/government')) {
     return children
@@ -25,13 +23,5 @@ export default function GovernmentInsuranceRouteGuard({ children }: GovernmentIn
     return children
   }
 
-  if (loading || !summary) {
-    return (
-      <main className="page government-page government-page--gate">
-        <p className="government-page__muted">권한을 확인하는 중…</p>
-      </main>
-    )
-  }
-
-  return <Navigate to={resolveGovernmentHomePath(summary)} replace />
+  return <GovernmentGaSessionAccessGate token={token} />
 }
