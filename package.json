@@ -22,6 +22,7 @@
     "preview:vite": "vite preview",
     "start": "node server/index.js",
     "test": "node --test \"server/**/*.test.js\"",
+    "test:alimtalk-gateway": "node --test \"sms-gateway-ec2/**/*.test.mjs\"",
     "seed:insurance": "node server/runSeedInsurance.js",
     "import:partner-excel": "node server/scripts/runPartnerExcelImport.mjs",
     "import:cleaned-excel": "node server/scripts/runCleanedExcelImport.mjs",

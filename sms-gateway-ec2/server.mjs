@@ -2,9 +2,14 @@
  * 운영 시 실제 SMS 업체(알리고 등) 호출 로직을 이 파일에 연결하세요.
  * 메인 앱은 SMS_HTTP_GATEWAY_URL 로 이 서버에 { phone, message } JSON POST 합니다.
  *
+ * 알림톡(정부지원 전자서명): POST /send-alimtalk — 기존 /send-sms 와 독립.
+ * env: ALIMTALK_RELAY_AUTH_TOKEN, ALIMTALK_DRY_RUN, ALIGO_API_KEY, ALIGO_USER_ID,
+ *      ALIGO_KAKAO_SENDER_KEY, GOVERNMENT_ALIMTALK_TEMPLATE_CODE
+ *
  * 헬스체크: GET /health → { "status": "ok" }
  */
 import express from 'express'
+import { createAlimtalkHandler } from './alimtalkHandler.mjs'
 
 const PORT = Number(process.env.PORT ?? 3080)
 
@@ -34,6 +39,8 @@ const smsHandler = async (req, res) => {
 
 app.post('/', smsHandler)
 app.post('/send-sms', smsHandler)
+
+app.post('/send-alimtalk', createAlimtalkHandler())
 
 app.listen(PORT, () => {
   console.log(`[sms-gateway-ec2] listening on ${PORT}`)

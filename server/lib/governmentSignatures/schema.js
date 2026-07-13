@@ -206,6 +206,47 @@ export async function ensureGovSignatureSchema(executor) {
   `)
 
   await executor.query(`
+    CREATE TABLE IF NOT EXISTS gov_signature_notification_logs (
+      id BIGSERIAL PRIMARY KEY,
+      tenant_id BIGINT REFERENCES tenants(id) ON DELETE SET NULL,
+      profile_id BIGINT REFERENCES gov_support_profiles(id) ON DELETE SET NULL,
+      send_session_id TEXT NOT NULL REFERENCES gov_signature_send_sessions(id) ON DELETE CASCADE,
+      channel TEXT NOT NULL DEFAULT 'kakao_alimtalk',
+      provider TEXT NOT NULL DEFAULT 'aligo',
+      template_code TEXT,
+      recipient_phone_masked TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL,
+      provider_message_id TEXT,
+      provider_code TEXT,
+      provider_message TEXT,
+      error_category TEXT,
+      retry_count INTEGER NOT NULL DEFAULT 0,
+      request_snapshot JSONB,
+      response_snapshot JSONB,
+      requested_at TIMESTAMPTZ,
+      sent_at TIMESTAMPTZ,
+      failed_at TIMESTAMPTZ,
+      created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT gov_signature_notification_logs_status_check
+        CHECK (status IN ('sent', 'failed', 'skipped')),
+      CONSTRAINT gov_signature_notification_logs_channel_check
+        CHECK (channel IN ('kakao_alimtalk')),
+      CONSTRAINT gov_signature_notification_logs_provider_check
+        CHECK (provider IN ('aligo'))
+    )
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_sig_notification_logs_session
+    ON gov_signature_notification_logs (send_session_id, created_at DESC)
+  `)
+  await executor.query(`
+    CREATE INDEX IF NOT EXISTS idx_gov_sig_notification_logs_tenant
+    ON gov_signature_notification_logs (tenant_id, created_at DESC)
+  `)
+
+  await executor.query(`
     CREATE TABLE IF NOT EXISTS gov_signature_document_instances (
       id TEXT PRIMARY KEY,
       send_session_id TEXT NOT NULL REFERENCES gov_signature_send_sessions(id) ON DELETE CASCADE,
