@@ -21,9 +21,15 @@ import {
   listUserSendSessions,
   type SendSessionHistoryListItem,
 } from './governmentSignatureHistoryClient'
+import {
+  resendUserGovernmentSignatureNotification,
+} from './governmentSignatureSendClient'
+import { buildSendResultMessages, mapAlimtalkErrorCategoryToUserMessage } from './governmentSignatureAlimtalkDisplay'
+import { ApiError } from '../../../lib/apiClient'
 import { SendSessionDetailPanel } from './components/SendSessionDetailPanel'
 import { SendSessionHistoryFilters, type HistoryFilter } from './components/SendSessionHistoryFilters'
 import { SendSessionHistoryList } from './components/SendSessionHistoryList'
+import { formatStaffSessionDateParts } from './sendSessionStaffDisplay'
 
 const PAGE_SIZE = 30
 
@@ -59,6 +65,10 @@ export default function GovernmentSignatureHistoryPage() {
   /** 상세 패널이 열린 세션 ID — 취소 후 상세 갱신용 */
   const [panelSessionId, setPanelSessionId] = useState<string | null>(null)
   const [cancelFeedback, setCancelFeedback] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
+  const [resendBusy, setResendBusy] = useState(false)
+  const [resendFeedback, setResendFeedback] = useState<{ tone: 'success' | 'warning' | 'error'; text: string } | null>(
+    null,
+  )
 
   useEffect(() => {
     const id = window.setTimeout(() => setDebouncedQ(q.trim()), 320)
@@ -137,6 +147,7 @@ export default function GovernmentSignatureHistoryPage() {
     setDetailOpen(true)
     setDetail(null)
     setDetailError(null)
+    setResendFeedback(null)
     setDetailLoading(true)
     try {
       const d = await getUserSendSessionDetail(t, row.id)
@@ -244,6 +255,94 @@ export default function GovernmentSignatureHistoryPage() {
       return
     }
     void runCancel(detail.id)
+  }
+
+  const runResendNotification = async (sendSessionId: string) => {
+    if (!t) {
+      return
+    }
+    setResendBusy(true)
+    setResendFeedback(null)
+    try {
+      const result = await resendUserGovernmentSignatureNotification(t, sendSessionId)
+      const msg = buildSendResultMessages({ sessionCreated: true, notification: result.notification })
+      setResendFeedback({
+        tone: result.notification.status === 'failed' ? 'warning' : 'success',
+        text:
+          result.notification.status === 'sent'
+            ? '카카오 알림톡을 다시 발송했습니다.'
+            : msg.notificationLine || '알림톡 재발송이 처리되었습니다.',
+      })
+      await reloadListFirstPage()
+      if (panelSessionId === sendSessionId) {
+        setDetailLoading(true)
+        setDetailError(null)
+        try {
+          const d = await getUserSendSessionDetail(t, sendSessionId)
+          setDetail(d)
+        } catch (e) {
+          setDetailError(mapGovernmentSignatureApiError(e, '상세를 불러오지 못했습니다.'))
+        } finally {
+          setDetailLoading(false)
+        }
+      }
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        setResendFeedback({
+          tone: 'error',
+          text: '다시 발송할 수 없는 전자서명 요청입니다.',
+        })
+        await reloadListFirstPage()
+        if (panelSessionId === sendSessionId) {
+          try {
+            const d = await getUserSendSessionDetail(t, sendSessionId)
+            setDetail(d)
+          } catch {
+            /* ignore */
+          }
+        }
+      } else {
+        const category =
+          e instanceof ApiError && e.data && typeof e.data === 'object' && e.data != null
+            ? String((e.data as { notification?: { errorCategory?: string } }).notification?.errorCategory ?? '')
+            : ''
+        setResendFeedback({
+          tone: 'warning',
+          text: `전자서명 링크는 그대로 유지됩니다. ${mapAlimtalkErrorCategoryToUserMessage(category || null)}`,
+        })
+      }
+    } finally {
+      setResendBusy(false)
+    }
+  }
+
+  const confirmResendNotification = async () => {
+    if (!detail?.id || !detail.canResend) {
+      return
+    }
+    const customerName = detail.profileDisplayName || '고객'
+    const phone = detail.notificationRecipientPhoneMasked ?? detail.maskedPhone ?? '—'
+    const expiry =
+      detail.expiredAt != null
+        ? formatStaffSessionDateParts(detail.expiredAt)?.date.replace(/\./g, '-') ?? '—'
+        : '—'
+    const ok = await confirm({
+      title: '알림톡을 다시 보낼까요?',
+      message: (
+        <>
+          <p style={{ margin: '0 0 8px' }}>기존 전자서명 링크를 {customerName} 고객에게 다시 보냅니다.</p>
+          <p style={{ margin: '0 0 4px' }}>수신번호: {phone}</p>
+          <p style={{ margin: 0 }}>서명기한: {expiry}</p>
+        </>
+      ),
+      confirmLabel: '다시 보내기',
+      cancelLabel: '취소',
+      closeOnBackdrop: false,
+    })
+    if (!ok) {
+      return
+    }
+    void runResendNotification(detail.id)
   }
 
   return (
@@ -450,6 +549,9 @@ export default function GovernmentSignatureHistoryPage() {
         cancelBusy={cancelBusy}
         onCopyLink={(lc) => void copyLink(lc)}
         onOpenLink={(lc) => openTab(lc)}
+        onResendNotification={() => void confirmResendNotification()}
+        resendBusy={resendBusy}
+        resendFeedback={resendFeedback}
       />
       {confirmDialog}
     </main>

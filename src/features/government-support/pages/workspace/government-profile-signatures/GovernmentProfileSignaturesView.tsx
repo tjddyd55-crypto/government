@@ -2,7 +2,11 @@ import { FormButton, FormInput, FormTextarea } from '../../../../../components/f
 import { SendSessionPanel } from '../../../signatureTemplates/components/SendSessionPanel'
 import { formatSenderFieldLabel } from '../../../signatures/governmentSignatureUserDisplay'
 import { SendSessionStatusBadge } from '../../../signatures/components/SendSessionStatusBadge'
+import { AlimtalkNotificationStatusBadge } from '../../../signatures/components/AlimtalkNotificationStatusBadge'
 import { ContractTableDateCell } from '../../../signatures/components/GovernmentSignatureTableCells'
+import { GovernmentSignatureSendDeliveryOptions } from '../../../signatures/components/GovernmentSignatureSendDeliveryOptions'
+import { useGovernmentConfirmDialog } from '../../../hooks/useGovernmentConfirmDialog'
+import { validateSignatureExpiryYmd, canShowResendAvailableBadge } from '../../../signatures/governmentSignatureAlimtalkDisplay'
 import type { GovernmentProfileSignaturesViewProps } from './governmentProfileSignaturesViewProps'
 
 type Props = GovernmentProfileSignaturesViewProps & {
@@ -27,6 +31,13 @@ export default function GovernmentProfileSignaturesView({
   onConfirmationFieldChange,
   guideMessage,
   onGuideMessageChange,
+  notifyMode,
+  onNotifyModeChange,
+  expiryYmd,
+  onExpiryYmdChange,
+  reportExpiryError,
+  expiryError,
+  lastNotification,
   canSend,
   sendBusy,
   sendError,
@@ -42,7 +53,44 @@ export default function GovernmentProfileSignaturesView({
   onDownloadCompletedPdf,
 }: Props) {
   const isMobile = variant === 'mobile'
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
   const templateNames = (names: string[]) => (names.length > 0 ? names.join(', ') : '—')
+
+  const requestSend = async () => {
+    if (!canSend || sendBusy) {
+      return
+    }
+    const expiryValidation = validateSignatureExpiryYmd(expiryYmd)
+    if (!expiryValidation.ok) {
+      reportExpiryError(expiryValidation.message)
+      return
+    }
+    const confirmMessage =
+      notifyMode === 'kakao_alimtalk' ? (
+        <>
+          <p style={{ margin: '0 0 8px' }}>
+            {recipient.name} 고객에게 카카오 알림톡으로 전자서명 요청을 보냅니다.
+          </p>
+          <p style={{ margin: '0 0 4px' }}>수신번호: {recipient.maskedPhone}</p>
+          <p style={{ margin: 0 }}>서명기한: {expiryYmd}</p>
+        </>
+      ) : (
+        <>
+          <p style={{ margin: '0 0 8px' }}>{recipient.name} 고객의 전자서명 링크를 생성합니다.</p>
+          <p style={{ margin: 0 }}>서명기한: {expiryYmd}</p>
+        </>
+      )
+    const ok = await confirm({
+      title: '전자서명을 보낼까요?',
+      message: confirmMessage,
+      confirmLabel: '전자서명 보내기',
+      cancelLabel: '취소',
+      closeOnBackdrop: false,
+    })
+    if (ok) {
+      void onSend()
+    }
+  }
 
   return (
     <div className="government-profile-signatures-panel gov-workspace-tab-page">
@@ -166,10 +214,20 @@ export default function GovernmentProfileSignaturesView({
           />
         </label>
 
+        <GovernmentSignatureSendDeliveryOptions
+          notifyMode={notifyMode}
+          onNotifyModeChange={onNotifyModeChange}
+          expiryYmd={expiryYmd}
+          onExpiryYmdChange={onExpiryYmdChange}
+          expiryError={expiryError}
+          disabled={sendBusy}
+        />
+
         <SendSessionPanel
           busy={sendBusy}
           lastCreated={lastCreated}
-          onCreate={() => void onSend()}
+          lastNotification={lastNotification}
+          onCreate={() => void requestSend()}
           canSend={canSend}
           inactiveTemplateHint={
             selectedTemplate && !selectedTemplate.sendable ? '선택한 템플릿은 현재 발송할 수 없습니다.' : null
@@ -208,6 +266,17 @@ export default function GovernmentProfileSignaturesView({
                         sessionStatus={row.status}
                         hasSignedNotCompleted={row.hasSignedNotCompleted}
                       />
+                    </div>
+                    <div className="contract-history-mobile-card__row">
+                      <span className="contract-history-mobile-card__label">알림톡</span>
+                      <AlimtalkNotificationStatusBadge
+                        notificationStatus={row.notificationStatus}
+                        notificationDryRun={row.notificationDryRun}
+                        notificationProviderCode={row.notificationProviderCode}
+                      />
+                      {canShowResendAvailableBadge(row.canResend) ? (
+                        <span className="gov-signature-alimtalk-info__resend-badge">재발송 가능</span>
+                      ) : null}
                     </div>
                     <div className="contract-history-mobile-card__row">
                       <span className="contract-history-mobile-card__label">발송일</span>
@@ -249,6 +318,7 @@ export default function GovernmentProfileSignaturesView({
                         <th>수신자</th>
                         <th>연락처</th>
                         <th>상태</th>
+                        <th>알림톡</th>
                         <th>발송일</th>
                         <th>완료일</th>
                         <th>액션</th>
@@ -264,6 +334,13 @@ export default function GovernmentProfileSignaturesView({
                             <SendSessionStatusBadge
                               sessionStatus={row.status}
                               hasSignedNotCompleted={row.hasSignedNotCompleted}
+                            />
+                          </td>
+                          <td>
+                            <AlimtalkNotificationStatusBadge
+                              notificationStatus={row.notificationStatus}
+                              notificationDryRun={row.notificationDryRun}
+                              notificationProviderCode={row.notificationProviderCode}
                             />
                           </td>
                           <td>
@@ -304,6 +381,7 @@ export default function GovernmentProfileSignaturesView({
           </div>
         ) : null}
       </section>
+      {confirmDialog}
     </div>
   )
 }

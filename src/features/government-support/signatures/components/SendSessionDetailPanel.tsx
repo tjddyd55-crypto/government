@@ -9,6 +9,9 @@ import { SendSessionStatusBadge } from './SendSessionStatusBadge'
 import { formatStaffSessionDate, staffDocumentStatusLabel } from '../sendSessionStaffDisplay'
 import { formatIdentityStatusLabel, mapGovernmentSignatureApiError, mapGovernmentSignatureErrorMessage } from '../governmentSignatureUserDisplay'
 import { ContractTableDateCell } from './GovernmentSignatureTableCells'
+import { GovernmentSignatureAlimtalkInfoSection } from './GovernmentSignatureAlimtalkInfoSection'
+import { AlimtalkNotificationStatusBadge } from './AlimtalkNotificationStatusBadge'
+import { formatStaffSessionDateParts } from '../sendSessionStaffDisplay'
 
 type Props = {
   open: boolean
@@ -24,6 +27,9 @@ type Props = {
   cancelBusy: boolean
   onCopyLink: (signToken: string) => void
   onOpenLink: (signToken: string) => void
+  onResendNotification?: () => void
+  resendBusy?: boolean
+  resendFeedback?: { tone: 'success' | 'warning' | 'error'; text: string } | null
 }
 
 export function SendSessionDetailPanel({
@@ -40,6 +46,9 @@ export function SendSessionDetailPanel({
   cancelBusy,
   onCopyLink,
   onOpenLink,
+  onResendNotification,
+  resendBusy,
+  resendFeedback,
 }: Props) {
   const [downloadMessage, setDownloadMessage] = useState<string | null>(null)
   const isMobile = layout === 'mobile'
@@ -140,8 +149,19 @@ export function SendSessionDetailPanel({
             </p>
             <p className="contract-signature-console__hint">수신자 연락처: {detail.maskedPhone ?? '—'}</p>
             <p className="contract-signature-console__hint">
-              상태:{' '}
+              전자서명 상태:{' '}
               <SendSessionStatusBadge sessionStatus={detail.status} hasSignedNotCompleted={signedHint} />
+            </p>
+            <p className="contract-signature-console__hint">
+              알림톡 상태:{' '}
+              <AlimtalkNotificationStatusBadge
+                notificationStatus={detail.notificationStatus ?? 'not_requested'}
+                notificationDryRun={detail.notificationDryRun}
+                notificationProviderCode={detail.notificationProviderCode}
+              />
+              {detail.canResend ? (
+                <span className="gov-signature-alimtalk-info__resend-badge">재발송 가능</span>
+              ) : null}
             </p>
             <p className="contract-signature-console__hint">
               본인인증: {formatIdentityStatusLabel(detail.identityStatus)}
@@ -150,6 +170,44 @@ export function SendSessionDetailPanel({
             <p className="contract-signature-console__hint">
               열람: {detail.openedAt ? formatStaffSessionDate(detail.openedAt) : '—'}
             </p>
+            {detail.expiredAt ? (
+              <p className="contract-signature-console__hint">
+                서명기한: {formatStaffSessionDateParts(detail.expiredAt)?.date.replace(/\./g, '-') ?? '—'}
+              </p>
+            ) : null}
+
+            {detail.notificationStatus && detail.notificationStatus !== 'not_requested' ? (
+              <>
+                {resendFeedback ? (
+                  <div
+                    className={
+                      resendFeedback.tone === 'error'
+                        ? 'contract-signature-console__alert--danger'
+                        : 'contract-signature-console__notice'
+                    }
+                    role="status"
+                    style={{ marginBottom: 8 }}
+                  >
+                    {resendFeedback.text}
+                  </div>
+                ) : null}
+                <GovernmentSignatureAlimtalkInfoSection
+                  summary={{
+                    notificationStatus: detail.notificationStatus,
+                    notificationSentAt: detail.notificationSentAt,
+                    notificationRecipientPhoneMasked: detail.notificationRecipientPhoneMasked,
+                    notificationRetryCount: detail.notificationRetryCount,
+                    notificationErrorCategory: detail.notificationErrorCategory,
+                    notificationProviderCode: detail.notificationProviderCode,
+                    notificationDryRun: detail.notificationDryRun,
+                    canResend: detail.canResend,
+                  }}
+                  maskedPhone={detail.maskedPhone}
+                  onResend={onResendNotification}
+                  resendBusy={resendBusy}
+                />
+              </>
+            ) : null}
 
             <h3 className="contract-signature-console__section-title gov-signature-history-detail-dialog__docs-title">
               완료·증빙 PDF 다운로드

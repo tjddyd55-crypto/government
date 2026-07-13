@@ -52,6 +52,11 @@ import {
 } from '../lib/governmentSupport/notifications/governmentSignatureSendNotification.js'
 import { runPostCommitGovernmentSignatureAlimtalk } from '../lib/governmentSupport/notifications/governmentSignaturePostCommit.js'
 import { resendGovernmentSignatureAlimtalkNotification } from '../lib/governmentSupport/notifications/governmentSignatureResendNotification.js'
+import {
+  LATEST_GOV_SIGNATURE_NOTIFICATION_LOG_LATERAL,
+  mapLatestNotificationLogToApiSummary,
+  mapNotificationSummaryFromJoinedRow,
+} from '../lib/governmentSupport/notifications/governmentSignatureNotificationSummary.js'
 
 const GSS_PREFIX = 'gss_'
 const GSDI_PREFIX = 'gsdi_'
@@ -355,6 +360,7 @@ function mapSendSessionListRow(row) {
     canCopyLink: Boolean(row.sign_token),
     canOpenLink: Boolean(row.sign_token),
     canResend: computeCanResendNotification(row),
+    ...mapNotificationSummaryFromJoinedRow(row),
   }
 }
 
@@ -1233,7 +1239,14 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           COALESCE(doc_agg.template_names, '') AS template_names,
           COALESCE(doc_agg.has_signed_pdf_file, false) AS has_signed_pdf_file,
           COALESCE(doc_agg.has_signed_not_completed, false) AS has_signed_not_completed,
-          evpfx.evidence_hash_prefix
+          evpfx.evidence_hash_prefix,
+          notif_log.status AS notif_log_status,
+          notif_log.sent_at AS notif_log_sent_at,
+          notif_log.requested_at AS notif_log_requested_at,
+          notif_log.recipient_phone_masked AS notif_log_recipient_phone_masked,
+          notif_log.retry_count AS notif_log_retry_count,
+          notif_log.error_category AS notif_log_error_category,
+          notif_log.provider_code AS notif_log_provider_code
         FROM gov_signature_send_sessions s
         INNER JOIN gov_support_profiles p ON p.id = s.profile_id
         LEFT JOIN gov_signature_identity_sessions ivs ON ivs.id = s.identity_session_id
@@ -1260,6 +1273,7 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           ORDER BY created_at DESC
           LIMIT 1
         ) evpfx ON true
+        ${LATEST_GOV_SIGNATURE_NOTIFICATION_LOG_LATERAL}
         WHERE ${listScope.sql}
           ${whereRest}
         ORDER BY ${orderSql}
@@ -1496,10 +1510,23 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       }
       const confirmationItems = await listConfirmationItemsWithValues(pool, row.id)
       const sendSessionAttachments = await listSendSessionAttachmentsPublic(pool, row.id)
+      const notifLogR = await pool.query(
+        `
+        SELECT status, sent_at, requested_at, recipient_phone_masked, retry_count, error_category, provider_code
+        FROM gov_signature_notification_logs
+        WHERE send_session_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+        `,
+        [row.id],
+      )
+      const notificationSummary = mapLatestNotificationLogToApiSummary(notifLogR.rows[0] ?? null)
       res.json({
         ok: true,
         sendSession: {
           ...mapSendSessionDetailRow(row, docs, evidenceByDoc),
+          ...notificationSummary,
+          canResend: computeCanResendNotification(row),
           confirmationItems,
           sendSessionAttachments,
         },

@@ -12,6 +12,8 @@ export type GovernmentConfirmDialogProps = {
   cancelLabel?: string
   busy?: boolean
   tone?: GovernmentConfirmDialogTone
+  /** false면 백드롭 클릭으로 닫히지 않음 (발송 확인 등) */
+  closeOnBackdrop?: boolean
   onConfirm: () => void | Promise<void>
   onCancel: () => void
 }
@@ -24,6 +26,7 @@ export function GovernmentConfirmDialog({
   cancelLabel = '취소',
   busy = false,
   tone = 'default',
+  closeOnBackdrop = true,
   onConfirm,
   onCancel,
 }: GovernmentConfirmDialogProps) {
@@ -56,7 +59,7 @@ export function GovernmentConfirmDialog({
     <div
       className="government-confirm-dialog__backdrop"
       onClick={(event) => {
-        if (!busy && event.target === event.currentTarget) {
+        if (closeOnBackdrop && !busy && event.target === event.currentTarget) {
           onCancel()
         }
         event.stopPropagation()

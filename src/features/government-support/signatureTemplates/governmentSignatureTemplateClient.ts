@@ -9,6 +9,7 @@ import {
 } from './governmentSignaturePdfTemplateClient'
 import { searchCustomers } from '../../customers/api/customersApi'
 import type { GovernmentSignatureScopePayload } from '../hooks/useGovernmentSignatureScopeFields'
+import type { GovernmentSignatureNotificationSummary } from '../signatures/governmentSignatureAlimtalkTypes'
 
 export type GovernmentSignatureTemplateMode = 'coordinate_pdf' | 'confirmation_only'
 
@@ -157,6 +158,8 @@ export type SendSessionDetail = {
   confirmationItems?: GovernmentSignatureSendConfirmationItem[]
   /** 발송 시 첨부한 참고 문서(고객 열람·확인 이력) */
   sendSessionAttachments?: SendSessionAttachmentDetail[]
+} & GovernmentSignatureNotificationSummary & {
+  canResend?: boolean
 }
 
 function scopeBody(scope?: GovernmentSignatureScopePayload): Record<string, string> {

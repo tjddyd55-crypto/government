@@ -1,6 +1,7 @@
 ﻿import { ApiError, apiRequest } from '../../../lib/apiClient'
 import { getPublicOrigin } from '../../../lib/publicOrigin'
 import type { SendSessionDetail } from '../signatureTemplates/governmentSignatureTemplateClient'
+import type { GovernmentSignatureNotificationSummary } from './governmentSignatureAlimtalkTypes'
 
 export type SendSessionHistoryListItem = {
   id: string
@@ -29,7 +30,7 @@ export type SendSessionHistoryListItem = {
   canCopyLink: boolean
   canOpenLink: boolean
   canResend: boolean
-}
+} & GovernmentSignatureNotificationSummary
 
 export type ListUserSendSessionsResult = {
   sendSessions: SendSessionHistoryListItem[]

@@ -3,6 +3,11 @@ import type {
   CreateSendSessionResult,
   SendSessionDetail,
 } from '../signatureTemplates/governmentSignatureTemplateClient'
+import type {
+  GovernmentSignatureCustomerNotifyMode,
+  GovernmentSignatureSendNotificationResult,
+} from './governmentSignatureAlimtalkTypes'
+import { signatureExpiryYmdToApiExpiresAt } from './governmentSignatureAlimtalkDisplay'
 
 export const CONTRACT_SEND_CONFIRMATION_MAX_ITEMS = 10
 export const CONTRACT_SEND_CONFIRMATION_MAX_LABEL_LEN = 200
@@ -240,6 +245,8 @@ export async function createUserGovernmentSignatureSendSession(
   params: {
     profileId: number
     templateIds: string[]
+    expiresAt?: string
+    notifyMode?: GovernmentSignatureCustomerNotifyMode
     /** fieldKey → 값 (단일 템플릿 발송 시 평면 맵). */
     senderInputValues?: Record<string, unknown>
     /** @deprecated senderInputValues 사용 */
@@ -251,21 +258,29 @@ export async function createUserGovernmentSignatureSendSession(
     /** 첨부 참고 문서(fileId는 업로드 API로 발급) */
     attachments?: { fileId: string; required?: boolean }[]
   },
-): Promise<CreateSendSessionResult> {
+): Promise<CreateSendSessionResult & { notification?: GovernmentSignatureSendNotificationResult }> {
+  const bodyPayload: Record<string, unknown> = {
+    profileId: params.profileId,
+    templateIds: params.templateIds,
+    senderInputValues: params.senderInputValues ?? params.senderFieldValues,
+    confirmationItems: params.confirmationItems,
+    confirmationFieldValues: params.confirmationFieldValues,
+    attachments: params.attachments,
+  }
+  if (params.expiresAt) {
+    bodyPayload.expiresAt = params.expiresAt
+  }
+  if (params.notifyMode === 'kakao_alimtalk') {
+    bodyPayload.notification = { channel: 'kakao_alimtalk' }
+  }
   const body = await apiRequest<{
     sendSession?: CreateSendSessionResult
+    notification?: GovernmentSignatureSendNotificationResult
     confirmationItems?: { id: string; label: string; required: boolean }[]
   }>('/api/government-support/signatures/send', {
     method: 'POST',
     token,
-    body: JSON.stringify({
-      profileId: params.profileId,
-      templateIds: params.templateIds,
-      senderInputValues: params.senderInputValues ?? params.senderFieldValues,
-      confirmationItems: params.confirmationItems,
-      confirmationFieldValues: params.confirmationFieldValues,
-      attachments: params.attachments,
-    }),
+    body: JSON.stringify(bodyPayload),
   })
   const s = body.sendSession
   if (!s?.id || !s.signToken) {
@@ -274,8 +289,35 @@ export async function createUserGovernmentSignatureSendSession(
   if (body.confirmationItems && Array.isArray(body.confirmationItems)) {
     s.confirmationItems = body.confirmationItems
   }
-  return s
+  return { ...s, notification: body.notification }
 }
+
+export type ResendGovernmentSignatureNotificationResult = {
+  ok: true
+  sendSessionId: string
+  signToken: string
+  notification: GovernmentSignatureSendNotificationResult
+}
+
+export async function resendUserGovernmentSignatureNotification(
+  token: string,
+  sendSessionId: string,
+): Promise<ResendGovernmentSignatureNotificationResult> {
+  const body = await apiRequest<ResendGovernmentSignatureNotificationResult>(
+    `/api/government-support/signatures/${encodeURIComponent(sendSessionId)}/resend-notification`,
+    {
+      method: 'POST',
+      token,
+      body: JSON.stringify({}),
+    },
+  )
+  if (!body?.ok || !body.sendSessionId || !body.notification) {
+    throw new ApiError('알림톡 재발송 응답이 올바르지 않습니다.', 500)
+  }
+  return body
+}
+
+export { signatureExpiryYmdToApiExpiresAt }
 
 export async function getUserGovernmentSignatureSendSessionDetail(
   token: string,

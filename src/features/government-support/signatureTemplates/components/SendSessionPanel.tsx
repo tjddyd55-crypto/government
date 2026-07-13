@@ -1,10 +1,12 @@
 ﻿import { FormButton } from '../../../../components/form'
 import { buildGovSignaturePublicSignUrl } from '../../signatures/governmentSignatureHistoryClient'
 import { SendSessionStatusBadge } from '../../signatures/components/SendSessionStatusBadge'
-import { formatStaffSessionDate, staffDocumentStatusLabel } from '../../signatures/sendSessionStaffDisplay'
+import { formatStaffSessionDate, formatStaffSessionDateParts, staffDocumentStatusLabel } from '../../signatures/sendSessionStaffDisplay'
 import { mapGovernmentSignatureErrorMessage } from '../../signatures/governmentSignatureUserDisplay'
 import type { CreateSendSessionResult, SendSessionDetail } from '../governmentSignatureTemplateClient'
 import { downloadStaffEvidencePdfFile, downloadStaffSignedPdfFile } from '../governmentSignatureTemplateClient'
+import type { GovernmentSignatureSendNotificationResult } from '../../signatures/governmentSignatureAlimtalkTypes'
+import { GovernmentSignatureNotificationResultCard } from '../../signatures/components/GovernmentSignatureNotificationResultCard'
 
 function formatAttachmentCustomerConfirmAt(iso: string | null | undefined): string {
   if (!iso) {
@@ -25,6 +27,7 @@ function formatAttachmentCustomerConfirmAt(iso: string | null | undefined): stri
 type Props = {
   busy: boolean
   lastCreated: CreateSendSessionResult | null
+  lastNotification?: GovernmentSignatureSendNotificationResult | null
   onCreate: () => void
   canSend: boolean
   /** 선택한 계약서 템플릿이 active가 아닐 때 발송 버튼 비활성 사유 */
@@ -41,6 +44,7 @@ type Props = {
 export function SendSessionPanel({
   busy,
   lastCreated,
+  lastNotification,
   onCreate,
   canSend,
   inactiveTemplateHint,
@@ -101,7 +105,7 @@ export function SendSessionPanel({
           disabled={!canSend || busy}
           onClick={onCreate}
         >
-          {busy ? '생성 중…' : '발송 세션 생성'}
+          {busy ? '발송 중…' : '전자서명 보내기'}
         </FormButton>
         {canSend || !inactiveTemplateHint ? (
           <p className="contract-signature-console__hint" style={{ marginTop: 10 }}>
@@ -110,12 +114,21 @@ export function SendSessionPanel({
         ) : null}
 
         {session ? (
-          <div className="contract-mobile-success-banner" style={{ marginTop: 14 }}>
-            <strong>링크가 생성되었습니다.</strong>
-            <div className="contract-signature-console__hint" style={{ marginTop: 6 }}>
-              고객에게 전달할 링크가 준비되었습니다. 아래 버튼으로 복사하거나 열 수 있습니다.
-            </div>
-            <div className="contract-mobile-action-grid">
+          <div style={{ marginTop: 14 }}>
+            {lastNotification ? (
+              <GovernmentSignatureNotificationResultCard
+                notification={lastNotification}
+                onCopyLink={() => void copyLink(session.signToken)}
+              />
+            ) : (
+              <div className="contract-mobile-success-banner">
+                <strong>링크가 생성되었습니다.</strong>
+                <div className="contract-signature-console__hint" style={{ marginTop: 6 }}>
+                  고객에게 전달할 링크가 준비되었습니다. 아래 버튼으로 복사하거나 열 수 있습니다.
+                </div>
+              </div>
+            )}
+            <div className="contract-mobile-action-grid" style={{ marginTop: 14 }}>
               <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => void copyLink(session.signToken)}>
                 링크 복사
               </FormButton>
@@ -253,7 +266,7 @@ export function SendSessionPanel({
         </div>
       ) : null}
       <FormButton htmlType="button" variant="primary" size="sm" disabled={!canSend || busy} onClick={onCreate}>
-        {busy ? '생성 중…' : '발송 세션 생성'}
+        {busy ? '발송 중…' : '전자서명 보내기'}
       </FormButton>
       {inactiveTemplateHint ? (
         <p className="contract-signature-console__inline-warning" role="status" style={{ margin: '8px 0 0' }}>
@@ -266,20 +279,33 @@ export function SendSessionPanel({
 
       {session ? (
         <div className="contract-signature-console__session-summary">
-          <p className="contract-signature-console__body-text" style={{ margin: 0 }}>
+          {lastNotification ? (
+            <GovernmentSignatureNotificationResultCard
+              notification={lastNotification}
+              onCopyLink={() => void copyLink(session.signToken)}
+            />
+          ) : null}
+          <p className="contract-signature-console__body-text" style={{ margin: lastNotification ? '12px 0 0' : 0 }}>
             <strong>수신자 연락처</strong> {session.maskedPhone || '—'}
           </p>
           <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
             상태 <SendSessionStatusBadge sessionStatus={session.status} />
           </p>
+          {session.expiredAt ? (
+            <p className="contract-signature-console__hint" style={{ marginTop: 4 }}>
+              서명기한 {formatStaffSessionDateParts(session.expiredAt)?.date.replace(/\./g, '-') ?? '—'}
+            </p>
+          ) : null}
           {session.createdAt ? (
             <p className="contract-signature-console__hint" style={{ marginTop: 4 }}>
               발송일 {formatStaffSessionDate(session.createdAt)}
             </p>
           ) : null}
-          <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
-            고객에게 전달할 링크를 복사하거나 새 탭에서 열 수 있습니다.
-          </p>
+          {!lastNotification ? (
+            <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
+              고객에게 전달할 링크를 복사하거나 새 탭에서 열 수 있습니다.
+            </p>
+          ) : null}
           {session.confirmationItems && session.confirmationItems.length > 0 ? (
             <div style={{ marginTop: 12 }}>
               <strong>고객 확인 항목</strong>

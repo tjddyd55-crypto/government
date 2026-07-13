@@ -31,6 +31,14 @@ import {
 } from './governmentSignatureSendClient'
 import { SendAttachmentFileInput } from './SendAttachmentFileInput'
 import { ConfirmationOnlySendFieldsSection } from './ConfirmationOnlySendFieldsSection'
+import { GovernmentSignatureSendDeliveryOptions } from './components/GovernmentSignatureSendDeliveryOptions'
+import { useGovernmentConfirmDialog } from '../hooks/useGovernmentConfirmDialog'
+import {
+  defaultSignatureExpiryYmd,
+  signatureExpiryYmdToApiExpiresAt,
+  validateSignatureExpiryYmd,
+} from './governmentSignatureAlimtalkDisplay'
+import type { GovernmentSignatureCustomerNotifyMode, GovernmentSignatureSendNotificationResult } from './governmentSignatureAlimtalkTypes'
 
 /**
  * 모바일 발송 단계에서 초록색(contract-mobile-step--completed)은
@@ -221,6 +229,7 @@ function mobileStepShell(
 
 export default function GovernmentSignatureSendPage() {
   const { token } = useAuth()
+  const { confirm, confirmDialog } = useGovernmentConfirmDialog()
   const t = token?.trim() ?? ''
   const isMobileFlow = useMediaQuery(MOBILE_FLOW_MQ)
   const customerSearchInputRef = useRef<HTMLInputElement>(null)
@@ -252,6 +261,11 @@ export default function GovernmentSignatureSendPage() {
   const [confirmationFieldsError, setConfirmationFieldsError] = useState<string | null>(null)
   const [confirmationFieldValues, setConfirmationFieldValues] = useState<Record<string, string>>({})
 
+  const [notifyMode, setNotifyMode] = useState<GovernmentSignatureCustomerNotifyMode>('kakao_alimtalk')
+  const [expiryYmd, setExpiryYmd] = useState(() => defaultSignatureExpiryYmd())
+  const [expiryError, setExpiryError] = useState<string | null>(null)
+  const [lastNotification, setLastNotification] = useState<GovernmentSignatureSendNotificationResult | null>(null)
+
   useEffect(() => {
     setAttachmentDrafts([])
   }, [selectedCustomer?.id])
@@ -267,6 +281,7 @@ export default function GovernmentSignatureSendPage() {
     setSendError(null)
     setSendBusy(false)
     setEvidenceLoading(false)
+    setLastNotification(null)
   }, [selectedCustomer?.id, selectedTemplateId])
 
   const reloadTemplates = useCallback(async () => {
@@ -513,11 +528,48 @@ export default function GovernmentSignatureSendPage() {
   })()
 
   const onCreateSendSession = async () => {
-    if (!t || !selectedTemplateId || !selectedCustomer?.hasPhone) {
+    if (!t || !selectedTemplateId || !selectedCustomer?.hasPhone || sendBusy) {
       return
     }
+    const expiryValidation = validateSignatureExpiryYmd(expiryYmd)
+    if (!expiryValidation.ok) {
+      setExpiryError(expiryValidation.message)
+      return
+    }
+    setExpiryError(null)
+
+    const customerName = selectedCustomer.name || '고객'
+    const phone = selectedCustomer.maskedPhone || '—'
+    const confirmMessage =
+      notifyMode === 'kakao_alimtalk' ? (
+        <>
+          <p style={{ margin: '0 0 8px' }}>
+            {customerName} 고객에게 카카오 알림톡으로 전자서명 요청을 보냅니다.
+          </p>
+          <p style={{ margin: '0 0 4px' }}>수신번호: {phone}</p>
+          <p style={{ margin: 0 }}>서명기한: {expiryYmd}</p>
+        </>
+      ) : (
+        <>
+          <p style={{ margin: '0 0 8px' }}>{customerName} 고객의 전자서명 링크를 생성합니다.</p>
+          <p style={{ margin: 0 }}>서명기한: {expiryYmd}</p>
+        </>
+      )
+
+    const ok = await confirm({
+      title: '전자서명을 보낼까요?',
+      message: confirmMessage,
+      confirmLabel: '전자서명 보내기',
+      cancelLabel: '취소',
+      closeOnBackdrop: false,
+    })
+    if (!ok) {
+      return
+    }
+
     setSendBusy(true)
     setSendError(null)
+    setLastNotification(null)
     try {
       const senderDefs = selectedTpl?.senderFieldsForSend ?? []
       const senderInputValues =
@@ -538,6 +590,8 @@ export default function GovernmentSignatureSendPage() {
       const created = await createUserGovernmentSignatureSendSession(t, {
         profileId: selectedCustomer.id,
         templateIds: [selectedTemplateId],
+        expiresAt: signatureExpiryYmdToApiExpiresAt(expiryYmd),
+        notifyMode,
         senderInputValues,
         confirmationFieldValues: confirmationFieldValuesPayload,
         confirmationItems:
@@ -550,6 +604,7 @@ export default function GovernmentSignatureSendPage() {
             : undefined,
       })
       setLastCreated(created)
+      setLastNotification(created.notification ?? null)
       const next = await getUserGovernmentSignatureSendSessionDetail(t, created.id)
       setSessionDetail(next)
       setAttachmentDrafts([])
@@ -911,6 +966,7 @@ export default function GovernmentSignatureSendPage() {
 
   if (isMobileFlow) {
     return (
+      <>
       <main className={mainClass}>
         <div className="contract-signature-console__container">
           <h1 className="contract-signature-console__title">전자서명 발송</h1>
@@ -1272,9 +1328,21 @@ export default function GovernmentSignatureSendPage() {
                   </div>
                 </div>
               ) : null}
+              <GovernmentSignatureSendDeliveryOptions
+                notifyMode={notifyMode}
+                onNotifyModeChange={setNotifyMode}
+                expiryYmd={expiryYmd}
+                onExpiryYmdChange={(ymd) => {
+                  setExpiryYmd(ymd)
+                  setExpiryError(null)
+                }}
+                expiryError={expiryError}
+                disabled={sendBusy}
+              />
               <SendSessionPanel
                 busy={sendBusy}
                 lastCreated={scopedLastCreated}
+                lastNotification={lastNotification}
                 onCreate={() => void onCreateSendSession()}
                 canSend={effectiveCanSend}
                 inactiveTemplateHint={effectiveCanSend ? null : sendSessionPanelHint}
@@ -1305,10 +1373,13 @@ export default function GovernmentSignatureSendPage() {
           )}
         </div>
       </main>
+      {confirmDialog}
+      </>
     )
   }
 
   return (
+    <>
     <main className={mainClass}>
       <div className="contract-signature-console__container">
         <h1 className="contract-signature-console__title">전자서명 발송</h1>
@@ -1695,9 +1766,21 @@ export default function GovernmentSignatureSendPage() {
 
         <section className="contract-signature-console__section">
           <h2 className="contract-signature-console__section-title">3. 발송 세션</h2>
+          <GovernmentSignatureSendDeliveryOptions
+            notifyMode={notifyMode}
+            onNotifyModeChange={setNotifyMode}
+            expiryYmd={expiryYmd}
+            onExpiryYmdChange={(ymd) => {
+              setExpiryYmd(ymd)
+              setExpiryError(null)
+            }}
+            expiryError={expiryError}
+            disabled={sendBusy}
+          />
           <SendSessionPanel
             busy={sendBusy}
             lastCreated={scopedLastCreated}
+            lastNotification={lastNotification}
             onCreate={() => void onCreateSendSession()}
             canSend={effectiveCanSend}
             inactiveTemplateHint={effectiveCanSend ? null : sendSessionPanelHint}
@@ -1718,5 +1801,7 @@ export default function GovernmentSignatureSendPage() {
         </section>
       </div>
     </main>
+    {confirmDialog}
+    </>
   )
 }

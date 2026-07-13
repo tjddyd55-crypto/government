@@ -17,6 +17,15 @@ import {
   type GovSignatureConfirmationFieldRow,
   type UserGovernmentSignatureTemplateItem,
 } from '../signatures/governmentSignatureSendClient'
+import {
+  defaultSignatureExpiryYmd,
+  signatureExpiryYmdToApiExpiresAt,
+  validateSignatureExpiryYmd,
+} from '../signatures/governmentSignatureAlimtalkDisplay'
+import type {
+  GovernmentSignatureCustomerNotifyMode,
+  GovernmentSignatureSendNotificationResult,
+} from '../signatures/governmentSignatureAlimtalkTypes'
 
 export type GovernmentProfileSignaturesViewProps = ReturnType<typeof useGovernmentProfileSignaturesState>
 
@@ -75,6 +84,10 @@ export function useGovernmentProfileSignaturesState(token: string, profileId: st
   const [sendError, setSendError] = useState<string | null>(null)
   const [lastCreated, setLastCreated] = useState<CreateSendSessionResult | null>(null)
   const [sessionDetail, setSessionDetail] = useState<SendSessionDetail | null>(null)
+  const [notifyMode, setNotifyMode] = useState<GovernmentSignatureCustomerNotifyMode>('kakao_alimtalk')
+  const [expiryYmd, setExpiryYmd] = useState(() => defaultSignatureExpiryYmd())
+  const [expiryError, setExpiryError] = useState<string | null>(null)
+  const [lastNotification, setLastNotification] = useState<GovernmentSignatureSendNotificationResult | null>(null)
 
   const [historyRows, setHistoryRows] = useState<SendSessionHistoryListItem[]>([])
   const [historyLoading, setHistoryLoading] = useState(true)
@@ -135,6 +148,7 @@ export function useGovernmentProfileSignaturesState(token: string, profileId: st
     setLastCreated(null)
     setSessionDetail(null)
     setSendError(null)
+    setLastNotification(null)
   }, [profileId])
 
   useEffect(() => {
@@ -207,11 +221,18 @@ export function useGovernmentProfileSignaturesState(token: string, profileId: st
   )
 
   const onSend = useCallback(async () => {
-    if (!canSend || !selectedTemplateId || !Number.isInteger(pid) || pid < 1) {
+    if (!canSend || !selectedTemplateId || !Number.isInteger(pid) || pid < 1 || sendBusy) {
       return
     }
+    const expiryValidation = validateSignatureExpiryYmd(expiryYmd)
+    if (!expiryValidation.ok) {
+      setExpiryError(expiryValidation.message)
+      return
+    }
+    setExpiryError(null)
     setSendBusy(true)
     setSendError(null)
+    setLastNotification(null)
     try {
       if (selectedTemplate?.templateMode === 'confirmation_only') {
         const validation = validateConfirmationOnlyFieldValues(confirmationFields, confirmationFieldValues)
@@ -226,11 +247,14 @@ export function useGovernmentProfileSignaturesState(token: string, profileId: st
       const created = await createUserGovernmentSignatureSendSession(t, {
         profileId: pid,
         templateIds: [selectedTemplateId],
+        expiresAt: signatureExpiryYmdToApiExpiresAt(expiryYmd),
+        notifyMode,
         senderInputValues: Object.keys(senderPayload).length > 0 ? senderPayload : undefined,
         confirmationFieldValues:
           selectedTemplate?.templateMode === 'confirmation_only' ? confirmationFieldValues : undefined,
       })
       setLastCreated(created)
+      setLastNotification(created.notification ?? null)
       const detail = await getUserGovernmentSignatureSendSessionDetail(t, created.id)
       setSessionDetail(detail)
       await reloadHistory()
@@ -243,10 +267,13 @@ export function useGovernmentProfileSignaturesState(token: string, profileId: st
     canSend,
     confirmationFieldValues,
     confirmationFields,
+    expiryYmd,
+    notifyMode,
     pid,
     reloadHistory,
     selectedTemplate?.templateMode,
     selectedTemplateId,
+    sendBusy,
     senderInputValues,
     t,
   ])
@@ -304,6 +331,16 @@ export function useGovernmentProfileSignaturesState(token: string, profileId: st
     onConfirmationFieldChange,
     guideMessage,
     onGuideMessageChange: setGuideMessage,
+    notifyMode,
+    onNotifyModeChange: setNotifyMode,
+    expiryYmd,
+    onExpiryYmdChange: (ymd: string) => {
+      setExpiryYmd(ymd)
+      setExpiryError(null)
+    },
+    expiryError,
+    reportExpiryError: setExpiryError,
+    lastNotification,
     canSend,
     sendBusy,
     sendError,

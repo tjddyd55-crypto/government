@@ -1,7 +1,9 @@
 ﻿import { FormButton } from '../../../../components/form'
 import type { SendSessionHistoryListItem } from '../governmentSignatureHistoryClient'
 import { SendSessionStatusBadge } from './SendSessionStatusBadge'
+import { AlimtalkNotificationStatusBadge } from './AlimtalkNotificationStatusBadge'
 import { ContractTableDateCell } from './GovernmentSignatureTableCells'
+import { canShowResendAvailableBadge } from '../governmentSignatureAlimtalkDisplay'
 
 type Props = {
   rows: SendSessionHistoryListItem[]
@@ -61,6 +63,19 @@ export function SendSessionHistoryList({
                     sessionStatus={row.status}
                     hasSignedNotCompleted={row.hasSignedNotCompleted}
                   />
+                </span>
+              </div>
+              <div className="contract-history-mobile-card__row">
+                <span className="contract-history-mobile-card__label">알림톡</span>
+                <span>
+                  <AlimtalkNotificationStatusBadge
+                    notificationStatus={row.notificationStatus}
+                    notificationDryRun={row.notificationDryRun}
+                    notificationProviderCode={row.notificationProviderCode}
+                  />
+                  {canShowResendAvailableBadge(row.canResend) ? (
+                    <span className="gov-signature-alimtalk-info__resend-badge">재발송 가능</span>
+                  ) : null}
                 </span>
               </div>
               <div className="contract-history-mobile-card__row">
@@ -127,13 +142,14 @@ export function SendSessionHistoryList({
     <div className="contract-signature-console__scroll-x">
       <table className="contract-history-table contract-signature-console__table--striped">
         <colgroup>
-          <col style={{ width: '10%' }} />
+          <col style={{ width: '9%' }} />
+          <col style={{ width: '12%' }} />
           <col style={{ width: '14%' }} />
-          <col style={{ width: '16%' }} />
-          <col style={{ width: '8%' }} />
-          <col style={{ width: '8%' }} />
-          <col style={{ width: '10%' }} />
-          <col style={{ width: '10%' }} />
+          <col style={{ width: '7%' }} />
+          <col style={{ width: '9%' }} />
+          <col style={{ width: '7%' }} />
+          <col style={{ width: '9%' }} />
+          <col style={{ width: '9%' }} />
           <col style={{ width: '24%' }} />
         </colgroup>
         <thead>
@@ -142,6 +158,7 @@ export function SendSessionHistoryList({
             <th className="contract-table-cell-left">연락처</th>
             <th className="contract-table-cell-left">문서</th>
             <th className="contract-table-cell-center">상태</th>
+            <th className="contract-table-cell-center">알림톡</th>
             <th className="contract-table-cell-center">진행</th>
             <th className="contract-table-cell-center">발송일</th>
             <th className="contract-table-cell-center">완료일</th>
@@ -176,6 +193,18 @@ export function SendSessionHistoryList({
                       sessionStatus={row.status}
                       hasSignedNotCompleted={row.hasSignedNotCompleted}
                     />
+                  </div>
+                </td>
+                <td className="contract-table-cell-center">
+                  <div className="contract-table-cell-stack contract-table-cell-stack--center">
+                    <AlimtalkNotificationStatusBadge
+                      notificationStatus={row.notificationStatus}
+                      notificationDryRun={row.notificationDryRun}
+                      notificationProviderCode={row.notificationProviderCode}
+                    />
+                    {canShowResendAvailableBadge(row.canResend) ? (
+                      <span className="gov-signature-alimtalk-info__resend-badge">재발송 가능</span>
+                    ) : null}
                   </div>
                 </td>
                 <td className="contract-table-cell-center">

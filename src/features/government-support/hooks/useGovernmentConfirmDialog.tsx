@@ -10,6 +10,7 @@ type GovernmentConfirmRequest = {
   confirmLabel?: string
   cancelLabel?: string
   tone?: GovernmentConfirmDialogTone
+  closeOnBackdrop?: boolean
 }
 
 type PendingGovernmentConfirm = GovernmentConfirmRequest & {
@@ -60,6 +61,7 @@ export function useGovernmentConfirmDialog() {
         confirmLabel={pending?.confirmLabel}
         cancelLabel={pending?.cancelLabel}
         tone={pending?.tone ?? 'default'}
+        closeOnBackdrop={pending?.closeOnBackdrop}
         onConfirm={() => closeWith(true)}
         onCancel={() => closeWith(false)}
       />
