@@ -45,6 +45,13 @@ import {
 } from '../services/governmentSignatureSendAttachments.js'
 import { insertSendSessionConfirmationFieldValues } from '../services/governmentSignatureSendSessionConfirmationFieldValues.js'
 import multer from 'multer'
+import {
+  parseSignatureSendNotificationBody,
+  parseSignatureSendExpiresAt,
+  computeCanResendNotification,
+} from '../lib/governmentSupport/notifications/governmentSignatureSendNotification.js'
+import { runPostCommitGovernmentSignatureAlimtalk } from '../lib/governmentSupport/notifications/governmentSignaturePostCommit.js'
+import { resendGovernmentSignatureAlimtalkNotification } from '../lib/governmentSupport/notifications/governmentSignatureResendNotification.js'
 
 const GSS_PREFIX = 'gss_'
 const GSDI_PREFIX = 'gsdi_'
@@ -347,7 +354,7 @@ function mapSendSessionListRow(row) {
     canDelete: false,
     canCopyLink: Boolean(row.sign_token),
     canOpenLink: Boolean(row.sign_token),
-    canResend: false,
+    canResend: computeCanResendNotification(row),
   }
 }
 
@@ -666,6 +673,19 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       debugCtx.templateIds = parsed.ids
       debugCtx.selectedTemplateCount = parsed.ids.length
 
+      const notificationParsed = parseSignatureSendNotificationBody(req.body)
+      if (notificationParsed.kind === 'error') {
+        res.status(notificationParsed.status).json({ ok: false, message: notificationParsed.message })
+        return
+      }
+
+      const sendAt = new Date()
+      const expiresParsed = parseSignatureSendExpiresAt(req.body, sendAt)
+      if (!expiresParsed.ok) {
+        res.status(expiresParsed.status).json({ ok: false, message: expiresParsed.message })
+        return
+      }
+
       const cust = await assertCustomerForUserSend(client, profileId, req)
       debugCtx.customerFound = !cust.error
       debugCtx.customerHasPhone = Boolean(cust.row && !cust.error)
@@ -874,12 +894,12 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         INSERT INTO gov_signature_send_sessions (
           id, package_id, profile_id, owner_user_id, tenant_id, sign_token, status,
           target_phone_encrypted, target_phone_hash, target_phone_masked,
-          sent_by_user_id, sent_at, created_at, updated_at
+          sent_by_user_id, sent_at, expired_at, created_at, updated_at
         )
         VALUES (
           $1, NULL, $2, $3, $4, $5, 'pending',
           $6, $7, $8,
-          $9, ${nowSql}, ${nowSql}, ${nowSql}
+          $9, ${nowSql}, $10, ${nowSql}, ${nowSql}
         )
         `,
         [
@@ -892,6 +912,7 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           snapshot.target_phone_hash,
           snapshot.target_phone_masked,
           uid || null,
+          expiresParsed.expiryAt,
         ],
       )
 
@@ -944,7 +965,9 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       }
 
       await client.query('COMMIT')
-      res.status(201).json({
+
+      /** @type {Record<string, unknown>} */
+      const responseBody = {
         ok: true,
         sendSession: {
           id: sendId,
@@ -955,7 +978,14 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
           documentCount: governmentSignatureTemplatesOrdered.length,
           createdAt: new Date().toISOString(),
         },
-      })
+      }
+      if (notificationParsed.kind === 'alimtalk') {
+        responseBody.notification = await runPostCommitGovernmentSignatureAlimtalk(pool, {
+          sendSessionId: sendId,
+          createdBy: uid || null,
+        })
+      }
+      res.status(201).json(responseBody)
     } catch (e) {
       try {
         await client.query('ROLLBACK')
@@ -1348,6 +1378,41 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
       handleDbError(e, req, res)
     } finally {
       client.release()
+    }
+  })
+
+  apiRouter.post('/government-support/signatures/:id/resend-notification', ...chain, async (req, res) => {
+    try {
+      const scope = resolveGovernmentSignatureAccessScope(req)
+      if (!scope) {
+        res.status(403).json({ ok: false, message: '전자서명 권한이 없습니다.' })
+        return
+      }
+      const sid = String(req.params.id ?? '').trim()
+      const access = buildSignatureSendSessionAccessWhere(scope)
+      const uid = getAuthUserId(req)
+      const result = await resendGovernmentSignatureAlimtalkNotification(pool, {
+        sessionId: sid,
+        accessSql: access.sql,
+        accessParams: access.params,
+        createdBy: uid || null,
+      })
+      if (!result.ok) {
+        res.status(result.status ?? 400).json({
+          ok: false,
+          error: result.error ?? 'resend_notification_failed',
+          message: result.message ?? '알림톡 재발송에 실패했습니다.',
+        })
+        return
+      }
+      res.json({
+        ok: true,
+        sendSessionId: result.sendSessionId,
+        signToken: result.signToken,
+        notification: result.notification,
+      })
+    } catch (e) {
+      handleDbError(e, req, res)
     }
   })
 

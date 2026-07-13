@@ -17,6 +17,18 @@ import {
 } from './governmentSignatureAlimtalkSnapshot.js'
 import { GOV_SIGNATURE_ALIMTALK_PRODUCT } from './governmentSignatureAlimtalkConstants.js'
 
+function failAlimtalkResult(errorCategory, logId) {
+  return {
+    ok: false,
+    status: 'failed',
+    errorCategory,
+    providerCode: null,
+    providerMessage: null,
+    retryable: false,
+    logId,
+  }
+}
+
 /**
  * @param {import('pg').Pool | { query: Function }} exec
  * @param {string} sendSessionId
@@ -147,7 +159,15 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       requestedAt,
       createdBy: params.createdBy ?? ctx.sent_by_user_id,
     })
-    return { ok: true, status: 'skipped', errorCategory: 'disabled', logId: log?.id }
+    return {
+      ok: true,
+      status: 'skipped',
+      errorCategory: 'disabled',
+      providerCode: null,
+      providerMessage: null,
+      retryable: false,
+      logId: log?.id,
+    }
   }
 
   const mapped = mapSendContextToPayload(ctx, config, {
@@ -170,7 +190,15 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       failedAt: new Date(),
       createdBy: params.createdBy ?? mapped.sentByUserId,
     })
-    return { ok: false, status: 'failed', errorCategory: 'invalid_phone', logId: log?.id }
+    return {
+      ok: false,
+      status: 'failed',
+      errorCategory: 'invalid_phone',
+      providerCode: null,
+      providerMessage: null,
+      retryable: false,
+      logId: log?.id,
+    }
   }
 
   if (!mapped.customerName) {
@@ -187,7 +215,7 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       failedAt: new Date(),
       createdBy: params.createdBy ?? mapped.sentByUserId,
     })
-    return { ok: false, status: 'failed', errorCategory: 'missing_customer_name', logId: log?.id }
+    return failAlimtalkResult('missing_customer_name', log?.id)
   }
 
   if (!mapped.companyName) {
@@ -204,7 +232,7 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       failedAt: new Date(),
       createdBy: params.createdBy ?? mapped.sentByUserId,
     })
-    return { ok: false, status: 'failed', errorCategory: 'missing_company_name', logId: log?.id }
+    return failAlimtalkResult('missing_company_name', log?.id)
   }
 
   if (!mapped.expiry.ok) {
@@ -221,12 +249,7 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       failedAt: new Date(),
       createdBy: params.createdBy ?? mapped.sentByUserId,
     })
-    return {
-      ok: false,
-      status: 'failed',
-      errorCategory: mapped.expiry.errorCategory ?? 'missing_expiry',
-      logId: log?.id,
-    }
+    return failAlimtalkResult(mapped.expiry.errorCategory ?? 'missing_expiry', log?.id)
   }
 
   if (!mapped.managerPhone) {
@@ -243,7 +266,7 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       failedAt: new Date(),
       createdBy: params.createdBy ?? mapped.sentByUserId,
     })
-    return { ok: false, status: 'failed', errorCategory: 'missing_contact', logId: log?.id }
+    return failAlimtalkResult('missing_contact', log?.id)
   }
 
   if (!config.templateCode) {
@@ -260,7 +283,7 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       failedAt: new Date(),
       createdBy: params.createdBy ?? mapped.sentByUserId,
     })
-    return { ok: false, status: 'failed', errorCategory: 'missing_template', logId: log?.id }
+    return failAlimtalkResult('missing_template', log?.id)
   }
 
   if (!mapped.signUrl) {
@@ -277,7 +300,7 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       failedAt: new Date(),
       createdBy: params.createdBy ?? mapped.sentByUserId,
     })
-    return { ok: false, status: 'failed', errorCategory: 'unknown', logId: log?.id }
+    return failAlimtalkResult('unknown', log?.id)
   }
 
   /** @type {Record<string, string>} */
@@ -306,12 +329,7 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       failedAt: new Date(),
       createdBy: params.createdBy ?? mapped.sentByUserId,
     })
-    return {
-      ok: false,
-      status: 'failed',
-      errorCategory: varCheck.errorCategory ?? 'unknown',
-      logId: log?.id,
-    }
+    return failAlimtalkResult(varCheck.errorCategory ?? 'unknown', log?.id)
   }
 
   const relayPayload = {
@@ -364,6 +382,9 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
     dryRun: Boolean(relayResult.dryRun ?? config.dryRun),
     errorCategory: isSent ? null : relayResult.errorCategory ?? 'unknown',
     providerMessageId: relayResult.providerMessageId ?? null,
+    providerCode: relayResult.providerCode ?? null,
+    providerMessage: relayResult.providerMessage ?? null,
+    retryable: Boolean(relayResult.retryable),
     logId: log?.id,
   }
 }
