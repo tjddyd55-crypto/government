@@ -6,7 +6,8 @@
 
 export const GOVERNMENT_ALIMTALK_APPROVED_TEMPLATE_CODE = 'UJ_4754'
 
-export const GOVERNMENT_ALIMTALK_SUBJECT = '전자서명 요청'
+/** Aligo subject_1 — 승인 템플릿명(templtName)과 동일하게 유지 */
+export const GOVERNMENT_ALIMTALK_SUBJECT = '전자서명'
 
 /**
  * @param {{

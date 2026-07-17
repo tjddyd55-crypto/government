@@ -3,8 +3,9 @@
  * 메인 앱은 SMS_HTTP_GATEWAY_URL 로 이 서버에 { phone, message } JSON POST 합니다.
  *
  * 알림톡(정부지원 전자서명): POST /send-alimtalk — 기존 /send-sms 와 독립.
- * env: ALIMTALK_RELAY_AUTH_TOKEN, ALIMTALK_DRY_RUN, ALIGO_API_KEY, ALIGO_USER_ID,
- *      ALIGO_KAKAO_SENDER_KEY, GOVERNMENT_ALIMTALK_TEMPLATE_CODE
+ * env: ALIMTALK_RELAY_AUTH_TOKEN, ALIMTALK_DRY_RUN,
+ *      ALIGO_KAKAO_API_KEY, ALIGO_KAKAO_USER_ID, ALIGO_KAKAO_SENDER_KEY,
+ *      ALIGO_SENDER (발신번호만 재사용), GOVERNMENT_ALIMTALK_TEMPLATE_CODE
  *
  * 헬스체크: GET /health → { "status": "ok" }
  */

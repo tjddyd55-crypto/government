@@ -49,7 +49,7 @@ describe('alimtalkMessage', () => {
     assert.equal(form.get('testMode'), 'N')
     assert.equal(form.get('sender'), '01022221382')
     assert.equal(form.get('tpl_code'), 'UJ_4754')
-    assert.equal(form.get('subject_1'), '전자서명 요청')
+    assert.equal(form.get('subject_1'), '전자서명')
     assert.match(String(form.get('message_1')), /홍길동님/)
     const button = JSON.parse(String(form.get('button_1')))
     assert.equal(button.button[0].name, '전자서명하기')

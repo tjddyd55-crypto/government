@@ -18,10 +18,11 @@ export function loadAlimtalkGatewayConfig() {
   return {
     relayAuthToken: String(process.env.ALIMTALK_RELAY_AUTH_TOKEN ?? '').trim(),
     dryRun,
-    aligoApiKey: String(process.env.ALIGO_API_KEY ?? '').trim(),
-    aligoUserId: String(process.env.ALIGO_USER_ID ?? '').trim(),
+    /** 카카오 알림톡 전용 — 보험 SMS ALIGO_API_KEY/USER_ID 로 fallback 하지 않음 */
+    aligoApiKey: String(process.env.ALIGO_KAKAO_API_KEY ?? '').trim(),
+    aligoUserId: String(process.env.ALIGO_KAKAO_USER_ID ?? '').trim(),
     aligoSenderKey: String(process.env.ALIGO_KAKAO_SENDER_KEY ?? '').trim(),
-    /** 기존 SMS 발신번호와 동일 키 재사용 (값 변경 금지) */
+    /** 발신번호만 기존 SMS ALIGO_SENDER 재사용 (값 변경 금지) */
     aligoSender: String(process.env.ALIGO_SENDER ?? '').trim().replace(/\D/g, ''),
     governmentTemplateCode: String(process.env.GOVERNMENT_ALIMTALK_TEMPLATE_CODE ?? '').trim(),
     /** 최초 실발송 검증용 — 설정 시 이 번호만 live 허용 */
