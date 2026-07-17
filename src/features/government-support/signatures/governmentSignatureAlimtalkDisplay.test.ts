@@ -86,8 +86,8 @@ describe('governmentSignatureAlimtalkDisplay', () => {
     expect(m.notificationLine).toContain('비활성화')
   })
 
-  it('failed missing_contact', () => {
-    expect(mapAlimtalkErrorCategoryToUserMessage('missing_contact')).toContain('연락처')
+  it('failed missing_verified_phone', () => {
+    expect(mapAlimtalkErrorCategoryToUserMessage('missing_verified_phone')).toContain('인증된 휴대폰')
   })
 
   it('notification status label', () => {

@@ -57,6 +57,8 @@ export function validateSignatureExpiryYmd(
 const ERROR_LABELS: Record<string, string> = {
   invalid_phone: '고객의 휴대폰 번호를 확인해 주세요.',
   missing_contact: '업체 문의 연락처가 설정되지 않았습니다.',
+  missing_verified_phone:
+    '회원정보에 인증된 휴대폰 번호가 없습니다. 휴대폰 번호 등록 또는 인증 후 다시 시도해 주세요.',
   missing_template: '알림톡 템플릿 설정을 확인해 주세요.',
   disabled: '현재 알림톡 발송이 비활성화되어 있습니다.',
   template_mismatch: '알림톡 템플릿 설정이 일치하지 않습니다.',

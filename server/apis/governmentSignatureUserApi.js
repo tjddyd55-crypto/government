@@ -685,6 +685,29 @@ export function registerGovernmentSignatureUserApi(apiRouter, ctx) {
         return
       }
 
+      if (notificationParsed.kind === 'alimtalk') {
+        const senderUserId = getAuthUserId(req)
+        if (!senderUserId) {
+          res.status(401).json({ ok: false, message: '로그인이 필요합니다.' })
+          return
+        }
+        const senderPhoneRes = await client.query(
+          `SELECT phone_number FROM users WHERE id = $1 LIMIT 1`,
+          [senderUserId],
+        )
+        const senderDigits = normalizeKrMobile(senderPhoneRes.rows[0]?.phone_number)
+        const senderPhoneErr = validateKrMobileDigits(senderDigits)
+        if (!senderDigits || senderPhoneErr) {
+          res.status(400).json({
+            ok: false,
+            code: 'missing_verified_phone',
+            message:
+              '회원정보에 인증된 휴대폰 번호가 없습니다. 휴대폰 번호 등록 또는 인증 후 다시 시도해 주세요.',
+          })
+          return
+        }
+      }
+
       const sendAt = new Date()
       const expiresParsed = parseSignatureSendExpiresAt(req.body, sendAt)
       if (!expiresParsed.ok) {

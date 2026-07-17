@@ -24,6 +24,7 @@ function maskIfPhoneLike(value) {
 }
 
 /**
+ * sanitizeAlimtalkSnapshot — managerSnapshot 내부 번호는 재발송용으로 유지(마스킹하지 않음).
  * @param {Record<string, unknown>} obj
  */
 export function sanitizeAlimtalkSnapshot(obj) {
@@ -33,6 +34,16 @@ export function sanitizeAlimtalkSnapshot(obj) {
   /** @type {Record<string, unknown>} */
   const out = {}
   for (const [key, value] of Object.entries(obj)) {
+    if (key === 'managerSnapshot' && value && typeof value === 'object' && !Array.isArray(value)) {
+      const ms = /** @type {Record<string, unknown>} */ (value)
+      out[key] = {
+        managerName: String(ms.managerName ?? '').trim(),
+        managerPhone: String(ms.managerPhone ?? '')
+          .trim()
+          .replace(/\D/g, ''),
+      }
+      continue
+    }
     if (SENSITIVE_KEYS.has(key)) {
       out[key] = key.includes('Token') || key.includes('Key') ? '[redacted]' : maskIfPhoneLike(value)
       continue
@@ -73,7 +84,7 @@ export function validateInternalAlimtalkVariables(messageVariables) {
         key === 'customerName'
           ? 'missing_customer_name'
           : key === 'managerPhone'
-            ? 'missing_contact'
+              ? 'missing_verified_phone'
             : key === 'signToken'
               ? 'missing_sign_token'
               : 'unknown'

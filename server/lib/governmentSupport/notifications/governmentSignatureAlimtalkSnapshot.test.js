@@ -16,7 +16,7 @@ describe('governmentSignatureAlimtalkSnapshot', () => {
     const ok = validateInternalAlimtalkVariables({
       customerName: '홍길동',
       managerName: '김담당',
-      managerPhone: '0212345678',
+      managerPhone: '01012345678',
       signToken: 'tok-abc',
     })
     assert.equal(ok.ok, true)
@@ -26,7 +26,7 @@ describe('governmentSignatureAlimtalkSnapshot', () => {
     const r = validateInternalAlimtalkVariables({
       customerName: '',
       managerName: '김담당',
-      managerPhone: '0212345678',
+      managerPhone: '01012345678',
       signToken: 'tok-abc',
     })
     assert.equal(r.ok, false)
@@ -37,14 +37,25 @@ describe('governmentSignatureAlimtalkSnapshot', () => {
     const r = validateInternalAlimtalkVariables({
       customerName: '홍길동',
       managerName: '김담당',
-      managerPhone: '0212345678',
+      managerPhone: '01012345678',
       signToken: '',
     })
     assert.equal(r.ok, false)
     assert.equal(r.errorCategory, 'missing_sign_token')
   })
 
-  it('snapshot 민감정보 마스킹', () => {
+  it('담당자연락처 누락 → missing_verified_phone', () => {
+    const r = validateInternalAlimtalkVariables({
+      customerName: '홍길동',
+      managerName: '김담당',
+      managerPhone: '',
+      signToken: 'tok-abc',
+    })
+    assert.equal(r.ok, false)
+    assert.equal(r.errorCategory, 'missing_verified_phone')
+  })
+
+  it('snapshot 민감정보 마스킹 · managerSnapshot 유지', () => {
     const snap = sanitizeAlimtalkSnapshot({
       recipientPhone: '01012345678',
       relayAuthToken: 'secret',
@@ -52,9 +63,19 @@ describe('governmentSignatureAlimtalkSnapshot', () => {
         customerName: '홍길동',
         managerPhone: '01099998888',
       },
+      managerSnapshot: {
+        managerName: '김담당',
+        managerPhone: '010-9999-8888',
+      },
     })
     assert.equal(String(snap.recipientPhone).includes('****'), true)
     assert.equal(snap.relayAuthToken, '[redacted]')
-    assert.equal(String(/** @type {Record<string, unknown>} */ (snap.messageVariables).managerPhone).includes('****'), true)
+    assert.equal(
+      String(/** @type {Record<string, unknown>} */ (snap.messageVariables).managerPhone).includes('****'),
+      true,
+    )
+    const ms = /** @type {Record<string, unknown>} */ (snap.managerSnapshot)
+    assert.equal(ms.managerName, '김담당')
+    assert.equal(ms.managerPhone, '01099998888')
   })
 })

@@ -3,7 +3,6 @@ import { normalizeKrMobile, validateKrMobileDigits } from '../../phoneNormalize.
 import { maskKrMobileForDisplay } from '../../../utils/maskKrMobile.js'
 import { loadGovernmentSignatureAlimtalkConfig } from './governmentSignatureAlimtalkConfig.js'
 import {
-  readTenantGovernmentAgencyConfig,
   resolveGovernmentSignatureManagerContactPhone,
   resolveGovernmentSignatureManagerName,
 } from './governmentSignatureAlimtalkContact.js'
@@ -53,7 +52,8 @@ async function loadSendContext(exec, sendSessionId) {
       t.config AS tenant_config,
       g.name AS ga_company_name,
       u.display_name AS sender_display_name,
-      u.username AS sender_username
+      u.username AS sender_username,
+      u.phone_number AS sender_phone_number
     FROM gov_signature_send_sessions s
     INNER JOIN gov_support_profiles p ON p.id = s.profile_id
     LEFT JOIN tenants t ON t.id = s.tenant_id
@@ -68,20 +68,56 @@ async function loadSendContext(exec, sendSessionId) {
 }
 
 /**
+ * 최초 알림톡 로그의 managerSnapshot (재발송 시 담당자 고정).
+ * @param {import('pg').Pool | { query: Function }} exec
+ * @param {string} sendSessionId
+ * @returns {Promise<{ managerName: string, managerPhone: string } | null>}
+ */
+async function loadManagerSnapshotFromFirstNotification(exec, sendSessionId) {
+  const res = await exec.query(
+    `
+    SELECT request_snapshot
+    FROM gov_signature_notification_logs
+    WHERE send_session_id = $1
+      AND request_snapshot IS NOT NULL
+    ORDER BY created_at ASC
+    LIMIT 1
+    `,
+    [sendSessionId],
+  )
+  const snap = res.rows[0]?.request_snapshot
+  if (!snap || typeof snap !== 'object' || Array.isArray(snap)) return null
+  const ms = /** @type {Record<string, unknown>} */ (snap).managerSnapshot
+  if (!ms || typeof ms !== 'object' || Array.isArray(ms)) return null
+  const managerName = String(/** @type {Record<string, unknown>} */ (ms).managerName ?? '').trim()
+  const managerPhone = String(/** @type {Record<string, unknown>} */ (ms).managerPhone ?? '')
+    .trim()
+    .replace(/\D/g, '')
+  if (!managerName || !managerPhone) return null
+  return { managerName, managerPhone }
+}
+
+/**
  * @param {Record<string, unknown>} ctx
  */
 function mapSendContextToPayload(ctx, config, overrides = {}) {
   const customerName = String(ctx.customer_name ?? '').trim()
   const phoneDigits = normalizeKrMobile(ctx.profile_phone)
-  const tenantGov = readTenantGovernmentAgencyConfig({ config: ctx.tenant_config })
-  const managerName = resolveGovernmentSignatureManagerName({
+  const managerNameFromUser = resolveGovernmentSignatureManagerName({
     displayName: ctx.sender_display_name,
     username: ctx.sender_username,
   })
-  const managerPhone = resolveGovernmentSignatureManagerContactPhone({
-    tenantConfig: tenantGov,
-    gaContactPhone: null,
+  const managerPhoneFromUser = resolveGovernmentSignatureManagerContactPhone({
+    senderPhoneNumber: ctx.sender_phone_number,
   })
+  const managerName =
+    overrides.managerName != null && String(overrides.managerName).trim()
+      ? String(overrides.managerName).trim()
+      : managerNameFromUser
+  const managerPhone =
+    overrides.managerPhone != null && String(overrides.managerPhone).trim()
+      ? String(overrides.managerPhone).trim().replace(/\D/g, '')
+      : managerPhoneFromUser
   const now = overrides.requestedAt instanceof Date ? overrides.requestedAt : new Date()
   const expiry = resolveGovernmentSignatureExpiryAt(
     overrides.expiresAt ?? ctx.expired_at,
@@ -166,9 +202,20 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
     }
   }
 
+  /** @type {{ managerName?: string, managerPhone?: string }} */
+  const managerOverrides = {}
+  if (retryCount > 0) {
+    const frozen = await loadManagerSnapshotFromFirstNotification(exec, sendSessionId)
+    if (frozen) {
+      managerOverrides.managerName = frozen.managerName
+      managerOverrides.managerPhone = frozen.managerPhone
+    }
+  }
+
   const mapped = mapSendContextToPayload(ctx, config, {
     expiresAt: params.expiresAt,
     requestedAt,
+    ...managerOverrides,
   })
 
   const phoneErr = validateKrMobileDigits(mapped.phoneDigits)
@@ -239,13 +286,13 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       templateCode: config.templateCode || null,
       recipientPhoneMasked: phoneMasked,
       status: 'failed',
-      errorCategory: 'missing_contact',
+      errorCategory: 'missing_verified_phone',
       retryCount,
       requestedAt,
       failedAt: new Date(),
       createdBy: params.createdBy ?? mapped.sentByUserId,
     })
-    return failAlimtalkResult('missing_contact', log?.id)
+    return failAlimtalkResult('missing_verified_phone', log?.id)
   }
 
   if (!config.templateCode) {
@@ -347,7 +394,13 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
     providerMessage: relayResult.providerMessage ?? null,
     errorCategory: normalized.errorCategory,
     retryCount,
-    requestSnapshot: relayPayload,
+    requestSnapshot: {
+      ...relayPayload,
+      managerSnapshot: {
+        managerName: mapped.managerName,
+        managerPhone: mapped.managerPhone,
+      },
+    },
     responseSnapshot: relayResult.raw
       ? { ...relayResult.raw, normalizedStatus: normalized.status, dryRun: normalized.dryRun }
       : { status: relayResult.status, normalizedStatus: normalized.status, dryRun: normalized.dryRun },
@@ -382,10 +435,8 @@ export function buildGovernmentSignatureAlimtalkDraft(input, config = loadGovern
     displayName: input.senderDisplayName,
     username: input.senderUsername,
   })
-  const tenantGov = readTenantGovernmentAgencyConfig({ config: input.tenantConfig })
   const managerPhone = resolveGovernmentSignatureManagerContactPhone({
-    tenantConfig: tenantGov,
-    gaContactPhone: input.gaContactPhone,
+    senderPhoneNumber: input.senderPhoneNumber ?? input.phoneNumber,
   })
   const now = input.requestedAt instanceof Date ? input.requestedAt : new Date('2026-06-25T04:00:00.000Z')
   const expiry = resolveGovernmentSignatureExpiryAt(input.expiresAt, now, {

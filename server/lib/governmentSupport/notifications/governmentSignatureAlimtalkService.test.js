@@ -27,7 +27,7 @@ describe('governmentSignatureAlimtalkService', () => {
       customerName: '홍길동',
       phone: '010-1234-5678',
       senderDisplayName: '김담당',
-      tenantConfig: { governmentAgency: { contactPhone: '02-1234-5678' } },
+      senderPhoneNumber: '01099998888',
       signToken: 'tok-abc',
       publicBaseUrl: 'https://app-develop.example.com',
     })
@@ -39,7 +39,7 @@ describe('governmentSignatureAlimtalkService', () => {
     assert.deepEqual(draft.messageVariables, {
       customerName: '홍길동',
       managerName: '김담당',
-      managerPhone: '0212345678',
+      managerPhone: '01099998888',
       signToken: 'tok-abc',
     })
     assert.equal(Object.prototype.hasOwnProperty.call(draft.messageVariables, 'companyName'), false)
@@ -68,7 +68,8 @@ describe('governmentSignatureAlimtalkService', () => {
                 profile_phone: '01012345678',
                 business_name: '사업장A',
                 tenant_name: '세승',
-                tenant_config: { governmentAgency: { contactPhone: '0211112222' } },
+                tenant_config: {},
+                sender_phone_number: '01011112222',
                 ga_company_name: '세승GA',
                 sender_display_name: '김담당',
                 sender_username: 'kim',
@@ -113,7 +114,7 @@ describe('governmentSignatureAlimtalkService', () => {
     assert.deepEqual(Object.keys(vars).sort(), ['customerName', 'managerName', 'managerPhone', 'signToken'])
     assert.equal(vars.customerName, '홍길동')
     assert.equal(vars.managerName, '김담당')
-    assert.equal(vars.managerPhone, '0211112222')
+    assert.equal(vars.managerPhone, '01011112222')
     assert.equal(vars.signToken, 'same-sign-token')
     assert.equal(vars.companyName, undefined)
     assert.equal(vars.requestedDate, undefined)
@@ -152,7 +153,8 @@ describe('governmentSignatureAlimtalkService', () => {
                 profile_phone: '01012345678',
                 business_name: '사업장',
                 tenant_name: '세승',
-                tenant_config: { governmentAgency: { contactPhone: '0211112222' } },
+                tenant_config: {},
+                sender_phone_number: '01011112222',
                 ga_company_name: '세승GA',
                 sender_display_name: '김담당',
                 sender_username: 'kim',
@@ -194,7 +196,8 @@ describe('governmentSignatureAlimtalkService', () => {
                 profile_phone: '01012345678',
                 business_name: '',
                 tenant_name: '세승',
-                tenant_config: { governmentAgency: { contactPhone: '0211112222' } },
+                tenant_config: {},
+                sender_phone_number: '01011112222',
                 ga_company_name: '세승GA',
                 sender_display_name: '김담당',
                 sender_username: 'kim',
@@ -255,7 +258,8 @@ describe('governmentSignatureAlimtalkService', () => {
                 profile_phone: '01012345678',
                 business_name: '',
                 tenant_name: '세승',
-                tenant_config: { governmentAgency: { contactPhone: '0211112222' } },
+                tenant_config: {},
+                sender_phone_number: '01011112222',
                 ga_company_name: '세승GA',
                 sender_display_name: '김담당',
                 sender_username: 'kim',
@@ -296,7 +300,7 @@ describe('governmentSignatureAlimtalkService', () => {
     assert.equal(inserts[0][8], 'mid-1')
   })
 
-  it('담당자 연락처 누락 차단', async () => {
+  it('발송자 인증 휴대폰 누락 차단', async () => {
     const pool = {
       query: async (sql) => {
         const s = String(sql)
@@ -314,10 +318,11 @@ describe('governmentSignatureAlimtalkService', () => {
                 profile_phone: '01012345678',
                 business_name: '',
                 tenant_name: '세승',
-                tenant_config: {},
+                tenant_config: { governmentAgency: { contactPhone: '0211112222' } },
                 ga_company_name: '세승GA',
                 sender_display_name: '김담당',
                 sender_username: 'kim',
+                sender_phone_number: null,
               },
             ],
           }
@@ -329,12 +334,17 @@ describe('governmentSignatureAlimtalkService', () => {
       },
     }
     process.env.GOVERNMENT_ALIMTALK_ENABLED = 'true'
+    let relayCalled = false
     const res = await sendGovernmentSignatureAlimtalk(pool, {
       sendSessionId: 'sess-3',
       config: loadGovernmentSignatureAlimtalkConfig(),
-      relayPoster: async () => ({ ok: false, status: 'failed', errorCategory: 'missing_contact' }),
+      relayPoster: async () => {
+        relayCalled = true
+        return { ok: false, status: 'failed' }
+      },
     })
+    assert.equal(relayCalled, false)
     assert.equal(res.ok, false)
-    assert.equal(res.errorCategory, 'missing_contact')
+    assert.equal(res.errorCategory, 'missing_verified_phone')
   })
 })

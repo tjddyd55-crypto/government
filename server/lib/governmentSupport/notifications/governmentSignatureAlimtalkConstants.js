@@ -11,6 +11,7 @@
  *   | 'missing_customer_name'
  *   | 'missing_company_name'
  *   | 'missing_contact'
+ *   | 'missing_verified_phone'
  *   | 'missing_expiry'
  *   | 'missing_template'
  *   | 'missing_sender_key'

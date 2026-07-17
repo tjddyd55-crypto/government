@@ -6,24 +6,23 @@ import {
 } from './governmentSignatureAlimtalkContact.js'
 
 describe('governmentSignatureAlimtalkContact', () => {
-  it('담당자명 fallback: display_name → username → 담당자', () => {
+  it('담당자명 display_name 우선', () => {
     assert.equal(
-      resolveGovernmentSignatureManagerName({ displayName: '김실명', username: 'kim' }),
-      '김실명',
+      resolveGovernmentSignatureManagerName({ displayName: '박성용', username: 'tjddyd55' }),
+      '박성용',
     )
-    assert.equal(resolveGovernmentSignatureManagerName({ username: 'kim' }), 'kim')
-    assert.equal(resolveGovernmentSignatureManagerName({}), '담당자')
   })
 
-  it('담당자 연락처: tenant.config 우선', () => {
-    const phone = resolveGovernmentSignatureManagerContactPhone({
-      tenantConfig: { contactPhone: '02-1234-5678' },
-      gaContactPhone: '0311112222',
-    })
-    assert.equal(phone, '0212345678')
-  })
-
-  it('담당자 연락처 없으면 null', () => {
-    assert.equal(resolveGovernmentSignatureManagerContactPhone({ tenantConfig: {}, gaContactPhone: null }), null)
+  it('담당자연락처는 senderPhoneNumber만 사용', () => {
+    assert.equal(
+      resolveGovernmentSignatureManagerContactPhone({ senderPhoneNumber: '010-1234-5678' }),
+      '01012345678',
+    )
+    assert.equal(
+      resolveGovernmentSignatureManagerContactPhone({ senderPhoneNumber: '0211112222' }),
+      null,
+    )
+    assert.equal(resolveGovernmentSignatureManagerContactPhone({ senderPhoneNumber: '' }), null)
+    assert.equal(resolveGovernmentSignatureManagerContactPhone({}), null)
   })
 })

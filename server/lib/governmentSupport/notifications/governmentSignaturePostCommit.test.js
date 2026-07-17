@@ -21,7 +21,8 @@ describe('runPostCommitGovernmentSignatureAlimtalk', () => {
                 profile_phone: '01012345678',
                 business_name: '',
                 tenant_name: '세승',
-                tenant_config: { governmentAgency: { contactPhone: '0211112222' } },
+                tenant_config: {},
+                sender_phone_number: '01011112222',
                 ga_company_name: '세승GA',
                 sender_display_name: '김담당',
                 sender_username: 'kim',
@@ -52,7 +53,7 @@ describe('runPostCommitGovernmentSignatureAlimtalk', () => {
     assert.equal(notification.channel, 'kakao_alimtalk')
   })
 
-  it('contactPhone 없음 → failed + missing_contact, 세션 서비스는 계속', async () => {
+  it('sender phone 없음 → failed + missing_verified_phone, 세션 서비스는 계속', async () => {
     const pool = {
       query: async (sql) => {
         const s = String(sql)
@@ -70,10 +71,11 @@ describe('runPostCommitGovernmentSignatureAlimtalk', () => {
                 profile_phone: '01012345678',
                 business_name: '',
                 tenant_name: '세승',
-                tenant_config: {},
+                tenant_config: { governmentAgency: { contactPhone: '0211112222' } },
                 ga_company_name: '세승GA',
                 sender_display_name: '김담당',
                 sender_username: 'kim',
+                sender_phone_number: null,
               },
             ],
           }
@@ -104,6 +106,6 @@ describe('runPostCommitGovernmentSignatureAlimtalk', () => {
     else process.env.GOVERNMENT_PUBLIC_BASE_URL = prevBase
 
     assert.equal(notification.status, 'failed')
-    assert.equal(notification.errorCategory, 'missing_contact')
+    assert.equal(notification.errorCategory, 'missing_verified_phone')
   })
 })
