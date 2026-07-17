@@ -70,17 +70,12 @@ async function loadSendContext(exec, sendSessionId) {
  * @param {Record<string, unknown>} ctx
  */
 function mapSendContextToPayload(ctx, config, overrides = {}) {
-  const companyName =
-    String(ctx.ga_company_name ?? '').trim() ||
-    String(ctx.tenant_name ?? '').trim() ||
-    String(ctx.business_name ?? '').trim()
   const customerName = String(ctx.customer_name ?? '').trim()
   const phoneDigits = normalizeKrMobile(ctx.profile_phone)
   const tenantGov = readTenantGovernmentAgencyConfig({ config: ctx.tenant_config })
   const managerName = resolveGovernmentSignatureManagerName({
     displayName: ctx.sender_display_name,
     username: ctx.sender_username,
-    companyName,
   })
   const managerPhone = resolveGovernmentSignatureManagerContactPhone({
     tenantConfig: tenantGov,
@@ -95,17 +90,17 @@ function mapSendContextToPayload(ctx, config, overrides = {}) {
       maxExpiryDays: config.maxExpiryDays,
     },
   )
-  const signUrl = buildGovernmentSignaturePublicSignUrl(ctx.sign_token, config.publicBaseUrl)
+  const signToken = String(ctx.sign_token ?? '').trim()
+  const signUrl = buildGovernmentSignaturePublicSignUrl(signToken, config.publicBaseUrl)
 
   return {
-    companyName,
     customerName,
     phoneDigits,
     managerName,
     managerPhone,
     expiry,
     signUrl,
-    signToken: String(ctx.sign_token ?? ''),
+    signToken,
     tenantId: ctx.tenant_id,
     profileId: ctx.profile_id,
     sentByUserId: ctx.sent_by_user_id,
@@ -218,7 +213,7 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
     return failAlimtalkResult('missing_customer_name', log?.id)
   }
 
-  if (!mapped.companyName) {
+  if (!mapped.signToken) {
     const log = await insertGovSignatureNotificationLog(exec, {
       tenantId: mapped.tenantId,
       profileId: mapped.profileId,
@@ -226,30 +221,13 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
       templateCode: config.templateCode || null,
       recipientPhoneMasked: phoneMasked,
       status: 'failed',
-      errorCategory: 'missing_company_name',
+      errorCategory: 'missing_sign_token',
       retryCount,
       requestedAt,
       failedAt: new Date(),
       createdBy: params.createdBy ?? mapped.sentByUserId,
     })
-    return failAlimtalkResult('missing_company_name', log?.id)
-  }
-
-  if (!mapped.expiry.ok) {
-    const log = await insertGovSignatureNotificationLog(exec, {
-      tenantId: mapped.tenantId,
-      profileId: mapped.profileId,
-      sendSessionId,
-      templateCode: config.templateCode || null,
-      recipientPhoneMasked: phoneMasked,
-      status: 'failed',
-      errorCategory: mapped.expiry.errorCategory ?? 'missing_expiry',
-      retryCount,
-      requestedAt,
-      failedAt: new Date(),
-      createdBy: params.createdBy ?? mapped.sentByUserId,
-    })
-    return failAlimtalkResult(mapped.expiry.errorCategory ?? 'missing_expiry', log?.id)
+    return failAlimtalkResult('missing_sign_token', log?.id)
   }
 
   if (!mapped.managerPhone) {
@@ -306,11 +284,9 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
   /** @type {Record<string, string>} */
   const messageVariables = {
     customerName: mapped.customerName,
-    companyName: mapped.companyName,
-    requestedDate: mapped.expiry.requestedDateDisplay ?? '',
-    expiryDate: mapped.expiry.expiryDateDisplay ?? '',
     managerName: mapped.managerName,
     managerPhone: mapped.managerPhone,
+    signToken: mapped.signToken,
   }
 
   const varCheck = validateInternalAlimtalkVariables(messageVariables)
@@ -395,13 +371,11 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
  * @param {ReturnType<typeof loadGovernmentSignatureAlimtalkConfig>} [config]
  */
 export function buildGovernmentSignatureAlimtalkDraft(input, config = loadGovernmentSignatureAlimtalkConfig()) {
-  const companyName = String(input.companyName ?? '').trim()
   const customerName = String(input.customerName ?? '').trim()
   const phoneDigits = normalizeKrMobile(input.phone)
   const managerName = resolveGovernmentSignatureManagerName({
     displayName: input.senderDisplayName,
     username: input.senderUsername,
-    companyName,
   })
   const tenantGov = readTenantGovernmentAgencyConfig({ config: input.tenantConfig })
   const managerPhone = resolveGovernmentSignatureManagerContactPhone({
@@ -413,26 +387,25 @@ export function buildGovernmentSignatureAlimtalkDraft(input, config = loadGovern
     defaultExpiryDays: config.defaultExpiryDays,
     maxExpiryDays: config.maxExpiryDays,
   })
-  const signToken = String(input.signToken ?? 'test-token')
+  const signToken = String(input.signToken ?? 'test-token').trim()
   const signUrl = buildGovernmentSignaturePublicSignUrl(signToken, config.publicBaseUrl || input.publicBaseUrl)
 
   return {
-    companyName,
     customerName,
     phoneDigits,
     managerName,
     managerPhone,
     expiry,
     signUrl,
-    messageVariables: expiry.ok
-      ? {
-          customerName,
-          companyName,
-          requestedDate: expiry.requestedDateDisplay ?? '',
-          expiryDate: expiry.expiryDateDisplay ?? '',
-          managerName,
-          managerPhone: managerPhone ?? '',
-        }
-      : null,
+    signToken,
+    messageVariables:
+      customerName && managerName && managerPhone && signToken
+        ? {
+            customerName,
+            managerName,
+            managerPhone,
+            signToken,
+          }
+        : null,
   }
 }

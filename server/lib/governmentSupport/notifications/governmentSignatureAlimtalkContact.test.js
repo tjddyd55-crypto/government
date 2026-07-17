@@ -6,13 +6,12 @@ import {
 } from './governmentSignatureAlimtalkContact.js'
 
 describe('governmentSignatureAlimtalkContact', () => {
-  it('담당자명 fallback: display_name → username → 업체명 → 담당자', () => {
+  it('담당자명 fallback: display_name → username → 담당자', () => {
     assert.equal(
-      resolveGovernmentSignatureManagerName({ displayName: '김실명', username: 'kim', companyName: '세승' }),
+      resolveGovernmentSignatureManagerName({ displayName: '김실명', username: 'kim' }),
       '김실명',
     )
-    assert.equal(resolveGovernmentSignatureManagerName({ username: 'kim', companyName: '세승' }), 'kim')
-    assert.equal(resolveGovernmentSignatureManagerName({ companyName: '세승' }), '세승')
+    assert.equal(resolveGovernmentSignatureManagerName({ username: 'kim' }), 'kim')
     assert.equal(resolveGovernmentSignatureManagerName({}), '담당자')
   })
 

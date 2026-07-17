@@ -12,14 +12,12 @@ describe('governmentSignatureAlimtalkSnapshot', () => {
     assert.equal(url, 'https://app.example.com/government/sign/abc123')
   })
 
-  it('내부 변수 검증', () => {
+  it('내부 변수 검증 — 승인 4변수만', () => {
     const ok = validateInternalAlimtalkVariables({
       customerName: '홍길동',
-      companyName: '세승',
-      requestedDate: '2026-06-25',
-      expiryDate: '2026-07-02',
       managerName: '김담당',
       managerPhone: '0212345678',
+      signToken: 'tok-abc',
     })
     assert.equal(ok.ok, true)
   })
@@ -27,14 +25,23 @@ describe('governmentSignatureAlimtalkSnapshot', () => {
   it('고객명 누락', () => {
     const r = validateInternalAlimtalkVariables({
       customerName: '',
-      companyName: '세승',
-      requestedDate: '2026-06-25',
-      expiryDate: '2026-07-02',
       managerName: '김담당',
       managerPhone: '0212345678',
+      signToken: 'tok-abc',
     })
     assert.equal(r.ok, false)
     assert.equal(r.errorCategory, 'missing_customer_name')
+  })
+
+  it('전자서명토큰 누락', () => {
+    const r = validateInternalAlimtalkVariables({
+      customerName: '홍길동',
+      managerName: '김담당',
+      managerPhone: '0212345678',
+      signToken: '',
+    })
+    assert.equal(r.ok, false)
+    assert.equal(r.errorCategory, 'missing_sign_token')
   })
 
   it('snapshot 민감정보 마스킹', () => {

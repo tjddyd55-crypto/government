@@ -19,10 +19,11 @@ export function readTenantGovernmentAgencyConfig(row) {
 }
 
 /**
+ * 담당자명: display_name → username → 담당자
+ * (승인 템플릿에 업체명 변수 없음 — 업체명을 담당자명 fallback으로 쓰지 않음)
  * @param {{
  *   displayName?: string | null,
  *   username?: string | null,
- *   companyName?: string | null,
  * }} p
  */
 export function resolveGovernmentSignatureManagerName(p) {
@@ -30,8 +31,6 @@ export function resolveGovernmentSignatureManagerName(p) {
   if (displayName) return displayName
   const username = String(p.username ?? '').trim()
   if (username) return username
-  const companyName = String(p.companyName ?? '').trim()
-  if (companyName) return companyName
   return '담당자'
 }
 

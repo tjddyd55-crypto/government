@@ -72,13 +72,11 @@ export function validateInternalAlimtalkVariables(messageVariables) {
       const category =
         key === 'customerName'
           ? 'missing_customer_name'
-          : key === 'companyName'
-            ? 'missing_company_name'
-            : key === 'managerPhone'
-              ? 'missing_contact'
-              : key === 'expiryDate' || key === 'requestedDate'
-                ? 'missing_expiry'
-                : 'unknown'
+          : key === 'managerPhone'
+            ? 'missing_contact'
+            : key === 'signToken'
+              ? 'missing_sign_token'
+              : 'unknown'
       return { ok: false, errorCategory: category }
     }
   }

@@ -22,9 +22,8 @@ describe('governmentSignatureAlimtalkService', () => {
     process.env = { ...envBackup }
   })
 
-  it('draft: 7일 서명기한·URL 매핑', () => {
+  it('draft: 승인 템플릿 4변수만 · 서명기한은 세션 정책으로만', () => {
     const draft = buildGovernmentSignatureAlimtalkDraft({
-      companyName: '세승대행',
       customerName: '홍길동',
       phone: '010-1234-5678',
       senderDisplayName: '김담당',
@@ -36,7 +35,102 @@ describe('governmentSignatureAlimtalkService', () => {
     assert.equal(draft.expiry.ok, true)
     assert.equal(draft.expiry.expiryDateDisplay, '2026-07-02')
     assert.equal(draft.signUrl, 'https://app-develop.example.com/government/sign/tok-abc')
-    assert.equal(draft.messageVariables?.managerPhone, '0212345678')
+    assert.equal(draft.signToken, 'tok-abc')
+    assert.deepEqual(draft.messageVariables, {
+      customerName: '홍길동',
+      managerName: '김담당',
+      managerPhone: '0212345678',
+      signToken: 'tok-abc',
+    })
+    assert.equal(Object.prototype.hasOwnProperty.call(draft.messageVariables, 'companyName'), false)
+    assert.equal(Object.prototype.hasOwnProperty.call(draft.messageVariables, 'requestedDate'), false)
+    assert.equal(Object.prototype.hasOwnProperty.call(draft.messageVariables, 'expiryDate'), false)
+    assert.equal(Object.prototype.hasOwnProperty.call(draft.messageVariables, 'signUrl'), false)
+  })
+
+  it('dry-run relay payload에 승인 외 변수 미포함', async () => {
+    /** @type {Record<string, unknown> | null} */
+    let capturedPayload = null
+    const pool = {
+      query: async (sql) => {
+        const s = String(sql)
+        if (s.includes('FROM gov_signature_send_sessions')) {
+          return {
+            rows: [
+              {
+                send_session_id: 'sess-payload',
+                sign_token: 'same-sign-token',
+                tenant_id: 10,
+                profile_id: 20,
+                sent_by_user_id: 'u1',
+                expired_at: new Date('2026-07-02T14:59:59.999Z'),
+                customer_name: '홍길동',
+                profile_phone: '01012345678',
+                business_name: '사업장A',
+                tenant_name: '세승',
+                tenant_config: { governmentAgency: { contactPhone: '0211112222' } },
+                ga_company_name: '세승GA',
+                sender_display_name: '김담당',
+                sender_username: 'kim',
+              },
+            ],
+          }
+        }
+        if (s.includes('INSERT INTO gov_signature_notification_logs')) {
+          return { rows: [{ id: 99 }] }
+        }
+        return { rows: [] }
+      },
+    }
+    process.env.GOVERNMENT_ALIMTALK_ENABLED = 'true'
+    process.env.GOVERNMENT_ALIMTALK_VAR_CUSTOMER_NAME = '고객명'
+    process.env.GOVERNMENT_ALIMTALK_VAR_MANAGER_NAME = '담당자명'
+    process.env.GOVERNMENT_ALIMTALK_VAR_MANAGER_PHONE = '담당자연락처'
+    process.env.GOVERNMENT_ALIMTALK_VAR_SIGN_TOKEN = '전자서명토큰'
+    process.env.GOVERNMENT_ALIMTALK_BUTTON_NAME = '전자서명하기'
+    const config = loadGovernmentSignatureAlimtalkConfig()
+    const res = await sendGovernmentSignatureAlimtalk(pool, {
+      sendSessionId: 'sess-payload',
+      config,
+      relayPoster: async ({ payload }) => {
+        capturedPayload = payload
+        return {
+          ok: true,
+          status: 'sent',
+          dryRun: true,
+          providerMessageId: null,
+          providerCode: 'DRY_RUN',
+          providerMessage: 'dry-run',
+          requestedAt: new Date().toISOString(),
+          sentAt: new Date().toISOString(),
+          raw: { dryRun: true },
+        }
+      },
+    })
+    assert.equal(res.ok, true)
+    assert.ok(capturedPayload)
+    const vars = /** @type {Record<string, string>} */ (capturedPayload.messageVariables)
+    assert.deepEqual(Object.keys(vars).sort(), ['customerName', 'managerName', 'managerPhone', 'signToken'])
+    assert.equal(vars.customerName, '홍길동')
+    assert.equal(vars.managerName, '김담당')
+    assert.equal(vars.managerPhone, '0211112222')
+    assert.equal(vars.signToken, 'same-sign-token')
+    assert.equal(vars.companyName, undefined)
+    assert.equal(vars.requestedDate, undefined)
+    assert.equal(vars.expiryDate, undefined)
+    assert.equal(vars.signUrl, undefined)
+    assert.deepEqual(capturedPayload.variableNameMap, {
+      customerName: '고객명',
+      managerName: '담당자명',
+      managerPhone: '담당자연락처',
+      signToken: '전자서명토큰',
+    })
+    assert.equal(capturedPayload.button.name, '전자서명하기')
+    assert.equal(
+      capturedPayload.button.mobileUrl,
+      'https://app-develop.example.com/government/sign/same-sign-token',
+    )
+    assert.equal(capturedPayload.button.pcUrl, capturedPayload.button.mobileUrl)
   })
 
   it('enabled=false → skipped 로그', async () => {

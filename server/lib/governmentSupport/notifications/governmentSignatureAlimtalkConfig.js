@@ -14,18 +14,17 @@ function normalizeBooleanEnv(raw) {
 }
 
 /**
- * Aligo 콘솔 변수명 — 미확정 시 null (임의 확정 금지).
+ * Aligo 승인 템플릿 변수명 매핑 (환경변수로만 설정, 코드에 실값 하드코딩 금지).
+ * 승인 변수: 고객명 / 담당자명 / 담당자연락처 / 전자서명토큰
  * @returns {Record<string, string | null>}
  */
 export function loadGovernmentSignatureAlimtalkTemplateVariableMap() {
   const envKey = (suffix) => String(process.env[`GOVERNMENT_ALIMTALK_VAR_${suffix}`] ?? '').trim() || null
   return {
     customerName: envKey('CUSTOMER_NAME'),
-    companyName: envKey('COMPANY_NAME'),
-    requestedDate: envKey('REQUESTED_DATE'),
-    expiryDate: envKey('EXPIRY_DATE'),
     managerName: envKey('MANAGER_NAME'),
     managerPhone: envKey('MANAGER_PHONE'),
+    signToken: envKey('SIGN_TOKEN'),
   }
 }
 
@@ -42,7 +41,7 @@ export function loadGovernmentSignatureAlimtalkConfig() {
     process.env.GOVERNMENT_PUBLIC_BASE_URL ?? process.env.VITE_BASE_URL ?? '',
   ).trim().replace(/\/$/, '')
   const templateCode = String(process.env.GOVERNMENT_ALIMTALK_TEMPLATE_CODE ?? '').trim()
-  const buttonName = String(process.env.GOVERNMENT_ALIMTALK_BUTTON_NAME ?? '전자서명 확인').trim()
+  const buttonName = String(process.env.GOVERNMENT_ALIMTALK_BUTTON_NAME ?? '전자서명하기').trim()
   const buttonLinkType = String(process.env.GOVERNMENT_ALIMTALK_BUTTON_LINK_TYPE ?? 'WL').trim() || 'WL'
   const relayTimeoutMs = (() => {
     const n = Number(process.env.GOVERNMENT_ALIMTALK_RELAY_TIMEOUT_MS ?? 8000)
