@@ -175,9 +175,10 @@ describe('governmentSignatureAlimtalkService', () => {
     assert.equal(inserts[0][7], 'skipped')
   })
 
-  it('dryRun relay 성공 정규화', async () => {
+  it('dryRun relay 성공 → skipped 정규화 (sentAt 미기록)', async () => {
+    const inserts = []
     const pool = {
-      query: async (sql) => {
+      query: async (sql, params) => {
         const s = String(sql)
         if (s.includes('FROM gov_signature_send_sessions')) {
           return {
@@ -202,6 +203,7 @@ describe('governmentSignatureAlimtalkService', () => {
           }
         }
         if (s.includes('INSERT INTO gov_signature_notification_logs')) {
+          inserts.push(params)
           return { rows: [{ id: 2 }] }
         }
         return { rows: [] }
@@ -216,7 +218,7 @@ describe('governmentSignatureAlimtalkService', () => {
         ok: true,
         status: 'sent',
         dryRun: true,
-        providerMessageId: null,
+        providerMessageId: 'should-not-persist',
         providerCode: 'DRY_RUN',
         providerMessage: 'dry-run',
         requestedAt: new Date().toISOString(),
@@ -225,8 +227,73 @@ describe('governmentSignatureAlimtalkService', () => {
       }),
     })
     assert.equal(res.ok, true)
-    assert.equal(res.status, 'sent')
+    assert.equal(res.status, 'skipped')
     assert.equal(res.dryRun, true)
+    assert.equal(res.providerCode, 'DRY_RUN')
+    assert.equal(res.providerMessageId, null)
+    assert.equal(inserts.length, 1)
+    assert.equal(inserts[0][7], 'skipped')
+    assert.equal(inserts[0][8], null)
+  })
+
+  it('dryRun=false live sent 유지', async () => {
+    const inserts = []
+    const pool = {
+      query: async (sql, params) => {
+        const s = String(sql)
+        if (s.includes('FROM gov_signature_send_sessions')) {
+          return {
+            rows: [
+              {
+                send_session_id: 'sess-live',
+                sign_token: 'tok-live',
+                tenant_id: 10,
+                profile_id: 20,
+                sent_by_user_id: 'u1',
+                expired_at: null,
+                customer_name: '홍길동',
+                profile_phone: '01012345678',
+                business_name: '',
+                tenant_name: '세승',
+                tenant_config: { governmentAgency: { contactPhone: '0211112222' } },
+                ga_company_name: '세승GA',
+                sender_display_name: '김담당',
+                sender_username: 'kim',
+              },
+            ],
+          }
+        }
+        if (s.includes('INSERT INTO gov_signature_notification_logs')) {
+          inserts.push(params)
+          return { rows: [{ id: 3 }] }
+        }
+        return { rows: [] }
+      },
+    }
+    process.env.GOVERNMENT_ALIMTALK_ENABLED = 'true'
+    process.env.GOVERNMENT_ALIMTALK_DRY_RUN = 'false'
+    const config = loadGovernmentSignatureAlimtalkConfig()
+    const res = await sendGovernmentSignatureAlimtalk(pool, {
+      sendSessionId: 'sess-live',
+      config,
+      relayPoster: async () => ({
+        ok: true,
+        status: 'sent',
+        dryRun: false,
+        providerMessageId: 'mid-1',
+        providerCode: '0',
+        providerMessage: 'ok',
+        requestedAt: new Date().toISOString(),
+        sentAt: new Date().toISOString(),
+        raw: {},
+      }),
+    })
+    assert.equal(res.ok, true)
+    assert.equal(res.status, 'sent')
+    assert.equal(res.dryRun, false)
+    assert.equal(res.providerMessageId, 'mid-1')
+    assert.equal(inserts[0][7], 'sent')
+    assert.equal(inserts[0][8], 'mid-1')
   })
 
   it('담당자 연락처 누락 차단', async () => {

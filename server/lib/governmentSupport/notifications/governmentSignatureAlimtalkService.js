@@ -16,6 +16,7 @@ import {
   validateInternalAlimtalkVariables,
 } from './governmentSignatureAlimtalkSnapshot.js'
 import { GOV_SIGNATURE_ALIMTALK_PRODUCT } from './governmentSignatureAlimtalkConstants.js'
+import { normalizeGovernmentAlimtalkRelayOutcome } from './governmentSignatureAlimtalkNormalize.js'
 
 function failAlimtalkResult(errorCategory, logId) {
   return {
@@ -331,36 +332,40 @@ export async function sendGovernmentSignatureAlimtalk(exec, params) {
     payload: relayPayload,
   })
 
-  const isSent = relayResult.ok && relayResult.status === 'sent'
+  const normalized = normalizeGovernmentAlimtalkRelayOutcome(relayResult, config)
+  const isLiveSent = normalized.status === 'sent'
+  const isSkippedOk = normalized.ok && normalized.status === 'skipped'
   const log = await insertGovSignatureNotificationLog(exec, {
     tenantId: mapped.tenantId,
     profileId: mapped.profileId,
     sendSessionId,
     templateCode: config.templateCode,
     recipientPhoneMasked: phoneMasked,
-    status: isSent ? 'sent' : 'failed',
-    providerMessageId: relayResult.providerMessageId ?? null,
+    status: normalized.status,
+    providerMessageId: isLiveSent ? relayResult.providerMessageId ?? null : null,
     providerCode: relayResult.providerCode ?? null,
     providerMessage: relayResult.providerMessage ?? null,
-    errorCategory: isSent ? null : relayResult.errorCategory ?? 'unknown',
+    errorCategory: normalized.errorCategory,
     retryCount,
     requestSnapshot: relayPayload,
-    responseSnapshot: relayResult.raw ? { ...relayResult.raw } : { status: relayResult.status },
+    responseSnapshot: relayResult.raw
+      ? { ...relayResult.raw, normalizedStatus: normalized.status, dryRun: normalized.dryRun }
+      : { status: relayResult.status, normalizedStatus: normalized.status, dryRun: normalized.dryRun },
     requestedAt: relayResult.requestedAt ?? requestedAt,
-    sentAt: isSent ? relayResult.sentAt ?? new Date() : null,
-    failedAt: isSent ? null : relayResult.failedAt ?? new Date(),
+    sentAt: normalized.recordSentAt ? relayResult.sentAt ?? new Date() : null,
+    failedAt: normalized.ok ? null : relayResult.failedAt ?? new Date(),
     createdBy: params.createdBy ?? mapped.sentByUserId,
   })
 
   return {
-    ok: isSent,
-    status: isSent ? 'sent' : 'failed',
-    dryRun: Boolean(relayResult.dryRun ?? config.dryRun),
-    errorCategory: isSent ? null : relayResult.errorCategory ?? 'unknown',
-    providerMessageId: relayResult.providerMessageId ?? null,
+    ok: isLiveSent || isSkippedOk,
+    status: normalized.status,
+    dryRun: normalized.dryRun,
+    errorCategory: normalized.errorCategory,
+    providerMessageId: isLiveSent ? relayResult.providerMessageId ?? null : null,
     providerCode: relayResult.providerCode ?? null,
     providerMessage: relayResult.providerMessage ?? null,
-    retryable: Boolean(relayResult.retryable),
+    retryable: Boolean(relayResult.retryable) && !normalized.ok,
     logId: log?.id,
   }
 }

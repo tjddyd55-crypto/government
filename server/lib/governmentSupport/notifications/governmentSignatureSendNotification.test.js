@@ -103,5 +103,18 @@ describe('mapAlimtalkServiceResultToApiNotification', () => {
     assert.equal(out.status, 'skipped')
     assert.equal(out.channel, 'kakao_alimtalk')
     assert.equal(out.errorCategory, 'disabled')
+    assert.equal(out.dryRun, false)
+  })
+
+  it('dry-run skipped 매핑', () => {
+    const out = mapAlimtalkServiceResultToApiNotification({
+      status: 'skipped',
+      dryRun: true,
+      providerCode: 'DRY_RUN',
+      retryable: false,
+    })
+    assert.equal(out.status, 'skipped')
+    assert.equal(out.dryRun, true)
+    assert.equal(out.providerCode, 'DRY_RUN')
   })
 })

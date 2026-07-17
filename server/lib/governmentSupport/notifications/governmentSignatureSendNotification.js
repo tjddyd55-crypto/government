@@ -54,6 +54,7 @@ export function parseSignatureSendExpiresAt(body, sentAt = new Date()) {
 /**
  * @param {{
  *   status?: string,
+ *   dryRun?: boolean,
  *   errorCategory?: string | null,
  *   providerCode?: string | null,
  *   providerMessage?: string | null,
@@ -65,6 +66,7 @@ export function mapAlimtalkServiceResultToApiNotification(result) {
     result.status === 'sent' || result.status === 'skipped' || result.status === 'failed'
       ? result.status
       : 'failed'
+  const dryRun = Boolean(result.dryRun) || String(result.providerCode ?? '').trim() === 'DRY_RUN'
   return {
     status,
     channel: GOV_SIGNATURE_ALIMTALK_CHANNEL,
@@ -73,6 +75,7 @@ export function mapAlimtalkServiceResultToApiNotification(result) {
     providerMessage: result.providerMessage ?? null,
     retryable: Boolean(result.retryable),
     errorCategory: result.errorCategory ?? null,
+    dryRun,
   }
 }
 

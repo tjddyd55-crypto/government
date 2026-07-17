@@ -16,16 +16,17 @@ export function AlimtalkNotificationStatusBadge({
     notificationProviderCode,
   })
   const st = String(notificationStatus ?? 'not_requested')
+  const isDryRun = Boolean(notificationDryRun) || notificationProviderCode === 'DRY_RUN'
   const modifier =
     st === 'failed'
       ? 'failed'
-      : st === 'skipped'
-        ? 'skipped'
-        : st === 'sent'
-          ? notificationDryRun || notificationProviderCode === 'DRY_RUN'
-            ? 'dry-run'
-            : 'sent'
-          : 'none'
+      : isDryRun && (st === 'sent' || st === 'skipped')
+        ? 'dry-run'
+        : st === 'skipped'
+          ? 'skipped'
+          : st === 'sent'
+            ? 'sent'
+            : 'none'
 
   return (
     <span

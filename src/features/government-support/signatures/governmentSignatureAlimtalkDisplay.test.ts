@@ -31,7 +31,24 @@ describe('governmentSignatureAlimtalkDisplay', () => {
     expect(addSeoulCalendarDays('2026-06-25', 7)).toBe('2026-07-02')
   })
 
-  it('sent 응답 메시지', () => {
+  it('dry-run skipped 응답 메시지', () => {
+    const m = buildSendResultMessages({
+      sessionCreated: true,
+      notification: {
+        status: 'skipped',
+        channel: 'kakao_alimtalk',
+        provider: 'aligo',
+        providerCode: 'DRY_RUN',
+        dryRun: true,
+      },
+    })
+    expect(m.sessionLine).toContain('생성')
+    expect(m.notificationLine).toContain('테스트 모드')
+    expect(m.notificationLine).toContain('발송되지 않았습니다')
+    expect(m.tone).toBe('info')
+  })
+
+  it('legacy dryRun sent 응답도 테스트 모드 문구', () => {
     const m = buildSendResultMessages({
       sessionCreated: true,
       notification: {
@@ -39,10 +56,26 @@ describe('governmentSignatureAlimtalkDisplay', () => {
         channel: 'kakao_alimtalk',
         provider: 'aligo',
         providerCode: 'DRY_RUN',
+        dryRun: true,
       },
     })
-    expect(m.sessionLine).toContain('생성')
-    expect(m.notificationLine).toContain('테스트')
+    expect(m.notificationLine).toContain('테스트 모드')
+    expect(m.tone).toBe('info')
+  })
+
+  it('실발송 sent 응답 메시지', () => {
+    const m = buildSendResultMessages({
+      sessionCreated: true,
+      notification: {
+        status: 'sent',
+        channel: 'kakao_alimtalk',
+        provider: 'aligo',
+        providerCode: '0',
+        dryRun: false,
+      },
+    })
+    expect(m.notificationLine).toContain('발송했습니다')
+    expect(m.tone).toBe('success')
   })
 
   it('skipped disabled 메시지', () => {
@@ -61,9 +94,16 @@ describe('governmentSignatureAlimtalkDisplay', () => {
     expect(notificationStatusDisplayLabel({ notificationStatus: 'not_requested' })).toBe('미요청')
     expect(
       notificationStatusDisplayLabel({
-        notificationStatus: 'sent',
+        notificationStatus: 'skipped',
         notificationProviderCode: 'DRY_RUN',
+        notificationDryRun: true,
       }),
-    ).toBe('테스트 발송')
+    ).toBe('테스트 모드')
+    expect(
+      notificationStatusDisplayLabel({
+        notificationStatus: 'sent',
+        notificationProviderCode: '0',
+      }),
+    ).toBe('발송 완료')
   })
 })

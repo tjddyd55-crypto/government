@@ -267,9 +267,9 @@ export default function GovernmentSignatureHistoryPage() {
       const result = await resendUserGovernmentSignatureNotification(t, sendSessionId)
       const msg = buildSendResultMessages({ sessionCreated: true, notification: result.notification })
       setResendFeedback({
-        tone: result.notification.status === 'failed' ? 'warning' : 'success',
+        tone: result.notification.status === 'failed' ? 'warning' : msg.tone === 'success' ? 'success' : 'info',
         text:
-          result.notification.status === 'sent'
+          result.notification.status === 'sent' && result.notification.providerCode !== 'DRY_RUN'
             ? '카카오 알림톡을 다시 발송했습니다.'
             : msg.notificationLine || '알림톡 재발송이 처리되었습니다.',
       })

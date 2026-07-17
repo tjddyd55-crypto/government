@@ -12,17 +12,31 @@ describe('governmentSignatureNotificationSummary', () => {
     assert.equal(s.notificationRetryCount, 0)
   })
 
-  it('sent + DRY_RUN', () => {
+  it('skipped + DRY_RUN', () => {
+    const s = mapLatestNotificationLogToApiSummary({
+      status: 'skipped',
+      sent_at: null,
+      requested_at: new Date('2026-06-25T05:00:00.000Z'),
+      recipient_phone_masked: '010-****-5678',
+      retry_count: 0,
+      provider_code: 'DRY_RUN',
+    })
+    assert.equal(s.notificationStatus, 'skipped')
+    assert.equal(s.notificationDryRun, true)
+    assert.equal(s.notificationRetryCount, 0)
+    assert.equal(s.notificationProviderCode, 'DRY_RUN')
+  })
+
+  it('sent live (non dry-run)', () => {
     const s = mapLatestNotificationLogToApiSummary({
       status: 'sent',
       sent_at: new Date('2026-06-25T05:00:00.000Z'),
       recipient_phone_masked: '010-****-5678',
       retry_count: 1,
-      provider_code: 'DRY_RUN',
+      provider_code: '0',
     })
     assert.equal(s.notificationStatus, 'sent')
-    assert.equal(s.notificationDryRun, true)
-    assert.equal(s.notificationRetryCount, 1)
+    assert.equal(s.notificationDryRun, false)
   })
 
   it('joined row 매핑', () => {

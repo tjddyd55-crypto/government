@@ -95,7 +95,7 @@ export async function sendAligoAlimtalk(p) {
   if (dryRun) {
     return {
       ok: true,
-      status: 'sent',
+      status: 'skipped',
       provider: 'aligo',
       channel: 'kakao_alimtalk',
       dryRun: true,
@@ -105,7 +105,7 @@ export async function sendAligoAlimtalk(p) {
       retryable: false,
       errorCategory: null,
       requestedAt,
-      sentAt: requestedAt,
+      sentAt: null,
       failedAt: null,
     }
   }

@@ -81,18 +81,19 @@ export type NotificationStatusLabelInput = {
 
 export function notificationStatusDisplayLabel(input: NotificationStatusLabelInput): string {
   const st = String(input.notificationStatus ?? 'not_requested')
+  const isDryRun = Boolean(input.notificationDryRun) || input.notificationProviderCode === 'DRY_RUN'
   if (st === 'not_requested') {
     return '미요청'
   }
   if (st === 'skipped') {
-    return '발송 비활성'
+    return isDryRun ? '테스트 모드' : '발송 비활성'
   }
   if (st === 'failed') {
     return '발송 실패'
   }
   if (st === 'sent') {
-    if (input.notificationDryRun || input.notificationProviderCode === 'DRY_RUN') {
-      return '테스트 발송'
+    if (isDryRun) {
+      return '테스트 모드'
     }
     return '발송 완료'
   }
@@ -106,6 +107,13 @@ export function canShowResendAvailableBadge(canResend?: boolean): boolean {
 export type SendResultBannerModel = {
   sessionCreated: true
   notification?: GovernmentSignatureSendNotificationResult | null
+}
+
+const DRY_RUN_USER_MESSAGE =
+  '테스트 모드로 확인되었습니다. 실제 알림톡은 발송되지 않았습니다.'
+
+function isNotificationDryRun(n: GovernmentSignatureSendNotificationResult): boolean {
+  return Boolean(n.dryRun) || n.providerCode === 'DRY_RUN'
 }
 
 export function buildSendResultMessages(model: SendResultBannerModel): {
@@ -125,17 +133,30 @@ export function buildSendResultMessages(model: SendResultBannerModel): {
     }
   }
   if (n.status === 'sent') {
-    const dry = n.providerCode === 'DRY_RUN'
+    if (isNotificationDryRun(n)) {
+      return {
+        sessionLine,
+        notificationLine: DRY_RUN_USER_MESSAGE,
+        tone: 'info',
+        showCopyLink: true,
+      }
+    }
     return {
       sessionLine,
-      notificationLine: dry
-        ? '알림톡 테스트 모드로 처리되었습니다. (실제 고객에게 발송되지 않습니다.)'
-        : '카카오 알림톡을 발송했습니다.',
-      tone: dry ? 'info' : 'success',
+      notificationLine: '카카오 알림톡을 발송했습니다.',
+      tone: 'success',
       showCopyLink: true,
     }
   }
   if (n.status === 'skipped') {
+    if (isNotificationDryRun(n)) {
+      return {
+        sessionLine,
+        notificationLine: DRY_RUN_USER_MESSAGE,
+        tone: 'info',
+        showCopyLink: true,
+      }
+    }
     return {
       sessionLine,
       notificationLine:

@@ -7,6 +7,7 @@ export type GovernmentSignatureSendNotificationResult = {
   providerMessage?: string | null
   retryable?: boolean
   errorCategory?: string | null
+  dryRun?: boolean
 }
 
 export type GovernmentSignatureNotificationSummary = {

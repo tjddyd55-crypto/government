@@ -85,9 +85,10 @@ describe('POST /send-alimtalk handler', () => {
     assert.equal(state.statusCode, 200)
     const body = /** @type {Record<string, unknown>} */ (state.jsonBody)
     assert.equal(body.ok, true)
-    assert.equal(body.status, 'sent')
+    assert.equal(body.status, 'skipped')
     assert.equal(body.dryRun, true)
     assert.equal(body.providerCode, 'DRY_RUN')
+    assert.equal(body.sentAt, null)
   })
 
   it('응답에 secret 미포함', async () => {
