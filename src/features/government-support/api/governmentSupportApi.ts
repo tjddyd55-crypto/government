@@ -18,6 +18,8 @@ export type GovernmentAccessSummary = {
   programUserTenantName: string | null
   /** 계정 가입일 ISO (me/access) */
   accountCreatedAt: string | null
+  /** GOVERNMENT_ALIMTALK_DRY_RUN — 전자서명 발송 UI 테스트 안내 */
+  signatureAlimtalkDryRun: boolean
 }
 
 function unwrapAccessPayload(raw: unknown): GovernmentAccessSummary | null {
@@ -62,6 +64,7 @@ function unwrapAccessPayload(raw: unknown): GovernmentAccessSummary | null {
       row.accountCreatedAt != null && String(row.accountCreatedAt).trim()
         ? String(row.accountCreatedAt).trim()
         : null,
+    signatureAlimtalkDryRun: row.signatureAlimtalkDryRun === true,
   }
 }
 

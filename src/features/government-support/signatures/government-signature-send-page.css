@@ -236,125 +236,264 @@
   min-height: 36px;
 }
 
-/* —— 알림톡 발송 옵션 · 결과 —— */
+/* —— 알림톡 발송 옵션 · 결과 (밝은 워크스페이스 토큰) —— */
 main.contract-signature-console .gov-signature-send-delivery {
   margin: 0 0 16px;
 }
 
 main.contract-signature-console .gov-signature-send-delivery__legend {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #cbd5e1;
+  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
+  font-weight: 700;
+  color: var(--gov-workspace-text, #0f172a);
   margin-bottom: 8px;
+  padding: 0;
 }
 
 main.contract-signature-console .gov-signature-send-delivery__modes {
   border: none;
-  margin: 0 0 14px;
+  margin: 0 0 12px;
   padding: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 10px;
+}
+
+@media (min-width: 769px) {
+  main.contract-signature-console .gov-signature-send-delivery__modes {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 main.contract-signature-console .gov-signature-send-delivery__option {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 12px 14px;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  background: #111827;
+  gap: 12px;
+  min-height: 44px;
+  padding: 14px 16px;
+  border: 1px solid var(--gov-workspace-border, #d7dee8);
+  border-radius: var(--gov-workspace-radius-card, 12px);
+  background: var(--gov-workspace-panel, #ffffff);
+  color: var(--gov-workspace-text, #0f172a);
   cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+main.contract-signature-console .gov-signature-send-delivery__option:hover {
+  background: var(--gov-workspace-primary-soft, #fff8d6);
+  border-color: color-mix(in srgb, var(--gov-workspace-primary, #f2b800) 45%, var(--gov-workspace-border, #d7dee8));
+}
+
+main.contract-signature-console .gov-signature-send-delivery__option--selected {
+  background: var(--gov-workspace-primary-soft, #fff8d6);
+  border-width: 2px;
+  border-color: var(--gov-workspace-primary, #f2b800);
+  padding: 13px 15px;
+}
+
+main.contract-signature-console .gov-signature-send-delivery__option:focus-within {
+  outline: 2px solid var(--gov-workspace-primary, #f2b800);
+  outline-offset: 2px;
+}
+
+main.contract-signature-console .gov-signature-send-delivery__option input[type='radio'] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--gov-workspace-primary, #f2b800);
 }
 
 main.contract-signature-console .gov-signature-send-delivery__option-text {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+}
+
+main.contract-signature-console .gov-signature-send-delivery__option-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 main.contract-signature-console .gov-signature-send-delivery__option-text strong {
-  color: #f8fafc;
-  font-weight: 600;
+  color: var(--gov-workspace-text, #0f172a);
+  font-weight: 700;
+  font-size: var(--gov-workspace-font-size-md, 0.9375rem);
+}
+
+main.contract-signature-console .gov-signature-send-delivery__option-desc {
+  color: var(--gov-workspace-muted, #64748b);
+  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
+  line-height: 1.45;
+}
+
+main.contract-signature-console .gov-signature-send-delivery__selected-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--gov-workspace-primary, #f2b800);
+  background: var(--gov-workspace-panel, #ffffff);
+  color: var(--gov-workspace-text, #0f172a);
+  font-size: var(--gov-workspace-font-size-xs, 0.75rem);
+  font-weight: 700;
+}
+
+main.contract-signature-console .gov-signature-send-delivery__dry-run-info {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: var(--gov-workspace-radius-control, 10px);
+  border: 1px solid color-mix(in srgb, var(--gov-workspace-primary, #f2b800) 40%, var(--gov-workspace-border, #d7dee8));
+  background: var(--gov-workspace-primary-soft, #fff8d6);
+  color: var(--gov-workspace-text, #0f172a);
+  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
+  line-height: 1.5;
 }
 
 main.contract-signature-console .gov-signature-send-delivery__expiry-label {
   display: block;
   margin-bottom: 6px;
-  color: #cbd5e1;
-  font-weight: 600;
-  font-size: 0.875rem;
+  color: var(--gov-workspace-text, #0f172a);
+  font-weight: 700;
+  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
 }
 
 main.contract-signature-console .gov-signature-send-delivery__expiry-input {
   display: block;
-  min-height: 40px;
+  min-height: var(--gov-workspace-control-height, 38px);
   padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  background: #020617;
-  color: #f8fafc;
+  border-radius: var(--gov-workspace-radius-control, 10px);
+  border: 1px solid var(--gov-workspace-border-strong, #cbd5e1);
+  background: var(--gov-workspace-panel, #ffffff);
+  color: var(--gov-workspace-text, #0f172a);
+  box-sizing: border-box;
+}
+
+main.contract-signature-console .gov-signature-send-delivery__expiry-input:focus-visible {
+  outline: 2px solid var(--gov-workspace-primary, #f2b800);
+  outline-offset: 2px;
+}
+
+main.contract-signature-console .gov-signature-send-delivery__hint {
+  margin: 6px 0 0;
+  color: var(--gov-workspace-muted, #64748b);
+  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
+  line-height: 1.45;
+}
+
+main.contract-signature-console .gov-signature-send-panel-section {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--gov-workspace-border, #d7dee8);
+  border-radius: var(--gov-workspace-radius-card, 12px);
+  background: var(--gov-workspace-panel, #ffffff);
+}
+
+main.contract-signature-console .gov-signature-send-panel-section__title {
+  margin: 0 0 10px;
+  color: var(--gov-workspace-text, #0f172a);
+  font-size: var(--gov-workspace-font-size-md, 0.9375rem);
+  font-weight: 800;
+}
+
+main.contract-signature-console .gov-signature-send-panel-section__meta {
+  margin: 0 0 6px;
+  color: var(--gov-workspace-text, #0f172a);
+  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
+  line-height: 1.5;
+}
+
+main.contract-signature-console .gov-signature-send-panel-section__meta strong {
+  margin-right: 6px;
 }
 
 main.contract-signature-console .gov-signature-send-result {
-  margin: 12px 0;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid #334155;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--gov-workspace-radius-card, 12px);
+  border: 1px solid var(--gov-workspace-border, #d7dee8);
+  background: var(--gov-workspace-panel, #ffffff);
 }
 
 main.contract-signature-console .gov-signature-send-result--success {
-  background: rgba(37, 99, 235, 0.12);
-  border-color: rgba(59, 130, 246, 0.35);
-}
-
-main.contract-signature-console .gov-signature-send-result--warning {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.35);
+  background: var(--gov-workspace-panel, #ffffff);
+  border-color: var(--gov-workspace-border-strong, #cbd5e1);
 }
 
 main.contract-signature-console .gov-signature-send-result--info {
-  background: rgba(148, 163, 184, 0.1);
-  border-color: #334155;
+  background: var(--gov-workspace-primary-soft, #fff8d6);
+  border-color: color-mix(in srgb, var(--gov-workspace-primary, #f2b800) 45%, var(--gov-workspace-border, #d7dee8));
+}
+
+main.contract-signature-console .gov-signature-send-result--warning {
+  background: var(--gov-workspace-danger-soft, #fff1f2);
+  border-color: color-mix(in srgb, var(--gov-workspace-danger, #dc2626) 35%, var(--gov-workspace-border, #d7dee8));
+}
+
+main.contract-signature-console .gov-signature-send-result__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 6px;
 }
 
 main.contract-signature-console .gov-signature-send-result__session,
 main.contract-signature-console .gov-signature-send-result__notification {
   margin: 0 0 6px;
-  color: #e5e7eb;
+  color: var(--gov-workspace-text, #0f172a);
   line-height: 1.5;
 }
 
+main.contract-signature-console .gov-signature-send-result__session {
+  margin: 0;
+  font-weight: 700;
+}
+
+main.contract-signature-console .gov-signature-send-result__actions {
+  margin-top: 10px;
+}
+
 main.contract-signature-console .gov-signature-alimtalk-status {
-  display: inline-block;
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
   border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border: 1px solid #334155;
-  color: #e5e7eb;
-  background: #1f2937;
+  font-size: var(--gov-workspace-font-size-xs, 0.75rem);
+  font-weight: 700;
+  border: 1px solid var(--gov-workspace-border, #d7dee8);
+  color: var(--gov-workspace-text, #0f172a);
+  background: var(--gov-workspace-surface-muted, #f8fafc);
 }
 
 main.contract-signature-console .gov-signature-alimtalk-status--sent {
-  border-color: rgba(59, 130, 246, 0.45);
-  color: #93c5fd;
+  border-color: color-mix(in srgb, #16a34a 40%, var(--gov-workspace-border, #d7dee8));
+  background: color-mix(in srgb, #16a34a 10%, var(--gov-workspace-panel, #ffffff));
+  color: #166534;
 }
 
 main.contract-signature-console .gov-signature-alimtalk-status--dry-run {
-  border-color: rgba(148, 163, 184, 0.45);
-  color: #cbd5e1;
+  border-color: var(--gov-workspace-primary, #f2b800);
+  background: var(--gov-workspace-panel, #ffffff);
+  color: var(--gov-workspace-text, #0f172a);
 }
 
 main.contract-signature-console .gov-signature-alimtalk-status--failed {
-  border-color: rgba(239, 68, 68, 0.45);
-  color: #fca5a5;
+  border-color: color-mix(in srgb, var(--gov-workspace-danger, #dc2626) 40%, var(--gov-workspace-border, #d7dee8));
+  background: var(--gov-workspace-danger-soft, #fff1f2);
+  color: var(--gov-workspace-danger, #dc2626);
 }
 
-main.contract-signature-console .gov-signature-alimtalk-status--skipped {
-  border-color: rgba(148, 163, 184, 0.35);
-  color: #94a3b8;
+main.contract-signature-console .gov-signature-alimtalk-status--skipped,
+main.contract-signature-console .gov-signature-alimtalk-status--none {
+  border-color: var(--gov-workspace-border, #d7dee8);
+  background: var(--gov-workspace-surface-muted, #f8fafc);
+  color: var(--gov-workspace-muted, #64748b);
 }
 
 main.contract-signature-console .gov-signature-alimtalk-info__dl {
@@ -364,18 +503,30 @@ main.contract-signature-console .gov-signature-alimtalk-info__dl {
 }
 
 main.contract-signature-console .gov-signature-alimtalk-info__dl dt {
-  color: #94a3b8;
-  font-size: 0.8125rem;
+  color: var(--gov-workspace-muted, #64748b);
+  font-size: var(--gov-workspace-font-size-sm, 0.8125rem);
 }
 
 main.contract-signature-console .gov-signature-alimtalk-info__dl dd {
   margin: 2px 0 0;
-  color: #e5e7eb;
+  color: var(--gov-workspace-text, #0f172a);
 }
 
 main.contract-signature-console .gov-signature-alimtalk-info__resend-badge {
   display: inline-block;
   margin-left: 6px;
-  font-size: 0.6875rem;
-  color: #60a5fa;
+  font-size: var(--gov-workspace-font-size-xs, 0.75rem);
+  color: var(--gov-workspace-text, #0f172a);
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  main.contract-signature-console .gov-signature-send-delivery__expiry-input {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  main.contract-signature-console .gov-signature-send-result__actions .form-button {
+    width: 100%;
+  }
 }

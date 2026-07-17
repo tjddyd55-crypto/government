@@ -36,6 +36,7 @@ import {
   loadGovernmentProfileAccessRow,
 } from './lib/governmentSupport/governmentProfileAccessHelpers.js'
 import { GOVERNMENT_INDUSTRY_CODE } from './lib/governmentSupport/constants.js'
+import { loadGovernmentSignatureAlimtalkConfig } from './lib/governmentSupport/notifications/governmentSignatureAlimtalkConfig.js'
 import {
   createGovernmentAdminUser,
   listGovernmentAdminUsers,
@@ -174,6 +175,7 @@ export function registerGovernmentSupportApi(router, deps) {
           defaultWorkspaceTenantId: workspaceTenantIds[0] ?? null,
           programUserTenantName,
           accountCreatedAt,
+          signatureAlimtalkDryRun: loadGovernmentSignatureAlimtalkConfig().dryRun === true,
         },
       })
     } catch (e) {

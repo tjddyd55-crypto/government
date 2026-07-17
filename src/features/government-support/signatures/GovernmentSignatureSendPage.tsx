@@ -39,6 +39,7 @@ import {
   validateSignatureExpiryYmd,
 } from './governmentSignatureAlimtalkDisplay'
 import type { GovernmentSignatureCustomerNotifyMode, GovernmentSignatureSendNotificationResult } from './governmentSignatureAlimtalkTypes'
+import { fetchGovernmentAccessSummary } from '../api/governmentSupportApi'
 
 /**
  * 모바일 발송 단계에서 초록색(contract-mobile-step--completed)은
@@ -265,6 +266,29 @@ export default function GovernmentSignatureSendPage() {
   const [expiryYmd, setExpiryYmd] = useState(() => defaultSignatureExpiryYmd())
   const [expiryError, setExpiryError] = useState<string | null>(null)
   const [lastNotification, setLastNotification] = useState<GovernmentSignatureSendNotificationResult | null>(null)
+  const [signatureAlimtalkDryRun, setSignatureAlimtalkDryRun] = useState(false)
+
+  useEffect(() => {
+    if (!t) {
+      setSignatureAlimtalkDryRun(false)
+      return
+    }
+    let cancelled = false
+    void fetchGovernmentAccessSummary(t)
+      .then((access) => {
+        if (!cancelled) {
+          setSignatureAlimtalkDryRun(access.signatureAlimtalkDryRun === true)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSignatureAlimtalkDryRun(false)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [t])
 
   useEffect(() => {
     setAttachmentDrafts([])
@@ -959,7 +983,7 @@ export default function GovernmentSignatureSendPage() {
   }
 
   const mainClass = isMobileFlow
-    ? 'insurance-dark-forms contract-signature-console contract-signature-flow--mobile'
+    ? 'insurance-dark-forms contract-signature-console contract-signature-flow--mobile gov-signature-send-page'
     : 'gov-user-page gov-user-signatures-page gov-signature-send-page contract-signature-console'
 
   const senderFields = selectedTpl?.senderFieldsForSend ?? []
@@ -1338,6 +1362,7 @@ export default function GovernmentSignatureSendPage() {
                 }}
                 expiryError={expiryError}
                 disabled={sendBusy}
+                showDryRunInfo={signatureAlimtalkDryRun}
               />
               <SendSessionPanel
                 busy={sendBusy}
@@ -1776,6 +1801,7 @@ export default function GovernmentSignatureSendPage() {
             }}
             expiryError={expiryError}
             disabled={sendBusy}
+            showDryRunInfo={signatureAlimtalkDryRun}
           />
           <SendSessionPanel
             busy={sendBusy}

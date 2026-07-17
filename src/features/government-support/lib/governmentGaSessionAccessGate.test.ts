@@ -20,6 +20,7 @@ const MEMBER_SUMMARY: GovernmentAccessSummary = {
   defaultWorkspaceTenantId: 't1',
   programUserTenantName: null,
   accountCreatedAt: null,
+  signatureAlimtalkDryRun: false,
 }
 
 describe('resolveGovernmentGaAccessGatePhase', () => {

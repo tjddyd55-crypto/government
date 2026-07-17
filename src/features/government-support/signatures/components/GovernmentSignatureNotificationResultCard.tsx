@@ -1,6 +1,7 @@
 import { FormButton } from '../../../../components/form'
 import { buildSendResultMessages } from '../governmentSignatureAlimtalkDisplay'
 import type { GovernmentSignatureSendNotificationResult } from '../governmentSignatureAlimtalkTypes'
+import { AlimtalkNotificationStatusBadge } from './AlimtalkNotificationStatusBadge'
 
 type Props = {
   notification?: GovernmentSignatureSendNotificationResult | null
@@ -19,13 +20,22 @@ export function GovernmentSignatureNotificationResultCard({ notification, onCopy
       role="status"
       data-testid="gov-signature-send-result"
     >
-      <p className="gov-signature-send-result__session">{model.sessionLine}</p>
+      <div className="gov-signature-send-result__head">
+        <p className="gov-signature-send-result__session">{model.sessionLine}</p>
+        {notification ? (
+          <AlimtalkNotificationStatusBadge
+            notificationStatus={notification.status}
+            notificationDryRun={notification.dryRun}
+            notificationProviderCode={notification.providerCode}
+          />
+        ) : null}
+      </div>
       {model.notificationLine ? (
         <p className="gov-signature-send-result__notification">{model.notificationLine}</p>
       ) : null}
       {model.showCopyLink && onCopyLink ? (
         <div className="gov-signature-send-result__actions">
-          <FormButton htmlType="button" variant="secondary" size="sm" onClick={onCopyLink}>
+          <FormButton htmlType="button" variant="primary" size="sm" onClick={onCopyLink}>
             전자서명 링크 복사
           </FormButton>
         </div>

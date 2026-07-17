@@ -115,79 +115,104 @@ export function SendSessionPanel({
 
         {session ? (
           <div style={{ marginTop: 14 }}>
-            {lastNotification ? (
-              <GovernmentSignatureNotificationResultCard
-                notification={lastNotification}
-                onCopyLink={() => void copyLink(session.signToken)}
-              />
-            ) : (
-              <div className="contract-mobile-success-banner">
-                <strong>링크가 생성되었습니다.</strong>
-                <div className="contract-signature-console__hint" style={{ marginTop: 6 }}>
-                  고객에게 전달할 링크가 준비되었습니다. 아래 버튼으로 복사하거나 열 수 있습니다.
+            <section className="gov-signature-send-panel-section" aria-label="발송 결과">
+              <h3 className="gov-signature-send-panel-section__title">발송 결과</h3>
+              {lastNotification ? (
+                <GovernmentSignatureNotificationResultCard
+                  notification={lastNotification}
+                  onCopyLink={() => void copyLink(session.signToken)}
+                />
+              ) : (
+                <div className="contract-mobile-success-banner">
+                  <strong>링크가 생성되었습니다.</strong>
+                  <div className="contract-signature-console__hint" style={{ marginTop: 6 }}>
+                    고객에게 전달할 링크가 준비되었습니다. 아래 버튼으로 복사하거나 열 수 있습니다.
+                  </div>
                 </div>
+              )}
+            </section>
+
+            <section className="gov-signature-send-panel-section" aria-label="발송 세션 정보">
+              <h3 className="gov-signature-send-panel-section__title">발송 세션 정보</h3>
+              <p className="gov-signature-send-panel-section__meta">
+                <strong>수신자 연락처</strong> {session.maskedPhone || '—'}
+              </p>
+              <p className="gov-signature-send-panel-section__meta">
+                <strong>서명 상태</strong> <SendSessionStatusBadge sessionStatus={session.status} />
+              </p>
+              {session.expiredAt ? (
+                <p className="gov-signature-send-panel-section__meta">
+                  <strong>서명기한</strong>{' '}
+                  {formatStaffSessionDateParts(session.expiredAt)?.date.replace(/\./g, '-') ?? '—'}
+                </p>
+              ) : null}
+              {session.createdAt ? (
+                <p className="gov-signature-send-panel-section__meta">
+                  <strong>생성일</strong> {formatStaffSessionDate(session.createdAt)}
+                </p>
+              ) : null}
+              <div className="contract-mobile-action-grid" style={{ marginTop: 12 }}>
+                <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => void copyLink(session.signToken)}>
+                  링크 복사
+                </FormButton>
+                <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => openTab(session.signToken)}>
+                  링크 열기
+                </FormButton>
               </div>
-            )}
-            <div className="contract-mobile-action-grid" style={{ marginTop: 14 }}>
-              <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => void copyLink(session.signToken)}>
-                링크 복사
-              </FormButton>
-              <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => openTab(session.signToken)}>
-                링크 열기
-              </FormButton>
-            </div>
-            <div className="contract-mobile-action-grid contract-mobile-action-grid--stack" style={{ marginTop: 0 }}>
-              <FormButton htmlType="button" variant="secondary" size="sm" disabled={busy} onClick={onRefresh}>
-                상태 새로고침
-              </FormButton>
-            </div>
-            {session.confirmationItems && session.confirmationItems.length > 0 ? (
-              <div style={{ marginTop: 14 }}>
-                <strong style={{ fontSize: '0.8125rem' }}>고객 확인 항목</strong>
-                <ul className="contract-mobile-readonly-list" style={{ marginTop: 8 }}>
-                  {session.confirmationItems.map((c) => (
-                    <li key={c.id}>
-                      <span>{c.label}</span>
-                      {c.required ? ' · 필수' : ''}
-                      {' — '}
-                      {c.checked ? (
-                        <span>
-                          확인 완료
-                          {c.checkedAt ? ` (${String(c.checkedAt).slice(0, 19)})` : ''}
-                        </span>
-                      ) : (
-                        <span className="contract-signature-console__hint">미확인</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+              <div className="contract-mobile-action-grid contract-mobile-action-grid--stack" style={{ marginTop: 0 }}>
+                <FormButton htmlType="button" variant="secondary" size="sm" disabled={busy} onClick={onRefresh}>
+                  상태 새로고침
+                </FormButton>
               </div>
-            ) : null}
-            {session.sendSessionAttachments && session.sendSessionAttachments.length > 0 ? (
-              <div style={{ marginTop: 14 }}>
-                <strong style={{ fontSize: '0.8125rem' }}>첨부자료 확인</strong>
-                <ul className="contract-mobile-readonly-list" style={{ marginTop: 8 }}>
-                  {session.sendSessionAttachments.map((a) => (
-                    <li key={a.id}>
-                      <span>{a.displayFilename}</span>
-                      {a.required ? ' · 필수' : ''}
-                      {' — '}
-                      {a.confirmed ? (
-                        <span>
-                          확인 완료{' '}
-                          {a.confirmedAt ? formatAttachmentCustomerConfirmAt(a.confirmedAt) : ''}
-                        </span>
-                      ) : (
-                        <span className="contract-signature-console__hint">미확인</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+              {session.confirmationItems && session.confirmationItems.length > 0 ? (
+                <div style={{ marginTop: 14 }}>
+                  <strong style={{ fontSize: '0.8125rem' }}>고객 확인 항목</strong>
+                  <ul className="contract-mobile-readonly-list" style={{ marginTop: 8 }}>
+                    {session.confirmationItems.map((c) => (
+                      <li key={c.id}>
+                        <span>{c.label}</span>
+                        {c.required ? ' · 필수' : ''}
+                        {' — '}
+                        {c.checked ? (
+                          <span>
+                            확인 완료
+                            {c.checkedAt ? ` (${String(c.checkedAt).slice(0, 19)})` : ''}
+                          </span>
+                        ) : (
+                          <span className="contract-signature-console__hint">미확인</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {session.sendSessionAttachments && session.sendSessionAttachments.length > 0 ? (
+                <div style={{ marginTop: 14 }}>
+                  <strong style={{ fontSize: '0.8125rem' }}>첨부자료 확인</strong>
+                  <ul className="contract-mobile-readonly-list" style={{ marginTop: 8 }}>
+                    {session.sendSessionAttachments.map((a) => (
+                      <li key={a.id}>
+                        <span>{a.displayFilename}</span>
+                        {a.required ? ' · 필수' : ''}
+                        {' — '}
+                        {a.confirmed ? (
+                          <span>
+                            확인 완료{' '}
+                            {a.confirmedAt ? formatAttachmentCustomerConfirmAt(a.confirmedAt) : ''}
+                          </span>
+                        ) : (
+                          <span className="contract-signature-console__hint">미확인</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </section>
+
             {staffTok && (detail?.documents?.length ?? 0) > 0 ? (
-              <div style={{ marginTop: 14 }}>
-                <strong style={{ fontSize: '0.8125rem' }}>문서</strong>
+              <section className="gov-signature-send-panel-section" aria-label="문서 목록">
+                <h3 className="gov-signature-send-panel-section__title">문서 목록</h3>
                 {(detail?.documents ?? []).map((d) => {
                   const ev = d.evidence
                   const canDl = d.status === 'completed' && Boolean(ev?.hasSignedPdfFile)
@@ -250,7 +275,7 @@ export function SendSessionPanel({
                     </div>
                   )
                 })}
-              </div>
+              </section>
             ) : null}
           </div>
         ) : null}
@@ -279,136 +304,119 @@ export function SendSessionPanel({
 
       {session ? (
         <div className="contract-signature-console__session-summary">
-          {lastNotification ? (
-            <GovernmentSignatureNotificationResultCard
-              notification={lastNotification}
-              onCopyLink={() => void copyLink(session.signToken)}
-            />
-          ) : null}
-          <p className="contract-signature-console__body-text" style={{ margin: lastNotification ? '12px 0 0' : 0 }}>
-            <strong>수신자 연락처</strong> {session.maskedPhone || '—'}
-          </p>
-          <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
-            상태 <SendSessionStatusBadge sessionStatus={session.status} />
-          </p>
-          {session.expiredAt ? (
-            <p className="contract-signature-console__hint" style={{ marginTop: 4 }}>
-              서명기한 {formatStaffSessionDateParts(session.expiredAt)?.date.replace(/\./g, '-') ?? '—'}
+          <section className="gov-signature-send-panel-section" aria-label="발송 결과">
+            <h3 className="gov-signature-send-panel-section__title">발송 결과</h3>
+            {lastNotification ? (
+              <GovernmentSignatureNotificationResultCard
+                notification={lastNotification}
+                onCopyLink={() => void copyLink(session.signToken)}
+              />
+            ) : (
+              <p className="gov-signature-send-panel-section__meta">
+                전자서명 요청이 생성되었습니다. 고객에게 전달할 링크를 복사하거나 새 탭에서 열 수 있습니다.
+              </p>
+            )}
+          </section>
+
+          <section className="gov-signature-send-panel-section" aria-label="발송 세션 정보">
+            <h3 className="gov-signature-send-panel-section__title">발송 세션 정보</h3>
+            <p className="gov-signature-send-panel-section__meta">
+              <strong>수신자 연락처</strong> {session.maskedPhone || '—'}
             </p>
-          ) : null}
-          {session.createdAt ? (
-            <p className="contract-signature-console__hint" style={{ marginTop: 4 }}>
-              발송일 {formatStaffSessionDate(session.createdAt)}
+            <p className="gov-signature-send-panel-section__meta">
+              <strong>서명 상태</strong> <SendSessionStatusBadge sessionStatus={session.status} />
             </p>
-          ) : null}
-          {!lastNotification ? (
-            <p className="contract-signature-console__hint" style={{ marginTop: 8 }}>
-              고객에게 전달할 링크를 복사하거나 새 탭에서 열 수 있습니다.
-            </p>
-          ) : null}
-          {session.confirmationItems && session.confirmationItems.length > 0 ? (
-            <div style={{ marginTop: 12 }}>
-              <strong>고객 확인 항목</strong>
-              <ul className="contract-signature-console__unordered-list" style={{ marginTop: 6 }}>
-                {session.confirmationItems.map((c) => (
-                  <li key={c.id}>
-                    <span>{c.label}</span>
-                    {c.required ? ' · 필수' : ''}
-                    {' — '}
-                    {c.checked ? (
-                      <span>
-                        확인 완료
-                        {c.checkedAt ? ` (${String(c.checkedAt).slice(0, 19)})` : ''}
-                      </span>
-                    ) : (
-                      <span className="contract-signature-console__hint">미확인</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+            {session.expiredAt ? (
+              <p className="gov-signature-send-panel-section__meta">
+                <strong>서명기한</strong>{' '}
+                {formatStaffSessionDateParts(session.expiredAt)?.date.replace(/\./g, '-') ?? '—'}
+              </p>
+            ) : null}
+            {session.createdAt ? (
+              <p className="gov-signature-send-panel-section__meta">
+                <strong>생성일</strong> {formatStaffSessionDate(session.createdAt)}
+              </p>
+            ) : null}
+            {session.confirmationItems && session.confirmationItems.length > 0 ? (
+              <div style={{ marginTop: 12 }}>
+                <strong>고객 확인 항목</strong>
+                <ul className="contract-signature-console__unordered-list" style={{ marginTop: 6 }}>
+                  {session.confirmationItems.map((c) => (
+                    <li key={c.id}>
+                      <span>{c.label}</span>
+                      {c.required ? ' · 필수' : ''}
+                      {' — '}
+                      {c.checked ? (
+                        <span>
+                          확인 완료
+                          {c.checkedAt ? ` (${String(c.checkedAt).slice(0, 19)})` : ''}
+                        </span>
+                      ) : (
+                        <span className="contract-signature-console__hint">미확인</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {session.sendSessionAttachments && session.sendSessionAttachments.length > 0 ? (
+              <div style={{ marginTop: 12 }}>
+                <strong>첨부자료 확인</strong>
+                <ul className="contract-signature-console__unordered-list" style={{ marginTop: 6 }}>
+                  {session.sendSessionAttachments.map((a) => (
+                    <li key={a.id}>
+                      <span>{a.displayFilename}</span>
+                      {a.required ? ' · 필수' : ''}
+                      {' — '}
+                      {a.confirmed ? (
+                        <span>
+                          확인 완료
+                          {a.confirmedAt ? ` (${formatAttachmentCustomerConfirmAt(a.confirmedAt)})` : ''}
+                        </span>
+                      ) : (
+                        <span className="contract-signature-console__hint">미확인</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            <div className="contract-signature-console__btn-row" style={{ marginTop: 12 }}>
+              <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => void copyLink(session.signToken)}>
+                링크 복사
+              </FormButton>
+              <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => openTab(session.signToken)}>
+                새 탭에서 고객 링크 열기
+              </FormButton>
+              <FormButton htmlType="button" variant="secondary" size="sm" disabled={busy} onClick={onRefresh}>
+                상태 새로고침
+              </FormButton>
             </div>
-          ) : null}
-          {session.sendSessionAttachments && session.sendSessionAttachments.length > 0 ? (
-            <div style={{ marginTop: 12 }}>
-              <strong>첨부자료 확인</strong>
-              <ul className="contract-signature-console__unordered-list" style={{ marginTop: 6 }}>
-                {session.sendSessionAttachments.map((a) => (
-                  <li key={a.id}>
-                    <span>{a.displayFilename}</span>
-                    {a.required ? ' · 필수' : ''}
-                    {' — '}
-                    {a.confirmed ? (
-                      <span>
-                        확인 완료
-                        {a.confirmedAt ? ` (${formatAttachmentCustomerConfirmAt(a.confirmedAt)})` : ''}
-                      </span>
-                    ) : (
-                      <span className="contract-signature-console__hint">미확인</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          <div className="contract-signature-console__btn-row">
-            <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => void copyLink(session.signToken)}>
-              링크 복사
-            </FormButton>
-            <FormButton htmlType="button" variant="secondary" size="sm" onClick={() => openTab(session.signToken)}>
-              새 탭에서 고객 링크 열기
-            </FormButton>
-            <FormButton htmlType="button" variant="primary" size="sm" disabled={busy} onClick={onRefresh}>
-              상태 새로고침
-            </FormButton>
-          </div>
+          </section>
+
           {staffTok && (detail?.documents?.length ?? 0) > 0 ? (
-            <div className="contract-signature-console__scroll-x" style={{ marginTop: 12 }}>
-              <table className="pdf-engine-table contract-signature-console__table--compact">
-                <thead>
-                  <tr>
-                    <th>문서</th>
-                    <th>상태</th>
-                    <th>{completedDocColumnLabel}</th>
-                    <th>증빙 PDF</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(detail?.documents ?? []).map((d, idx) => {
-                    const ev = d.evidence
-                    const canDl = d.status === 'completed' && Boolean(ev?.hasSignedPdfFile)
-                    return (
-                      <tr key={d.id}>
-                        <td>{d.titleSnapshot}</td>
-                        <td>{staffDocumentStatusLabel(d.status)}</td>
-                        <td>
-                          {d.status === 'completed' && canDl ? (
-                            <FormButton
-                              htmlType="button"
-                              variant="secondary"
-                              size="sm"
-                              className="contract-session-pdf-dl-btn"
-                              onClick={() => {
-                                if (!detail) {
-                                  return
-                                }
-                                void downloadStaffSignedPdfFile(staffTok, detail.id, d.id).then((r) => {
-                                  if (!r.ok) {
-                                    notifyDownloadError(r.message)
-                                  }
-                                })
-                              }}
-                            >
-                              다운로드
-                            </FormButton>
-                          ) : d.status === 'completed' ? (
-                            <span className="contract-signature-console__hint">준비 중</span>
-                          ) : (
-                            <span className="contract-signature-console__hint">—</span>
-                          )}
-                        </td>
-                        {idx === 0 ? (
-                          <td rowSpan={Math.max((detail?.documents ?? []).length, 1)}>
-                            {sessionCompleted ? (
+            <section className="gov-signature-send-panel-section" aria-label="문서 목록">
+              <h3 className="gov-signature-send-panel-section__title">문서 목록</h3>
+              <div className="contract-signature-console__scroll-x">
+                <table className="pdf-engine-table contract-signature-console__table--compact">
+                  <thead>
+                    <tr>
+                      <th>문서</th>
+                      <th>상태</th>
+                      <th>{completedDocColumnLabel}</th>
+                      <th>증빙 PDF</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(detail?.documents ?? []).map((d, idx) => {
+                      const ev = d.evidence
+                      const canDl = d.status === 'completed' && Boolean(ev?.hasSignedPdfFile)
+                      return (
+                        <tr key={d.id}>
+                          <td>{d.titleSnapshot}</td>
+                          <td>{staffDocumentStatusLabel(d.status)}</td>
+                          <td>
+                            {d.status === 'completed' && canDl ? (
                               <FormButton
                                 htmlType="button"
                                 variant="secondary"
@@ -418,7 +426,7 @@ export function SendSessionPanel({
                                   if (!detail) {
                                     return
                                   }
-                                  void downloadStaffEvidencePdfFile(staffTok, detail.id).then((r) => {
+                                  void downloadStaffSignedPdfFile(staffTok, detail.id, d.id).then((r) => {
                                     if (!r.ok) {
                                       notifyDownloadError(r.message)
                                     }
@@ -427,19 +435,47 @@ export function SendSessionPanel({
                               >
                                 다운로드
                               </FormButton>
+                            ) : d.status === 'completed' ? (
+                              <span className="contract-signature-console__hint">준비 중</span>
                             ) : (
-                              <span className="contract-signature-console__hint">
-                                고객이 문서를 완료하면 다운로드할 수 있습니다.
-                              </span>
+                              <span className="contract-signature-console__hint">—</span>
                             )}
                           </td>
-                        ) : null}
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          {idx === 0 ? (
+                            <td rowSpan={Math.max((detail?.documents ?? []).length, 1)}>
+                              {sessionCompleted ? (
+                                <FormButton
+                                  htmlType="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  className="contract-session-pdf-dl-btn"
+                                  onClick={() => {
+                                    if (!detail) {
+                                      return
+                                    }
+                                    void downloadStaffEvidencePdfFile(staffTok, detail.id).then((r) => {
+                                      if (!r.ok) {
+                                        notifyDownloadError(r.message)
+                                      }
+                                    })
+                                  }}
+                                >
+                                  다운로드
+                                </FormButton>
+                              ) : (
+                                <span className="contract-signature-console__hint">
+                                  고객이 문서를 완료하면 다운로드할 수 있습니다.
+                                </span>
+                              )}
+                            </td>
+                          ) : null}
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           ) : null}
         </div>
       ) : null}
