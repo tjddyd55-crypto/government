@@ -56,6 +56,17 @@
   --border-subtle: var(--gov-workspace-border);
   --border: var(--gov-workspace-border);
   --brand-primary: var(--gov-workspace-primary);
+  /* 전역 다크 테마 --btn-hover-bg(네이비) 잔재가 보조 버튼 hover 에 새지 않도록 */
+  --btn-surface: var(--gov-workspace-panel);
+  --btn-border: var(--gov-workspace-border-strong);
+  --btn-text: var(--gov-workspace-text);
+  --btn-hover-bg: var(--gov-workspace-primary-soft);
+  --btn-hover-border: var(--gov-workspace-primary);
+  --secondary-bg: var(--gov-workspace-panel);
+  --secondary-border: var(--gov-workspace-border-strong);
+  --secondary-text: var(--gov-workspace-text);
+  --secondary-hover-bg: var(--gov-workspace-primary-soft);
+  --text-on-primary: #0f172a;
 }
 
 .government-user-layout--pc-user.government-page,
@@ -327,9 +338,39 @@
 
 .government-user-layout--pc-user .form-button--secondary,
 .government-user-layout--pc-user .button--secondary {
-  background: #ffffff;
+  background: var(--gov-workspace-panel);
   color: var(--gov-workspace-text);
   border-color: var(--gov-workspace-border-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .government-user-layout--pc-user .form-button:hover:not(:disabled):not(:active),
+  .government-user-layout--pc-user .button:hover:not(:disabled):not(:active) {
+    background-color: var(--gov-workspace-primary-soft);
+    border-color: var(--gov-workspace-primary);
+    color: var(--gov-workspace-text);
+  }
+
+  .government-user-layout--pc-user .form-button--primary:hover:not(:disabled):not(:active),
+  .government-user-layout--pc-user .button--primary:hover:not(:disabled):not(:active) {
+    background-color: var(--gov-workspace-primary-hover);
+    border-color: var(--gov-workspace-primary-hover);
+    color: #0f172a;
+  }
+
+  .government-user-layout--pc-user .form-button--secondary:hover:not(:disabled):not(:active),
+  .government-user-layout--pc-user .button--secondary:hover:not(:disabled):not(:active) {
+    background-color: var(--gov-workspace-primary-soft);
+    border-color: var(--gov-workspace-primary);
+    color: var(--gov-workspace-text);
+  }
+
+  .government-user-layout--pc-user .form-button:disabled:hover,
+  .government-user-layout--pc-user .button:disabled:hover {
+    background-color: inherit;
+    border-color: inherit;
+    color: inherit;
+  }
 }
 
 .government-user-layout--pc-user .form-button--danger,

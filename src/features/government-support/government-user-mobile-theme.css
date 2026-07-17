@@ -210,11 +210,12 @@
   --secondary-bg: #ffffff;
   --secondary-border: #cbd5e1;
   --secondary-text: #0f172a;
-  --secondary-hover-bg: #f8fafc;
+  --secondary-hover-bg: var(--gov-workspace-primary-soft, #fff8d6);
   --btn-surface: #ffffff;
   --btn-border: #cbd5e1;
   --btn-text: #0f172a;
-  --btn-hover-bg: #f8fafc;
+  --btn-hover-bg: var(--gov-workspace-primary-soft, #fff8d6);
+  --btn-hover-border: var(--gov-workspace-primary, #f2b800);
   --warning-text: #b45309;
   --warning-bg: #fff7d6;
   --warning-border: #f2b800;
