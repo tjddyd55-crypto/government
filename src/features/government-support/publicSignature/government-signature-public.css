@@ -6,20 +6,50 @@
 /* ── SSOT 토큰 (페이지 루트 + body: portal 모달용) ── */
 .government-public-signature-page,
 body.government-public-signature-active {
-  --bg-main: #f5f7fb;
-  --bg-card: #ffffff;
-  --bg-input: #ffffff;
+  --gov-ui-bg: #f5f7fb;
+  --gov-ui-panel: #ffffff;
+  --gov-ui-border: #d7dee8;
+  --gov-ui-border-strong: #cbd5e1;
+  --gov-ui-text: #0f172a;
+  --gov-ui-muted: #64748b;
+  --gov-ui-primary: #f2b800;
+  --gov-ui-primary-hover: #d99f00;
+  --gov-ui-primary-soft: #fff8d6;
+  --gov-ui-focus-border: #f2b800;
+
+  --government-bg-page: #f5f7fb;
+  --government-bg-surface: #ffffff;
+  --government-bg-muted: #f8fafc;
+  --government-bg-soft: #f1f5f9;
+  --government-border: #d7dee8;
+  --government-border-strong: #cbd5e1;
+  --government-text-primary: #0f172a;
+  --government-text-secondary: #64748b;
+  --government-text-muted: #94a3b8;
+  --government-input-bg: #ffffff;
+  --government-input-border: #cbd5e1;
+  --government-input-placeholder: #94a3b8;
+  --government-input-focus: #f2b800;
+  --government-disabled-bg: #f8fafc;
+  --government-disabled-text: #64748b;
+  --government-loading-bg: #ffffff;
+  --government-skeleton-bg: #e2e8f0;
+  --government-hover-bg: #fff8d6;
+
+  --bg-main: var(--government-bg-page);
+  --bg-card: var(--government-bg-surface);
+  --bg-input: var(--government-input-bg);
   --bg-soft: #fffdf0;
   --bg-elevated: #ffffff;
-  --text-main: #0f172a;
-  --text-sub: #64748b;
-  --border: #d7dee8;
+  --text-main: var(--government-text-primary);
+  --text-sub: var(--government-text-secondary);
+  --border: var(--government-border);
   --primary: #f2b800;
   --primary-hover: #d99f00;
   --primary-soft: rgba(242, 184, 0, 0.18);
   --focus-ring: #f2b800;
   --link: #0f172a;
-  --placeholder: #94a3b8;
+  --placeholder: var(--government-input-placeholder);
   --danger-text: #dc2626;
   --danger-bg: #fff1f2;
   --danger-border: #fecdd3;
@@ -31,11 +61,15 @@ body.government-public-signature-active {
   --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.06);
   --shadow-modal: 0 12px 40px rgba(15, 23, 42, 0.12);
   --status-warn: #d97706;
-  --disabled-bg: #f8fafc;
-  --disabled-text: #64748b;
+  --disabled-bg: var(--government-disabled-bg);
+  --disabled-text: var(--government-disabled-text);
+  --dashboard-empty-bg: var(--government-loading-bg);
+  --dashboard-empty-text: var(--government-text-secondary);
+  --dashboard-empty-border: var(--government-border);
   --result-paper-bg: #ffffff;
   --result-ink: #0f172a;
   --radius-md: 10px;
+  color-scheme: light;
 }
 
 .government-public-signature-brand {
@@ -127,20 +161,38 @@ body.government-public-signature-active .consent-signature-backdrop .consent-btn
   }
 }
 
-/* gov-form-control — 전역 dark input override */
+/*
+ * index.css 전역 input:not(...×9) 규칙(검정 배경)과 동일 :not 체인으로 덮어쓴다.
+ * OTP FormInput / gov-form-control 포함.
+ */
+.government-public-signature-page input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):not([type='hidden']),
+.government-public-signature-page select,
+.government-public-signature-page textarea,
 .government-public-signature-page .gov-form-control,
-.government-public-signature-page .form-input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+.government-public-signature-page .form-input,
 .government-public-signature-page .form-select,
 .government-public-signature-page .form-textarea,
-body.government-public-signature-active .consent-signature-backdrop input:not([type='checkbox']) {
-  background: #ffffff;
-  color: #0f172a;
-  border: 2px solid #cbd5e1;
+body.government-public-signature-active .consent-signature-backdrop input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):not([type='hidden']) {
+  background-color: var(--government-input-bg, var(--bg-input, #ffffff));
+  background: var(--government-input-bg, var(--bg-input, #ffffff));
+  color: var(--government-text-primary, var(--text-main, #0f172a));
+  border: 2px solid var(--government-input-border, #cbd5e1);
   border-radius: 10px;
   box-shadow: none;
   outline: none;
+  caret-color: var(--government-text-primary, #0f172a);
+  -webkit-text-fill-color: var(--government-text-primary, #0f172a);
+  color-scheme: light;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
+.government-public-signature-page input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):not([type='hidden']):focus:not(:disabled):not([readonly]),
+.government-public-signature-page input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='color']):not([type='hidden']):focus-visible:not(:disabled):not([readonly]),
+.government-public-signature-page select:focus:not(:disabled),
+.government-public-signature-page select:focus-visible:not(:disabled),
+.government-public-signature-page textarea:focus:not(:disabled):not([readonly]),
+.government-public-signature-page textarea:focus-visible:not(:disabled):not([readonly]),
 .government-public-signature-page .gov-form-control:focus:not(:disabled):not([readonly]),
 .government-public-signature-page .gov-form-control:focus-visible:not(:disabled):not([readonly]),
 .government-public-signature-page .form-input:focus:not(:disabled):not([readonly]),
@@ -150,15 +202,43 @@ body.government-public-signature-active .consent-signature-backdrop input:not([t
 .government-public-signature-page .form-textarea:focus:not(:disabled):not([readonly]),
 .government-public-signature-page .form-textarea:focus-visible:not(:disabled):not([readonly]) {
   outline: none;
-  border-color: #f2b800;
-  box-shadow: none;
+  border-color: var(--government-input-focus, #f2b800);
+  box-shadow: 0 0 0 3px var(--primary-soft, rgba(242, 184, 0, 0.18));
 }
 
+.government-public-signature-page input::placeholder,
+.government-public-signature-page textarea::placeholder,
 .government-public-signature-page .gov-form-control::placeholder,
 .government-public-signature-page .form-input::placeholder,
 .government-public-signature-page .form-textarea::placeholder {
-  color: #94a3b8;
+  color: var(--government-input-placeholder, #94a3b8);
   opacity: 1;
+  -webkit-text-fill-color: var(--government-input-placeholder, #94a3b8);
+}
+
+.government-public-signature-page input:disabled,
+.government-public-signature-page select:disabled,
+.government-public-signature-page textarea:disabled,
+.government-public-signature-page input[readonly],
+.government-public-signature-page textarea[readonly] {
+  background: var(--government-disabled-bg, #f8fafc);
+  background-color: var(--government-disabled-bg, #f8fafc);
+  color: var(--government-disabled-text, #64748b);
+  -webkit-text-fill-color: var(--government-disabled-text, #64748b);
+  border-color: var(--government-border, #d7dee8);
+  opacity: 1;
+}
+
+/* Chrome autofill 다크 잔재 — 공개 서명 스코프만 */
+.government-public-signature-page input:-webkit-autofill,
+.government-public-signature-page input:-webkit-autofill:hover,
+.government-public-signature-page input:-webkit-autofill:focus,
+.government-public-signature-page textarea:-webkit-autofill,
+.government-public-signature-page select:-webkit-autofill {
+  -webkit-text-fill-color: var(--government-text-primary, #0f172a);
+  caret-color: var(--government-text-primary, #0f172a);
+  box-shadow: 0 0 0 1000px var(--government-input-bg, #ffffff) inset;
+  transition: background-color 99999s ease-out;
 }
 
 .government-public-signature-card {

@@ -4,7 +4,12 @@
 .government-user-white-theme,
 .government-admin-white-theme,
 .government-user-layout--pc-user,
-.government-admin-layout--pc-admin {
+.government-admin-layout--pc-admin,
+.government-user-layout,
+.government-admin-layout,
+.government-public-signature-page,
+body.government-public-signature-active {
+  /* legacy aliases (기존 SSOT) */
   --gov-ui-bg: #f5f7fb;
   --gov-ui-panel: #ffffff;
   --gov-ui-border: #d7dee8;
@@ -18,6 +23,37 @@
   --gov-ui-danger: #dc2626;
   --gov-ui-danger-soft: #fff1f2;
   --gov-ui-focus-border: #f2b800;
+
+  /* government semantic tokens (라이트 SSOT) */
+  --government-bg-page: var(--gov-ui-bg);
+  --government-bg-surface: var(--gov-ui-panel);
+  --government-bg-muted: #f8fafc;
+  --government-bg-soft: #f1f5f9;
+  --government-border: var(--gov-ui-border);
+  --government-border-strong: var(--gov-ui-border-strong);
+  --government-text-primary: var(--gov-ui-text);
+  --government-text-secondary: var(--gov-ui-muted);
+  --government-text-muted: #94a3b8;
+  --government-input-bg: #ffffff;
+  --government-input-border: var(--gov-ui-border-strong);
+  --government-input-placeholder: #94a3b8;
+  --government-input-focus: var(--gov-ui-focus-border);
+  --government-disabled-bg: #f1f5f9;
+  --government-disabled-text: #64748b;
+  --government-loading-bg: #ffffff;
+  --government-skeleton-bg: #e2e8f0;
+  --government-hover-bg: var(--gov-ui-primary-soft);
+
+  /* 전역 data-theme=dark 토큰이 LoadingState(.dashboard-empty)에 새지 않도록 */
+  --dashboard-empty-bg: var(--government-loading-bg);
+  --dashboard-empty-text: var(--government-text-secondary);
+  --dashboard-empty-border: var(--government-border);
+  --bg-soft: var(--government-bg-muted);
+  --bg-input: var(--government-input-bg);
+  --placeholder: var(--government-input-placeholder);
+  --disabled-bg: var(--government-disabled-bg);
+  --disabled-text: var(--government-disabled-text);
+  color-scheme: light;
 }
 
 /* 공통 카드 */
@@ -825,12 +861,51 @@
 
 .government-user-layout .gov-status-loading,
 .government-admin-white-theme .gov-status-loading {
-  background: #ffffff;
-  border: 1px solid #d7dee8;
+  background: var(--government-loading-bg, #ffffff);
+  border: 1px solid var(--government-border, #d7dee8);
   border-radius: 14px;
   padding: 20px 16px;
-  color: #64748b;
+  color: var(--government-text-secondary, #64748b);
   font-size: 0.875rem;
+}
+
+/* LoadingState 기본 class `.dashboard-empty` — 다크 토큰 상속 차단 */
+.government-auth-white-theme .dashboard-empty,
+.government-user-white-theme .dashboard-empty,
+.government-admin-white-theme .dashboard-empty,
+.government-user-layout .dashboard-empty,
+.government-admin-layout .dashboard-empty,
+.government-profile-workspace .dashboard-empty,
+.government-public-signature-page .dashboard-empty,
+.government-public-signature-page .contract-public-link-page__loading,
+.government-public-signature-page .contract-public-sign-page__loading {
+  background: var(--government-loading-bg, #ffffff);
+  border: 1px dashed var(--government-border, #d7dee8);
+  color: var(--government-text-secondary, #64748b);
+  box-shadow: none;
+}
+
+.government-auth-white-theme input:disabled,
+.government-auth-white-theme select:disabled,
+.government-auth-white-theme textarea:disabled,
+.government-user-white-theme input:disabled,
+.government-user-white-theme select:disabled,
+.government-user-white-theme textarea:disabled,
+.government-admin-white-theme input:disabled,
+.government-admin-white-theme select:disabled,
+.government-admin-white-theme textarea:disabled,
+.government-user-layout input:disabled,
+.government-user-layout select:disabled,
+.government-user-layout textarea:disabled,
+.government-admin-layout input:disabled,
+.government-admin-layout select:disabled,
+.government-admin-layout textarea:disabled {
+  background: var(--government-disabled-bg, #f1f5f9);
+  background-color: var(--government-disabled-bg, #f1f5f9);
+  color: var(--government-disabled-text, #64748b);
+  border-color: var(--government-border, #d7dee8);
+  opacity: 1;
+  -webkit-text-fill-color: var(--government-disabled-text, #64748b);
 }
 
 /* —— 입력 focus 통일 (layout / customer / public / form-grid) —— */

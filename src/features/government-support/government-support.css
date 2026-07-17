@@ -2557,18 +2557,88 @@
 }
 
 .government-profile-workspace .customer-workspace-home {
-  border: 1px solid var(--gov-workspace-border);
+  border: 1px solid var(--gov-workspace-border, var(--government-border, #d7dee8));
   border-radius: 12px;
-  background: #f8fafc;
-  color: var(--gov-workspace-text);
+  background: var(--government-bg-muted, #f8fafc);
+  color: var(--gov-workspace-text, var(--government-text-primary, #0f172a));
+  box-shadow: none;
 }
 
 .government-profile-workspace .customer-workspace-home__title {
-  color: var(--gov-workspace-text);
+  color: var(--gov-workspace-text, var(--government-text-primary, #0f172a));
 }
 
-.government-profile-workspace .customer-workspace-home__desc {
-  color: var(--gov-workspace-muted);
+.government-profile-workspace .customer-workspace-home__desc,
+.government-profile-workspace .customer-workspace-home__selected {
+  color: var(--gov-workspace-muted, var(--government-text-secondary, #64748b));
+}
+
+/*
+ * 보험용 customer-workspace-recent.css (#1e2633) 가 전역 import 되므로
+ * 정부 워크스페이스 스코프에서만 라이트 토큰으로 덮는다.
+ */
+.government-profile-workspace .customer-workspace-home__intro,
+.government-profile-workspace .customer-workspace-recent {
+  border: 1px solid var(--government-border, var(--gov-workspace-border, #d7dee8));
+  background: var(--government-bg-surface, var(--gov-workspace-panel, #ffffff));
+  color: var(--government-text-primary, var(--gov-workspace-text, #0f172a));
+  box-shadow: none;
+}
+
+.government-profile-workspace .customer-workspace-recent__header h4 {
+  color: var(--government-text-primary, #0f172a);
+}
+
+.government-profile-workspace .customer-workspace-recent__header p {
+  color: var(--government-text-secondary, #64748b);
+}
+
+.government-profile-workspace .customer-workspace-recent__error,
+.government-profile-workspace .customer-workspace-recent__empty {
+  border: 1px dashed var(--government-border, #d7dee8);
+  background: var(--government-loading-bg, #ffffff);
+  color: var(--government-text-secondary, #64748b);
+}
+
+.government-profile-workspace .customer-workspace-recent__item {
+  border: 1px solid var(--government-border, #d7dee8);
+  background: var(--government-bg-muted, #f8fafc);
+  color: var(--government-text-primary, #0f172a);
+}
+
+.government-profile-workspace .customer-workspace-recent__item:hover,
+.government-profile-workspace .customer-workspace-recent__item:focus-visible {
+  border-color: var(--gov-workspace-primary, #f2b800);
+  background: var(--government-hover-bg, #fff8d6);
+  outline: none;
+}
+
+.government-profile-workspace .customer-workspace-recent__item:disabled,
+.government-profile-workspace .customer-workspace-recent__item[aria-busy='true'] {
+  background: var(--government-disabled-bg, #f1f5f9);
+  color: var(--government-disabled-text, #64748b);
+  cursor: default;
+  opacity: 1;
+}
+
+.government-profile-workspace .customer-workspace-recent__rank {
+  background: var(--government-bg-soft, #f1f5f9);
+  border: 1px solid var(--government-border, #d7dee8);
+  color: var(--government-text-primary, #0f172a);
+}
+
+.government-profile-workspace .customer-workspace-recent__main strong {
+  color: var(--government-text-primary, #0f172a);
+}
+
+.government-profile-workspace .customer-workspace-recent__main small {
+  color: var(--government-text-secondary, #64748b);
+}
+
+.government-profile-workspace .customer-workspace-recent__action {
+  background: var(--government-bg-surface, #ffffff);
+  border: 1px solid var(--government-border-strong, #cbd5e1);
+  color: var(--government-text-primary, #0f172a);
 }
 
 .government-profile-workspace .government-page__muted {
