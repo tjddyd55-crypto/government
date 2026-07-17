@@ -1,6 +1,14 @@
 /**
  * Aligo 카카오 알림톡 발송 (dry-run 시 API 미호출).
+ * 공식 endpoint: POST https://kakaoapi.aligo.in/akv10/alimtalk/send/
  */
+
+import {
+  GOVERNMENT_ALIMTALK_APPROVED_TEMPLATE_CODE,
+  GOVERNMENT_ALIMTALK_SUBJECT,
+  buildGovernmentAlimtalkApprovedMessage,
+  resolveAlimtalkMessageVariables,
+} from './alimtalkMessage.mjs'
 
 const ALIGO_ALIMTALK_URL = 'https://kakaoapi.aligo.in/akv10/alimtalk/send/'
 
@@ -17,14 +25,15 @@ function pickAligoCode(raw) {
  */
 function pickAligoMessage(raw) {
   const msg = raw?.message ?? raw?.msg ?? raw?.result_message
-  return msg != null ? String(msg) : null
+  return msg != null ? String(msg).slice(0, 300) : null
 }
 
 /**
  * @param {Record<string, unknown>} raw
  */
 function pickAligoMessageId(raw) {
-  const id = raw?.mid ?? raw?.message_id ?? raw?.msg_id
+  const info = raw?.info && typeof raw.info === 'object' ? /** @type {Record<string, unknown>} */ (raw.info) : null
+  const id = info?.mid ?? raw?.mid ?? raw?.message_id ?? raw?.msg_id
   return id != null ? String(id) : null
 }
 
@@ -35,31 +44,22 @@ function pickAligoMessageId(raw) {
  *   templateCode: string,
  *   messageVariables: Record<string, string>,
  *   button: { name: string, mobileUrl: string, pcUrl?: string, linkType?: string },
- *   variableNameMap: Record<string, string | null | undefined>,
  * }} p
  */
 export function buildAligoAlimtalkForm(p) {
-  const { config, recipientPhone, templateCode, messageVariables, button, variableNameMap } = p
-  const tplCode = templateCode || config.governmentTemplateCode
-  const lines = []
-  for (const [internalKey, aligoKey] of Object.entries(variableNameMap)) {
-    if (!aligoKey) continue
-    const value = String(messageVariables[internalKey] ?? '').trim()
-    if (value) {
-      lines.push(`#{${aligoKey}}=${value}`)
-    }
-  }
-  const messageBody = lines.length > 0 ? lines.join('\n') : ' '
-
+  const { config, recipientPhone, templateCode, messageVariables, button } = p
+  const vars = resolveAlimtalkMessageVariables(messageVariables)
+  const tplCode = String(templateCode || config.governmentTemplateCode || GOVERNMENT_ALIMTALK_APPROVED_TEMPLATE_CODE).trim()
+  const messageBody = buildGovernmentAlimtalkApprovedMessage(vars)
   const linkType = String(button.linkType ?? 'WL').trim() || 'WL'
   const buttonPayload = {
     button: [
       {
-        name: String(button.name ?? '전자서명 확인'),
+        name: String(button.name ?? '전자서명하기'),
         linkType,
         linkTypeName: linkType === 'WL' ? '웹링크' : linkType,
         linkMo: String(button.mobileUrl ?? ''),
-        ...(button.pcUrl ? { linkPc: String(button.pcUrl) } : {}),
+        linkPc: String(button.pcUrl || button.mobileUrl || ''),
       },
     ],
   }
@@ -69,11 +69,14 @@ export function buildAligoAlimtalkForm(p) {
   form.set('userid', config.aligoUserId)
   form.set('senderkey', config.aligoSenderKey)
   form.set('tpl_code', tplCode)
+  form.set('sender', config.aligoSender)
   form.set('receiver_1', recipientPhone)
+  form.set('recvname_1', vars.customerName || '고객')
+  form.set('subject_1', GOVERNMENT_ALIMTALK_SUBJECT)
   form.set('message_1', messageBody)
   form.set('button_1', JSON.stringify(buttonPayload))
   form.set('failover', 'N')
-  form.set('testmode', 'N')
+  form.set('testMode', 'N')
   return form
 }
 
@@ -84,7 +87,6 @@ export function buildAligoAlimtalkForm(p) {
  *   templateCode: string,
  *   messageVariables: Record<string, string>,
  *   button: { name: string, mobileUrl: string, pcUrl?: string, linkType?: string },
- *   variableNameMap: Record<string, string | null | undefined>,
  *   dryRun: boolean,
  * }} p
  */
@@ -110,12 +112,13 @@ export async function sendAligoAlimtalk(p) {
     }
   }
 
-  if (!config.aligoApiKey || !config.aligoUserId || !config.aligoSenderKey) {
+  if (!config.aligoApiKey || !config.aligoUserId || !config.aligoSenderKey || !config.aligoSender) {
     return {
       ok: false,
       status: 'failed',
       provider: 'aligo',
       channel: 'kakao_alimtalk',
+      dryRun: false,
       providerMessageId: null,
       providerCode: null,
       providerMessage: 'Aligo credentials not configured',
@@ -134,11 +137,31 @@ export async function sendAligoAlimtalk(p) {
       status: 'failed',
       provider: 'aligo',
       channel: 'kakao_alimtalk',
+      dryRun: false,
       providerMessageId: null,
       providerCode: null,
       providerMessage: 'template code missing',
       retryable: false,
       errorCategory: 'missing_template',
+      requestedAt,
+      sentAt: null,
+      failedAt: requestedAt,
+    }
+  }
+
+  const vars = resolveAlimtalkMessageVariables(p.messageVariables)
+  if (!vars.customerName || !vars.managerName || !vars.managerPhone || !vars.signToken) {
+    return {
+      ok: false,
+      status: 'failed',
+      provider: 'aligo',
+      channel: 'kakao_alimtalk',
+      dryRun: false,
+      providerMessageId: null,
+      providerCode: null,
+      providerMessage: 'approved template variables incomplete',
+      retryable: false,
+      errorCategory: 'missing_template_variables',
       requestedAt,
       sentAt: null,
       failedAt: requestedAt,
@@ -162,13 +185,14 @@ export async function sendAligoAlimtalk(p) {
     try {
       parsed = text ? JSON.parse(text) : {}
     } catch {
-      parsed = { message: text }
+      parsed = { message: text.slice(0, 300) }
     }
 
     const providerCode = pickAligoCode(parsed)
-    const providerMessage = pickAligoMessage(parsed) ?? text.slice(0, 500)
+    const providerMessage = pickAligoMessage(parsed) ?? 'aligo response'
     const providerMessageId = pickAligoMessageId(parsed)
-    const success = res.ok && (providerCode === '0' || providerCode === '1' || parsed.success === true)
+    // Aligo는 HTTP 200 안에 code!=0 실패를 반환할 수 있음
+    const success = providerCode === '0'
 
     if (success) {
       return {
@@ -176,6 +200,7 @@ export async function sendAligoAlimtalk(p) {
         status: 'sent',
         provider: 'aligo',
         channel: 'kakao_alimtalk',
+        dryRun: false,
         providerMessageId,
         providerCode,
         providerMessage,
@@ -192,10 +217,11 @@ export async function sendAligoAlimtalk(p) {
       status: 'failed',
       provider: 'aligo',
       channel: 'kakao_alimtalk',
+      dryRun: false,
       providerMessageId,
       providerCode,
       providerMessage,
-      retryable: res.status >= 500,
+      retryable: false,
       errorCategory: 'provider_rejected',
       requestedAt,
       sentAt: null,
@@ -209,6 +235,7 @@ export async function sendAligoAlimtalk(p) {
       status: 'failed',
       provider: 'aligo',
       channel: 'kakao_alimtalk',
+      dryRun: false,
       providerMessageId: null,
       providerCode: null,
       providerMessage: isTimeout ? 'provider timeout' : 'network error',

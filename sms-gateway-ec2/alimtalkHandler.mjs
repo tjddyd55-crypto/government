@@ -35,6 +35,16 @@ function validateAlimtalkRequestBody(body) {
   if (!buttonName || !mobileUrl) {
     return { ok: false, status: 400, error: 'invalid_button' }
   }
+  if (!mobileUrl.includes('/government/sign/')) {
+    return { ok: false, status: 400, error: 'invalid_button_url' }
+  }
+  const vars = /** @type {Record<string, unknown>} */ (messageVariables)
+  const requiredKeys = ['customerName', 'managerName', 'managerPhone', 'signToken']
+  for (const key of requiredKeys) {
+    if (!String(vars[key] ?? '').trim()) {
+      return { ok: false, status: 400, error: 'missing_template_variables' }
+    }
+  }
   return {
     ok: true,
     value: {
@@ -57,10 +67,6 @@ function validateAlimtalkRequestBody(body) {
         linkType: String(/** @type {Record<string, unknown>} */ (button).linkType ?? 'WL').trim() || 'WL',
       },
       dryRun: Boolean(body?.dryRun),
-      variableNameMap:
-        body?.variableNameMap && typeof body.variableNameMap === 'object' && !Array.isArray(body.variableNameMap)
-          ? /** @type {Record<string, string | null | undefined>} */ (body.variableNameMap)
-          : {},
     },
   }
 }
@@ -94,35 +100,61 @@ export function createAlimtalkHandler() {
       return
     }
 
-    const { value } = validated
-    const effectiveDryRun = value.dryRun || config.dryRun
+    try {
+      const { value } = validated
+      const effectiveDryRun = value.dryRun || config.dryRun
 
-    if (!config.aligoSenderKey && !effectiveDryRun) {
-      res.status(503).json({
+      if (!effectiveDryRun) {
+        if (!config.aligoSenderKey) {
+          res.status(503).json({
+            ok: false,
+            status: 'failed',
+            provider: 'aligo',
+            channel: 'kakao_alimtalk',
+            dryRun: false,
+            errorCategory: 'missing_sender_key',
+            retryable: false,
+          })
+          return
+        }
+        if (config.liveTestRecipient && value.recipientPhone !== config.liveTestRecipient) {
+          res.status(403).json({
+            ok: false,
+            status: 'failed',
+            provider: 'aligo',
+            channel: 'kakao_alimtalk',
+            dryRun: false,
+            errorCategory: 'live_recipient_not_allowed',
+            retryable: false,
+          })
+          return
+        }
+      }
+
+      const result = await sendAligoAlimtalk({
+        config,
+        recipientPhone: value.recipientPhone,
+        templateCode: value.templateCode,
+        messageVariables: value.messageVariables,
+        button: value.button,
+        dryRun: effectiveDryRun,
+      })
+
+      const statusCode = result.ok ? 200 : result.errorCategory === 'provider_rejected' ? 502 : 503
+      res.status(statusCode).json({
+        ...result,
+        requestId: value.requestId,
+      })
+    } catch {
+      res.status(500).json({
         ok: false,
         status: 'failed',
         provider: 'aligo',
         channel: 'kakao_alimtalk',
-        errorCategory: 'missing_sender_key',
-        retryable: false,
+        dryRun: false,
+        errorCategory: 'unknown',
+        retryable: true,
       })
-      return
     }
-
-    const result = await sendAligoAlimtalk({
-      config,
-      recipientPhone: value.recipientPhone,
-      templateCode: value.templateCode,
-      messageVariables: value.messageVariables,
-      button: value.button,
-      variableNameMap: value.variableNameMap,
-      dryRun: effectiveDryRun,
-    })
-
-    const statusCode = result.ok ? 200 : result.errorCategory === 'provider_rejected' ? 502 : 503
-    res.status(statusCode).json({
-      ...result,
-      requestId: value.requestId,
-    })
   }
 }

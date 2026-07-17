@@ -31,14 +31,12 @@ const validBody = {
   templateCode: 'TPL_TEST',
   messageVariables: {
     customerName: '홍길동',
-    companyName: '세승대행',
-    requestedDate: '2026-06-25',
-    expiryDate: '2026-07-02',
     managerName: '김담당',
-    managerPhone: '0212345678',
+    managerPhone: '01012345678',
+    signToken: 'token',
   },
   button: {
-    name: '전자서명 확인',
+    name: '전자서명하기',
     mobileUrl: 'https://example.com/government/sign/token',
     pcUrl: 'https://example.com/government/sign/token',
   },
