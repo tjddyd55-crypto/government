@@ -49,6 +49,11 @@ function extractGatewayResultCode(data) {
   return code == null ? undefined : String(code)
 }
 
+/** EC2 `/send-sms`는 Aligo raw JSON을 HTTP 200으로 그대로 넘긴다. HTTP 상태만 보면 인증오류(-102 등)도 성공으로 오인한다. */
+function isAligoProviderSuccessBody(data) {
+  return extractGatewayResultCode(data) === '1'
+}
+
 function logSmsRelayOutcome({
   provider,
   purpose,
@@ -413,8 +418,16 @@ export async function sendVerificationCode({
       }
     }
 
-    if (response.status >= 200 && response.status < 300) {
+    if (response.status >= 200 && response.status < 300 && isAligoProviderSuccessBody(response.data)) {
       await finalizeOk('http')
+      logSmsRelayOutcome({
+        provider: 'http_gateway',
+        purpose: purposeNorm,
+        phoneDigits: receiver,
+        relay: true,
+        resultCode: extractGatewayResultCode(response.data),
+        status: 'ok',
+      })
       return realDispatchOk({ sent: true, data: response.data })
     }
 
@@ -443,8 +456,16 @@ export async function sendVerificationCode({
       }
     }
 
-    if (response.status >= 200 && response.status < 300) {
+    if (response.status >= 200 && response.status < 300 && isAligoProviderSuccessBody(response.data)) {
       await finalizeOk('http_retry')
+      logSmsRelayOutcome({
+        provider: 'http_gateway',
+        purpose: purposeNorm,
+        phoneDigits: receiver,
+        relay: true,
+        resultCode: extractGatewayResultCode(response.data),
+        status: 'ok_retry',
+      })
       return realDispatchOk({ sent: true, data: response.data })
     }
 
