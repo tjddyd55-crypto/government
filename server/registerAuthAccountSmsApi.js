@@ -1,7 +1,7 @@
 import { randomInt, randomUUID } from 'node:crypto'
 import { parseGaId } from './lib/parseGaId.js'
 import { systemQuery } from './utils/dbSafeQuery.js'
-import { sendVerificationCode } from './services/smsService.js'
+import { sendGovernmentAuthVerificationCode } from './lib/governmentSupport/authVerification/sendGovernmentAuthVerificationCode.js'
 import { consumeSmsVerificationCode } from './services/consumeSmsVerificationCode.js'
 import { runAccountResetDataOnClient } from './services/accountResetService.js'
 import { assertNotVerifyLocked, recordVerifyFailure, clearVerifyFailures } from './services/smsRateLimit.js'
@@ -220,11 +220,12 @@ export function registerAuthAccountSmsApi(apiRouter, ctx) {
       client.release()
     }
 
-    const smsResult = await sendVerificationCode({
+    const smsResult = await sendGovernmentAuthVerificationCode({
       phoneNumber: phoneNorm,
       code,
       purpose: SMS_PURPOSE_PASSWORD_RESET,
       clientIp,
+      expiresInMinutes: 3,
     })
 
     if (!smsResult?.success) {
@@ -261,7 +262,11 @@ export function registerAuthAccountSmsApi(apiRouter, ctx) {
       userId: user.id,
     })
 
-    const payload = { ok: true, message: '인증번호가 발송되었습니다.' }
+    const payload = {
+      ok: true,
+      message: '인증번호가 발송되었습니다.',
+      deliveryChannel: smsResult.channel ?? undefined,
+    }
     if (showDebugCode) {
       payload.debugCode = code
     }
@@ -530,11 +535,12 @@ export function registerAuthAccountSmsApi(apiRouter, ctx) {
       client.release()
     }
 
-    const smsResultAcct = await sendVerificationCode({
+    const smsResultAcct = await sendGovernmentAuthVerificationCode({
       phoneNumber: phoneNorm,
       code,
       purpose: SMS_PURPOSE_ACCOUNT_RESET,
       clientIp: acctClientIp,
+      expiresInMinutes: 5,
     })
 
     if (!smsResultAcct?.success) {

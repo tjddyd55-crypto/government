@@ -7,7 +7,7 @@ import {
   normalizeTenantRegistrationCodeRaw,
 } from './lib/tenantRegistrationCodes.js'
 import { systemQuery } from './utils/dbSafeQuery.js'
-import { sendVerificationCode } from './services/smsService.js'
+import { sendGovernmentAuthVerificationCode } from './lib/governmentSupport/authVerification/sendGovernmentAuthVerificationCode.js'
 import { consumeAnonymousSmsVerificationCode, consumeSmsVerificationCode } from './services/consumeSmsVerificationCode.js'
 import {
   assertNotVerifyLocked,
@@ -249,11 +249,12 @@ export function registerUserProfileApi(apiRouter, ctx) {
       client.release()
     }
 
-    const smsResult = await sendVerificationCode({
+    const smsResult = await sendGovernmentAuthVerificationCode({
       phoneNumber: phoneNorm,
       code,
       purpose: SMS_PURPOSE_SIGNUP,
       clientIp,
+      expiresInMinutes: 3,
     })
     if (!smsResult?.success) {
       if (newCodeRowId != null) {
@@ -268,7 +269,11 @@ export function registerUserProfileApi(apiRouter, ctx) {
 
     await recordPhoneSms10MinSend(phoneNorm)
 
-    const payload = { ok: true, message: '인증번호가 발송되었습니다.' }
+    const payload = {
+      ok: true,
+      message: '인증번호가 발송되었습니다.',
+      deliveryChannel: smsResult.channel ?? undefined,
+    }
     if (showDebugCode) {
       payload.debugCode = code
     }
@@ -852,11 +857,12 @@ export function registerUserProfileApi(apiRouter, ctx) {
       client.release()
     }
 
-    const smsOk = await sendVerificationCode({
+    const smsOk = await sendGovernmentAuthVerificationCode({
       phoneNumber: phoneNorm,
       code,
       purpose: SMS_PURPOSE_PHONE_CHANGE,
       clientIp,
+      expiresInMinutes: 3,
     })
     if (!smsOk?.success) {
       if (newCodeRowId != null) {
